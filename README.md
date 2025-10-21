@@ -112,6 +112,25 @@ For a detailed list of issues and their solutions, see [SERVICE_LAYER_ISSUES.md]
    make run-all
    ```
 
+To run the refactored application server directly with PostgreSQL:
+
+```
+go run ./cmd/appserver -config configs/examples/appserver.json -migrate
+```
+
+YAML configs are supported as well:
+
+```
+go run ./cmd/appserver -config configs/config.yaml -migrate
+```
+
+You can also supply a DSN without a config file:
+
+```
+DATABASE_URL=postgres://user:pass@localhost:5432/service_layer?sslmode=disable \
+go run ./cmd/appserver -addr :8080
+```
+
 ## Development
 
 ### Project Structure
@@ -161,6 +180,7 @@ The project includes comprehensive documentation:
 - [Web Dashboard](docs/web_dashboard.md) - User interface features
 - [API Documentation](docs/api/api_overview.md) - API endpoints and usage
 - [Neo N3 Integration](docs/neo_n3_integration.md) - Neo N3 specific features
+- [PostgreSQL Setup](docs/operations/postgres_setup.md) - Database configuration & migrations
 - [Developer Guide](docs/developer_guide.md) - Guide for developers
 
 ## Web Dashboard

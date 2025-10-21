@@ -15,12 +15,12 @@ import (
 
 // ServerConfig contains HTTP server settings
 type ServerConfig struct {
-	Port           int    `json:"port"`
-	Host           string `json:"host"`
-	TLSCertPath    string `json:"tlsCertPath"`
-	TLSKeyPath     string `json:"tlsKeyPath"`
-	EnableTLS      bool   `json:"enableTls"`
-	ReadTimeoutSec int    `json:"readTimeoutSec"`
+	Port           int             `json:"port"`
+	Host           string          `json:"host"`
+	TLSCertPath    string          `json:"tlsCertPath"`
+	TLSKeyPath     string          `json:"tlsKeyPath"`
+	EnableTLS      bool            `json:"enableTls"`
+	ReadTimeoutSec int             `json:"readTimeoutSec"`
 	ReadTimeout    time.Duration   `mapstructure:"read_timeout"`
 	WriteTimeout   time.Duration   `mapstructure:"write_timeout"`
 	IdleTimeout    time.Duration   `mapstructure:"idle_timeout"`
@@ -54,22 +54,22 @@ type TEEConfig struct {
 
 // AzureConfig defines the configuration for Azure Confidential Computing
 type AzureConfig struct {
-	ClientID                string       `mapstructure:"client_id"`
-	ClientSecret            string       `mapstructure:"client_secret"`
-	TenantID                string       `mapstructure:"tenant_id"`
-	SubscriptionID          string       `mapstructure:"subscription_id"`
-	ResourceGroup           string       `mapstructure:"resource_group"`
-	AttestationProviderName string       `mapstructure:"attestation_provider_name"`
-	AttestationEndpoint     string       `mapstructure:"attestation_endpoint"`
-	AllowedSGXEnclaves      []string     `mapstructure:"allowed_sgx_enclaves"`
-	Region                  string       `mapstructure:"region"`
+	ClientID                string        `mapstructure:"client_id"`
+	ClientSecret            string        `mapstructure:"client_secret"`
+	TenantID                string        `mapstructure:"tenant_id"`
+	SubscriptionID          string        `mapstructure:"subscription_id"`
+	ResourceGroup           string        `mapstructure:"resource_group"`
+	AttestationProviderName string        `mapstructure:"attestation_provider_name"`
+	AttestationEndpoint     string        `mapstructure:"attestation_endpoint"`
+	AllowedSGXEnclaves      []string      `mapstructure:"allowed_sgx_enclaves"`
+	Region                  string        `mapstructure:"region"`
 	Runtime                 RuntimeConfig `mapstructure:"runtime"`
 }
 
 // RuntimeConfig contains runtime-specific configuration for TEE
 type RuntimeConfig struct {
-	JSMemoryLimit     int   `mapstructure:"js_memory_limit"`
-	ExecutionTimeout  int   `mapstructure:"execution_timeout"`
+	JSMemoryLimit    int `mapstructure:"js_memory_limit"`
+	ExecutionTimeout int `mapstructure:"execution_timeout"`
 }
 
 // GasBankConfig contains gas management settings
@@ -282,17 +282,17 @@ type SecretsApi struct {
 
 // NeoConfig contains Neo N3 blockchain configuration
 type NeoConfig struct {
-	NetworkID        int     `mapstructure:"network_id"`
-	ChainID          int     `mapstructure:"chain_id"`
-	Network          string  `mapstructure:"network"`
-	RPCEndpoint      string  `mapstructure:"rpc_endpoint"`
-	WSEndpoint       string  `mapstructure:"ws_endpoint"`
-	GasBankContract  string  `mapstructure:"gas_bank_contract"`
-	OracleContract   string  `mapstructure:"oracle_contract"`
-	PriceFeedTimeout int     `mapstructure:"price_feed_timeout"`
-	Confirmations    int64   `mapstructure:"confirmations"`
-	GasLimit         int64   `mapstructure:"gas_limit"`
-	GasPrice         int64   `mapstructure:"gas_price"`
+	NetworkID        int    `mapstructure:"network_id"`
+	ChainID          int    `mapstructure:"chain_id"`
+	Network          string `mapstructure:"network"`
+	RPCEndpoint      string `mapstructure:"rpc_endpoint"`
+	WSEndpoint       string `mapstructure:"ws_endpoint"`
+	GasBankContract  string `mapstructure:"gas_bank_contract"`
+	OracleContract   string `mapstructure:"oracle_contract"`
+	PriceFeedTimeout int    `mapstructure:"price_feed_timeout"`
+	Confirmations    int64  `mapstructure:"confirmations"`
+	GasLimit         int64  `mapstructure:"gas_limit"`
+	GasPrice         int64  `mapstructure:"gas_price"`
 }
 
 // NodeConfig contains configuration for a blockchain node
@@ -440,8 +440,8 @@ func New() *Config {
 			RefillAmount:      50.0,
 		},
 		TEE: TEEConfig{
-			Provider:            "simulation",
-			EnableAttestation:   false,
+			Provider:          "simulation",
+			EnableAttestation: false,
 			Azure: AzureConfig{
 				ClientID:                "",
 				ClientSecret:            "",
@@ -453,8 +453,8 @@ func New() *Config {
 				AllowedSGXEnclaves:      []string{},
 				Region:                  "",
 				Runtime: RuntimeConfig{
-					JSMemoryLimit:     0,
-					ExecutionTimeout:  0,
+					JSMemoryLimit:    0,
+					ExecutionTimeout: 0,
 				},
 			},
 		},
@@ -517,7 +517,7 @@ func New() *Config {
 			ChainID:          1, // MainNet
 			Network:          "",
 			RPCEndpoint:      "http://localhost:10332",
-			WSEndpoint:       "ws://localhost:10332/ws", 
+			WSEndpoint:       "ws://localhost:10332/ws",
 			GasBankContract:  "0x1234567890123456789012345678901234567890",
 			OracleContract:   "0x0987654321098765432109876543210987654321",
 			PriceFeedTimeout: 60,
@@ -542,10 +542,10 @@ func New() *Config {
 			EnableDebugLogs:       false,
 			RotationIntervalHours: 24,
 			MaxLogFiles:           7,
-			Level:                "info",
-			Format:               "json",
-			Output:               "file",
-			FilePrefix:           "service-layer",
+			Level:                 "info",
+			Format:                "json",
+			Output:                "file",
+			FilePrefix:            "service-layer",
 		},
 		Metrics: MetricsConfig{
 			Enabled:       true,
@@ -596,6 +596,15 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("failed to decode environment variables: %w", err)
 	}
 
+	return cfg, nil
+}
+
+// LoadFile reads configuration from a YAML file without applying environment overrides.
+func LoadFile(path string) (*Config, error) {
+	cfg := &Config{}
+	if err := loadFromFile(path, cfg); err != nil {
+		return nil, err
+	}
 	return cfg, nil
 }
 
@@ -690,8 +699,8 @@ func DefaultConfig() *Config {
 			PriceFeedTimeout: 60,
 		},
 		TEE: TEEConfig{
-			Provider:            "simulation",
-			EnableAttestation:   false,
+			Provider:          "simulation",
+			EnableAttestation: false,
 			Azure: AzureConfig{
 				ClientID:                "",
 				ClientSecret:            "",
@@ -703,8 +712,8 @@ func DefaultConfig() *Config {
 				AllowedSGXEnclaves:      []string{},
 				Region:                  "",
 				Runtime: RuntimeConfig{
-					JSMemoryLimit:     0,
-					ExecutionTimeout:  0,
+					JSMemoryLimit:    0,
+					ExecutionTimeout: 0,
 				},
 			},
 		},
@@ -724,10 +733,10 @@ func DefaultConfig() *Config {
 			EnableDebugLogs:       false,
 			RotationIntervalHours: 24,
 			MaxLogFiles:           7,
-			Level:                "info",
-			Format:               "json",
-			Output:               "file",
-			FilePrefix:           "service-layer",
+			Level:                 "info",
+			Format:                "json",
+			Output:                "file",
+			FilePrefix:            "service-layer",
 		},
 		Metrics: MetricsConfig{
 			Enabled:       true,

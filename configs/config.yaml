@@ -14,6 +14,8 @@ server:
 
 # Database configuration
 database:
+  # Optional DSN overrides host/port fields when set.
+  dsn: ""
   host: "localhost"
   port: 5432
   user: "postgres"
