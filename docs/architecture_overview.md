@@ -32,6 +32,89 @@ The Neo N3 Service Layer offers the following core services:
 └────────────────────────────────────────────────────────────────────┘
 ```
 
+## Logical Architecture Diagram
+
+```mermaid
+flowchart TB
+    subgraph Clients
+        UserApp[User Portals & SDKs]
+        ServiceClient[Partner Integrations]
+    end
+    Clients --> Gateway
+
+    subgraph API_Layer[API Layer]
+        Gateway[REST Gateway]
+        Auth[Auth & RBAC]
+    end
+    Gateway --> Auth
+    Auth --> Core
+
+    subgraph Core[Core Service Layer]
+        Functions[Functions Runtime]
+        Secrets[Secret Manager]
+        Automation[Automation Engine]
+        RNG[Random Number Service]
+        Price[Price Feed Service]
+        OracleSvc[Oracle Adapter]
+        GasBank[Gas Bank Manager]
+        EventRouter[Event Router]
+    end
+    Auth --> Functions
+    Auth --> Secrets
+    Auth --> Automation
+    Auth --> RNG
+    Auth --> Price
+    Auth --> OracleSvc
+    Auth --> GasBank
+    Core --> TEEEnv
+
+    subgraph TEEEnv[TEE Execution Environment]
+        TEEWorker[Confidential Compute Workers]
+        SecretsVault[Encrypted Secrets Vault]
+    end
+    TEEWorker --> SecretsVault
+    TEEWorker --> BlockchainInterface
+
+    subgraph Integration[External Integrations]
+        BlockchainInterface[Neo N3 Interface]
+        ExternalData[External Data Providers]
+        Monitoring[Telemetry & Alerting]
+    end
+    OracleSvc --> ExternalData
+    Monitoring --> OperationsTeam[Ops Team]
+    BlockchainInterface --> NeoN3[Neo N3 Blockchain]
+```
+
+The logical diagram highlights the flow from user-facing entry points through the core platform services, into the TEE-backed execution layer, and out to blockchain and external data integrations.
+
+## Deployment Diagram
+
+```mermaid
+flowchart LR
+    Users[Client Apps] --> Ingress[API Gateway / Ingress]
+
+    subgraph Azure[Aks Cluster - Azure Subscription]
+        Ingress --> ApiPods[API Pods]
+        ApiPods --> WorkerPods[Service Worker Pods]
+
+        subgraph ConfidentialK8s[Confidential Compute Node Pool]
+            WorkerPods --> SGXNodes[TEE Worker Nodes]
+        end
+
+        WorkerPods --> KeyVault[Azure Key Vault]
+        WorkerPods --> Storage[Azure Storage / Database]
+        WorkerPods --> MonitorAgent[Sidecar Monitoring Agents]
+    end
+
+    MonitorAgent --> MonitorSvc[Azure Monitor & Log Analytics]
+    OracleFeeds[External Data Providers] --> WorkerPods
+    WorkerPods --> NeoN3Nodes[Neo N3 RPC Nodes]
+    MonitorSvc --> OpsTeam[Operations Team]
+    CI[CI/CD Pipeline] --> Ingress
+```
+
+This deployment view shows how user traffic reaches the cluster, the split between API pods and confidential compute workloads, and the surrounding Azure services supporting secure execution, persistence, monitoring, and blockchain connectivity.
+
 ## Components
 
 ### API Layer
