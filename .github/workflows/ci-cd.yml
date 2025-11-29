@@ -553,7 +553,7 @@ jobs:
           docker push ${{ secrets.REGISTRY_URL }}/service-layer:staging
 
       - name: Configure kubectl
-        uses: azure/k8s-set-context@v3
+        uses: azure/k8s-set-context@v4
         with:
           kubeconfig: ${{ secrets.KUBE_CONFIG_STAGING }}
 
@@ -625,7 +625,7 @@ jobs:
           docker push ${{ secrets.REGISTRY_URL }}/service-layer:${{ github.sha }}
 
       - name: Configure kubectl
-        uses: azure/k8s-set-context@v3
+        uses: azure/k8s-set-context@v4
         with:
           kubeconfig: ${{ secrets.KUBE_CONFIG_PRODUCTION }}
 
