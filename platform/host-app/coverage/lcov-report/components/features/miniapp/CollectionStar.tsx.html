@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">94.73% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>18/19</span>
+                <span class='fraction'>0/19</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>9/9</span>
+                <span class='fraction'>0/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">66.66% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/3</span>
+                <span class='fraction'>0/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>18/18</span>
+                <span class='fraction'>0/18</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -124,38 +124,38 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -179,38 +179,38 @@
 &nbsp;
 "use client";
 &nbsp;
-import React, { useState } from "react";
-import { Star } from "lucide-react";
-import { useCollections } from "@/hooks/useCollections";
-import { cn } from "@/lib/utils";
+<span class="cstat-no" title="statement not covered" >import React, { useState } from "react";</span>
+<span class="cstat-no" title="statement not covered" >import { Star } from "lucide-react";</span>
+<span class="cstat-no" title="statement not covered" >import { useCollections } from "@/hooks/useCollections";</span>
+<span class="cstat-no" title="statement not covered" >import { cn } from "@/lib/utils";</span>
 &nbsp;
 interface CollectionStarProps {
   appId: string;
   className?: string;
 }
 &nbsp;
-export function CollectionStar({ appId, className }: CollectionStarProps) {
-  const { collectionsSet, toggleCollection, isWalletConnected } = useCollections();
-  const [isAnimating, setIsAnimating] = useState(false);
+<span class="cstat-no" title="statement not covered" >export function <span class="fstat-no" title="function not covered" >C</span>ollectionStar(</span>{ appId, className }: CollectionStarProps) {
+  const { collectionsSet, toggleCollection, isWalletConnected } = <span class="cstat-no" title="statement not covered" >useCollections();</span>
+  const [isAnimating, setIsAnimating] = <span class="cstat-no" title="statement not covered" >useState(false);</span>
   // Use collectionsSet directly for reactive updates
-  const collected = collectionsSet.has(appId);
+  const collected = <span class="cstat-no" title="statement not covered" >collectionsSet.has(appId);</span>
 &nbsp;
-  const handleClick = async (e: React.MouseEvent) =&gt; {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleClick = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >async </span>(e: React.MouseEvent) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    e.preventDefault();</span>
+<span class="cstat-no" title="statement not covered" >    e.stopPropagation();</span>
 &nbsp;
-    if (!isWalletConnected) {
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!isWalletConnected) {</span>
       // Could trigger wallet connect modal here
-      alert("Please connect your wallet to collect MiniApps");
-      return;
+<span class="cstat-no" title="statement not covered" >      alert("Please connect your wallet to collect MiniApps");</span>
+<span class="cstat-no" title="statement not covered" >      return;</span>
     }
 &nbsp;
-    setIsAnimating(true);
-    await toggleCollection(appId);
-    setTimeout(<span class="fstat-no" title="function not covered" >() =</span>&gt; <span class="cstat-no" title="statement not covered" >setIsAnimating(false),</span> 300);
+<span class="cstat-no" title="statement not covered" >    setIsAnimating(true);</span>
+<span class="cstat-no" title="statement not covered" >    await toggleCollection(appId);</span>
+<span class="cstat-no" title="statement not covered" >    setTimeout(<span class="fstat-no" title="function not covered" >() =</span>&gt; <span class="cstat-no" title="statement not covered" >setIsAnimating(false),</span> 300);</span>
   };
 &nbsp;
-  return (
+<span class="cstat-no" title="statement not covered" >  return (</span>
     &lt;button
       onClick={handleClick}
       className={cn(
@@ -235,7 +235,7 @@ export function CollectionStar({ appId, className }: CollectionStarProps) {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-31T08:16:03.992Z
+                at 2025-12-31T10:01:37.483Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>
