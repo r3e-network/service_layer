@@ -1,0 +1,328 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for components/features/explorer/opcode-utils.ts</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../prettify.css" />
+    <link rel="stylesheet" href="../../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../../../index.html">All files</a> / <a href="index.html">components/features/explorer</a> opcode-utils.ts</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>0/13</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>0/4</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>0/3</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>0/11</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line low'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { OpcodeCategory, OpcodeMetadata } from "./types";
+&nbsp;
+// Neo N3 VM opcode metadata
+const OPCODE_METADATA: Record&lt;string, OpcodeMetadata&gt; = <span class="cstat-no" title="statement not covered" >{</span>
+  // Push operations
+  PUSHINT8: { name: "PUSHINT8", category: "push", description: "Push 1-byte integer" },
+  PUSHINT16: { name: "PUSHINT16", category: "push", description: "Push 2-byte integer" },
+  PUSHINT32: { name: "PUSHINT32", category: "push", description: "Push 4-byte integer" },
+  PUSHINT64: { name: "PUSHINT64", category: "push", description: "Push 8-byte integer" },
+  PUSHNULL: { name: "PUSHNULL", category: "push", description: "Push null value" },
+  PUSHDATA1: { name: "PUSHDATA1", category: "push", description: "Push data (1-byte length)" },
+  PUSHDATA2: { name: "PUSHDATA2", category: "push", description: "Push data (2-byte length)" },
+  PUSHA: { name: "PUSHA", category: "push", description: "Push address" },
+&nbsp;
+  // Arithmetic
+  ADD: { name: "ADD", category: "arithmetic", description: "Add two integers" },
+  SUB: { name: "SUB", category: "arithmetic", description: "Subtract two integers" },
+  MUL: { name: "MUL", category: "arithmetic", description: "Multiply two integers" },
+  DIV: { name: "DIV", category: "arithmetic", description: "Divide two integers" },
+  MOD: { name: "MOD", category: "arithmetic", description: "Modulo operation" },
+  INC: { name: "INC", category: "arithmetic", description: "Increment by 1" },
+  DEC: { name: "DEC", category: "arithmetic", description: "Decrement by 1" },
+  NEGATE: { name: "NEGATE", category: "arithmetic", description: "Negate value" },
+&nbsp;
+  // Logic
+  AND: { name: "AND", category: "logic", description: "Bitwise AND" },
+  OR: { name: "OR", category: "logic", description: "Bitwise OR" },
+  XOR: { name: "XOR", category: "logic", description: "Bitwise XOR" },
+  NOT: { name: "NOT", category: "logic", description: "Logical NOT" },
+  EQUAL: { name: "EQUAL", category: "logic", description: "Check equality" },
+  NOTEQUAL: { name: "NOTEQUAL", category: "logic", description: "Check inequality" },
+&nbsp;
+  // Stack operations
+  DUP: { name: "DUP", category: "stack", description: "Duplicate top item" },
+  DROP: { name: "DROP", category: "stack", description: "Remove top item" },
+  SWAP: { name: "SWAP", category: "stack", description: "Swap top two items" },
+  ROT: { name: "ROT", category: "stack", description: "Rotate top three items" },
+  PICK: { name: "PICK", category: "stack", description: "Copy nth item to top" },
+  REVERSE3: { name: "REVERSE3", category: "stack", description: "Reverse top 3 items" },
+&nbsp;
+  // Control flow
+  JMP: { name: "JMP", category: "control", description: "Unconditional jump" },
+  JMPIF: { name: "JMPIF", category: "control", description: "Jump if true" },
+  JMPIFNOT: { name: "JMPIFNOT", category: "control", description: "Jump if false" },
+  CALL: { name: "CALL", category: "control", description: "Call subroutine" },
+  RET: { name: "RET", category: "control", description: "Return from call" },
+  NOP: { name: "NOP", category: "control", description: "No operation" },
+&nbsp;
+  // Syscalls
+  SYSCALL: { name: "SYSCALL", category: "syscall", description: "System call" },
+};
+&nbsp;
+<span class="cstat-no" title="statement not covered" >export function <span class="fstat-no" title="function not covered" >g</span>etOpcodeMetadata(</span>opcode: string): OpcodeMetadata {
+<span class="cstat-no" title="statement not covered" >  return (</span>
+    OPCODE_METADATA[opcode] || {
+      name: opcode,
+      category: "other" as OpcodeCategory,
+      description: "Unknown opcode",
+    }
+  );
+}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >export function <span class="fstat-no" title="function not covered" >g</span>etCategoryColor(</span>category: OpcodeCategory): string {
+  const colors: Record&lt;OpcodeCategory, string&gt; = <span class="cstat-no" title="statement not covered" >{</span>
+    push: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+    arithmetic: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+    logic: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
+    stack: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+    control: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+    syscall: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
+    other: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300",
+  };
+<span class="cstat-no" title="statement not covered" >  return colors[category];</span>
+}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >export function <span class="fstat-no" title="function not covered" >f</span>ormatGas(</span>gas: string): string {
+  const num = <span class="cstat-no" title="statement not covered" >parseFloat(gas);</span>
+<span class="cstat-no" title="statement not covered" >  <span class="missing-if-branch" title="if path not taken" >I</span>if (num &gt;= 1000000) <span class="cstat-no" title="statement not covered" >return `${(num / 1000000).toFixed(2)}M`;</span></span>
+<span class="cstat-no" title="statement not covered" >  <span class="missing-if-branch" title="if path not taken" >I</span>if (num &gt;= 1000) <span class="cstat-no" title="statement not covered" >return `${(num / 1000).toFixed(2)}K`;</span></span>
+<span class="cstat-no" title="statement not covered" >  return num.toFixed(4);</span>
+}
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2025-12-31T08:16:03.992Z
+            </div>
+        <script src="../../../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../../../sorter.js"></script>
+        <script src="../../../block-navigation.js"></script>
+    </body>
+</html>
+    
