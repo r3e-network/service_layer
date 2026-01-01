@@ -16,7 +16,7 @@
           <text class="station-listeners">{{ station.listeners }} listening</text>
         </view>
         <view class="station-status" :class="{ active: currentStation?.id === station.id }">
-          <text>{{ currentStation?.id === station.id ? '🔊' : '▶️' }}</text>
+          <text>{{ currentStation?.id === station.id ? "🔊" : "▶️" }}</text>
         </view>
       </view>
     </view>
@@ -32,9 +32,10 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { usePayments } from "@neo/uniapp-sdk";
+import { useWallet, usePayments } from "@neo/uniapp-sdk";
 
 const APP_ID = "miniapp-darkradio";
+const { address, connect } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
 
 const message = ref("");

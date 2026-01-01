@@ -57,7 +57,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { usePayments } from "@neo/uniapp-sdk";
+import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 
 type StatusType = "success" | "error";
@@ -66,6 +66,7 @@ type Terms = { maxBorrow: number; interestRate: number; repaymentSchedule: strin
 type Loan = { borrowed: number; collateralLocked: number; nextPayment: number; nextPaymentDue: string };
 
 const APP_ID = "miniapp-self-loan";
+const { address, connect } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
 
 const terms = ref<Terms>({ maxBorrow: 5000, interestRate: 8.5, repaymentSchedule: "Monthly" });

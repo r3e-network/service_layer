@@ -52,7 +52,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { usePayments } from "@neo/uniapp-sdk";
+import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 
 type StatusType = "success" | "error";
@@ -61,6 +61,7 @@ type Pool = { pair: string; tvl: number; ilRisk: number };
 type Position = { deposited: number; currentValue: number; ilAmount: number };
 
 const APP_ID = "miniapp-il-guard";
+const { address, connect } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
 
 const pool = ref<Pool>({ pair: "NEO/GAS", tvl: 125000, ilRisk: 8.3 });

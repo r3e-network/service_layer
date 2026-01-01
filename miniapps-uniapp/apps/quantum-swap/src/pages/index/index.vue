@@ -51,7 +51,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { usePayments } from "@neo/uniapp-sdk";
+import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 
 type StatusType = "success" | "error";
@@ -60,6 +60,7 @@ type Route = { fromChain: string; fromToken: string; toChain: string; toToken: s
 type Swap = { timeLock: string };
 
 const APP_ID = "miniapp-quantum-swap";
+const { address, connect } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
 
 const route = ref<Route>({ fromChain: "Neo N3", fromToken: "GAS", toChain: "Ethereum", toToken: "ETH", rate: 0.00042 });

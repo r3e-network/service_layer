@@ -67,10 +67,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
-import { usePayments, useRNG } from "@neo/uniapp-sdk";
+import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
 import { formatNumber, hexToBytes, randomIntFromBytes } from "@/shared/utils/format";
 
 const APP_ID = "miniapp-lottery";
+const { address, connect } = useWallet();
 const TICKET_PRICE = 0.1;
 const ROUND_DURATION = 60000;
 

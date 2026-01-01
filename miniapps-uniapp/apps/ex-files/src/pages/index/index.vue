@@ -10,7 +10,7 @@
     <view class="card">
       <text class="card-title">Shared Memories</text>
       <view v-for="memory in memories" :key="memory.id" class="memory-item" @click="viewMemory(memory)">
-        <view class="memory-icon">{{ memory.type === 'photo' ? '📷' : '📝' }}</view>
+        <view class="memory-icon">{{ memory.type === "photo" ? "📷" : "📝" }}</view>
         <view class="memory-info">
           <text class="memory-title">{{ memory.title }}</text>
           <text class="memory-date">{{ memory.date }}</text>
@@ -31,9 +31,10 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { usePayments } from "@neo/uniapp-sdk";
+import { useWallet, usePayments } from "@neo/uniapp-sdk";
 
 const APP_ID = "miniapp-exfiles";
+const { address, connect } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
 
 const memoryTitle = ref("");

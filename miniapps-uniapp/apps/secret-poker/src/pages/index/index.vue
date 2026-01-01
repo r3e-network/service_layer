@@ -56,10 +56,11 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { usePayments, useRNG } from "@neo/uniapp-sdk";
+import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 
 const APP_ID = "miniapp-secretpoker";
+const { address, connect } = useWallet();
 const { payGAS } = usePayments(APP_ID);
 const { requestRandom } = useRNG(APP_ID);
 

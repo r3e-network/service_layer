@@ -81,7 +81,7 @@ import { useWallet } from "@neo/uniapp-sdk";
 const APP_ID = "miniapp-neo-swap";
 const SWAP_ROUTER = "0xf970f4ccecd765b63732b821775dc38c25d74f23";
 
-const { getAddress, invokeContract, getBalance } = useWallet(APP_ID);
+const { getAddress, invokeContract, getBalance } = useWallet();
 
 interface Token {
   symbol: string;

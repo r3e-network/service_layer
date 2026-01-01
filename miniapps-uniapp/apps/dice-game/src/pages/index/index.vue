@@ -34,9 +34,10 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { usePayments, useRNG } from "@neo/uniapp-sdk";
+import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
 
 const APP_ID = "miniapp-dicegame";
+const { address, connect } = useWallet();
 const { payGAS } = usePayments(APP_ID);
 const { requestRandom } = useRNG(APP_ID);
 

@@ -59,9 +59,10 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { usePayments } from "@neo/uniapp-sdk";
+import { useWallet, usePayments } from "@neo/uniapp-sdk";
 
 const APP_ID = "miniapp-world-piano";
+const { address, connect } = useWallet();
 const { payGAS } = usePayments(APP_ID);
 
 const onlinePlayers = ref(42);

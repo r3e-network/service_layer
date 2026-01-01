@@ -91,7 +91,7 @@ import { useWallet } from "@neo/uniapp-sdk";
 const APP_ID = "miniapp-neoburger";
 const BNEO_CONTRACT = "0x48c40d4666f93408be1bef038b6722404d9a4c2a";
 
-const { getAddress, invokeContract, getBalance } = useWallet(APP_ID);
+const { getAddress, invokeContract, getBalance } = useWallet();
 
 // State
 const activeTab = ref<"stake" | "unstake">("stake");

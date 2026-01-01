@@ -71,9 +71,10 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { usePayments } from "@neo/uniapp-sdk";
+import { useWallet, usePayments } from "@neo/uniapp-sdk";
 
 const APP_ID = "miniapp-gardenofneo";
+const { address, connect } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
 
 interface Plant {

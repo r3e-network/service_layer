@@ -45,9 +45,10 @@
 
 <script setup lang="ts">
 import { ref, onUnmounted } from "vue";
-import { usePayments } from "@neo/uniapp-sdk";
+import { useWallet, usePayments } from "@neo/uniapp-sdk";
 
 const APP_ID = "miniapp-scream-to-earn";
+const { address, connect } = useWallet();
 const { payGAS } = usePayments(APP_ID);
 
 const totalEarned = ref(0);

@@ -37,10 +37,11 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { usePayments } from "@neo/uniapp-sdk";
+import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 
 const APP_ID = "miniapp-bridge-guardian";
+const { address, connect } = useWallet();
 const { isLoading } = usePayments(APP_ID);
 
 interface Bridge {

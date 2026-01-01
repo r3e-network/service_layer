@@ -52,10 +52,11 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { usePayments } from "@neo/uniapp-sdk";
+import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 
 const APP_ID = "miniapp-millionpiecemap";
+const { address, connect } = useWallet();
 const { payGAS } = usePayments(APP_ID);
 
 const GRID_SIZE = 64;

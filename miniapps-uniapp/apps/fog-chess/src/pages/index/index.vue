@@ -72,9 +72,10 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { usePayments } from "@neo/uniapp-sdk";
+import { useWallet, usePayments } from "@neo/uniapp-sdk";
 
 const APP_ID = "miniapp-fog-chess";
+const { address, connect } = useWallet();
 
 const { payGAS, isLoading } = usePayments(APP_ID);
 

@@ -68,10 +68,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
-import { usePayments } from "@neo/uniapp-sdk";
+import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 
 const APP_ID = "miniapp-doomsday-clock";
+const { address, connect } = useWallet();
 
 interface Outcome {
   name: string;

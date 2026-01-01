@@ -52,7 +52,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { usePayments } from "@neo/uniapp-sdk";
+import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 
 type StatusType = "success" | "error";
@@ -61,6 +61,7 @@ type Pool = { totalDeposits: number; prizePool: number; nextDraw: string };
 type User = { deposit: number; tickets: number; yieldSacrificed: number };
 
 const APP_ID = "miniapp-no-loss-lottery";
+const { address, connect } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
 
 const pool = ref<Pool>({ totalDeposits: 850000, prizePool: 127.5, nextDraw: "2d 14h" });
