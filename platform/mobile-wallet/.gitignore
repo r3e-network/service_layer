@@ -36,3 +36,16 @@ yarn-error.*
 
 expo-env.d.ts
 # @end expo-cli
+
+# Android SDK and build tools
+build-tools/
+platforms/
+platform-tools/
+licenses/
+
+# Coverage reports
+coverage/
+
+# Lock files (optional)
+package-lock.json
+pnpm-lock.yaml
