@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">25.53% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/48</span>
+                <span class='fraction'>12/47</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">27.27% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/45</span>
+                <span class='fraction'>12/44</span>
             </div>
         
             
@@ -252,35 +252,30 @@
 <a name='L187'></a><a href='#L187'>187</a>
 <a name='L188'></a><a href='#L188'>188</a>
 <a name='L189'></a><a href='#L189'>189</a>
-<a name='L190'></a><a href='#L190'>190</a>
-<a name='L191'></a><a href='#L191'>191</a>
-<a name='L192'></a><a href='#L192'>192</a>
-<a name='L193'></a><a href='#L193'>193</a>
-<a name='L194'></a><a href='#L194'>194</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L190'></a><a href='#L190'>190</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -371,9 +366,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -451,29 +443,28 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use client";
 &nbsp;
-<span class="cstat-no" title="statement not covered" >import Link from "next/link";</span>
-<span class="cstat-no" title="statement not covered" >import dynamic from "next/dynamic";</span>
-<span class="cstat-no" title="statement not covered" >import { useRouter } from "next/router";</span>
-<span class="cstat-no" title="statement not covered" >import { Search, Moon, Sun, Menu, X, Globe } from "lucide-react";</span>
-<span class="cstat-no" title="statement not covered" >import { cn } from "@/lib/utils";</span>
-<span class="cstat-no" title="statement not covered" >import { useState, useEffect, useRef, useCallback } from "react";</span>
-<span class="cstat-no" title="statement not covered" >import { useTheme } from "@/components/providers/ThemeProvider";</span>
-<span class="cstat-no" title="statement not covered" >import { useI18n } from "@/lib/i18n/react";</span>
-<span class="cstat-no" title="statement not covered" >import { useWalletStore } from "@/lib/wallet/store";</span>
-<span class="cstat-no" title="statement not covered" >import { NotificationDropdown } from "@/components/features/notifications/NotificationDropdown";</span>
+import Link from "next/link";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/router";
+import { Search, Moon, Sun, Menu, X, Globe } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useTheme } from "@/components/providers/ThemeProvider";
+import { useI18n } from "@/lib/i18n/react";
+import { useWalletStore } from "@/lib/wallet/store";
 &nbsp;
-const ConnectButton = <span class="cstat-no" title="statement not covered" >dynamic(<span class="fstat-no" title="function not covered" >() =</span>&gt; <span class="cstat-no" title="statement not covered" ><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >import("</span>@/components/features/wallet").t</span>hen(<span class="fstat-no" title="function not covered" >(m</span>) =&gt; <span class="cstat-no" title="statement not covered" >m.ConnectButton)</span>,</span> {</span>
+const ConnectButton = dynamic(<span class="fstat-no" title="function not covered" >() =</span>&gt; <span class="cstat-no" title="statement not covered" ><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >import("</span>@/components/features/wallet").t</span>hen(<span class="fstat-no" title="function not covered" >(m</span>) =&gt; <span class="cstat-no" title="statement not covered" >m.ConnectButton)</span>,</span> {
   ssr: false,
 });
 &nbsp;
-const navLinks = <span class="cstat-no" title="statement not covered" >[</span>
+const navLinks = [
   { href: "/miniapps", labelKey: "navigation.miniapps" },
   { href: "/stats", labelKey: "navigation.stats" },
   { href: "/docs", labelKey: "navigation.docs" },
   { href: "/developer", labelKey: "navigation.developer" },
 ];
 &nbsp;
-<span class="cstat-no" title="statement not covered" >export function <span class="fstat-no" title="function not covered" >N</span>avbar(</span>) {
+export function <span class="fstat-no" title="function not covered" >Navbar(</span>) {
   const router = <span class="cstat-no" title="statement not covered" >useRouter();</span>
   const { theme, toggleTheme } = <span class="cstat-no" title="statement not covered" >useTheme();</span>
   const { locale, setLocale, t } = <span class="cstat-no" title="statement not covered" >useI18n();</span>
@@ -580,9 +571,6 @@ const navLinks = <span class="cstat-no" title="statement not covered" >[</span>
             {theme === "dark" ? &lt;Sun size={18} /&gt; : &lt;Moon size={18} /&gt;}
           &lt;/button&gt;
 &nbsp;
-          {/* Notification Bell */}
-          &lt;NotificationDropdown walletAddress={walletAddress} /&gt;
-&nbsp;
           {/* Language Switcher */}
           &lt;button
             onClick={<span class="fstat-no" title="function not covered" >() =</span>&gt; <span class="cstat-no" title="statement not covered" >setLocale(locale === "en" ? "zh" : "en")}</span>
@@ -649,7 +637,7 @@ const navLinks = <span class="cstat-no" title="statement not covered" >[</span>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-31T10:01:37.483Z
+                at 2026-01-01T12:03:39.348Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

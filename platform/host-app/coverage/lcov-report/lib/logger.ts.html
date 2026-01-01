@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">66.66% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>6/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">33.33% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>2/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">75% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>3/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">66.66% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>6/9</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -97,28 +97,28 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
@@ -126,12 +126,12 @@
  * In production, logs are suppressed unless explicitly enabled
  */
 &nbsp;
-const isDev = <span class="cstat-no" title="statement not covered" >process.env.NODE_ENV === "development";</span>
-const isDebugEnabled = <span class="cstat-no" title="statement not covered" >process.env.DEBUG === "true";</span>
+const isDev = process.env.NODE_ENV === "development";
+const isDebugEnabled = process.env.DEBUG === "true";
 &nbsp;
-export const <span class="cstat-no" title="statement not covered" >logger = {</span>
-  debug: <span class="fstat-no" title="function not covered" >(m</span>essage: string, ...args: unknown[]) =&gt; {
-<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (isDev || isDebugEnabled) {</span>
+export const logger = {
+  debug: (message: string, ...args: unknown[]) =&gt; {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (isDev || isDebugEnabled) {
 <span class="cstat-no" title="statement not covered" >      console.log(`[DEBUG] ${message}`, ...args);</span>
     }
   },
@@ -142,12 +142,12 @@ export const <span class="cstat-no" title="statement not covered" >logger = {</s
     }
   },
 &nbsp;
-  warn: <span class="fstat-no" title="function not covered" >(m</span>essage: string, ...args: unknown[]) =&gt; {
-<span class="cstat-no" title="statement not covered" >    console.warn(`[WARN] ${message}`, ...args);</span>
+  warn: (message: string, ...args: unknown[]) =&gt; {
+    console.warn(`[WARN] ${message}`, ...args);
   },
 &nbsp;
-  error: <span class="fstat-no" title="function not covered" >(m</span>essage: string, error?: unknown) =&gt; {
-<span class="cstat-no" title="statement not covered" >    console.error(`[ERROR] ${message}`, error);</span>
+  error: (message: string, error?: unknown) =&gt; {
+    console.error(`[ERROR] ${message}`, error);
   },
 };
 &nbsp;</pre></td></tr></table></pre>
@@ -157,7 +157,7 @@ export const <span class="cstat-no" title="statement not covered" >logger = {</s
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-31T10:01:37.483Z
+                at 2026-01-01T12:03:39.348Z
             </div>
         <script src="../prettify.js"></script>
         <script>

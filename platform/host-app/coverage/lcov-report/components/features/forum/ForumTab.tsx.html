@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">10.14% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/69</span>
+                <span class='fraction'>7/69</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">11.29% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/62</span>
+                <span class='fraction'>7/62</span>
             </div>
         
             
@@ -362,31 +362,31 @@
 <a name='L297'></a><a href='#L297'>297</a>
 <a name='L298'></a><a href='#L298'>298</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -659,31 +659,31 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use client";
 &nbsp;
-<span class="cstat-no" title="statement not covered" >import React, { useEffect, useState } from "react";</span>
-<span class="cstat-no" title="statement not covered" >import { MessageSquare, Plus, Pin, Lock, Bug, Lightbulb, HelpCircle } from "lucide-react";</span>
-<span class="cstat-no" title="statement not covered" >import { useForum } from "./useForum";</span>
-<span class="cstat-no" title="statement not covered" >import { useWalletStore } from "@/lib/wallet/store";</span>
+import React, { useEffect, useState } from "react";
+import { MessageSquare, Plus, Pin, Lock, Bug, Lightbulb, HelpCircle } from "lucide-react";
+import { useForum } from "./useForum";
+import { useWalletStore } from "@/lib/wallet/store";
 import type { ForumThread } from "./types";
 &nbsp;
 interface ForumTabProps {
   appId: string;
 }
 &nbsp;
-const categoryIcons = <span class="cstat-no" title="statement not covered" >{</span>
+const categoryIcons = {
   general: MessageSquare,
   bug: Bug,
   feature: Lightbulb,
   help: HelpCircle,
 };
 &nbsp;
-const categoryColors = <span class="cstat-no" title="statement not covered" >{</span>
+const categoryColors = {
   general: "bg-gray-100 text-gray-700",
   bug: "bg-red-100 text-red-700",
   feature: "bg-purple-100 text-purple-700",
   help: "bg-blue-100 text-blue-700",
 };
 &nbsp;
-<span class="cstat-no" title="statement not covered" >export function <span class="fstat-no" title="function not covered" >F</span>orumTab(</span>{ appId }: ForumTabProps) {
+export function <span class="fstat-no" title="function not covered" >ForumTab(</span>{ appId }: ForumTabProps) {
   const { address: walletAddress } = <span class="cstat-no" title="statement not covered" >useWalletStore();</span>
   const { threads, loading, fetchThreads, createThread } = <span class="cstat-no" title="statement not covered" >useForum({ appId, walletAddress });</span>
   const [showNewThread, setShowNewThread] = <span class="cstat-no" title="statement not covered" >useState(false);</span>
@@ -961,7 +961,7 @@ function <span class="fstat-no" title="function not covered" >formatTimeAgo(</sp
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-31T10:01:37.483Z
+                at 2026-01-01T12:03:39.348Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

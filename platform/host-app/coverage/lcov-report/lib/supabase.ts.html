@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/13</span>
+                <span class='fraction'>13/13</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">84.21% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/19</span>
+                <span class='fraction'>16/19</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/13</span>
+                <span class='fraction'>13/13</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -128,31 +128,29 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -166,15 +164,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -186,21 +186,21 @@
  * Uses anonymous key for public read access and realtime subscriptions.
  */
 &nbsp;
-<span class="cstat-no" title="statement not covered" >import { createClient, SupabaseClient } from "@supabase/supabase-js";</span>
-<span class="cstat-no" title="statement not covered" >import { logger } from "./logger";</span>
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { logger } from "./logger";
 &nbsp;
-const supabaseUrl = <span class="cstat-no" title="statement not covered" >process.env.NEXT_PUBLIC_SUPABASE_URL || "";</span>
-const supabaseAnonKey = <span class="cstat-no" title="statement not covered" >process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";</span>
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 &nbsp;
-const isConfigured = <span class="cstat-no" title="statement not covered" >Boolean(supabaseUrl &amp;&amp; supabaseAnonKey);</span>
+const isConfigured = Boolean(supabaseUrl &amp;&amp; supabaseAnonKey);
 &nbsp;
-<span class="cstat-no" title="statement not covered" ><span class="missing-if-branch" title="if path not taken" >I</span>if (!isConfigured &amp;&amp; typeof window !== "undefined") {</span>
-<span class="cstat-no" title="statement not covered" >  logger.warn("Supabase environment variables not configured. Realtime features will be disabled.");</span>
+if (!isConfigured &amp;&amp; typeof window !== "undefined") {
+  logger.warn("Supabase environment variables not configured. Realtime features will be disabled.");
 }
 &nbsp;
 // Build-time fallback URL (never used for actual requests when isConfigured is false)
-const BUILD_FALLBACK_URL = <span class="cstat-no" title="statement not covered" >"https://localhost.supabase.co";</span>
-const BUILD_FALLBACK_KEY = <span class="cstat-no" title="statement not covered" >"build-time-placeholder";</span>
+const BUILD_FALLBACK_URL = "https://localhost.supabase.co";
+const BUILD_FALLBACK_KEY = "build-time-placeholder";
 &nbsp;
 /**
  * Singleton Supabase client instance
@@ -208,7 +208,7 @@ const BUILD_FALLBACK_KEY = <span class="cstat-no" title="statement not covered" 
  * Note: When not configured, client is created with fallback values but
  * consumers should check isSupabaseConfigured before making requests.
  */
-export const <span class="cstat-no" title="statement not covered" >supabase: SupabaseClient = createClient(</span>
+export const supabase: SupabaseClient = createClient(
   supabaseUrl || BUILD_FALLBACK_URL,
   supabaseAnonKey || BUILD_FALLBACK_KEY,
   {
@@ -224,16 +224,16 @@ export const <span class="cstat-no" title="statement not covered" >supabase: Sup
 );
 &nbsp;
 /** Whether Supabase is properly configured */
-export const <span class="cstat-no" title="statement not covered" >isSupabaseConfigured = isConfigured;</span>
+export const isSupabaseConfigured = isConfigured;
 &nbsp;
 /**
  * Service Role Client for server-side write operations
  * Only use in API routes, never expose to client
  */
-const serviceRoleKey = <span class="cstat-no" title="statement not covered" >process.env.SUPABASE_SERVICE_ROLE_KEY || "";</span>
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 &nbsp;
-export const <span class="cstat-no" title="statement not covered" >supabaseAdmin: SupabaseClient | null = serviceRoleKey</span>
-  ? createClient(supabaseUrl || BUILD_FALLBACK_URL, serviceRoleKey, {
+export const supabaseAdmin: SupabaseClient | null = serviceRoleKey
+  ? <span class="branch-0 cbranch-no" title="branch not covered" >createClient(supabaseUrl || BUILD_FALLBACK_URL, serviceRoleKey, {</span>
       auth: { persistSession: false },
     })
   : null;
@@ -244,7 +244,7 @@ export const <span class="cstat-no" title="statement not covered" >supabaseAdmin
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-31T10:01:37.483Z
+                at 2026-01-01T12:03:39.348Z
             </div>
         <script src="../prettify.js"></script>
         <script>

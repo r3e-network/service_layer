@@ -32,7 +32,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/54</span>
+                <span class='fraction'>0/57</span>
             </div>
         
             
@@ -635,14 +635,14 @@ function <span class="fstat-no" title="function not covered" >scopeMiniAppSDK(</
 <span class="cstat-no" title="statement not covered" >        requirePermission(permissions, "payments");</span>
         const resolved = <span class="cstat-no" title="statement not covered" >resolveAppId(requestedAppId, appId);</span>
 <span class="cstat-no" title="statement not covered" >        <span class="missing-if-branch" title="if path not taken" >I</span>if (!resolved) <span class="cstat-no" title="statement not covered" >throw new Error("app_id required");</span></span>
-<span class="cstat-no" title="statement not covered" >        return sdk.payments.payGAS(resolved, amount, memo);</span>
+<span class="cstat-no" title="statement not covered" >        return sdk.payments!.payGAS!(resolved, amount, memo);</span>
       },
-      payGASAndInvoke: sdk.payments.payGASAndInvoke
+      payGASAndInvoke: sdk.payments?.payGASAndInvoke
         ? <span class="fstat-no" title="function not covered" >async </span>(requestedAppId: string, amount: string, memo?: string) =&gt; {
 <span class="cstat-no" title="statement not covered" >            requirePermission(permissions, "payments");</span>
             const resolved = <span class="cstat-no" title="statement not covered" >resolveAppId(requestedAppId, appId);</span>
 <span class="cstat-no" title="statement not covered" >            <span class="missing-if-branch" title="if path not taken" >I</span>if (!resolved) <span class="cstat-no" title="statement not covered" >throw new Error("app_id required");</span></span>
-<span class="cstat-no" title="statement not covered" >            return sdk.payments.payGASAndInvoke!(resolved, amount, memo);</span>
+<span class="cstat-no" title="statement not covered" >            return sdk.payments!.payGASAndInvoke!(resolved, amount, memo);</span>
           }
         : undefined,
     },
@@ -652,14 +652,14 @@ function <span class="fstat-no" title="function not covered" >scopeMiniAppSDK(</
 <span class="cstat-no" title="statement not covered" >        requirePermission(permissions, "governance");</span>
         const resolved = <span class="cstat-no" title="statement not covered" >resolveAppId(requestedAppId, appId);</span>
 <span class="cstat-no" title="statement not covered" >        <span class="missing-if-branch" title="if path not taken" >I</span>if (!resolved) <span class="cstat-no" title="statement not covered" >throw new Error("app_id required");</span></span>
-<span class="cstat-no" title="statement not covered" >        return sdk.governance.vote(resolved, proposalId, neoAmount, support);</span>
+<span class="cstat-no" title="statement not covered" >        return sdk.governance!.vote!(resolved, proposalId, neoAmount, support);</span>
       },
-      voteAndInvoke: sdk.governance.voteAndInvoke
+      voteAndInvoke: sdk.governance?.voteAndInvoke
         ? <span class="fstat-no" title="function not covered" >async </span>(requestedAppId: string, proposalId: string, neoAmount: string, support?: boolean) =&gt; {
 <span class="cstat-no" title="statement not covered" >            requirePermission(permissions, "governance");</span>
             const resolved = <span class="cstat-no" title="statement not covered" >resolveAppId(requestedAppId, appId);</span>
 <span class="cstat-no" title="statement not covered" >            <span class="missing-if-branch" title="if path not taken" >I</span>if (!resolved) <span class="cstat-no" title="statement not covered" >throw new Error("app_id required");</span></span>
-<span class="cstat-no" title="statement not covered" >            return sdk.governance.voteAndInvoke!(resolved, proposalId, neoAmount, support);</span>
+<span class="cstat-no" title="statement not covered" >            return sdk.governance!.voteAndInvoke!(resolved, proposalId, neoAmount, support);</span>
           }
         : undefined,
     },
@@ -669,35 +669,35 @@ function <span class="fstat-no" title="function not covered" >scopeMiniAppSDK(</
 <span class="cstat-no" title="statement not covered" >        requirePermission(permissions, "randomness");</span>
         const resolved = <span class="cstat-no" title="statement not covered" >resolveAppId(requestedAppId, appId);</span>
 <span class="cstat-no" title="statement not covered" >        <span class="missing-if-branch" title="if path not taken" >I</span>if (!resolved) <span class="cstat-no" title="statement not covered" >throw new Error("app_id required");</span></span>
-<span class="cstat-no" title="statement not covered" >        return sdk.rng.requestRandom(resolved);</span>
+<span class="cstat-no" title="statement not covered" >        return sdk.rng!.requestRandom!(resolved);</span>
       },
     },
     datafeed: {
       ...sdk.datafeed,
       getPrice: <span class="fstat-no" title="function not covered" >async </span>(symbol: string) =&gt; {
 <span class="cstat-no" title="statement not covered" >        requirePermission(permissions, "datafeed");</span>
-<span class="cstat-no" title="statement not covered" >        return sdk.datafeed.getPrice(symbol);</span>
+<span class="cstat-no" title="statement not covered" >        return sdk.datafeed!.getPrice!(symbol);</span>
       },
     },
     stats: {
       ...sdk.stats,
       getMyUsage: <span class="fstat-no" title="function not covered" >async </span>(requestedAppId?: string, date?: string) =&gt; {
-        const resolved = <span class="cstat-no" title="statement not covered" >resolveAppId(requestedAppId, appId);</span>
-<span class="cstat-no" title="statement not covered" >        return sdk.stats.getMyUsage(resolved, date);</span>
+        const resolved = <span class="cstat-no" title="statement not covered" >resolveAppId(requestedAppId, appId) || appId || "";</span>
+<span class="cstat-no" title="statement not covered" >        return sdk.stats!.getMyUsage!(resolved, date);</span>
       },
     },
     events: {
       ...sdk.events,
-      list: <span class="fstat-no" title="function not covered" >async </span>(params) =&gt; {
-        const resolved = <span class="cstat-no" title="statement not covered" >resolveAppId(params?.app_id, appId);</span>
-<span class="cstat-no" title="statement not covered" >        return sdk.events.list({ ...params, app_id: resolved });</span>
+      list: <span class="fstat-no" title="function not covered" >async </span>(params: Record&lt;string, unknown&gt;) =&gt; {
+        const resolved = <span class="cstat-no" title="statement not covered" >resolveAppId(params?.app_id as string | undefined, appId);</span>
+<span class="cstat-no" title="statement not covered" >        return sdk.events!.list!({ ...params, app_id: resolved });</span>
       },
     },
     transactions: {
       ...sdk.transactions,
-      list: <span class="fstat-no" title="function not covered" >async </span>(params) =&gt; {
-        const resolved = <span class="cstat-no" title="statement not covered" >resolveAppId(params?.app_id, appId);</span>
-<span class="cstat-no" title="statement not covered" >        return sdk.transactions.list({ ...params, app_id: resolved });</span>
+      list: <span class="fstat-no" title="function not covered" >async </span>(params: Record&lt;string, unknown&gt;) =&gt; {
+        const resolved = <span class="cstat-no" title="statement not covered" >resolveAppId(params?.app_id as string | undefined, appId);</span>
+<span class="cstat-no" title="statement not covered" >        return sdk.transactions!.list!({ ...params, app_id: resolved });</span>
       },
     },
   };
@@ -742,7 +742,7 @@ export type { MiniAppSDK };
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-31T10:01:37.483Z
+                at 2026-01-01T12:03:39.348Z
             </div>
         <script src="../prettify.js"></script>
         <script>

@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">13.04% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/68</span>
+                <span class='fraction'>9/69</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">14.51% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/61</span>
+                <span class='fraction'>9/62</span>
             </div>
         
             
@@ -239,18 +239,13 @@
 <a name='L174'></a><a href='#L174'>174</a>
 <a name='L175'></a><a href='#L175'>175</a>
 <a name='L176'></a><a href='#L176'>176</a>
-<a name='L177'></a><a href='#L177'>177</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L177'></a><a href='#L177'>177</a>
+<a name='L178'></a><a href='#L178'>178</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -260,7 +255,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -291,15 +286,22 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -420,7 +422,7 @@
  * https://neoline.io/
  */
 &nbsp;
-<span class="cstat-no" title="statement not covered" >import {</span>
+import {
   WalletAdapter,
   WalletAccount,
   WalletBalance,
@@ -430,6 +432,7 @@
   WalletNotInstalledError,
   WalletConnectionError,
 } from "./base";
+import { logger } from "../../logger";
 &nbsp;
 /** NeoLine wallet provider interface */
 interface NeoLineProvider {
@@ -467,15 +470,15 @@ interface NeoLineInstance {
   }): Promise&lt;{ txid: string; nodeUrl: string }&gt;;
 }
 &nbsp;
-const NEO_CONTRACT = <span class="cstat-no" title="statement not covered" >"0xef4073a0f2b305a38ec4050e4d3d28bc40ea63f5";</span>
-const GAS_CONTRACT = <span class="cstat-no" title="statement not covered" >"0xd2a4cff31913016155e38e474a2c06d08be276cf";</span>
+const NEO_CONTRACT = "0xef4073a0f2b305a38ec4050e4d3d28bc40ea63f5";
+const GAS_CONTRACT = "0xd2a4cff31913016155e38e474a2c06d08be276cf";
 &nbsp;
-<span class="cstat-no" title="statement not covered" >export class N</span>eoLineAdapter implements WalletAdapter {
-  readonly name = <span class="cstat-no" title="statement not covered" >"NeoLine";</span>
-  readonly icon = <span class="cstat-no" title="statement not covered" >"https://neoline.io/favicon.ico";</span>
-  readonly downloadUrl = <span class="cstat-no" title="statement not covered" >"https://neoline.io/";</span>
+export class NeoLineAdapter implements WalletAdapter {
+  readonly name = "NeoLine";
+  readonly icon = "https://neoline.io/favicon.ico";
+  readonly downloadUrl = "https://neoline.io/";
 &nbsp;
-  private instance: NeoLineInstance | null = <span class="cstat-no" title="statement not covered" >null;</span>
+  private instance: NeoLineInstance | null = null;
 &nbsp;
 <span class="fstat-no" title="function not covered" >  isInstalled(</span>): boolean {
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (typeof window === "undefined") <span class="cstat-no" title="statement not covered" >return false;</span></span>
@@ -503,11 +506,11 @@ const GAS_CONTRACT = <span class="cstat-no" title="statement not covered" >"0xd2
 <span class="cstat-no" title="statement not covered" >      try {</span>
         // Pattern 1: Constructor style (older NeoLine versions)
 <span class="cstat-no" title="statement not covered" >        this.instance = new (provider.Init as unknown as new () =&gt; NeoLineInstance)();</span>
-<span class="cstat-no" title="statement not covered" >        console.log("[NeoLine] Initialized via constructor pattern");</span>
+<span class="cstat-no" title="statement not covered" >        logger.debug("[NeoLine] Initialized via constructor pattern");</span>
       } catch {
         // Pattern 2: Async function style (newer NeoLine versions)
 <span class="cstat-no" title="statement not covered" >        this.instance = await provider.Init();</span>
-<span class="cstat-no" title="statement not covered" >        console.log("[NeoLine] Initialized via async pattern");</span>
+<span class="cstat-no" title="statement not covered" >        logger.debug("[NeoLine] Initialized via async pattern");</span>
       }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      return this.instance;</span>
@@ -541,9 +544,9 @@ const GAS_CONTRACT = <span class="cstat-no" title="statement not covered" >"0xd2
     const instance = <span class="cstat-no" title="statement not covered" >await this.getInstance();</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    try {</span>
-<span class="cstat-no" title="statement not covered" >      console.log("[NeoLine] Fetching balance for address:", address);</span>
+<span class="cstat-no" title="statement not covered" >      logger.debug("[NeoLine] Fetching balance for address:", address);</span>
       const balances = <span class="cstat-no" title="statement not covered" >await instance.getBalance({ address });</span>
-<span class="cstat-no" title="statement not covered" >      console.log("[NeoLine] Raw balance response:", JSON.stringify(balances, null, 2));</span>
+<span class="cstat-no" title="statement not covered" >      logger.debug("[NeoLine] Raw balance response:", JSON.stringify(balances, null, 2));</span>
 &nbsp;
       let neo = <span class="cstat-no" title="statement not covered" >"0";</span>
       let gas = <span class="cstat-no" title="statement not covered" >"0";</span>
@@ -559,12 +562,12 @@ const GAS_CONTRACT = <span class="cstat-no" title="statement not covered" >"0xd2
         : (balances as { balance?: typeof balances })?.balance || [];
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      <span class="missing-if-branch" title="if path not taken" >I</span>if (!Array.isArray(balanceArray) || balanceArray.length === 0) {</span>
-<span class="cstat-no" title="statement not covered" >        console.warn("[NeoLine] No balances returned or empty array");</span>
+<span class="cstat-no" title="statement not covered" >        logger.warn("[NeoLine] No balances returned or empty array");</span>
       }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      for (const b of balanceArray) {</span>
         const contractNorm = <span class="cstat-no" title="statement not covered" >normalizeContract(b.contract || "");</span>
-<span class="cstat-no" title="statement not covered" >        console.log("[NeoLine] Processing balance:", b.symbol, b.amount, "contract:", b.contract);</span>
+<span class="cstat-no" title="statement not covered" >        logger.debug("[NeoLine] Processing balance:", b.symbol, b.amount, "contract:", b.contract);</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >        <span class="missing-if-branch" title="if path not taken" >I</span>if (contractNorm === neoNorm) <span class="cstat-no" title="statement not covered" >neo = b.amount;</span></span>
 <span class="cstat-no" title="statement not covered" >        <span class="missing-if-branch" title="if path not taken" >I</span>if (contractNorm === gasNorm) <span class="cstat-no" title="statement not covered" >gas = b.amount;</span></span>
@@ -573,10 +576,10 @@ const GAS_CONTRACT = <span class="cstat-no" title="statement not covered" >"0xd2
 <span class="cstat-no" title="statement not covered" >        <span class="missing-if-branch" title="if path not taken" >I</span>if (b.symbol?.toUpperCase() === "GAS") <span class="cstat-no" title="statement not covered" >gas = b.amount;</span></span>
       }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >      console.log("[NeoLine] Final balance - NEO:", neo, "GAS:", gas);</span>
+<span class="cstat-no" title="statement not covered" >      logger.debug("[NeoLine] Final balance - NEO:", neo, "GAS:", gas);</span>
 <span class="cstat-no" title="statement not covered" >      return { neo, gas };</span>
     } catch (error) {
-<span class="cstat-no" title="statement not covered" >      console.error("[NeoLine] Failed to get balance:", error);</span>
+<span class="cstat-no" title="statement not covered" >      logger.error("[NeoLine] Failed to get balance:", error);</span>
 <span class="cstat-no" title="statement not covered" >      return { neo: "0", gas: "0" };</span>
     }
   }
@@ -598,7 +601,7 @@ const GAS_CONTRACT = <span class="cstat-no" title="statement not covered" >"0xd2
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-31T10:01:37.483Z
+                at 2026-01-01T12:03:39.348Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

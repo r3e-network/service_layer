@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>5/10</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>5/10</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -256,7 +256,7 @@
 <a name='L191'></a><a href='#L191'>191</a>
 <a name='L192'></a><a href='#L192'>192</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -318,7 +318,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -395,7 +395,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -405,7 +405,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -421,7 +421,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -447,7 +447,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use client";
 &nbsp;
-<span class="cstat-no" title="statement not covered" >import {</span>
+import {
   Ticket,
   Coins,
   Dice5,
@@ -509,7 +509,7 @@
 } from "lucide-react";
 &nbsp;
 // Map app_id to professional Lucide icons
-const APP_ICONS: Record&lt;string, LucideIcon&gt; = <span class="cstat-no" title="statement not covered" >{</span>
+const APP_ICONS: Record&lt;string, LucideIcon&gt; = {
   // Gaming
   "miniapp-lottery": Ticket,
   "miniapp-coinflip": Coins,
@@ -586,7 +586,7 @@ const APP_ICONS: Record&lt;string, LucideIcon&gt; = <span class="cstat-no" title
 };
 &nbsp;
 // Category fallback icons
-const CATEGORY_ICONS: Record&lt;string, LucideIcon&gt; = <span class="cstat-no" title="statement not covered" >{</span>
+const CATEGORY_ICONS: Record&lt;string, LucideIcon&gt; = {
   gaming: Dice5,
   defi: TrendingUp,
   social: Heart,
@@ -596,7 +596,7 @@ const CATEGORY_ICONS: Record&lt;string, LucideIcon&gt; = <span class="cstat-no" 
 };
 &nbsp;
 // Category gradient colors for logo background
-const CATEGORY_GRADIENTS: Record&lt;string, string&gt; = <span class="cstat-no" title="statement not covered" >{</span>
+const CATEGORY_GRADIENTS: Record&lt;string, string&gt; = {
   gaming: "from-purple-500 to-indigo-600",
   defi: "from-cyan-500 to-blue-600",
   social: "from-pink-500 to-rose-600",
@@ -612,7 +612,7 @@ interface MiniAppLogoProps {
   className?: string;
 }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >export function <span class="fstat-no" title="function not covered" >M</span>iniAppLogo(</span>{ appId, category, size = <span class="branch-0 cbranch-no" title="branch not covered" >"md",</span> className = <span class="branch-0 cbranch-no" title="branch not covered" >"" </span>}: MiniAppLogoProps) {
+export function <span class="fstat-no" title="function not covered" >MiniAppLogo(</span>{ appId, category, size = <span class="branch-0 cbranch-no" title="branch not covered" >"md",</span> className = <span class="branch-0 cbranch-no" title="branch not covered" >"" </span>}: MiniAppLogoProps) {
   const Icon = <span class="cstat-no" title="statement not covered" >APP_ICONS[appId] || CATEGORY_ICONS[category] || Puzzle;</span>
   const gradient = <span class="cstat-no" title="statement not covered" >CATEGORY_GRADIENTS[category] || CATEGORY_GRADIENTS.utility;</span>
 &nbsp;
@@ -643,7 +643,7 @@ interface MiniAppLogoProps {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-31T10:01:37.483Z
+                at 2026-01-01T12:03:39.348Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

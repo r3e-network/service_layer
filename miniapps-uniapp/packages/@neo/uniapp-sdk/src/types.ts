@@ -43,6 +43,8 @@ export interface InvocationIntent {
 }
 
 export interface MiniAppSDK {
+  invoke(method: string, params?: Record<string, unknown>): Promise<unknown>;
+  getConfig(): NeoSDKConfig;
   wallet: {
     getAddress(): Promise<string>;
     invokeIntent?(requestId: string): Promise<unknown>;
