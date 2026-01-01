@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Fog Puzzle</text>
-      <text class="subtitle">Hidden treasure hunt</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <view v-if="status" :class="['status-msg', status.type]">
@@ -11,15 +11,15 @@
 
     <view class="card stats-card">
       <view class="stat-item">
-        <text class="stat-label">Moves</text>
+        <text class="stat-label">{{ t("moves") }}</text>
         <text class="stat-value">{{ moves }}</text>
       </view>
       <view class="stat-item">
-        <text class="stat-label">Found</text>
+        <text class="stat-label">{{ t("found") }}</text>
         <text class="stat-value">{{ treasuresFound }}/{{ totalTreasures }}</text>
       </view>
       <view class="stat-item">
-        <text class="stat-label">Prize</text>
+        <text class="stat-label">{{ t("prize") }}</text>
         <text class="stat-value success">{{ formatNum(prizePool) }} GAS</text>
       </view>
     </view>
@@ -41,35 +41,35 @@
     </view>
 
     <view class="card">
-      <text class="card-title">Game Controls</text>
+      <text class="card-title">{{ t("gameControls") }}</text>
       <view class="control-row">
-        <text class="label">Entry Fee</text>
+        <text class="label">{{ t("entryFee") }}</text>
         <uni-easyinput v-model="entryFee" type="digit" placeholder="0.5" class="fee-input" />
         <text class="label">GAS</text>
       </view>
       <view class="action-btn" @click="startGame" :style="{ opacity: isLoading || gameActive ? 0.6 : 1 }">
-        <text>{{ gameActive ? "Game Active" : isLoading ? "Starting..." : "Start Hunt" }}</text>
+        <text>{{ gameActive ? t("gameActive") : isLoading ? t("starting") : t("startHunt") }}</text>
       </view>
     </view>
 
     <view class="card">
-      <text class="card-title">Legend</text>
+      <text class="card-title">{{ t("legend") }}</text>
       <view class="legend-list">
         <view class="legend-item">
           <text class="legend-icon treasure">💎</text>
-          <text class="legend-text">Treasure (+0.5 GAS)</text>
+          <text class="legend-text">{{ t("treasureDesc") }}</text>
         </view>
         <view class="legend-item">
           <text class="legend-icon hint">💡</text>
-          <text class="legend-text">Hint (nearby treasure)</text>
+          <text class="legend-text">{{ t("hintDesc") }}</text>
         </view>
         <view class="legend-item">
           <text class="legend-icon trap">💥</text>
-          <text class="legend-text">Trap (game over)</text>
+          <text class="legend-text">{{ t("trapDesc") }}</text>
         </view>
         <view class="legend-item">
           <text class="legend-icon empty">·</text>
-          <text class="legend-text">Empty space</text>
+          <text class="legend-text">{{ t("emptyDesc") }}</text>
         </view>
       </view>
     </view>
@@ -80,6 +80,37 @@
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Fog Puzzle", zh: "迷雾谜题" },
+  subtitle: { en: "Hidden treasure hunt", zh: "隐藏宝藏寻宝" },
+  moves: { en: "Moves", zh: "移动" },
+  found: { en: "Found", zh: "已找到" },
+  prize: { en: "Prize", zh: "奖金" },
+  gameControls: { en: "Game Controls", zh: "游戏控制" },
+  entryFee: { en: "Entry Fee", zh: "入场费" },
+  gameActive: { en: "Game Active", zh: "游戏进行中" },
+  starting: { en: "Starting...", zh: "开始中..." },
+  startHunt: { en: "Start Hunt", zh: "开始寻宝" },
+  legend: { en: "Legend", zh: "图例" },
+  treasureDesc: { en: "Treasure (+0.5 GAS)", zh: "宝藏 (+0.5 GAS)" },
+  hintDesc: { en: "Hint (nearby treasure)", zh: "提示（附近有宝藏）" },
+  trapDesc: { en: "Trap (game over)", zh: "陷阱（游戏结束）" },
+  emptyDesc: { en: "Empty space", zh: "空白区域" },
+  startFirst: { en: "Start a game first!", zh: "请先开始游戏！" },
+  alreadyRevealed: { en: "Already revealed!", zh: "已经揭示！" },
+  treasureFound: { en: "Treasure found! +0.5 GAS", zh: "找到宝藏！+0.5 GAS" },
+  victory: { en: "Victory! All treasures found! Won", zh: "胜利！找到所有宝藏！赢得" },
+  trapHit: { en: "Trap! Game over. Better luck next time.", zh: "陷阱！游戏结束。祝下次好运。" },
+  hintNearby: { en: "Hint: Treasure nearby!", zh: "提示：附近有宝藏！" },
+  emptySpace: { en: "Empty space", zh: "空白区域" },
+  startingHunt: { en: "Starting treasure hunt...", zh: "开始寻宝..." },
+  huntStarted: { en: "Hunt started! Find all treasures!", zh: "寻宝开始！找到所有宝藏！" },
+  errorStarting: { en: "Error starting game", zh: "开始游戏出错" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-fog-puzzle";
 const { address, connect } = useWallet();
@@ -173,12 +204,12 @@ const getCellIcon = (type: string): string => {
 
 const revealCell = (i: number, j: number) => {
   if (!gameActive.value) {
-    status.value = { msg: "Start a game first!", type: "error" };
+    status.value = { msg: t("startFirst"), type: "error" };
     return;
   }
 
   if (grid.value[i][j].revealed) {
-    status.value = { msg: "Already revealed!", type: "error" };
+    status.value = { msg: t("alreadyRevealed"), type: "error" };
     return;
   }
 
@@ -190,20 +221,20 @@ const revealCell = (i: number, j: number) => {
   if (cellType === "treasure") {
     treasuresFound.value++;
     prizePool.value += 0.5;
-    status.value = { msg: "Treasure found! +0.5 GAS", type: "success" };
+    status.value = { msg: t("treasureFound"), type: "success" };
 
     if (treasuresFound.value === totalTreasures.value) {
-      status.value = { msg: `Victory! All treasures found! Won ${formatNum(prizePool.value)} GAS`, type: "success" };
+      status.value = { msg: `${t("victory")} ${formatNum(prizePool.value)} GAS`, type: "success" };
       gameActive.value = false;
     }
   } else if (cellType === "trap") {
-    status.value = { msg: "Trap! Game over. Better luck next time.", type: "error" };
+    status.value = { msg: t("trapHit"), type: "error" };
     gameActive.value = false;
     revealAll();
   } else if (cellType === "hint") {
-    status.value = { msg: "Hint: Treasure nearby!", type: "success" };
+    status.value = { msg: t("hintNearby"), type: "success" };
   } else {
-    status.value = { msg: "Empty space", type: "success" };
+    status.value = { msg: t("emptySpace"), type: "success" };
   }
 };
 
@@ -219,7 +250,7 @@ const startGame = async () => {
   if (isLoading.value || gameActive.value) return;
 
   try {
-    status.value = { msg: "Starting treasure hunt...", type: "loading" };
+    status.value = { msg: t("startingHunt"), type: "loading" };
     await payGAS(entryFee.value, `fogpuzzle:start:${Date.now()}`);
 
     grid.value = initGrid();
@@ -228,9 +259,9 @@ const startGame = async () => {
     prizePool.value = 0;
     gameActive.value = true;
 
-    status.value = { msg: "Hunt started! Find all treasures!", type: "success" };
+    status.value = { msg: t("huntStarted"), type: "success" };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error starting game", type: "error" };
+    status.value = { msg: e.message || t("errorStarting"), type: "error" };
   }
 };
 </script>

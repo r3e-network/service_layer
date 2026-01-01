@@ -1,14 +1,14 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Pixel Canvas</text>
-      <text class="subtitle">Collaborative pixel art creation</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Canvas Grid</text>
+      <text class="card-title">{{ t("canvasGrid") }}</text>
       <view class="canvas-grid">
         <view
           v-for="(pixel, idx) in pixels"
@@ -30,24 +30,24 @@
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Actions</text>
+      <text class="card-title">{{ t("actions") }}</text>
       <view class="action-btns">
         <view class="btn-primary" @click="mintCanvas" :style="{ opacity: isLoading ? 0.6 : 1 }">
-          <text>{{ isLoading ? "Minting..." : "Mint as NFT (10 GAS)" }}</text>
+          <text>{{ isLoading ? t("minting") : t("mintAsNFT") }}</text>
         </view>
         <view class="btn-secondary" @click="clearCanvas">
-          <text>Clear Canvas</text>
+          <text>{{ t("clearCanvas") }}</text>
         </view>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Recent Artworks</text>
+      <text class="card-title">{{ t("recentArtworks") }}</text>
       <view class="artworks-list">
         <view v-for="art in artworks" :key="art.id" class="artwork-item">
           <text class="artwork-icon">🎨</text>
           <view class="artwork-info">
             <text class="artwork-name">{{ art.name }}</text>
-            <text class="artwork-author">by {{ art.author }}</text>
+            <text class="artwork-author">{{ t("by") }} {{ art.author }}</text>
           </view>
           <text class="artwork-price">{{ art.price }} GAS</text>
         </view>
@@ -59,6 +59,24 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Pixel Canvas", zh: "像素画布" },
+  subtitle: { en: "Collaborative pixel art creation", zh: "协作像素艺术创作" },
+  canvasGrid: { en: "Canvas Grid", zh: "画布网格" },
+  actions: { en: "Actions", zh: "操作" },
+  minting: { en: "Minting...", zh: "铸造中..." },
+  mintAsNFT: { en: "Mint as NFT (10 GAS)", zh: "铸造为 NFT (10 GAS)" },
+  clearCanvas: { en: "Clear Canvas", zh: "清空画布" },
+  recentArtworks: { en: "Recent Artworks", zh: "最近作品" },
+  by: { en: "by", zh: "作者" },
+  canvasCleared: { en: "Canvas cleared", zh: "画布已清空" },
+  mintingNFT: { en: "Minting NFT...", zh: "正在铸造 NFT..." },
+  canvasMinted: { en: "Canvas minted as NFT!", zh: "画布已铸造为 NFT！" },
+  error: { en: "Error", zh: "错误" },
+};
+const t = createT(translations);
 
 const APP_ID = "miniapp-canvas";
 const { address, connect } = useWallet();
@@ -81,17 +99,17 @@ const paintPixel = (idx: number) => {
 
 const clearCanvas = () => {
   pixels.value = Array(GRID_SIZE * GRID_SIZE).fill("#1a1a2e");
-  status.value = { msg: "Canvas cleared", type: "success" };
+  status.value = { msg: t("canvasCleared"), type: "success" };
 };
 
 const mintCanvas = async () => {
   if (isLoading.value) return;
   try {
-    status.value = { msg: "Minting NFT...", type: "loading" };
+    status.value = { msg: t("mintingNFT"), type: "loading" };
     await payGAS("10", `mint:${Date.now()}`);
-    status.value = { msg: "Canvas minted as NFT!", type: "success" };
+    status.value = { msg: t("canvasMinted"), type: "success" };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 </script>

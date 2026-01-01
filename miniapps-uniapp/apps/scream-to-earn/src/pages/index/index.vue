@@ -46,6 +46,22 @@
 <script setup lang="ts">
 import { ref, onUnmounted } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Scream to Earn", zh: "尖叫赚钱" },
+  subtitle: { en: "Louder = More rewards", zh: "越大声 = 越多奖励" },
+  gasEarned: { en: "GAS Earned", zh: "赚取 GAS" },
+  screams: { en: "Screams", zh: "尖叫次数" },
+  maxDb: { en: "Max dB", zh: "最大分贝" },
+  voiceMeter: { en: "Voice Meter", zh: "音量计" },
+  stopScreaming: { en: "Stop Screaming", zh: "停止尖叫" },
+  startScreaming: { en: "Start Screaming", zh: "开始尖叫" },
+  earnedGas: { en: "Earned {0} GAS!", zh: "赚取 {0} GAS！" },
+  keepScreaming: { en: "Keep screaming for more", zh: "继续尖叫获得更多" },
+  dbEarned: { en: "{0} dB! Earned {1} GAS", zh: "{0} 分贝！赚取 {1} GAS" },
+};
+const t = createT(translations);
 
 const APP_ID = "miniapp-scream-to-earn";
 const { address, connect } = useWallet();

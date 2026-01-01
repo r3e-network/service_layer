@@ -1,14 +1,14 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Garden of Neo</text>
-      <text class="subtitle">Grow and trade virtual garden NFTs</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Your Garden</text>
+      <text class="card-title">{{ t("yourGarden") }}</text>
       <view class="garden-grid">
         <view
           v-for="plot in plots"
@@ -26,43 +26,43 @@
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Available Seeds</text>
+      <text class="card-title">{{ t("availableSeeds") }}</text>
       <view class="seeds-list">
         <view v-for="seed in seeds" :key="seed.id" class="seed-item" @click="plantSeed(seed)">
           <text class="seed-icon">{{ seed.icon }}</text>
           <view class="seed-info">
             <text class="seed-name">{{ seed.name }}</text>
-            <text class="seed-time">{{ seed.growTime }}h to grow</text>
+            <text class="seed-time">{{ seed.growTime }}{{ t("hoursToGrow") }}</text>
           </view>
           <text class="seed-price">{{ seed.price }} GAS</text>
         </view>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Actions</text>
+      <text class="card-title">{{ t("actions") }}</text>
       <view class="action-btns">
         <view class="btn-primary" @click="waterGarden" :style="{ opacity: isLoading ? 0.6 : 1 }">
-          <text>{{ isLoading ? "Watering..." : "Water All (2 GAS)" }}</text>
+          <text>{{ isLoading ? t("watering") : t("waterAll") }}</text>
         </view>
         <view class="btn-secondary" @click="harvestAll">
-          <text>Harvest Ready Plants</text>
+          <text>{{ t("harvestReady") }}</text>
         </view>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Garden Stats</text>
+      <text class="card-title">{{ t("gardenStats") }}</text>
       <view class="stats-grid">
         <view class="stat-item">
           <text class="stat-value">{{ totalPlants }}</text>
-          <text class="stat-label">Plants</text>
+          <text class="stat-label">{{ t("plants") }}</text>
         </view>
         <view class="stat-item">
           <text class="stat-value">{{ readyToHarvest }}</text>
-          <text class="stat-label">Ready</text>
+          <text class="stat-label">{{ t("ready") }}</text>
         </view>
         <view class="stat-item">
           <text class="stat-value">{{ totalHarvested }}</text>
-          <text class="stat-label">Harvested</text>
+          <text class="stat-label">{{ t("harvested") }}</text>
         </view>
       </view>
     </view>
@@ -72,6 +72,34 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Garden of Neo", zh: "Neo花园" },
+  subtitle: { en: "Grow and trade virtual garden NFTs", zh: "种植和交易虚拟花园NFT" },
+  yourGarden: { en: "Your Garden", zh: "你的花园" },
+  availableSeeds: { en: "Available Seeds", zh: "可用种子" },
+  hoursToGrow: { en: "h to grow", zh: "小时生长" },
+  actions: { en: "Actions", zh: "操作" },
+  watering: { en: "Watering...", zh: "浇水中..." },
+  waterAll: { en: "Water All (2 GAS)", zh: "全部浇水 (2 GAS)" },
+  harvestReady: { en: "Harvest Ready Plants", zh: "收获成熟植物" },
+  gardenStats: { en: "Garden Stats", zh: "花园统计" },
+  plants: { en: "Plants", zh: "植物" },
+  ready: { en: "Ready", zh: "成熟" },
+  harvested: { en: "Harvested", zh: "已收获" },
+  noEmptyPlots: { en: "No empty plots available", zh: "没有空闲地块" },
+  plantingSeed: { en: "Planting seed...", zh: "种植中..." },
+  planted: { en: "planted!", zh: "已种植！" },
+  wateringGarden: { en: "Watering garden...", zh: "浇水中..." },
+  gardenWatered: { en: "Garden watered!", zh: "花园已浇水！" },
+  harvested2: { en: "Harvested", zh: "已收获" },
+  harvestedPlants: { en: "plants!", zh: "株植物！" },
+  noReady: { en: "No plants ready to harvest", zh: "没有可收获的植物" },
+  error: { en: "Error", zh: "错误" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-gardenofneo";
 const { address, connect } = useWallet();
@@ -121,39 +149,39 @@ const selectPlot = (plot: Plot) => {
 const plantSeed = async (seed: any) => {
   const emptyPlot = plots.value.find((p) => !p.plant);
   if (!emptyPlot) {
-    status.value = { msg: "No empty plots available", type: "error" };
+    status.value = { msg: t("noEmptyPlots"), type: "error" };
     return;
   }
   if (isLoading.value) return;
   try {
-    status.value = { msg: "Planting seed...", type: "loading" };
+    status.value = { msg: t("plantingSeed"), type: "loading" };
     await payGAS(seed.price, `plant:${seed.id}`);
     emptyPlot.plant = { icon: seed.icon, name: seed.name, growth: 0 };
-    status.value = { msg: `${seed.name} planted!`, type: "success" };
+    status.value = { msg: `${seed.name} ${t("planted")}`, type: "success" };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 
 const waterGarden = async () => {
   if (isLoading.value) return;
   try {
-    status.value = { msg: "Watering garden...", type: "loading" };
+    status.value = { msg: t("wateringGarden"), type: "loading" };
     await payGAS("2", `water:${Date.now()}`);
     plots.value.forEach((plot) => {
       if (plot.plant && plot.plant.growth < 100) {
         plot.plant.growth = Math.min(100, plot.plant.growth + 20);
       }
     });
-    status.value = { msg: "Garden watered!", type: "success" };
+    status.value = { msg: t("gardenWatered"), type: "success" };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 
 const harvest = (plot: Plot) => {
   if (!plot.plant || plot.plant.growth < 100) return;
-  status.value = { msg: `Harvested ${plot.plant.name}!`, type: "success" };
+  status.value = { msg: `${t("harvested2")} ${plot.plant.name}!`, type: "success" };
   plot.plant = null;
   totalHarvested.value++;
 };
@@ -168,9 +196,9 @@ const harvestAll = () => {
   });
   if (count > 0) {
     totalHarvested.value += count;
-    status.value = { msg: `Harvested ${count} plants!`, type: "success" };
+    status.value = { msg: `${t("harvested2")} ${count} ${t("harvestedPlants")}`, type: "success" };
   } else {
-    status.value = { msg: "No plants ready to harvest", type: "error" };
+    status.value = { msg: t("noReady"), type: "error" };
   }
 };
 </script>

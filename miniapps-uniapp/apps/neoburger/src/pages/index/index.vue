@@ -3,77 +3,77 @@
     <!-- Header -->
     <view class="header">
       <image class="logo" src="/static/logo.png" mode="aspectFit" />
-      <text class="title">NeoBurger</text>
-      <text class="subtitle">Liquid Staking for NEO</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <!-- Stats Cards -->
     <view class="stats-row">
       <view class="stat-card">
-        <text class="stat-label">Your bNEO</text>
+        <text class="stat-label">{{ t("yourBneo") }}</text>
         <text class="stat-value">{{ formatAmount(bNeoBalance) }}</text>
       </view>
       <view class="stat-card">
-        <text class="stat-label">Your NEO</text>
+        <text class="stat-label">{{ t("yourNeo") }}</text>
         <text class="stat-value">{{ formatAmount(neoBalance) }}</text>
       </view>
     </view>
 
     <!-- APY Display -->
     <view class="apy-card">
-      <text class="apy-label">Current APY</text>
+      <text class="apy-label">{{ t("currentApy") }}</text>
       <text class="apy-value">~{{ apy }}%</text>
     </view>
 
     <!-- Tab Switcher -->
     <view class="tabs">
       <view class="tab" :class="{ active: activeTab === 'stake' }" @click="activeTab = 'stake'">
-        <text>Stake</text>
+        <text>{{ t("stake") }}</text>
       </view>
       <view class="tab" :class="{ active: activeTab === 'unstake' }" @click="activeTab = 'unstake'">
-        <text>Unstake</text>
+        <text>{{ t("unstake") }}</text>
       </view>
     </view>
 
     <!-- Stake Panel -->
     <view v-if="activeTab === 'stake'" class="panel">
       <view class="input-group">
-        <text class="input-label">Amount to Stake</text>
+        <text class="input-label">{{ t("amountToStake") }}</text>
         <view class="input-row">
           <input v-model="stakeAmount" type="digit" placeholder="0" class="amount-input" />
           <text class="token-label">NEO</text>
         </view>
-        <text class="balance-hint">Balance: {{ formatAmount(neoBalance) }} NEO</text>
+        <text class="balance-hint">{{ t("balance") }}: {{ formatAmount(neoBalance) }} NEO</text>
       </view>
 
       <view class="receive-info">
-        <text class="receive-label">You will receive</text>
+        <text class="receive-label">{{ t("youWillReceive") }}</text>
         <text class="receive-value">~{{ estimatedBneo }} bNEO</text>
       </view>
 
       <button class="action-btn stake-btn" :disabled="!canStake || loading" @click="handleStake">
-        <text>{{ loading ? "Processing..." : "Stake NEO" }}</text>
+        <text>{{ loading ? t("processing") : t("stakeNeo") }}</text>
       </button>
     </view>
 
     <!-- Unstake Panel -->
     <view v-if="activeTab === 'unstake'" class="panel">
       <view class="input-group">
-        <text class="input-label">Amount to Unstake</text>
+        <text class="input-label">{{ t("amountToUnstake") }}</text>
         <view class="input-row">
           <input v-model="unstakeAmount" type="digit" placeholder="0" class="amount-input" />
           <text class="token-label">bNEO</text>
         </view>
-        <text class="balance-hint">Balance: {{ formatAmount(bNeoBalance) }} bNEO</text>
+        <text class="balance-hint">{{ t("balance") }}: {{ formatAmount(bNeoBalance) }} bNEO</text>
       </view>
 
       <view class="receive-info">
-        <text class="receive-label">You will receive</text>
+        <text class="receive-label">{{ t("youWillReceive") }}</text>
         <text class="receive-value">~{{ estimatedNeo }} NEO</text>
       </view>
 
       <button class="action-btn unstake-btn" :disabled="!canUnstake || loading" @click="handleUnstake">
-        <text>{{ loading ? "Processing..." : "Unstake bNEO" }}</text>
+        <text>{{ loading ? t("processing") : t("unstakeBneo") }}</text>
       </button>
     </view>
 
@@ -87,9 +87,33 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useWallet } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
 
 const APP_ID = "miniapp-neoburger";
 const BNEO_CONTRACT = "0x48c40d4666f93408be1bef038b6722404d9a4c2a";
+
+const translations = {
+  title: { en: "NeoBurger", zh: "NeoBurger" },
+  subtitle: { en: "Liquid Staking for NEO", zh: "NEO 流动性质押" },
+  yourBneo: { en: "Your bNEO", zh: "您的 bNEO" },
+  yourNeo: { en: "Your NEO", zh: "您的 NEO" },
+  currentApy: { en: "Current APY", zh: "当前年化收益" },
+  stake: { en: "Stake", zh: "质押" },
+  unstake: { en: "Unstake", zh: "解除质押" },
+  amountToStake: { en: "Amount to Stake", zh: "质押数量" },
+  amountToUnstake: { en: "Amount to Unstake", zh: "解除质押数量" },
+  balance: { en: "Balance", zh: "余额" },
+  youWillReceive: { en: "You will receive", zh: "您将收到" },
+  processing: { en: "Processing...", zh: "处理中..." },
+  stakeNeo: { en: "Stake NEO", zh: "质押 NEO" },
+  unstakeBneo: { en: "Unstake bNEO", zh: "解除质押 bNEO" },
+  stakeSuccess: { en: "Staked", zh: "质押成功" },
+  stakeFailed: { en: "Stake failed", zh: "质押失败" },
+  unstakeSuccess: { en: "Unstaked", zh: "解除质押成功" },
+  unstakeFailed: { en: "Unstake failed", zh: "解除质押失败" },
+};
+
+const t = createT(translations);
 
 const { getAddress, invokeContract, getBalance } = useWallet();
 
@@ -103,6 +127,7 @@ const loading = ref(false);
 const statusMessage = ref("");
 const statusType = ref<"success" | "error">("success");
 const apy = ref("5.2");
+const loadingApy = ref(true);
 
 // Computed
 const canStake = computed(() => {
@@ -150,6 +175,22 @@ async function loadBalances() {
   }
 }
 
+async function loadApy() {
+  try {
+    loadingApy.value = true;
+    const response = await fetch("/api/neoburger/stats");
+    if (response.ok) {
+      const data = await response.json();
+      apy.value = data.apr || "5.2";
+    }
+  } catch (e) {
+    console.error("Failed to load APY:", e);
+    // Keep default value on error
+  } finally {
+    loadingApy.value = false;
+  }
+}
+
 async function handleStake() {
   if (!canStake.value || loading.value) return;
 
@@ -166,11 +207,11 @@ async function handleStake() {
         { type: "Any", value: null },
       ],
     });
-    showStatus(`Staked ${amount} NEO successfully!`, "success");
+    showStatus(`${t("stakeSuccess")} ${amount} NEO!`, "success");
     stakeAmount.value = "";
     await loadBalances();
   } catch (e: any) {
-    showStatus(e.message || "Stake failed", "error");
+    showStatus(e.message || t("stakeFailed"), "error");
   } finally {
     loading.value = false;
   }
@@ -192,11 +233,11 @@ async function handleUnstake() {
         { type: "ByteArray", value: "" },
       ],
     });
-    showStatus(`Unstaked ${amount} bNEO successfully!`, "success");
+    showStatus(`${t("unstakeSuccess")} ${amount} bNEO!`, "success");
     unstakeAmount.value = "";
     await loadBalances();
   } catch (e: any) {
-    showStatus(e.message || "Unstake failed", "error");
+    showStatus(e.message || t("unstakeFailed"), "error");
   } finally {
     loading.value = false;
   }
@@ -204,6 +245,7 @@ async function handleUnstake() {
 
 onMounted(() => {
   loadBalances();
+  loadApy();
 });
 </script>
 

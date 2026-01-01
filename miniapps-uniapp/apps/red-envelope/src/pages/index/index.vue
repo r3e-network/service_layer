@@ -1,27 +1,29 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Red Envelope</text>
-      <text class="subtitle">Lucky red packets</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Create Envelope</text>
-      <uni-easyinput v-model="amount" type="number" placeholder="Total GAS" />
-      <uni-easyinput v-model="count" type="number" placeholder="Number of packets" />
+      <text class="card-title">{{ t("createEnvelope") }}</text>
+      <uni-easyinput v-model="amount" type="number" :placeholder="t('totalGasPlaceholder')" />
+      <uni-easyinput v-model="count" type="number" :placeholder="t('packetsPlaceholder')" />
       <view class="action-btn" @click="create">
-        <text>{{ isLoading ? "Creating..." : "Send Red Envelope" }}</text>
+        <text>{{ isLoading ? t("creating") : t("sendRedEnvelope") }}</text>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Available Envelopes</text>
+      <text class="card-title">{{ t("availableEnvelopes") }}</text>
       <view v-for="env in envelopes" :key="env.id" class="envelope-item" @click="claim(env)">
         <text class="envelope-icon">🧧</text>
         <view class="envelope-info">
-          <text class="envelope-from">From {{ env.from }}</text>
-          <text class="envelope-remaining">{{ env.remaining }}/{{ env.total }} left</text>
+          <text class="envelope-from">{{ t("from").replace("{0}", env.from) }}</text>
+          <text class="envelope-remaining">{{
+            t("remaining").replace("{0}", String(env.remaining)).replace("{1}", String(env.total))
+          }}</text>
         </view>
       </view>
     </view>
@@ -31,6 +33,24 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Red Envelope", zh: "红包" },
+  subtitle: { en: "Lucky red packets", zh: "幸运红包" },
+  createEnvelope: { en: "Create Envelope", zh: "创建红包" },
+  totalGasPlaceholder: { en: "Total GAS", zh: "总 GAS" },
+  packetsPlaceholder: { en: "Number of packets", zh: "红包数量" },
+  creating: { en: "Creating...", zh: "创建中..." },
+  sendRedEnvelope: { en: "Send Red Envelope", zh: "发送红包" },
+  availableEnvelopes: { en: "Available Envelopes", zh: "可用红包" },
+  from: { en: "From {0}", zh: "来自 {0}" },
+  remaining: { en: "{0}/{1} left", zh: "剩余 {0}/{1}" },
+  envelopeSent: { en: "Envelope sent!", zh: "红包已发送！" },
+  claimedFrom: { en: "Claimed from {0}!", zh: "已领取来自 {0} 的红包！" },
+  error: { en: "Error", zh: "错误" },
+};
+const t = createT(translations);
 
 const APP_ID = "miniapp-redenvelope";
 const { address, connect } = useWallet();
@@ -48,14 +68,14 @@ const create = async () => {
   if (isLoading.value) return;
   try {
     await payGAS(amount.value, `redenvelope:${count.value}`);
-    status.value = { msg: "Envelope sent!", type: "success" };
+    status.value = { msg: t("envelopeSent"), type: "success" };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 
 const claim = async (env: any) => {
-  status.value = { msg: `Claimed from ${env.from}!`, type: "success" };
+  status.value = { msg: t("claimedFrom").replace("{0}", env.from), type: "success" };
   env.remaining--;
 };
 </script>

@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Burn League</text>
-      <text class="subtitle">Burn tokens, earn rewards</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <view v-if="status" :class="['status-msg', status.type]">
@@ -13,33 +13,33 @@
       <view class="stats-grid">
         <view class="stat-box">
           <text class="stat-value">{{ formatNum(totalBurned) }}</text>
-          <text class="stat-label">Total Burned</text>
+          <text class="stat-label">{{ t("totalBurned") }}</text>
         </view>
         <view class="stat-box">
           <text class="stat-value">{{ formatNum(userBurned) }}</text>
-          <text class="stat-label">You Burned</text>
+          <text class="stat-label">{{ t("youBurned") }}</text>
         </view>
         <view class="stat-box">
           <text class="stat-value">#{{ rank }}</text>
-          <text class="stat-label">Rank</text>
+          <text class="stat-label">{{ t("rank") }}</text>
         </view>
       </view>
     </view>
 
     <view class="card">
-      <text class="card-title">Burn Tokens</text>
-      <uni-easyinput v-model="burnAmount" type="number" placeholder="Amount to burn" />
+      <text class="card-title">{{ t("burnTokens") }}</text>
+      <uni-easyinput v-model="burnAmount" type="number" :placeholder="t('amountPlaceholder')" />
       <view class="reward-info">
-        <text class="reward-label">Estimated Rewards</text>
-        <text class="reward-value">{{ formatNum(estimatedReward) }} Points</text>
+        <text class="reward-label">{{ t("estimatedRewards") }}</text>
+        <text class="reward-value">{{ formatNum(estimatedReward) }} {{ t("points") }}</text>
       </view>
       <view class="burn-btn" @click="burnTokens" :style="{ opacity: isLoading ? 0.6 : 1 }">
-        <text>{{ isLoading ? "Burning..." : "Burn Now" }}</text>
+        <text>{{ isLoading ? t("burning") : t("burnNow") }}</text>
       </view>
     </view>
 
     <view class="card">
-      <text class="card-title">Leaderboard</text>
+      <text class="card-title">{{ t("leaderboard") }}</text>
       <view class="leaderboard-list">
         <view v-for="(entry, i) in leaderboard" :key="i" :class="['leader-item', entry.isUser && 'highlight']">
           <text class="leader-rank">#{{ entry.rank }}</text>
@@ -55,6 +55,27 @@
 import { ref, computed } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Burn League", zh: "燃烧联盟" },
+  subtitle: { en: "Burn tokens, earn rewards", zh: "燃烧代币，赚取奖励" },
+  totalBurned: { en: "Total Burned", zh: "总燃烧量" },
+  youBurned: { en: "You Burned", zh: "你的燃烧量" },
+  rank: { en: "Rank", zh: "排名" },
+  burnTokens: { en: "Burn Tokens", zh: "燃烧代币" },
+  amountPlaceholder: { en: "Amount to burn", zh: "燃烧数量" },
+  estimatedRewards: { en: "Estimated Rewards", zh: "预估奖励" },
+  points: { en: "Points", zh: "积分" },
+  burning: { en: "Burning...", zh: "燃烧中..." },
+  burnNow: { en: "Burn Now", zh: "立即燃烧" },
+  leaderboard: { en: "Leaderboard", zh: "排行榜" },
+  burned: { en: "Burned", zh: "已燃烧" },
+  success: { en: "successfully!", zh: "成功！" },
+  error: { en: "Error", zh: "错误" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-burn-league";
 const { address, connect } = useWallet();
@@ -88,17 +109,17 @@ const burnTokens = async () => {
   if (isLoading.value) return;
   const amount = parseFloat(burnAmount.value);
   if (amount < 1) {
-    status.value = { msg: "Min burn: 1 GAS", type: "error" };
+    status.value = { msg: `${t("error")}: Min burn: 1 GAS`, type: "error" };
     return;
   }
   try {
-    status.value = { msg: "Burning tokens...", type: "loading" };
+    status.value = { msg: t("burning"), type: "loading" };
     await payGAS(burnAmount.value, "burn");
     userBurned.value += amount;
     totalBurned.value += amount;
-    status.value = { msg: `Burned ${amount} GAS! +${estimatedReward.value} points`, type: "success" };
+    status.value = { msg: `${t("burned")} ${amount} GAS! +${estimatedReward.value} ${t("points")}`, type: "success" };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 </script>

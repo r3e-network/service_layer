@@ -2,35 +2,35 @@
   <view class="app-container">
     <!-- Header with Network Stats -->
     <view class="header">
-      <text class="title">Neo Explorer</text>
-      <text class="subtitle">Search transactions, addresses, contracts</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <!-- Network Stats Cards -->
     <view class="stats-grid">
       <view class="network-card mainnet">
-        <text class="network-label">Mainnet</text>
+        <text class="network-label">{{ t("mainnet") }}</text>
         <view class="network-stats">
           <view class="stat-item">
             <text class="stat-value">{{ formatNum(stats.mainnet.height) }}</text>
-            <text class="stat-label">Block Height</text>
+            <text class="stat-label">{{ t("blockHeight") }}</text>
           </view>
           <view class="stat-item">
             <text class="stat-value">{{ formatNum(stats.mainnet.txCount) }}</text>
-            <text class="stat-label">Transactions</text>
+            <text class="stat-label">{{ t("transactions") }}</text>
           </view>
         </view>
       </view>
       <view class="network-card testnet">
-        <text class="network-label">Testnet</text>
+        <text class="network-label">{{ t("testnet") }}</text>
         <view class="network-stats">
           <view class="stat-item">
             <text class="stat-value">{{ formatNum(stats.testnet.height) }}</text>
-            <text class="stat-label">Block Height</text>
+            <text class="stat-label">{{ t("blockHeight") }}</text>
           </view>
           <view class="stat-item">
             <text class="stat-value">{{ formatNum(stats.testnet.txCount) }}</text>
-            <text class="stat-label">Transactions</text>
+            <text class="stat-label">{{ t("transactions") }}</text>
           </view>
         </view>
       </view>
@@ -39,22 +39,17 @@
     <!-- Search Section -->
     <view class="search-section">
       <view class="search-box">
-        <input
-          v-model="searchQuery"
-          class="search-input"
-          placeholder="Search tx hash, address, or contract..."
-          @confirm="search"
-        />
+        <input v-model="searchQuery" class="search-input" :placeholder="t('searchPlaceholder')" @confirm="search" />
         <view class="search-btn" @click="search">
-          <text>Search</text>
+          <text>{{ t("search") }}</text>
         </view>
       </view>
       <view class="network-toggle">
         <view :class="['toggle-btn', selectedNetwork === 'mainnet' && 'active']" @click="selectedNetwork = 'mainnet'">
-          <text>Mainnet</text>
+          <text>{{ t("mainnet") }}</text>
         </view>
         <view :class="['toggle-btn', selectedNetwork === 'testnet' && 'active']" @click="selectedNetwork = 'testnet'">
-          <text>Testnet</text>
+          <text>{{ t("testnet") }}</text>
         </view>
       </view>
     </view>
@@ -66,35 +61,35 @@
 
     <!-- Loading -->
     <view v-if="isLoading" class="loading">
-      <text>Searching...</text>
+      <text>{{ t("searching") }}</text>
     </view>
 
     <!-- Search Results -->
     <view v-if="searchResult" class="result-section">
-      <text class="section-title">Search Result</text>
+      <text class="section-title">{{ t("searchResult") }}</text>
 
       <!-- Transaction Result -->
       <view v-if="searchResult.type === 'transaction'" class="result-card">
         <view class="result-header">
-          <text class="result-type">Transaction</text>
+          <text class="result-type">{{ t("transaction") }}</text>
           <text :class="['vm-state', searchResult.data.vmState]">
             {{ searchResult.data.vmState }}
           </text>
         </view>
         <view class="result-row">
-          <text class="label">Hash:</text>
+          <text class="label">{{ t("hash") }}</text>
           <text class="value hash">{{ searchResult.data.hash }}</text>
         </view>
         <view class="result-row">
-          <text class="label">Block:</text>
+          <text class="label">{{ t("block") }}</text>
           <text class="value">{{ searchResult.data.blockIndex }}</text>
         </view>
         <view class="result-row">
-          <text class="label">Time:</text>
+          <text class="label">{{ t("time") }}</text>
           <text class="value">{{ formatTime(searchResult.data.blockTime) }}</text>
         </view>
         <view class="result-row">
-          <text class="label">Sender:</text>
+          <text class="label">{{ t("sender") }}</text>
           <text class="value addr">{{ searchResult.data.sender }}</text>
         </view>
         <view class="result-row">
@@ -110,7 +105,7 @@
       <!-- Address Result -->
       <view v-else-if="searchResult.type === 'address'" class="result-card">
         <view class="result-header">
-          <text class="result-type">Address</text>
+          <text class="result-type">{{ t("address") }}</text>
         </view>
         <view class="result-row">
           <text class="label">Address:</text>
@@ -121,7 +116,7 @@
           <text class="value">{{ searchResult.data.txCount }}</text>
         </view>
         <view class="tx-list" v-if="searchResult.data.transactions?.length">
-          <text class="list-title">Recent Transactions</text>
+          <text class="list-title">{{ t("recentTransactions") }}</text>
           <view v-for="tx in searchResult.data.transactions" :key="tx.hash" class="tx-item" @click="viewTx(tx.hash)">
             <text class="tx-hash">{{ truncateHash(tx.hash) }}</text>
             <text class="tx-time">{{ formatTime(tx.blockTime) }}</text>
@@ -132,7 +127,7 @@
 
     <!-- Recent Transactions -->
     <view v-if="!searchResult && recentTxs.length" class="recent-section">
-      <text class="section-title">Recent Transactions</text>
+      <text class="section-title">{{ t("recentTransactions") }}</text>
       <view v-for="tx in recentTxs" :key="tx.hash" class="tx-item" @click="viewTx(tx.hash)">
         <view class="tx-info">
           <text class="tx-hash">{{ truncateHash(tx.hash) }}</text>
@@ -147,6 +142,34 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { formatNumber } from "@/shared/utils/format";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Neo Explorer", zh: "Neo 浏览器" },
+  subtitle: { en: "Search transactions, addresses, contracts", zh: "搜索交易、地址、合约" },
+  mainnet: { en: "Mainnet", zh: "主网" },
+  testnet: { en: "Testnet", zh: "测试网" },
+  blockHeight: { en: "Block Height", zh: "区块高度" },
+  transactions: { en: "Transactions", zh: "交易数" },
+  searchPlaceholder: { en: "Search tx hash, address, or contract...", zh: "搜索交易哈希、地址或合约..." },
+  search: { en: "Search", zh: "搜索" },
+  searching: { en: "Searching...", zh: "搜索中..." },
+  searchResult: { en: "Search Result", zh: "搜索结果" },
+  transaction: { en: "Transaction", zh: "交易" },
+  address: { en: "Address", zh: "地址" },
+  contract: { en: "Contract", zh: "合约" },
+  hash: { en: "Hash:", zh: "哈希:" },
+  block: { en: "Block:", zh: "区块:" },
+  time: { en: "Time:", zh: "时间:" },
+  sender: { en: "Sender:", zh: "发送者:" },
+  gasConsumed: { en: "Gas Consumed:", zh: "消耗Gas:" },
+  recentTransactions: { en: "Recent Transactions", zh: "最近交易" },
+  pleaseEnterQuery: { en: "Please enter a search query", zh: "请输入搜索内容" },
+  noResults: { en: "No results found", zh: "未找到结果" },
+  searchFailed: { en: "Search failed", zh: "搜索失败" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-explorer";
 const API_BASE = "/api/explorer";

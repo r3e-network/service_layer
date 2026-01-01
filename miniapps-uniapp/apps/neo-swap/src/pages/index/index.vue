@@ -2,15 +2,15 @@
   <view class="container">
     <!-- Header -->
     <view class="header">
-      <text class="title">Flamingo Swap</text>
-      <text class="subtitle">Swap NEO ↔ GAS instantly</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <!-- Swap Card -->
     <view class="swap-card">
       <!-- From Token -->
       <view class="token-section">
-        <text class="section-label">From</text>
+        <text class="section-label">{{ t("from") }}</text>
         <view class="token-row">
           <view class="token-select" @click="openFromSelector">
             <text class="token-icon">{{ fromToken.icon }}</text>
@@ -19,7 +19,7 @@
           </view>
           <input v-model="fromAmount" type="digit" placeholder="0.0" class="amount-input" @input="onFromAmountChange" />
         </view>
-        <text class="balance-text">Balance: {{ formatAmount(fromToken.balance) }}</text>
+        <text class="balance-text">{{ t("balance") }}: {{ formatAmount(fromToken.balance) }}</text>
       </view>
 
       <!-- Swap Direction Button -->
@@ -29,7 +29,7 @@
 
       <!-- To Token -->
       <view class="token-section">
-        <text class="section-label">To</text>
+        <text class="section-label">{{ t("to") }}</text>
         <view class="token-row">
           <view class="token-select" @click="openToSelector">
             <text class="token-icon">{{ toToken.icon }}</text>
@@ -38,13 +38,13 @@
           </view>
           <input v-model="toAmount" type="digit" placeholder="0.0" class="amount-input" disabled />
         </view>
-        <text class="balance-text">Balance: {{ formatAmount(toToken.balance) }}</text>
+        <text class="balance-text">{{ t("balance") }}: {{ formatAmount(toToken.balance) }}</text>
       </view>
     </view>
 
     <!-- Price Info -->
     <view class="price-info" v-if="exchangeRate">
-      <text class="price-label">Exchange Rate</text>
+      <text class="price-label">{{ t("exchangeRate") }}</text>
       <text class="price-value">1 {{ fromToken.symbol }} ≈ {{ exchangeRate }} {{ toToken.symbol }}</text>
     </view>
 
@@ -61,7 +61,7 @@
     <!-- Token Selector Modal -->
     <view v-if="showSelector" class="modal-overlay" @click="closeSelector">
       <view class="modal-content" @click.stop>
-        <text class="modal-title">Select Token</text>
+        <text class="modal-title">{{ t("selectToken") }}</text>
         <view v-for="token in availableTokens" :key="token.symbol" class="token-option" @click="selectToken(token)">
           <text class="token-icon">{{ token.icon }}</text>
           <view class="token-info">
@@ -77,9 +77,27 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useWallet } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
 
 const APP_ID = "miniapp-neo-swap";
 const SWAP_ROUTER = "0xf970f4ccecd765b63732b821775dc38c25d74f23";
+
+const translations = {
+  title: { en: "Flamingo Swap", zh: "火烈鸟兑换" },
+  subtitle: { en: "Swap NEO ↔ GAS instantly", zh: "即时兑换 NEO ↔ GAS" },
+  from: { en: "From", zh: "从" },
+  to: { en: "To", zh: "到" },
+  balance: { en: "Balance", zh: "余额" },
+  exchangeRate: { en: "Exchange Rate", zh: "兑换率" },
+  enterAmount: { en: "Enter amount", zh: "输入数量" },
+  insufficientBalance: { en: "Insufficient balance", zh: "余额不足" },
+  swapping: { en: "Swapping...", zh: "兑换中..." },
+  selectToken: { en: "Select Token", zh: "选择代币" },
+  swapSuccess: { en: "Swapped", zh: "兑换成功" },
+  swapFailed: { en: "Swap failed", zh: "兑换失败" },
+};
+
+const t = createT(translations);
 
 const { getAddress, invokeContract, getBalance } = useWallet();
 
@@ -115,9 +133,9 @@ const canSwap = computed(() => {
 });
 
 const swapButtonText = computed(() => {
-  if (loading.value) return "Swapping...";
-  if (!fromAmount.value) return "Enter amount";
-  if (parseFloat(fromAmount.value) > fromToken.value.balance) return "Insufficient balance";
+  if (loading.value) return t("swapping");
+  if (!fromAmount.value) return t("enterAmount");
+  if (parseFloat(fromAmount.value) > fromToken.value.balance) return t("insufficientBalance");
   return `Swap ${fromToken.value.symbol} → ${toToken.value.symbol}`;
 });
 
@@ -212,12 +230,12 @@ async function executeSwap() {
       ],
     });
 
-    showStatus(`Swapped ${amount} ${fromToken.value.symbol}!`, "success");
+    showStatus(`${t("swapSuccess")} ${amount} ${fromToken.value.symbol}!`, "success");
     fromAmount.value = "";
     toAmount.value = "";
     await loadBalances();
   } catch (e: any) {
-    showStatus(e.message || "Swap failed", "error");
+    showStatus(e.message || t("swapFailed"), "error");
   } finally {
     loading.value = false;
   }

@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">ZK Badge</text>
-      <text class="subtitle">Zero-knowledge credentials</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <view v-if="status" :class="['status-msg', status.type]">
@@ -10,7 +10,7 @@
     </view>
 
     <view class="card">
-      <text class="card-title">My Badges</text>
+      <text class="card-title">{{ t("myBadges") }}</text>
       <view v-for="badge in badges" :key="badge.id" class="badge-row">
         <view class="badge-icon">{{ badge.icon }}</view>
         <view class="badge-info">
@@ -24,11 +24,11 @@
     </view>
 
     <view class="card">
-      <text class="card-title">Claim Badge</text>
-      <uni-easyinput v-model="badgeType" placeholder="Badge type (e.g., developer)" class="input" />
-      <uni-easyinput v-model="proof" placeholder="ZK proof hash" class="input" />
+      <text class="card-title">{{ t("claimBadge") }}</text>
+      <uni-easyinput v-model="badgeType" :placeholder="t('badgeTypePlaceholder')" class="input" />
+      <uni-easyinput v-model="proof" :placeholder="t('proofPlaceholder')" class="input" />
       <view class="action-btn" @click="claimBadge">
-        <text>Submit Claim</text>
+        <text>{{ t("submitClaim") }}</text>
       </view>
     </view>
   </view>
@@ -36,6 +36,22 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "ZK Badge", zh: "零知识徽章" },
+  subtitle: { en: "Zero-knowledge credentials", zh: "零知识凭证" },
+  myBadges: { en: "My Badges", zh: "我的徽章" },
+  claimBadge: { en: "Claim Badge", zh: "申领徽章" },
+  badgeTypePlaceholder: { en: "Badge type (e.g., developer)", zh: "徽章类型（例如：开发者）" },
+  proofPlaceholder: { en: "ZK proof hash", zh: "零知识证明哈希" },
+  submitClaim: { en: "Submit Claim", zh: "提交申领" },
+  fillAllFields: { en: "Please fill all fields", zh: "请填写所有字段" },
+  badgeClaimSubmitted: { en: "Badge claim submitted for verification", zh: "徽章申领已提交验证" },
+  pendingVerification: { en: "Pending verification", zh: "待验证" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-zk-badge";
 
@@ -59,17 +75,17 @@ const status = ref<{ msg: string; type: string } | null>(null);
 
 const claimBadge = () => {
   if (!badgeType.value || !proof.value) {
-    status.value = { msg: "Please fill all fields", type: "error" };
+    status.value = { msg: t("fillAllFields"), type: "error" };
     return;
   }
   badges.value.push({
     id: String(Date.now()),
     name: badgeType.value,
-    description: "Pending verification",
+    description: t("pendingVerification"),
     icon: "🎖️",
     verified: false,
   });
-  status.value = { msg: "Badge claim submitted for verification", type: "success" };
+  status.value = { msg: t("badgeClaimSubmitted"), type: "success" };
   badgeType.value = "";
   proof.value = "";
 };

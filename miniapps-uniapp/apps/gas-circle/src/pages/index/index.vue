@@ -12,7 +12,7 @@
     <view class="card">
       <text class="card-title">Active Circle</text>
       <view class="row"
-        ><text>Members</text><text class="v">{{ circle.members }}/{{ circle.maxMembers }}</text></view
+        ><text>{{ t('members') }}</text><text class="v">{{ circle.members }}/{{ circle.maxMembers }}</text></view
       >
       <view class="row"
         ><text>Contribution</text><text class="v">{{ circle.contribution }} GAS</text></view
@@ -50,11 +50,30 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
 
 type StatusType = "success" | "error";
 type Status = { msg: string; type: StatusType };
 type Circle = { members: number; maxMembers: number; contribution: number; nextPayout: string };
 type UserStatus = { position: number; contributed: number; received: boolean };
+
+const translations = {
+  title: { en: "Gas Circle", zh: "Gas 圈" },
+  subtitle: { en: "Collaborative gas pooling", zh: "协作Gas池" },
+  totalPooled: { en: "Total Pooled", zh: "总池化" },
+  yourContribution: { en: "Your Contribution", zh: "您的贡献" },
+  members: { en: "Members", zh: "成员" },
+  contributeGas: { en: "Contribute Gas", zh: "贡献Gas" },
+  amountToContribute: { en: "Amount to contribute", zh: "贡献数量" },
+  contributing: { en: "Contributing...", zh: "贡献中..." },
+  contribute: { en: "Contribute", zh: "贡献" },
+  withdraw: { en: "Withdraw", zh: "提取" },
+  minContribution: { en: "Min contribution: 1 GAS", zh: "最小贡献：1 GAS" },
+  contributionSuccess: { en: "Contribution successful!", zh: "贡献成功！" },
+  error: { en: "Error", zh: "错误" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-gas-circle";
 const { address, connect } = useWallet();

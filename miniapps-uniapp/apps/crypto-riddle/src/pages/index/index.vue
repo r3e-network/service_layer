@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Crypto Riddle</text>
-      <text class="subtitle">Solve puzzles, earn rewards</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
@@ -11,51 +11,51 @@
       <view class="stats-row">
         <view class="stat">
           <text class="stat-value">{{ solvedCount }}</text>
-          <text class="stat-label">Solved</text>
+          <text class="stat-label">{{ t("solved") }}</text>
         </view>
         <view class="stat">
           <text class="stat-value">{{ totalRewards }}</text>
-          <text class="stat-label">GAS Earned</text>
+          <text class="stat-label">{{ t("gasEarned") }}</text>
         </view>
         <view class="stat">
           <text class="stat-value">{{ currentStreak }}</text>
-          <text class="stat-label">Streak</text>
+          <text class="stat-label">{{ t("streak") }}</text>
         </view>
       </view>
     </view>
     <view class="card">
       <view class="riddle-header">
-        <text class="card-title">Riddle #{{ currentRiddle.id }}</text>
+        <text class="card-title">{{ t("riddlePrefix") }}{{ currentRiddle.id }}</text>
         <view class="difficulty-badge" :class="currentRiddle.difficulty">
-          <text>{{ currentRiddle.difficulty }}</text>
+          <text>{{ t(currentRiddle.difficulty) }}</text>
         </view>
       </view>
       <view class="riddle-content">
         <text class="riddle-text">{{ currentRiddle.question }}</text>
       </view>
       <view class="hint-section">
-        <text class="hint-label">Hint:</text>
+        <text class="hint-label">{{ t("hint") }}</text>
         <text class="hint-text">{{ currentRiddle.hint }}</text>
       </view>
       <view class="reward-info">
-        <text>Reward: {{ currentRiddle.reward }} GAS</text>
+        <text>{{ t("reward") }} {{ currentRiddle.reward }} GAS</text>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Your Answer</text>
-      <uni-easyinput v-model="userAnswer" placeholder="Enter your answer..." :disabled="isSubmitting" />
+      <text class="card-title">{{ t("yourAnswer") }}</text>
+      <uni-easyinput v-model="userAnswer" :placeholder="t('enterAnswer')" :disabled="isSubmitting" />
       <view class="submit-btn" @click="submitAnswer">
-        <text>{{ isSubmitting ? "Checking..." : "Submit Answer" }}</text>
+        <text>{{ isSubmitting ? t("checking") : t("submitAnswer") }}</text>
       </view>
     </view>
     <view v-if="showResult" class="result-card" :class="lastResult.correct ? 'correct' : 'wrong'">
       <text class="result-icon">{{ lastResult.correct ? "✅" : "❌" }}</text>
       <text class="result-text">{{ lastResult.message }}</text>
       <view v-if="!lastResult.correct" class="correct-answer">
-        <text>Correct answer: {{ lastResult.correctAnswer }}</text>
+        <text>{{ t("correctAnswer") }} {{ lastResult.correctAnswer }}</text>
       </view>
       <view class="next-btn" @click="nextRiddle">
-        <text>Next Riddle</text>
+        <text>{{ t("nextRiddle") }}</text>
       </view>
     </view>
   </view>
@@ -64,6 +64,49 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Crypto Riddle", zh: "加密谜题" },
+  subtitle: { en: "Solve puzzles, earn rewards", zh: "解谜题，赚奖励" },
+  solved: { en: "Solved", zh: "已解决" },
+  gasEarned: { en: "GAS Earned", zh: "已赚取 GAS" },
+  streak: { en: "Streak", zh: "连胜" },
+  riddlePrefix: { en: "Riddle #", zh: "谜题 #" },
+  hint: { en: "Hint:", zh: "提示：" },
+  reward: { en: "Reward:", zh: "奖励：" },
+  yourAnswer: { en: "Your Answer", zh: "你的答案" },
+  enterAnswer: { en: "Enter your answer...", zh: "输入你的答案..." },
+  checking: { en: "Checking...", zh: "检查中..." },
+  submitAnswer: { en: "Submit Answer", zh: "提交答案" },
+  nextRiddle: { en: "Next Riddle", zh: "下一题" },
+  pleaseEnterAnswer: { en: "Please enter an answer", zh: "请输入答案" },
+  correctEarned: { en: "Correct! You earned", zh: "正确！你赚取了" },
+  brilliant: { en: "Brilliant! Keep going!", zh: "太棒了！继续加油！" },
+  notQuite: { en: "Not quite right. Try again!", zh: "不太对。再试一次！" },
+  wrongAnswer: { en: "Wrong answer. Study the hint!", zh: "答案错误。仔细看提示！" },
+  correctAnswer: { en: "Correct answer:", zh: "正确答案：" },
+  easy: { en: "easy", zh: "简单" },
+  medium: { en: "medium", zh: "中等" },
+  hard: { en: "hard", zh: "困难" },
+  riddle1: {
+    en: "I am the first, yet I am everywhere. Without me, nothing can be verified. What am I?",
+    zh: "我是第一个，但我无处不在。没有我，什么都无法验证。我是什么？",
+  },
+  riddle1Hint: { en: "Think about blockchain fundamentals", zh: "想想区块链基础" },
+  riddle2: {
+    en: "I have keys but no locks. I have space but no room. You can enter, but can't go outside. What am I?",
+    zh: "我有键但没有锁。我有空间但没有房间。你可以进入，但不能出去。我是什么？",
+  },
+  riddle2Hint: { en: "Used for typing crypto addresses", zh: "用于输入加密地址" },
+  riddle3: {
+    en: "What has 256 bits, starts with many zeros, and miners race to find me?",
+    zh: "什么有256位，以许多零开头，矿工们竞相寻找我？",
+  },
+  riddle3Hint: { en: "Proof of Work concept", zh: "工作量证明概念" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-crypto-riddle";
 const { address, connect } = useWallet();
@@ -80,25 +123,25 @@ const status = ref<{ msg: string; type: string } | null>(null);
 const riddles = [
   {
     id: 1,
-    question: "I am the first, yet I am everywhere. Without me, nothing can be verified. What am I?",
+    question: t("riddle1"),
     answer: "hash",
-    hint: "Think about blockchain fundamentals",
+    hint: t("riddle1Hint"),
     difficulty: "easy",
     reward: 1.0,
   },
   {
     id: 2,
-    question: "I have keys but no locks. I have space but no room. You can enter, but can't go outside. What am I?",
+    question: t("riddle2"),
     answer: "keyboard",
-    hint: "Used for typing crypto addresses",
+    hint: t("riddle2Hint"),
     difficulty: "easy",
     reward: 1.0,
   },
   {
     id: 3,
-    question: "What has 256 bits, starts with many zeros, and miners race to find me?",
+    question: t("riddle3"),
     answer: "nonce",
-    hint: "Proof of Work concept",
+    hint: t("riddle3Hint"),
     difficulty: "medium",
     reward: 2.0,
   },
@@ -115,7 +158,7 @@ const lastResult = ref({
 
 const submitAnswer = async () => {
   if (isSubmitting.value || !userAnswer.value.trim()) {
-    status.value = { msg: "Please enter an answer", type: "error" };
+    status.value = { msg: t("pleaseEnterAnswer"), type: "error" };
     return;
   }
 
@@ -131,18 +174,18 @@ const submitAnswer = async () => {
     currentStreak.value++;
     lastResult.value = {
       correct: true,
-      message: `Correct! You earned ${currentRiddle.value.reward} GAS`,
+      message: `${t("correctEarned")} ${currentRiddle.value.reward} GAS`,
       correctAnswer: "",
     };
-    status.value = { msg: "Brilliant! Keep going!", type: "success" };
+    status.value = { msg: t("brilliant"), type: "success" };
   } else {
     currentStreak.value = 0;
     lastResult.value = {
       correct: false,
-      message: "Not quite right. Try again!",
+      message: t("notQuite"),
       correctAnswer: currentRiddle.value.answer,
     };
-    status.value = { msg: "Wrong answer. Study the hint!", type: "error" };
+    status.value = { msg: t("wrongAnswer"), type: "error" };
   }
 
   showResult.value = true;

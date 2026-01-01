@@ -1,33 +1,33 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Schrodinger NFT</text>
-      <text class="subtitle">Mystery boxes until revealed</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Mystery Boxes</text>
+      <text class="card-title">{{ t("mysteryBoxes") }}</text>
       <view class="boxes-grid">
         <view v-for="box in boxes" :key="box.id" class="mystery-box" @click="reveal(box)">
           <text v-if="box.revealed" class="box-revealed">{{ box.content }}</text>
           <view v-else class="box-mystery">
             <text class="box-icon">📦</text>
-            <text class="box-rarity">{{ box.rarity }}</text>
+            <text class="box-rarity">{{ box.rarity === "Common" ? t("common") : t("rare") }}</text>
           </view>
         </view>
       </view>
       <view class="buy-btn" @click="buyBox" :style="{ opacity: isLoading ? 0.6 : 1 }">
-        <text>{{ isLoading ? "Minting..." : "Buy Mystery Box (5 GAS)" }}</text>
+        <text>{{ isLoading ? t("minting") : t("buyMysteryBox") }}</text>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Possible Rewards</text>
+      <text class="card-title">{{ t("possibleRewards") }}</text>
       <view class="rewards-list">
         <view v-for="(r, i) in rewards" :key="i" class="reward-item">
           <text class="reward-icon">{{ r.icon }}</text>
-          <text class="reward-name">{{ r.name }}</text>
+          <text class="reward-name">{{ getRewardName(r.name) }}</text>
           <text class="reward-chance">{{ r.chance }}%</text>
         </view>
       </view>
@@ -38,6 +38,28 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Schrodinger NFT", zh: "薛定谔 NFT" },
+  subtitle: { en: "Mystery boxes until revealed", zh: "揭示前的神秘盒子" },
+  mysteryBoxes: { en: "Mystery Boxes", zh: "神秘盒子" },
+  minting: { en: "Minting...", zh: "铸造中..." },
+  buyMysteryBox: { en: "Buy Mystery Box (5 GAS)", zh: "购买神秘盒子 (5 GAS)" },
+  possibleRewards: { en: "Possible Rewards", zh: "可能奖励" },
+  revealing: { en: "Revealing...", zh: "揭示中..." },
+  revealed: { en: "Revealed!", zh: "已揭示！" },
+  mintingBox: { en: "Minting box...", zh: "铸造盒子中..." },
+  boxMinted: { en: "Box minted!", zh: "盒子已铸造！" },
+  error: { en: "Error", zh: "错误" },
+  common: { en: "Common", zh: "普通" },
+  rare: { en: "Rare", zh: "稀有" },
+  legendaryDragon: { en: "Legendary Dragon", zh: "传奇龙" },
+  epicSword: { en: "Epic Sword", zh: "史诗剑" },
+  rareGem: { en: "Rare Gem", zh: "稀有宝石" },
+  commonCoin: { en: "Common Coin", zh: "普通硬币" },
+};
+const t = createT(translations);
 
 const APP_ID = "miniapp-schrodingernft";
 const { address, connect } = useWallet();
@@ -63,33 +85,43 @@ const rewards = ref([
   { icon: "🪙", name: "Common Coin", chance: 50 },
 ]);
 
+const getRewardName = (name: string) => {
+  const nameMap: Record<string, keyof typeof translations> = {
+    "Legendary Dragon": "legendaryDragon",
+    "Epic Sword": "epicSword",
+    "Rare Gem": "rareGem",
+    "Common Coin": "commonCoin",
+  };
+  return t(nameMap[name] || "error");
+};
+
 const reveal = async (box: Box) => {
   if (box.revealed) return;
   try {
-    status.value = { msg: "Revealing...", type: "loading" };
+    status.value = { msg: t("revealing"), type: "loading" };
     const rand = await requestRandom(`reveal:${box.id}`);
     const roll = (rand % 100) + 1;
     box.content = roll <= 5 ? "🐉" : roll <= 20 ? "⚔️" : roll <= 50 ? "💎" : "🪙";
     box.revealed = true;
-    status.value = { msg: "Revealed!", type: "success" };
+    status.value = { msg: t("revealed"), type: "success" };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 
 const buyBox = async () => {
   if (isLoading.value) return;
   try {
-    status.value = { msg: "Minting box...", type: "loading" };
+    status.value = { msg: t("mintingBox"), type: "loading" };
     await payGAS("5", `mint:${Date.now()}`);
     boxes.value.push({
       id: Date.now().toString(),
       rarity: Math.random() > 0.7 ? "Rare" : "Common",
       revealed: false,
     });
-    status.value = { msg: "Box minted!", type: "success" };
+    status.value = { msg: t("boxMinted"), type: "success" };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 </script>

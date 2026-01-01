@@ -1,24 +1,24 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">AI Soulmate</text>
-      <text class="subtitle">Your AI companion</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Chat History</text>
+      <text class="card-title">{{ t("chatHistory") }}</text>
       <view v-for="msg in messages" :key="msg.id" :class="['message', msg.from]">
         <text class="msg-text">{{ msg.text }}</text>
         <text class="msg-time">{{ msg.time }}</text>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Send Message</text>
-      <uni-easyinput v-model="newMessage" placeholder="Type your message..." />
+      <text class="card-title">{{ t("sendMessage") }}</text>
+      <uni-easyinput v-model="newMessage" :placeholder="t('messagePlaceholder')" />
       <view class="action-btn" @click="sendMessage">
-        <text>{{ isLoading ? "Sending..." : "Send Message" }}</text>
+        <text>{{ isLoading ? t("sending") : t("sendMessageBtn") }}</text>
       </view>
     </view>
   </view>
@@ -27,6 +27,22 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "AI Soulmate", zh: "AI 灵魂伴侣" },
+  subtitle: { en: "Your AI companion", zh: "你的 AI 伴侣" },
+  chatHistory: { en: "Chat History", zh: "聊天记录" },
+  sendMessage: { en: "Send Message", zh: "发送消息" },
+  messagePlaceholder: { en: "Type your message...", zh: "输入你的消息..." },
+  sending: { en: "Sending...", zh: "发送中..." },
+  sendMessageBtn: { en: "Send Message", zh: "发送消息" },
+  messageSent: { en: "Message sent!", zh: "消息已发送！" },
+  error: { en: "Error", zh: "错误" },
+  aiResponse: { en: "That's interesting! Tell me more...", zh: "很有趣！告诉我更多..." },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-aisoulmate";
 const { address, connect } = useWallet();
@@ -56,13 +72,13 @@ const sendMessage = async () => {
       messages.value.push({
         id: (Date.now() + 1).toString(),
         from: "ai",
-        text: "That's interesting! Tell me more...",
+        text: t("aiResponse"),
         time: new Date().toLocaleTimeString().slice(0, 5),
       });
     }, 1000);
-    status.value = { msg: "Message sent!", type: "success" };
+    status.value = { msg: t("messageSent"), type: "success" };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 </script>

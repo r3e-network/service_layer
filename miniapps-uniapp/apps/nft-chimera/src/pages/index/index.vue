@@ -1,14 +1,14 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">NFT Chimera</text>
-      <text class="subtitle">Fuse NFTs to create new ones</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Select NFTs to Fuse</text>
+      <text class="card-title">{{ t("selectNFTs") }}</text>
       <view class="fusion-slots">
         <view class="slot" @click="selectSlot(0)">
           <text v-if="slots[0]" class="slot-icon">{{ slots[0].icon }}</text>
@@ -21,16 +21,16 @@
         </view>
       </view>
       <view v-if="slots[0] && slots[1]" class="fusion-result">
-        <text class="result-label">Result Preview</text>
+        <text class="result-label">{{ t("resultPreview") }}</text>
         <text class="result-icon">{{ getFusionResult() }}</text>
         <text class="result-name">{{ getFusionName() }}</text>
       </view>
       <view class="fuse-btn" @click="fuse" :style="{ opacity: canFuse ? 1 : 0.5 }">
-        <text>{{ isLoading ? "Fusing..." : "Fuse NFTs (10 GAS)" }}</text>
+        <text>{{ isLoading ? t("fusing") : t("fuseNFTs") }}</text>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Your NFTs</text>
+      <text class="card-title">{{ t("yourNFTs") }}</text>
       <view class="nft-grid">
         <view v-for="nft in nfts" :key="nft.id" class="nft-card" @click="addToSlot(nft)">
           <text class="nft-icon">{{ nft.icon }}</text>
@@ -44,6 +44,22 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "NFT Chimera", zh: "NFT 嵌合体" },
+  subtitle: { en: "Fuse NFTs to create new ones", zh: "融合 NFT 创造新物种" },
+  selectNFTs: { en: "Select NFTs to Fuse", zh: "选择要融合的 NFT" },
+  resultPreview: { en: "Result Preview", zh: "结果预览" },
+  fuseNFTs: { en: "Fuse NFTs (10 GAS)", zh: "融合 NFT (10 GAS)" },
+  fusing: { en: "Fusing...", zh: "融合中..." },
+  yourNFTs: { en: "Your NFTs", zh: "您的 NFT" },
+  chimeraCreated: { en: "Created", zh: "已创建" },
+  fusingNFTs: { en: "Fusing NFTs...", zh: "正在融合 NFT..." },
+  chimeraName: { en: "Chimera Beast", zh: "嵌合兽" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-nftchimera";
 const { address, connect } = useWallet();
@@ -83,18 +99,18 @@ const getFusionResult = () => {
 };
 
 const getFusionName = () => {
-  return "Chimera Beast";
+  return t("chimeraName");
 };
 
 const fuse = async () => {
   if (!canFuse.value) return;
   try {
-    status.value = { msg: "Fusing NFTs...", type: "loading" };
+    status.value = { msg: t("fusingNFTs"), type: "loading" };
     await payGAS("10", `fuse:${slots.value[0]!.id}:${slots.value[1]!.id}`);
     const result = { id: Date.now().toString(), name: getFusionName(), icon: getFusionResult() };
     nfts.value = nfts.value.filter((n) => n.id !== slots.value[0]!.id && n.id !== slots.value[1]!.id);
     nfts.value.push(result);
-    status.value = { msg: `Created ${result.name}!`, type: "success" };
+    status.value = { msg: `${t("chimeraCreated")} ${result.name}!`, type: "success" };
     slots.value = [null, null];
   } catch (e: any) {
     status.value = { msg: e.message || "Error", type: "error" };

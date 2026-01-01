@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Dutch Auction</text>
-      <text class="subtitle">Descending price discovery</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <view v-if="status" :class="['status-msg', status.type]"
@@ -10,41 +10,47 @@
     >
 
     <view class="card">
-      <text class="card-title">Active Auction</text>
+      <text class="card-title">{{ t("activeAuction") }}</text>
       <view class="row"
-        ><text>Current price</text><text class="v">{{ fmt(auction.currentPrice, 3) }} GAS</text></view
+        ><text>{{ t("currentPrice") }}</text
+        ><text class="v">{{ fmt(auction.currentPrice, 3) }} GAS</text></view
       >
       <view class="row"
-        ><text>Start price</text><text class="v">{{ fmt(auction.startPrice, 3) }} GAS</text></view
+        ><text>{{ t("startPrice") }}</text
+        ><text class="v">{{ fmt(auction.startPrice, 3) }} GAS</text></view
       >
       <view class="row"
-        ><text>Time left</text><text class="v">{{ auction.timeLeft }}</text></view
-      >
-    </view>
-
-    <view class="card">
-      <text class="card-title">Auction Details</text>
-      <view class="row"
-        ><text>Item</text><text class="v">{{ auction.item }}</text></view
-      >
-      <view class="row"
-        ><text>Quantity</text><text class="v">{{ auction.quantity }}</text></view
-      >
-      <view class="row"
-        ><text>Price drop</text><text class="v">{{ auction.dropRate }}/min</text></view
+        ><text>{{ t("timeLeft") }}</text
+        ><text class="v">{{ auction.timeLeft }}</text></view
       >
     </view>
 
     <view class="card">
-      <text class="card-title">Bid Now</text>
-      <uni-easyinput v-model="bidQuantity" type="number" placeholder="Quantity to buy" />
+      <text class="card-title">{{ t("auctionDetails") }}</text>
+      <view class="row"
+        ><text>{{ t("item") }}</text
+        ><text class="v">{{ auction.item }}</text></view
+      >
+      <view class="row"
+        ><text>{{ t("quantity") }}</text
+        ><text class="v">{{ auction.quantity }}</text></view
+      >
+      <view class="row"
+        ><text>{{ t("priceDrop") }}</text
+        ><text class="v">{{ auction.dropRate }}/min</text></view
+      >
+    </view>
+
+    <view class="card">
+      <text class="card-title">{{ t("bidNow") }}</text>
+      <uni-easyinput v-model="bidQuantity" type="number" :placeholder="t('quantityToBuy')" />
       <view class="price-display">
-        <text>Total: {{ fmt(parseFloat(bidQuantity || "0") * auction.currentPrice, 3) }} GAS</text>
+        <text>{{ t("total") }}: {{ fmt(parseFloat(bidQuantity || "0") * auction.currentPrice, 3) }} GAS</text>
       </view>
       <view class="action-btn" @click="placeBid"
-        ><text>{{ isLoading ? "Processing..." : "Accept Current Price" }}</text></view
+        ><text>{{ isLoading ? t("processing") : t("acceptCurrentPrice") }}</text></view
       >
-      <text class="note">Mock auction fee: {{ auctionFee }} GAS</text>
+      <text class="note">{{ t("mockAuctionFee") }}: {{ auctionFee }} GAS</text>
     </view>
   </view>
 </template>
@@ -53,6 +59,32 @@
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Dutch Auction", zh: "荷兰式拍卖" },
+  subtitle: { en: "Descending price discovery", zh: "递减价格发现" },
+  activeAuction: { en: "Active Auction", zh: "进行中的拍卖" },
+  currentPrice: { en: "Current price", zh: "当前价格" },
+  startPrice: { en: "Start price", zh: "起始价格" },
+  timeLeft: { en: "Time left", zh: "剩余时间" },
+  auctionDetails: { en: "Auction Details", zh: "拍卖详情" },
+  item: { en: "Item", zh: "物品" },
+  quantity: { en: "Quantity", zh: "数量" },
+  priceDrop: { en: "Price drop", zh: "价格下降" },
+  bidNow: { en: "Bid Now", zh: "立即出价" },
+  quantityToBuy: { en: "Quantity to buy", zh: "购买数量" },
+  total: { en: "Total", zh: "总计" },
+  processing: { en: "Processing...", zh: "处理中..." },
+  acceptCurrentPrice: { en: "Accept Current Price", zh: "接受当前价格" },
+  mockAuctionFee: { en: "Mock auction fee", zh: "模拟拍卖费用" },
+  enterQuantity: { en: "Enter 1-", zh: "请输入 1-" },
+  bidAccepted: { en: "Bid accepted", zh: "出价已接受" },
+  paymentFailed: { en: "Payment failed", zh: "支付失败" },
+  neoTokens: { en: "NEO Tokens", zh: "NEO 代币" },
+};
+
+const t = createT(translations);
 
 type StatusType = "success" | "error";
 type Status = { msg: string; type: StatusType };
@@ -73,7 +105,7 @@ const auction = ref<Auction>({
   currentPrice: 8.5,
   startPrice: 12.0,
   timeLeft: "18m 42s",
-  item: "NEO Tokens",
+  item: t("neoTokens"),
   quantity: 100,
   dropRate: "0.1 GAS",
 });
@@ -86,13 +118,13 @@ const placeBid = async (): Promise<void> => {
   if (isLoading.value) return;
   const qty = parseInt(bidQuantity.value, 10);
   if (!(qty > 0 && qty <= auction.value.quantity))
-    return void (status.value = { msg: `Enter 1-${auction.value.quantity}`, type: "error" });
+    return void (status.value = { msg: `${t("enterQuantity")}${auction.value.quantity}`, type: "error" });
   const total = (qty * auction.value.currentPrice + parseFloat(auctionFee)).toFixed(3);
   try {
     await payGAS(total, `auction:${auction.value.item}:${qty}:${auction.value.currentPrice}`);
-    status.value = { msg: `Bid accepted: ${qty} @ ${fmt(auction.value.currentPrice, 3)} GAS`, type: "success" };
+    status.value = { msg: `${t("bidAccepted")}: ${qty} @ ${fmt(auction.value.currentPrice, 3)} GAS`, type: "success" };
   } catch (e: any) {
-    status.value = { msg: e?.message || "Payment failed", type: "error" };
+    status.value = { msg: e?.message || t("paymentFailed"), type: "error" };
   }
 };
 </script>

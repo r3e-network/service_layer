@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Bridge Guardian</text>
-      <text class="subtitle">Cross-chain monitoring</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <view v-if="status" :class="['status-msg', status.type]">
@@ -10,26 +10,26 @@
     </view>
 
     <view class="card">
-      <text class="card-title">Active Bridges</text>
+      <text class="card-title">{{ t("activeBridges") }}</text>
       <view v-for="bridge in bridges" :key="bridge.id" class="bridge-row">
         <view class="bridge-info">
           <text class="bridge-name">{{ bridge.from }} → {{ bridge.to }}</text>
           <text class="bridge-status" :class="bridge.healthy ? 'healthy' : 'warning'">
-            {{ bridge.healthy ? "✓ Healthy" : "⚠ Warning" }}
+            {{ bridge.healthy ? t("healthy") : t("warning") }}
           </text>
         </view>
         <view class="bridge-stats">
           <text class="stat">{{ formatNum(bridge.volume) }} GAS</text>
-          <text class="stat-label">24h Volume</text>
+          <text class="stat-label">{{ t("volume24h") }}</text>
         </view>
       </view>
     </view>
 
     <view class="card">
-      <text class="card-title">Monitor Transfer</text>
-      <uni-easyinput v-model="txHash" placeholder="Transaction hash" class="input" />
+      <text class="card-title">{{ t("monitorTransfer") }}</text>
+      <uni-easyinput v-model="txHash" :placeholder="t('txHashPlaceholder')" class="input" />
       <view class="action-btn" @click="monitorTx" :style="{ opacity: isLoading ? 0.6 : 1 }">
-        <text>{{ isLoading ? "Checking..." : "Track Transfer" }}</text>
+        <text>{{ isLoading ? t("checking") : t("trackBtn") }}</text>
       </view>
     </view>
   </view>
@@ -39,6 +39,25 @@
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Bridge Guardian", zh: "跨链守护者" },
+  subtitle: { en: "Cross-chain monitoring", zh: "跨链监控" },
+  activeBridges: { en: "Active Bridges", zh: "活跃桥接" },
+  healthy: { en: "✓ Healthy", zh: "✓ 健康" },
+  warning: { en: "⚠ Warning", zh: "⚠ 警告" },
+  volume24h: { en: "24h Volume", zh: "24小时交易量" },
+  monitorTransfer: { en: "Monitor Transfer", zh: "监控转账" },
+  txHashPlaceholder: { en: "Transaction hash", zh: "交易哈希" },
+  checking: { en: "Checking...", zh: "检查中..." },
+  trackBtn: { en: "Track Transfer", zh: "追踪转账" },
+  monitoring: { en: "Monitoring transaction...", zh: "监控交易中..." },
+  confirmed: { en: "Transfer confirmed on destination chain", zh: "目标链已确认转账" },
+  error: { en: "Error", zh: "错误" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-bridge-guardian";
 const { address, connect } = useWallet();
@@ -66,12 +85,12 @@ const formatNum = (n: number) => formatNumber(n, 0);
 const monitorTx = async () => {
   if (!txHash.value || isLoading.value) return;
   try {
-    status.value = { msg: "Monitoring transaction...", type: "loading" };
+    status.value = { msg: t("monitoring"), type: "loading" };
     await new Promise((resolve) => setTimeout(resolve, 1500));
-    status.value = { msg: "Transfer confirmed on destination chain", type: "success" };
+    status.value = { msg: t("confirmed"), type: "success" };
     txHash.value = "";
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 </script>

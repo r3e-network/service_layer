@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Dark Pool</text>
-      <text class="subtitle">Anonymous large-block trading</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <view v-if="status" :class="['status-msg', status.type]"
@@ -10,48 +10,82 @@
     >
 
     <view class="card">
-      <text class="card-title">Pool Stats</text>
+      <text class="card-title">{{ t("poolStats") }}</text>
       <view class="row"
-        ><text>24h volume</text><text class="v">{{ fmt(pool.volume24h, 0) }} GAS</text></view
+        ><text>{{ t("volume24h") }}</text
+        ><text class="v">{{ fmt(pool.volume24h, 0) }} GAS</text></view
       >
       <view class="row"
-        ><text>Avg. block size</text><text class="v">{{ fmt(pool.avgBlockSize, 0) }} GAS</text></view
+        ><text>{{ t("avgBlockSize") }}</text
+        ><text class="v">{{ fmt(pool.avgBlockSize, 0) }} GAS</text></view
       >
       <view class="row"
-        ><text>Privacy level</text><text class="v">{{ pool.privacyLevel }}</text></view
-      >
-    </view>
-
-    <view class="card">
-      <text class="card-title">Your Order</text>
-      <view class="row"
-        ><text>Type</text><text class="v">{{ orderType || "Buy" }}</text></view
-      >
-      <view class="row"
-        ><text>Amount</text><text class="v">{{ amount || "0" }} GAS</text></view
-      >
-      <view class="row"
-        ><text>Slippage</text><text class="v">{{ slippage || "0.5" }}%</text></view
+        ><text>{{ t("privacyLevel") }}</text
+        ><text class="v">{{ pool.privacyLevel }}</text></view
       >
     </view>
 
     <view class="card">
-      <text class="card-title">Place Order</text>
-      <uni-easyinput v-model="orderType" placeholder="Type (Buy/Sell)" />
-      <uni-easyinput v-model="amount" type="number" placeholder="Amount (min 1000 GAS)" />
-      <uni-easyinput v-model="slippage" type="number" placeholder="Max slippage %" />
+      <text class="card-title">{{ t("yourOrder") }}</text>
+      <view class="row"
+        ><text>{{ t("type") }}</text
+        ><text class="v">{{ orderType || t("buy") }}</text></view
+      >
+      <view class="row"
+        ><text>{{ t("amount") }}</text
+        ><text class="v">{{ amount || "0" }} GAS</text></view
+      >
+      <view class="row"
+        ><text>{{ t("slippage") }}</text
+        ><text class="v">{{ slippage || "0.5" }}%</text></view
+      >
+    </view>
+
+    <view class="card">
+      <text class="card-title">{{ t("placeOrder") }}</text>
+      <uni-easyinput v-model="orderType" :placeholder="t('typePlaceholder')" />
+      <uni-easyinput v-model="amount" type="number" :placeholder="t('amountPlaceholder')" />
+      <uni-easyinput v-model="slippage" type="number" :placeholder="t('slippagePlaceholder')" />
       <view class="action-btn" @click="placeOrder"
-        ><text>{{ isLoading ? "Processing..." : "Place Dark Order" }}</text></view
+        ><text>{{ isLoading ? t("processing") : t("placeDarkOrder") }}</text></view
       >
-      <text class="note">Mock privacy fee: {{ privacyFee }} GAS</text>
+      <text class="note">{{ t("mockPrivacyFee") }} {{ privacyFee }} GAS</text>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { usePayments } from "@neo/uniapp-sdk";
+import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Dark Pool", zh: "暗池" },
+  subtitle: { en: "Anonymous large-block trading", zh: "匿名大宗交易" },
+  poolStats: { en: "Pool Stats", zh: "池统计" },
+  volume24h: { en: "24h volume", zh: "24小时交易量" },
+  avgBlockSize: { en: "Avg. block size", zh: "平均区块大小" },
+  privacyLevel: { en: "Privacy level", zh: "隐私级别" },
+  yourOrder: { en: "Your Order", zh: "你的订单" },
+  type: { en: "Type", zh: "类型" },
+  amount: { en: "Amount", zh: "数量" },
+  slippage: { en: "Slippage", zh: "滑点" },
+  placeOrder: { en: "Place Order", zh: "下单" },
+  typePlaceholder: { en: "Type (Buy/Sell)", zh: "类型（买/卖）" },
+  amountPlaceholder: { en: "Amount (min 1000 GAS)", zh: "数量（最少1000 GAS）" },
+  slippagePlaceholder: { en: "Max slippage %", zh: "最大滑点 %" },
+  processing: { en: "Processing...", zh: "处理中..." },
+  placeDarkOrder: { en: "Place Dark Order", zh: "下暗池订单" },
+  mockPrivacyFee: { en: "Mock privacy fee:", zh: "模拟隐私费：" },
+  minAmountError: { en: "Min 1000 GAS, slippage 0-5%", zh: "最少1000 GAS，滑点0-5%" },
+  orderPlaced: { en: "Dark order placed:", zh: "暗池订单已下：" },
+  paymentFailed: { en: "Payment failed", zh: "支付失败" },
+  buy: { en: "Buy", zh: "买入" },
+  sell: { en: "Sell", zh: "卖出" },
+};
+
+const t = createT(translations);
 
 type StatusType = "success" | "error";
 type Status = { msg: string; type: StatusType };
@@ -73,13 +107,12 @@ const placeOrder = async (): Promise<void> => {
   if (isLoading.value) return;
   const amt = parseFloat(amount.value),
     slip = parseFloat(slippage.value);
-  if (!(amt >= 1000 && slip > 0 && slip <= 5))
-    return void (status.value = { msg: "Min 1000 GAS, slippage 0-5%", type: "error" });
+  if (!(amt >= 1000 && slip > 0 && slip <= 5)) return void (status.value = { msg: t("minAmountError"), type: "error" });
   try {
     await payGAS(privacyFee, `darkpool:${orderType.value}:${amt}:${slip}`);
-    status.value = { msg: `Dark order placed: ${orderType.value} ${amt} GAS`, type: "success" };
+    status.value = { msg: `${t("orderPlaced")} ${orderType.value} ${amt} GAS`, type: "success" };
   } catch (e: any) {
-    status.value = { msg: e?.message || "Payment failed", type: "error" };
+    status.value = { msg: e?.message || t("paymentFailed"), type: "error" };
   }
 };
 </script>

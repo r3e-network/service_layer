@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Neo Crash</text>
-      <text class="subtitle">Multiplier crash game</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <view v-if="status" :class="['status-msg', status.type]">
@@ -18,9 +18,9 @@
     </view>
 
     <view class="card">
-      <text class="card-title">Place Bet</text>
+      <text class="card-title">{{ t("placeBet") }}</text>
       <view class="bet-row">
-        <text class="label">Amount (GAS)</text>
+        <text class="label">{{ t("amountGAS") }}</text>
         <view class="input-group">
           <view class="adjust-btn" @click="adjustBet(-0.1)">
             <text>-</text>
@@ -32,7 +32,7 @@
         </view>
       </view>
       <view class="bet-row">
-        <text class="label">Auto Cashout</text>
+        <text class="label">{{ t("autoCashout") }}</text>
         <uni-easyinput v-model="autoCashout" type="digit" placeholder="2.0" class="cashout-input" />
       </view>
       <view :class="['action-btn', gameState]" @click="handleAction" :style="{ opacity: isLoading ? 0.6 : 1 }">
@@ -41,7 +41,7 @@
     </view>
 
     <view class="card">
-      <text class="card-title">Recent Crashes</text>
+      <text class="card-title">{{ t("recentCrashes") }}</text>
       <view class="history-list">
         <view v-for="(h, i) in history" :key="i" :class="['history-item', h.multiplier >= 2 ? 'high' : 'low']">
           <text class="history-multiplier">{{ h.multiplier }}x</text>
@@ -51,11 +51,11 @@
 
     <view class="card stats-card">
       <view class="stat-row">
-        <text class="stat-label">Your Bet</text>
+        <text class="stat-label">{{ t("yourBet") }}</text>
         <text class="stat-value">{{ formatNum(currentBet) }} GAS</text>
       </view>
       <view class="stat-row">
-        <text class="stat-label">Potential Win</text>
+        <text class="stat-label">{{ t("potentialWin") }}</text>
         <text class="stat-value success">{{ formatNum(potentialWin) }} GAS</text>
       </view>
     </view>
@@ -66,6 +66,31 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Neo Crash", zh: "Neo崩盘" },
+  subtitle: { en: "Multiplier crash game", zh: "倍数崩盘游戏" },
+  waiting: { en: "Waiting for next round...", zh: "等待下一轮..." },
+  inProgress: { en: "Game in progress!", zh: "游戏进行中！" },
+  crashed: { en: "CRASHED!", zh: "崩盘了！" },
+  placeBet: { en: "Place Bet", zh: "下注" },
+  cashOut: { en: "Cash Out", zh: "兑现" },
+  wait: { en: "Wait...", zh: "等待..." },
+  processing: { en: "Processing...", zh: "处理中..." },
+  amountGAS: { en: "Amount (GAS)", zh: "数量（GAS）" },
+  autoCashout: { en: "Auto Cashout", zh: "自动兑现" },
+  recentCrashes: { en: "Recent Crashes", zh: "最近崩盘" },
+  yourBet: { en: "Your Bet", zh: "你的下注" },
+  potentialWin: { en: "Potential Win", zh: "潜在赢利" },
+  placingBet: { en: "Placing bet...", zh: "下注中..." },
+  betPlaced: { en: "Bet placed! Good luck!", zh: "下注成功！祝你好运！" },
+  errorPlacingBet: { en: "Error placing bet", zh: "下注错误" },
+  cashedOut: { en: "Cashed out at", zh: "兑现于" },
+  crashedBetterLuck: { en: "Crashed! Better luck next time.", zh: "崩盘了！下次好运。" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-neo-crash";
 const { address, connect } = useWallet();
@@ -92,16 +117,16 @@ const progressWidth = computed(() => {
 });
 
 const gameStatusText = computed(() => {
-  if (gameState.value === "waiting") return "Waiting for next round...";
-  if (gameState.value === "running") return "Game in progress!";
-  return "CRASHED!";
+  if (gameState.value === "waiting") return t("waiting");
+  if (gameState.value === "running") return t("inProgress");
+  return t("crashed");
 });
 
 const actionButtonText = computed(() => {
-  if (isLoading.value) return "Processing...";
-  if (gameState.value === "waiting") return "Place Bet";
-  if (gameState.value === "running" && currentBet.value > 0) return "Cash Out";
-  return "Wait...";
+  if (isLoading.value) return t("processing");
+  if (gameState.value === "waiting") return t("placeBet");
+  if (gameState.value === "running" && currentBet.value > 0) return t("cashOut");
+  return t("wait");
 });
 
 const potentialWin = computed(() => currentBet.value * currentMultiplier.value);
@@ -125,18 +150,21 @@ const handleAction = async () => {
 
 const placeBet = async () => {
   try {
-    status.value = { msg: "Placing bet...", type: "loading" };
+    status.value = { msg: t("placingBet"), type: "loading" };
     await payGAS(betAmount.value, `crash:bet:${Date.now()}`);
     currentBet.value = parseFloat(betAmount.value);
-    status.value = { msg: "Bet placed! Good luck!", type: "success" };
+    status.value = { msg: t("betPlaced"), type: "success" };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error placing bet", type: "error" };
+    status.value = { msg: e.message || t("errorPlacingBet"), type: "error" };
   }
 };
 
 const cashOut = () => {
   const winAmount = potentialWin.value;
-  status.value = { msg: `Cashed out at ${currentMultiplier.value}x! Won ${formatNum(winAmount)} GAS`, type: "success" };
+  status.value = {
+    msg: `${t("cashedOut")} ${currentMultiplier.value}x! Won ${formatNum(winAmount)} GAS`,
+    type: "success",
+  };
   currentBet.value = 0;
 };
 
@@ -160,7 +188,7 @@ onMounted(() => {
         history.value.unshift({ multiplier: parseFloat(currentMultiplier.value.toFixed(2)) });
         history.value = history.value.slice(0, 10);
         if (currentBet.value > 0) {
-          status.value = { msg: "Crashed! Better luck next time.", type: "error" };
+          status.value = { msg: t("crashedBetterLuck"), type: "error" };
           currentBet.value = 0;
         }
         setTimeout(() => {

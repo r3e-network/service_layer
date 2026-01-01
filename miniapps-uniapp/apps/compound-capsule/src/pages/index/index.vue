@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Compound Capsule</text>
-      <text class="subtitle">Auto-compounding savings</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <view v-if="status" :class="['status-msg', status.type]"
@@ -10,38 +10,44 @@
     >
 
     <view class="card">
-      <text class="card-title">Vault Stats</text>
+      <text class="card-title">{{ t("vaultStats") }}</text>
       <view class="row"
-        ><text>APY</text><text class="v">{{ vault.apy }}%</text></view
+        ><text>{{ t("apy") }}</text
+        ><text class="v">{{ vault.apy }}%</text></view
       >
       <view class="row"
-        ><text>TVL</text><text class="v">{{ fmt(vault.tvl, 0) }} GAS</text></view
+        ><text>{{ t("tvl") }}</text
+        ><text class="v">{{ fmt(vault.tvl, 0) }} GAS</text></view
       >
       <view class="row"
-        ><text>Compound freq</text><text class="v">{{ vault.compoundFreq }}</text></view
-      >
-    </view>
-
-    <view class="card">
-      <text class="card-title">Your Position</text>
-      <view class="row"
-        ><text>Deposited</text><text class="v">{{ fmt(position.deposited, 2) }} GAS</text></view
-      >
-      <view class="row"
-        ><text>Earned</text><text class="v">+{{ fmt(position.earned, 4) }} GAS</text></view
-      >
-      <view class="row"
-        ><text>Est. 30d</text><text class="v">{{ fmt(position.est30d, 2) }} GAS</text></view
+        ><text>{{ t("compoundFreq") }}</text
+        ><text class="v">{{ vault.compoundFreq }}</text></view
       >
     </view>
 
     <view class="card">
-      <text class="card-title">Manage</text>
-      <uni-easyinput v-model="amount" type="number" placeholder="Amount (GAS)" />
+      <text class="card-title">{{ t("yourPosition") }}</text>
+      <view class="row"
+        ><text>{{ t("deposited") }}</text
+        ><text class="v">{{ fmt(position.deposited, 2) }} GAS</text></view
+      >
+      <view class="row"
+        ><text>{{ t("earned") }}</text
+        ><text class="v">+{{ fmt(position.earned, 4) }} GAS</text></view
+      >
+      <view class="row"
+        ><text>{{ t("est30d") }}</text
+        ><text class="v">{{ fmt(position.est30d, 2) }} GAS</text></view
+      >
+    </view>
+
+    <view class="card">
+      <text class="card-title">{{ t("manage") }}</text>
+      <uni-easyinput v-model="amount" type="number" :placeholder="t('amountPlaceholder')" />
       <view class="action-btn" @click="deposit"
-        ><text>{{ isLoading ? "Processing..." : "Deposit" }}</text></view
+        ><text>{{ isLoading ? t("processing") : t("deposit") }}</text></view
       >
-      <text class="note">Mock deposit fee: {{ depositFee }} GAS</text>
+      <text class="note">{{ t("mockDepositFee").replace("{fee}", depositFee) }}</text>
     </view>
   </view>
 </template>
@@ -50,6 +56,29 @@
 import { ref } from "vue";
 import { usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Compound Capsule", zh: "复利胶囊" },
+  subtitle: { en: "Auto-compounding savings", zh: "自动复利储蓄" },
+  vaultStats: { en: "Vault Stats", zh: "金库统计" },
+  apy: { en: "APY", zh: "年化收益率" },
+  tvl: { en: "TVL", zh: "总锁仓量" },
+  compoundFreq: { en: "Compound freq", zh: "复利频率" },
+  yourPosition: { en: "Your Position", zh: "你的仓位" },
+  deposited: { en: "Deposited", zh: "已存入" },
+  earned: { en: "Earned", zh: "已赚取" },
+  est30d: { en: "Est. 30d", zh: "预计30天" },
+  manage: { en: "Manage", zh: "管理" },
+  amountPlaceholder: { en: "Amount (GAS)", zh: "金额 (GAS)" },
+  processing: { en: "Processing...", zh: "处理中..." },
+  deposit: { en: "Deposit", zh: "存入" },
+  mockDepositFee: { en: "Mock deposit fee: {fee} GAS", zh: "模拟存款费用：{fee} GAS" },
+  enterValidAmount: { en: "Enter a valid amount", zh: "请输入有效金额" },
+  depositedAmount: { en: "Deposited {amount} GAS", zh: "已存入 {amount} GAS" },
+  paymentFailed: { en: "Payment failed", zh: "支付失败" },
+};
+const t = createT(translations);
 
 type StatusType = "success" | "error";
 type Status = { msg: string; type: StatusType };
@@ -70,13 +99,13 @@ const fmt = (n: number, d = 2) => formatNumber(n, d);
 const deposit = async (): Promise<void> => {
   if (isLoading.value) return;
   const amt = parseFloat(amount.value);
-  if (!(amt > 0)) return void (status.value = { msg: "Enter a valid amount", type: "error" });
+  if (!(amt > 0)) return void (status.value = { msg: t("enterValidAmount"), type: "error" });
   try {
     await payGAS((amt + parseFloat(depositFee)).toFixed(3), `compound:deposit:${amt}`);
     position.value.deposited += amt;
-    status.value = { msg: `Deposited ${amt} GAS`, type: "success" };
+    status.value = { msg: t("depositedAmount").replace("{amount}", String(amt)), type: "success" };
   } catch (e: any) {
-    status.value = { msg: e?.message || "Payment failed", type: "error" };
+    status.value = { msg: e?.message || t("paymentFailed"), type: "error" };
   }
 };
 </script>

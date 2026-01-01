@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Gas Sponsor</text>
-      <text class="subtitle">Free Gas for New Users</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <view v-if="status" :class="['status-msg', status.type]">
@@ -10,7 +10,7 @@
     </view>
 
     <view class="card">
-      <text class="card-title">Your Status</text>
+      <text class="card-title">{{ t('yourBalance') }}</text>
       <view v-if="loading" class="loading">
         <text>Checking eligibility...</text>
       </view>
@@ -33,7 +33,7 @@
     </view>
 
     <view class="card">
-      <text class="card-title">Daily Quota</text>
+      <text class="card-title">{{ t('dailyQuota') }}</text>
       <view class="quota-display">
         <view class="quota-bar">
           <view class="quota-fill" :style="{ width: quotaPercent + '%' }"></view>
@@ -41,20 +41,20 @@
         <text class="quota-text">{{ formatBalance(usedQuota) }} / {{ formatBalance(dailyLimit) }} GAS</text>
       </view>
       <view class="info-row">
-        <text class="info-label">Remaining Today</text>
+        <text class="info-label">{{ t('remainingToday') }}</text>
         <text class="info-value">{{ formatBalance(remainingQuota) }} GAS</text>
       </view>
       <view class="info-row">
-        <text class="info-label">Resets In</text>
+        <text class="info-label">{{ t('resetsIn') }}</text>
         <text class="info-value">{{ resetTime }}</text>
       </view>
     </view>
 
     <view class="card">
-      <text class="card-title">Request Sponsored Gas</text>
+      <text class="card-title">{{ t('requestSponsoredGas') }}</text>
       <view v-if="!isEligible" class="not-eligible-msg">
-        <text>Your GAS balance exceeds 0.1 GAS.</text>
-        <text>This service is for new users only.</text>
+        <text>{{ t('balanceExceeds') }}</text>
+        <text>{{ t('newUsersOnly') }}</text>
       </view>
       <view v-else-if="remainingQuota <= 0" class="not-eligible-msg">
         <text>Daily quota exhausted.</text>
@@ -96,6 +96,28 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useWallet, useGasSponsor } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Gas Sponsor", zh: "Gas 赞助" },
+  subtitle: { en: "Get free GAS for transactions", zh: "获取免费 GAS 进行交易" },
+  yourBalance: { en: "Your Balance", zh: "您的余额" },
+  dailyQuota: { en: "Daily Quota", zh: "每日配额" },
+  remainingToday: { en: "Remaining Today", zh: "今日剩余" },
+  resetsIn: { en: "Resets In", zh: "重置时间" },
+  requestSponsoredGas: { en: "Request Sponsored Gas", zh: "请求赞助 Gas" },
+  balanceExceeds: { en: "Your GAS balance exceeds 0.1 GAS.", zh: "您的 GAS 余额超过 0.1 GAS。" },
+  newUsersOnly: { en: "This service is for new users only.", zh: "此服务仅供新用户使用。" },
+  quotaExhausted: { en: "Daily quota exhausted. Try again tomorrow.", zh: "每日配额已用完。请明天再试。" },
+  amountToRequest: { en: "Amount to request", zh: "请求数量" },
+  requesting: { en: "Requesting...", zh: "请求中..." },
+  requestGas: { en: "Request GAS", zh: "请求 GAS" },
+  maxRequest: { en: "Max request", zh: "最大请求" },
+  requestSuccess: { en: "GAS sponsored successfully!", zh: "GAS 赞助成功！" },
+  error: { en: "Error", zh: "错误" },
+};
+
+const t = createT(translations);
 
 const { address, connect } = useWallet();
 const { isLoading: isRequesting, checkEligibility, requestSponsorship: apiRequest } = useGasSponsor();

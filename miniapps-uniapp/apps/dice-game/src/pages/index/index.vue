@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Dice Game</text>
-      <text class="subtitle">Roll the dice, win big</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
@@ -11,22 +11,22 @@
       <view class="dice-display">
         <text class="dice">🎲 {{ lastRoll || "?" }}</text>
       </view>
-      <text class="card-title">Predict: Over/Under</text>
+      <text class="card-title">{{ t("predictOverUnder") }}</text>
       <view class="target-row">
-        <text>Target: {{ target }}</text>
+        <text>{{ t("target") }} {{ target }}</text>
         <uni-slider v-model="target" :min="2" :max="12" />
       </view>
       <view class="choice-row">
         <view :class="['choice-btn', prediction === 'over' && 'active']" @click="prediction = 'over'">
-          <text>Over {{ target }}</text>
+          <text>{{ t("over") }} {{ target }}</text>
         </view>
         <view :class="['choice-btn', prediction === 'under' && 'active']" @click="prediction = 'under'">
-          <text>Under {{ target }}</text>
+          <text>{{ t("under") }} {{ target }}</text>
         </view>
       </view>
-      <uni-easyinput v-model="betAmount" type="number" placeholder="Bet (GAS)" />
+      <uni-easyinput v-model="betAmount" type="number" :placeholder="t('betGAS')" />
       <view class="roll-btn" @click="roll">
-        <text>{{ isRolling ? "Rolling..." : "Roll Dice" }}</text>
+        <text>{{ isRolling ? t("rolling") : t("rollDice") }}</text>
       </view>
     </view>
   </view>
@@ -35,6 +35,24 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Dice Game", zh: "骰子游戏" },
+  subtitle: { en: "Roll the dice, win big", zh: "掷骰子，赢大奖" },
+  predictOverUnder: { en: "Predict: Over/Under", zh: "预测：大/小" },
+  target: { en: "Target:", zh: "目标：" },
+  over: { en: "Over", zh: "大于" },
+  under: { en: "Under", zh: "小于" },
+  betGAS: { en: "Bet (GAS)", zh: "下注（GAS）" },
+  rolling: { en: "Rolling...", zh: "掷骰中..." },
+  rollDice: { en: "Roll Dice", zh: "掷骰子" },
+  won: { en: "Won! Rolled", zh: "赢了！掷出" },
+  lost: { en: "Lost. Rolled", zh: "输了。掷出" },
+  error: { en: "Error", zh: "错误" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-dicegame";
 const { address, connect } = useWallet();
@@ -59,11 +77,11 @@ const roll = async () => {
     lastRoll.value = d1 + d2;
     const won = prediction.value === "over" ? lastRoll.value > target.value : lastRoll.value < target.value;
     status.value = {
-      msg: won ? `Won! Rolled ${lastRoll.value}` : `Lost. Rolled ${lastRoll.value}`,
+      msg: won ? `${t("won")} ${lastRoll.value}` : `${t("lost")} ${lastRoll.value}`,
       type: won ? "success" : "error",
     };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   } finally {
     isRolling.value = false;
   }

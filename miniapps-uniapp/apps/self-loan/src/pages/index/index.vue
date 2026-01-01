@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Self Loan</text>
-      <text class="subtitle">Borrow against future deposits</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <view v-if="status" :class="['status-msg', status.type]"
@@ -10,47 +10,52 @@
     >
 
     <view class="card">
-      <text class="card-title">Loan Terms</text>
+      <text class="card-title">{{ t("loanTerms") }}</text>
       <view class="row"
-        ><text>Max borrow</text><text class="v">{{ fmt(terms.maxBorrow, 0) }} GAS</text></view
+        ><text>{{ t("maxBorrow") }}</text
+        ><text class="v">{{ fmt(terms.maxBorrow, 0) }} GAS</text></view
       >
       <view class="row"
-        ><text>Interest rate</text><text class="v">{{ terms.interestRate }}% APR</text></view
+        ><text>{{ t("interestRate") }}</text
+        ><text class="v">{{ terms.interestRate }}% APR</text></view
       >
       <view class="row"
-        ><text>Repayment</text><text class="v">{{ terms.repaymentSchedule }}</text></view
+        ><text>{{ t("repayment") }}</text
+        ><text class="v">{{ terms.repaymentSchedule }}</text></view
       >
     </view>
 
     <view class="card">
-      <text class="card-title">Your Loan</text>
+      <text class="card-title">{{ t("yourLoan") }}</text>
       <view class="row"
-        ><text>Borrowed</text><text class="v">{{ fmt(loan.borrowed, 2) }} GAS</text></view
+        ><text>{{ t("borrowed") }}</text
+        ><text class="v">{{ fmt(loan.borrowed, 2) }} GAS</text></view
       >
       <view class="row"
-        ><text>Collateral locked</text><text class="v">{{ fmt(loan.collateralLocked, 2) }} GAS</text></view
+        ><text>{{ t("collateralLocked") }}</text
+        ><text class="v">{{ fmt(loan.collateralLocked, 2) }} GAS</text></view
       >
       <view class="row"
-        ><text>Next payment</text
+        ><text>{{ t("nextPayment") }}</text
         ><text class="v">{{ fmt(loan.nextPayment, 2) }} GAS in {{ loan.nextPaymentDue }}</text></view
       >
     </view>
 
     <view class="card">
-      <text class="card-title">Take Self-Loan</text>
-      <uni-easyinput v-model="loanAmount" type="number" placeholder="Amount to borrow" />
+      <text class="card-title">{{ t("takeSelfLoan") }}</text>
+      <uni-easyinput v-model="loanAmount" type="number" :placeholder="t('amountToBorrow')" />
       <view class="detail-row">
-        <text>Collateral required (150%)</text>
+        <text>{{ t("collateralRequired") }}</text>
         <text class="collateral">{{ fmt(parseFloat(loanAmount || "0") * 1.5, 2) }} GAS</text>
       </view>
       <view class="detail-row">
-        <text>Monthly payment</text>
+        <text>{{ t("monthlyPayment") }}</text>
         <text class="payment">{{ fmt(parseFloat(loanAmount || "0") * 0.085, 3) }} GAS</text>
       </view>
       <view class="action-btn" @click="takeLoan"
-        ><text>{{ isLoading ? "Processing..." : "Borrow Now" }}</text></view
+        ><text>{{ isLoading ? t("processing") : t("borrowNow") }}</text></view
       >
-      <text class="note">12-month term. Auto-deduct from future deposits.</text>
+      <text class="note">{{ t("note") }}</text>
     </view>
   </view>
 </template>
@@ -59,6 +64,32 @@
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Self Loan", zh: "自我贷款" },
+  subtitle: { en: "Borrow against future deposits", zh: "以未来存款为抵押借款" },
+  loanTerms: { en: "Loan Terms", zh: "贷款条款" },
+  maxBorrow: { en: "Max borrow", zh: "最大借款" },
+  interestRate: { en: "Interest rate", zh: "利率" },
+  repayment: { en: "Repayment", zh: "还款" },
+  yourLoan: { en: "Your Loan", zh: "你的贷款" },
+  borrowed: { en: "Borrowed", zh: "已借款" },
+  collateralLocked: { en: "Collateral locked", zh: "锁定抵押品" },
+  nextPayment: { en: "Next payment", zh: "下次还款" },
+  takeSelfLoan: { en: "Take Self-Loan", zh: "申请自我贷款" },
+  amountToBorrow: { en: "Amount to borrow", zh: "借款金额" },
+  collateralRequired: { en: "Collateral required (150%)", zh: "所需抵押品 (150%)" },
+  monthlyPayment: { en: "Monthly payment", zh: "月供" },
+  borrowNow: { en: "Borrow Now", zh: "立即借款" },
+  processing: { en: "Processing...", zh: "处理中..." },
+  note: { en: "12-month term. Auto-deduct from future deposits.", zh: "12个月期限。自动从未来存款中扣除。" },
+  enterAmount: { en: "Enter 1-{max}", zh: "请输入 1-{max}" },
+  loanApproved: { en: "Loan approved: {amount} GAS borrowed", zh: "贷款已批准：已借款 {amount} GAS" },
+  paymentFailed: { en: "Payment failed", zh: "支付失败" },
+};
+
+const t = createT(translations);
 
 type StatusType = "success" | "error";
 type Status = { msg: string; type: StatusType };
@@ -79,15 +110,18 @@ const takeLoan = async (): Promise<void> => {
   if (isLoading.value) return;
   const amount = parseFloat(loanAmount.value);
   if (!(amount > 0 && amount <= terms.value.maxBorrow)) {
-    return void (status.value = { msg: `Enter 1-${terms.value.maxBorrow}`, type: "error" });
+    return void (status.value = {
+      msg: t("enterAmount").replace("{max}", String(terms.value.maxBorrow)),
+      type: "error",
+    });
   }
   const collateral = (amount * 1.5).toFixed(2);
   const fee = "0.015";
   try {
     await payGAS(fee, `selfloan:borrow:${amount}:collateral:${collateral}`);
-    status.value = { msg: `Loan approved: ${fmt(amount, 2)} GAS borrowed`, type: "success" };
+    status.value = { msg: t("loanApproved").replace("{amount}", fmt(amount, 2)), type: "success" };
   } catch (e: any) {
-    status.value = { msg: e?.message || "Payment failed", type: "error" };
+    status.value = { msg: e?.message || t("paymentFailed"), type: "error" };
   }
 };
 </script>

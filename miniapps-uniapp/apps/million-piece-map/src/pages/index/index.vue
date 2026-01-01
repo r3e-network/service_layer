@@ -1,14 +1,14 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Million Piece Map</text>
-      <text class="subtitle">Tile ownership game</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Map Grid</text>
+      <text class="card-title">{{ t("mapGrid") }}</text>
       <view class="map-grid">
         <view
           v-for="(tile, i) in tiles"
@@ -21,29 +21,29 @@
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Purchase Tile</text>
+      <text class="card-title">{{ t("purchaseTile") }}</text>
       <view class="tile-info">
-        <text class="info-text">Selected: Tile #{{ selectedTile }}</text>
-        <text class="info-text">Price: {{ tilePrice }} GAS</text>
+        <text class="info-text">{{ t("selected") }}: {{ t("tile") }} #{{ selectedTile }}</text>
+        <text class="info-text">{{ t("price") }}: {{ tilePrice }} GAS</text>
       </view>
       <view class="purchase-btn" @click="purchaseTile" :style="{ opacity: isPurchasing ? 0.6 : 1 }">
-        <text>{{ isPurchasing ? "Purchasing..." : "Purchase Tile" }}</text>
+        <text>{{ isPurchasing ? t("purchasing") : t("purchaseTile") }}</text>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Your Stats</text>
+      <text class="card-title">{{ t("yourStats") }}</text>
       <view class="stats-grid">
         <view class="stat">
           <text class="stat-value">{{ ownedTiles }}</text>
-          <text class="stat-label">Owned</text>
+          <text class="stat-label">{{ t("owned") }}</text>
         </view>
         <view class="stat">
           <text class="stat-value">{{ formatNum(totalSpent) }}</text>
-          <text class="stat-label">Spent</text>
+          <text class="stat-label">{{ t("spent") }}</text>
         </view>
         <view class="stat">
           <text class="stat-value">{{ coverage }}%</text>
-          <text class="stat-label">Coverage</text>
+          <text class="stat-label">{{ t("coverage") }}</text>
         </view>
       </view>
     </view>
@@ -54,6 +54,27 @@
 import { ref, computed } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Million Piece Map", zh: "百万拼图地图" },
+  subtitle: { en: "Tile ownership game", zh: "瓷砖所有权游戏" },
+  mapGrid: { en: "Map Grid", zh: "地图网格" },
+  purchaseTile: { en: "Purchase Tile", zh: "购买瓷砖" },
+  selected: { en: "Selected", zh: "已选择" },
+  tile: { en: "Tile", zh: "瓷砖" },
+  price: { en: "Price", zh: "价格" },
+  purchasing: { en: "Purchasing...", zh: "购买中..." },
+  yourStats: { en: "Your Stats", zh: "您的统计" },
+  owned: { en: "Owned", zh: "拥有" },
+  spent: { en: "Spent", zh: "花费" },
+  coverage: { en: "Coverage", zh: "覆盖率" },
+  tileAlreadyOwned: { en: "Tile already owned", zh: "瓷砖已被拥有" },
+  tilePurchased: { en: "purchased!", zh: "已购买！" },
+  error: { en: "Error", zh: "错误" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-millionpiecemap";
 const { address, connect } = useWallet();
@@ -86,7 +107,7 @@ const selectTile = (index: number) => {
 const purchaseTile = async () => {
   if (isPurchasing.value) return;
   if (tiles.value[selectedTile.value].owned) {
-    status.value = { msg: "Tile already owned", type: "error" };
+    status.value = { msg: t("tileAlreadyOwned"), type: "error" };
     return;
   }
 
@@ -97,9 +118,9 @@ const purchaseTile = async () => {
     tiles.value[selectedTile.value].owner = "🎯";
     ownedTiles.value++;
     totalSpent.value += tilePrice.value;
-    status.value = { msg: `Tile #${selectedTile.value} purchased!`, type: "success" };
+    status.value = { msg: `${t("tile")} #${selectedTile.value} ${t("tilePurchased")}`, type: "success" };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   } finally {
     isPurchasing.value = false;
   }

@@ -1,14 +1,14 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Bounty Hunter</text>
-      <text class="subtitle">Bug bounty platform</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Active Bounties</text>
+      <text class="card-title">{{ t("activeBounties") }}</text>
       <view v-for="bounty in bounties" :key="bounty.id" class="bounty-item" @click="selectBounty(bounty)">
         <view class="bounty-header">
           <text class="bounty-title">{{ bounty.title }}</text>
@@ -22,10 +22,10 @@
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Submit Solution</text>
-      <uni-easyinput v-model="solution" placeholder="Paste your solution URL..." />
+      <text class="card-title">{{ t("submitSolution") }}</text>
+      <uni-easyinput v-model="solution" :placeholder="t('solutionPlaceholder')" />
       <view class="action-btn" @click="submitSolution">
-        <text>{{ isLoading ? "Submitting..." : "Submit Solution" }}</text>
+        <text>{{ isLoading ? t("submitting") : t("submitBtn") }}</text>
       </view>
     </view>
   </view>
@@ -34,6 +34,22 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Bounty Hunter", zh: "赏金猎人" },
+  subtitle: { en: "Bug bounty platform", zh: "漏洞赏金平台" },
+  activeBounties: { en: "Active Bounties", zh: "活跃赏金" },
+  submitSolution: { en: "Submit Solution", zh: "提交解决方案" },
+  solutionPlaceholder: { en: "Paste your solution URL...", zh: "粘贴你的解决方案链接..." },
+  submitting: { en: "Submitting...", zh: "提交中..." },
+  submitBtn: { en: "Submit Solution", zh: "提交解决方案" },
+  selected: { en: "Selected", zh: "已选择" },
+  submitted: { en: "Solution submitted for review!", zh: "解决方案已提交审核！" },
+  error: { en: "Error", zh: "错误" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-bountyhunter";
 const { address, connect } = useWallet();
@@ -69,17 +85,17 @@ const bounties = ref([
 ]);
 
 const selectBounty = (bounty: any) => {
-  status.value = { msg: `Selected: ${bounty.title}`, type: "success" };
+  status.value = { msg: `${t("selected")}: ${bounty.title}`, type: "success" };
 };
 
 const submitSolution = async () => {
   if (!solution.value.trim() || isLoading.value) return;
   try {
     await payGAS("1", `submit:${solution.value.slice(0, 20)}`);
-    status.value = { msg: "Solution submitted for review!", type: "success" };
+    status.value = { msg: t("submitted"), type: "success" };
     solution.value = "";
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 </script>

@@ -17,7 +17,7 @@
         </view>
         <view class="stat-box">
           <text class="stat-value">{{ boostMultiplier }}x</text>
-          <text class="stat-label">Boost</text>
+          <text class="stat-label">{{ t('boost') }}</text>
         </view>
         <view class="stat-box">
           <text class="stat-value">{{ activeProposals }}</text>
@@ -46,7 +46,7 @@
     </view>
 
     <view class="card">
-      <text class="card-title">Active Proposals</text>
+      <text class="card-title">{{ t('activeProposals') }}</text>
       <view class="proposals-list">
         <text v-if="proposals.length === 0" class="empty">No active proposals</text>
         <view v-for="(p, i) in proposals" :key="i" class="proposal-item" @click="voteOnProposal(p.id)">
@@ -64,7 +64,26 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
 import { formatNumber } from "@/shared/utils/format";
+
+const translations = {
+  title: { en: "Gov Booster", zh: "治理助推器" },
+  subtitle: { en: "Amplify governance power", zh: "放大治理权力" },
+  yourVotingPower: { en: "Your Voting Power", zh: "您的投票权" },
+  boostedPower: { en: "Boosted Power", zh: "助推权力" },
+  activeProposals: { en: "Active Proposals", zh: "活跃提案" },
+  boostPower: { en: "Boost Power", zh: "助推权力" },
+  amountToBoost: { en: "Amount to boost", zh: "助推数量" },
+  boosting: { en: "Boosting...", zh: "助推中..." },
+  boost: { en: "Boost", zh: "助推" },
+  vote: { en: "Vote", zh: "投票" },
+  minBoost: { en: "Min boost: 1 GAS", zh: "最小助推：1 GAS" },
+  boostSuccess: { en: "Boost successful!", zh: "助推成功！" },
+  error: { en: "Error", zh: "错误" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-gov-booster";
 const { address, connect } = useWallet();

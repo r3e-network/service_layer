@@ -2,8 +2,8 @@
   <view class="container">
     <!-- Header -->
     <view class="header">
-      <text class="title">Neo Chat</text>
-      <text class="subtitle">Decentralized Messaging</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
       <view v-if="userAddress" class="user-badge">
         <text>{{ shortenAddress(userAddress) }}</text>
       </view>
@@ -12,24 +12,24 @@
     <!-- Tab Switcher -->
     <view class="tabs">
       <view class="tab" :class="{ active: activeTab === 'rooms' }" @click="activeTab = 'rooms'">
-        <text>Rooms</text>
+        <text>{{ t("tabRooms") }}</text>
       </view>
       <view class="tab" :class="{ active: activeTab === 'direct' }" @click="activeTab = 'direct'">
-        <text>Direct</text>
+        <text>{{ t("tabDirect") }}</text>
       </view>
     </view>
 
     <!-- Rooms List -->
     <view v-if="activeTab === 'rooms' && !currentRoom" class="panel">
       <view class="section-header">
-        <text class="section-title">Public Rooms</text>
-        <button class="create-btn" @click="showCreateRoom = true">+ New</button>
+        <text class="section-title">{{ t("publicRooms") }}</text>
+        <button class="create-btn" @click="showCreateRoom = true">{{ t("newBtn") }}</button>
       </view>
       <view v-for="room in rooms" :key="room.id" class="room-item" @click="enterRoom(room)">
         <view class="room-icon">{{ room.icon }}</view>
         <view class="room-info">
           <text class="room-name">{{ room.name }}</text>
-          <text class="room-members">{{ room.members }} members</text>
+          <text class="room-members">{{ room.members }} {{ t("members") }}</text>
         </view>
         <view class="room-unread" v-if="room.unread > 0">{{ room.unread }}</view>
       </view>
@@ -38,8 +38,8 @@
     <!-- Direct Messages List -->
     <view v-if="activeTab === 'direct' && !currentDM" class="panel">
       <view class="section-header">
-        <text class="section-title">Direct Messages</text>
-        <button class="create-btn" @click="showNewDM = true">+ New</button>
+        <text class="section-title">{{ t("directMessages") }}</text>
+        <button class="create-btn" @click="showNewDM = true">{{ t("newBtn") }}</button>
       </view>
       <view v-for="dm in directMessages" :key="dm.address" class="dm-item" @click="enterDM(dm)">
         <view class="dm-avatar">{{ dm.address.slice(-2) }}</view>
@@ -65,22 +65,22 @@
         </view>
       </scroll-view>
       <view class="input-bar">
-        <input v-model="newMessage" placeholder="Type a message..." class="msg-input" @confirm="sendMessage" />
-        <button class="send-btn" @click="sendMessage">Send</button>
+        <input v-model="newMessage" :placeholder="t('typeMessage')" class="msg-input" @confirm="sendMessage" />
+        <button class="send-btn" @click="sendMessage">{{ t("send") }}</button>
       </view>
     </view>
 
     <!-- Create Room Modal -->
     <view v-if="showCreateRoom" class="modal-overlay" @click="showCreateRoom = false">
       <view class="modal" @click.stop>
-        <text class="modal-title">Create Room</text>
+        <text class="modal-title">{{ t("createRoom") }}</text>
         <view class="input-group">
-          <text class="input-label">Room Name</text>
-          <input v-model="newRoomName" placeholder="Enter room name" class="text-input" />
+          <text class="input-label">{{ t("roomName") }}</text>
+          <input v-model="newRoomName" :placeholder="t('enterRoomName')" class="text-input" />
         </view>
         <view class="modal-actions">
-          <button class="cancel-btn" @click="showCreateRoom = false">Cancel</button>
-          <button class="confirm-btn" @click="createRoom">Create</button>
+          <button class="cancel-btn" @click="showCreateRoom = false">{{ t("cancel") }}</button>
+          <button class="confirm-btn" @click="createRoom">{{ t("create") }}</button>
         </view>
       </view>
     </view>
@@ -88,14 +88,14 @@
     <!-- New DM Modal -->
     <view v-if="showNewDM" class="modal-overlay" @click="showNewDM = false">
       <view class="modal" @click.stop>
-        <text class="modal-title">New Message</text>
+        <text class="modal-title">{{ t("newMessage") }}</text>
         <view class="input-group">
-          <text class="input-label">Wallet Address</text>
+          <text class="input-label">{{ t("walletAddress") }}</text>
           <input v-model="newDMAddress" placeholder="NX..." class="text-input" />
         </view>
         <view class="modal-actions">
-          <button class="cancel-btn" @click="showNewDM = false">Cancel</button>
-          <button class="confirm-btn" @click="startDM">Start Chat</button>
+          <button class="cancel-btn" @click="showNewDM = false">{{ t("cancel") }}</button>
+          <button class="confirm-btn" @click="startDM">{{ t("startChat") }}</button>
         </view>
       </view>
     </view>
@@ -110,6 +110,31 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useWallet } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Neo Chat", zh: "Neo 聊天" },
+  subtitle: { en: "Decentralized Messaging", zh: "去中心化消息" },
+  tabRooms: { en: "Rooms", zh: "房间" },
+  tabDirect: { en: "Direct", zh: "私聊" },
+  publicRooms: { en: "Public Rooms", zh: "公共房间" },
+  directMessages: { en: "Direct Messages", zh: "私信" },
+  newBtn: { en: "+ New", zh: "+ 新建" },
+  members: { en: "members", zh: "成员" },
+  typeMessage: { en: "Type a message...", zh: "输入消息..." },
+  send: { en: "Send", zh: "发送" },
+  createRoom: { en: "Create Room", zh: "创建房间" },
+  roomName: { en: "Room Name", zh: "房间名称" },
+  enterRoomName: { en: "Enter room name", zh: "输入房间名称" },
+  cancel: { en: "Cancel", zh: "取消" },
+  create: { en: "Create", zh: "创建" },
+  newMessage: { en: "New Message", zh: "新消息" },
+  walletAddress: { en: "Wallet Address", zh: "钱包地址" },
+  startChat: { en: "Start Chat", zh: "开始聊天" },
+  roomCreated: { en: "Room created!", zh: "房间已创建！" },
+};
+
+const t = createT(translations);
 
 const { address, connect } = useWallet();
 
@@ -238,7 +263,7 @@ function createRoom() {
   rooms.value.unshift(room);
   newRoomName.value = "";
   showCreateRoom.value = false;
-  showStatus("Room created!", "success");
+  showStatus(t("roomCreated"), "success");
 }
 
 function startDM() {

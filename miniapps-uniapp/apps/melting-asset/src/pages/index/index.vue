@@ -1,19 +1,19 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Melting Asset</text>
-      <text class="subtitle">NFTs that decay over time</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Your Melting NFTs</text>
+      <text class="card-title">{{ t("yourMeltingNFTs") }}</text>
       <view v-for="nft in nfts" :key="nft.id" class="nft-item">
         <text class="nft-icon">{{ nft.icon }}</text>
         <view class="nft-info">
           <text class="nft-name">{{ nft.name }}</text>
-          <text class="nft-decay">{{ nft.health }}% integrity</text>
+          <text class="nft-decay">{{ nft.health }}% {{ t("integrity") }}</text>
         </view>
         <view class="health-bar">
           <view class="health-fill" :style="{ width: nft.health + '%', background: getHealthColor(nft.health) }"></view>
@@ -24,10 +24,10 @@
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Mint New Asset</text>
-      <text class="info-text">New assets start at 100% and decay 1% per hour</text>
+      <text class="card-title">{{ t("mintNewAsset") }}</text>
+      <text class="info-text">{{ t("infoText") }}</text>
       <view class="mint-btn" @click="mint" :style="{ opacity: isLoading ? 0.6 : 1 }">
-        <text>{{ isLoading ? "Minting..." : "Mint Asset (8 GAS)" }}</text>
+        <text>{{ isLoading ? t("minting") : t("mintAsset") }}</text>
       </view>
     </view>
   </view>
@@ -36,6 +36,24 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Melting Asset", zh: "融化资产" },
+  subtitle: { en: "NFTs that decay over time", zh: "随时间衰减的NFT" },
+  yourMeltingNFTs: { en: "Your Melting NFTs", zh: "您的融化NFT" },
+  integrity: { en: "integrity", zh: "完整度" },
+  mintNewAsset: { en: "Mint New Asset", zh: "铸造新资产" },
+  infoText: { en: "New assets start at 100% and decay 1% per hour", zh: "新资产从100%开始，每小时衰减1%" },
+  minting: { en: "Minting...", zh: "铸造中..." },
+  mintAsset: { en: "Mint Asset (8 GAS)", zh: "铸造资产 (8 GAS)" },
+  restoring: { en: "Restoring...", zh: "恢复中..." },
+  assetRestored: { en: "Asset restored!", zh: "资产已恢复！" },
+  assetMinted: { en: "Asset minted!", zh: "资产已铸造！" },
+  error: { en: "Error", zh: "错误" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-meltingasset";
 const { address, connect } = useWallet();
@@ -72,20 +90,20 @@ const updateDecay = () => {
 
 const restore = async (nft: Asset) => {
   try {
-    status.value = { msg: "Restoring...", type: "loading" };
+    status.value = { msg: t("restoring"), type: "loading" };
     await payGAS("3", `restore:${nft.id}`);
     nft.health = Math.min(100, nft.health + 25);
     nft.lastUpdate = Date.now();
-    status.value = { msg: "Asset restored!", type: "success" };
+    status.value = { msg: t("assetRestored"), type: "success" };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 
 const mint = async () => {
   if (isLoading.value) return;
   try {
-    status.value = { msg: "Minting...", type: "loading" };
+    status.value = { msg: t("minting"), type: "loading" };
     await payGAS("8", `mint:${Date.now()}`);
     const icons = ["🧊", "🏰", "🌸", "🍦", "❄️"];
     nfts.value.push({
@@ -95,9 +113,9 @@ const mint = async () => {
       health: 100,
       lastUpdate: Date.now(),
     });
-    status.value = { msg: "Asset minted!", type: "success" };
+    status.value = { msg: t("assetMinted"), type: "success" };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 

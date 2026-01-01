@@ -1,23 +1,23 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Puzzle Mining</text>
-      <text class="subtitle">Mining puzzle game</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Mining Progress</text>
+      <text class="card-title">{{ t("miningProgress") }}</text>
       <view class="progress-bar">
         <view class="progress-fill" :style="{ width: miningProgress + '%' }"></view>
       </view>
       <view class="progress-text">
-        <text>{{ miningProgress }}% Complete</text>
+        <text>{{ miningProgress }}% {{ t("complete") }}</text>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Puzzle Challenge</text>
+      <text class="card-title">{{ t("puzzleChallenge") }}</text>
       <view class="puzzle-grid">
         <view
           v-for="(piece, i) in puzzlePieces"
@@ -29,23 +29,23 @@
         </view>
       </view>
       <view class="mine-btn" @click="startMining" :style="{ opacity: isMining ? 0.6 : 1 }">
-        <text>{{ isMining ? "Mining..." : "Start Mining" }}</text>
+        <text>{{ isMining ? t("mining") : t("startMining") }}</text>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Mining Stats</text>
+      <text class="card-title">{{ t("miningStats") }}</text>
       <view class="stats-grid">
         <view class="stat">
           <text class="stat-value">{{ blocksMinedCount }}</text>
-          <text class="stat-label">Blocks</text>
+          <text class="stat-label">{{ t("blocks") }}</text>
         </view>
         <view class="stat">
           <text class="stat-value">{{ formatNum(totalRewards) }}</text>
-          <text class="stat-label">Rewards</text>
+          <text class="stat-label">{{ t("rewards") }}</text>
         </view>
         <view class="stat">
           <text class="stat-value">{{ puzzlesSolved }}</text>
-          <text class="stat-label">Puzzles</text>
+          <text class="stat-label">{{ t("puzzles") }}</text>
         </view>
       </view>
     </view>
@@ -56,6 +56,26 @@
 import { ref } from "vue";
 import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Puzzle Mining", zh: "谜题挖矿" },
+  subtitle: { en: "Mining puzzle game", zh: "挖矿谜题游戏" },
+  miningProgress: { en: "Mining Progress", zh: "挖矿进度" },
+  complete: { en: "Complete", zh: "完成" },
+  puzzleChallenge: { en: "Puzzle Challenge", zh: "谜题挑战" },
+  mining: { en: "Mining...", zh: "挖矿中..." },
+  startMining: { en: "Start Mining", zh: "开始挖矿" },
+  miningStats: { en: "Mining Stats", zh: "挖矿统计" },
+  blocks: { en: "Blocks", zh: "区块" },
+  rewards: { en: "Rewards", zh: "奖励" },
+  puzzles: { en: "Puzzles", zh: "谜题" },
+  puzzleSolved: { en: "Puzzle piece {0} solved!", zh: "谜题 {0} 已解决！" },
+  solveMorePuzzles: { en: "Solve more puzzles first", zh: "请先解决更多谜题" },
+  minedEarned: { en: "Mined! Earned {0} GAS", zh: "挖矿成功！获得 {0} GAS" },
+  error: { en: "Error", zh: "错误" },
+};
+const t = createT(translations);
 
 const APP_ID = "miniapp-puzzlemining";
 const { address, connect } = useWallet();
@@ -88,14 +108,14 @@ const solvePiece = (index: number) => {
   puzzlePieces.value[index].solved = true;
   puzzlesSolved.value++;
   miningProgress.value = Math.min(100, miningProgress.value + 11);
-  status.value = { msg: `Puzzle piece ${index + 1} solved!`, type: "success" };
+  status.value = { msg: t("puzzleSolved").replace("{0}", String(index + 1)), type: "success" };
 };
 
 const startMining = async () => {
   if (isMining.value) return;
   const unsolvedCount = puzzlePieces.value.filter((p) => !p.solved).length;
   if (unsolvedCount > 3) {
-    status.value = { msg: "Solve more puzzles first", type: "error" };
+    status.value = { msg: t("solveMorePuzzles"), type: "error" };
     return;
   }
 
@@ -110,9 +130,9 @@ const startMining = async () => {
     totalRewards.value += reward;
     miningProgress.value = 0;
     puzzlePieces.value.forEach((p) => (p.solved = false));
-    status.value = { msg: `Mined! Earned ${reward.toFixed(2)} GAS`, type: "success" };
+    status.value = { msg: t("minedEarned").replace("{0}", reward.toFixed(2)), type: "success" };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   } finally {
     isMining.value = false;
   }

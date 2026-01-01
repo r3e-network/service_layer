@@ -1,14 +1,14 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Candle Wars</text>
-      <text class="subtitle">Price prediction battles</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Current Price</text>
+      <text class="card-title">{{ t("currentPrice") }}</text>
       <view class="price-display">
         <text class="price-value">${{ currentPrice }}</text>
         <text :class="['price-change', priceChange >= 0 ? 'up' : 'down']">
@@ -26,34 +26,34 @@
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Place Prediction</text>
-      <uni-easyinput v-model="betAmount" type="number" placeholder="Bet amount (GAS)" />
+      <text class="card-title">{{ t("placePrediction") }}</text>
+      <uni-easyinput v-model="betAmount" type="number" :placeholder="t('betAmountPlaceholder')" />
       <view class="prediction-row">
         <view :class="['pred-btn', 'up', prediction === 'up' && 'active']" @click="prediction = 'up'">
-          <text>📈 Price Up</text>
+          <text>{{ t("priceUp") }}</text>
         </view>
         <view :class="['pred-btn', 'down', prediction === 'down' && 'active']" @click="prediction = 'down'">
-          <text>📉 Price Down</text>
+          <text>{{ t("priceDown") }}</text>
         </view>
       </view>
       <view class="submit-btn" @click="submitPrediction" :style="{ opacity: isPredicting ? 0.6 : 1 }">
-        <text>{{ isPredicting ? "Submitting..." : "Submit Prediction" }}</text>
+        <text>{{ isPredicting ? t("submitting") : t("submitPrediction") }}</text>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Battle Stats</text>
+      <text class="card-title">{{ t("battleStats") }}</text>
       <view class="stats-grid">
         <view class="stat">
           <text class="stat-value">{{ battles }}</text>
-          <text class="stat-label">Battles</text>
+          <text class="stat-label">{{ t("battles") }}</text>
         </view>
         <view class="stat">
           <text class="stat-value">{{ wins }}</text>
-          <text class="stat-label">Wins</text>
+          <text class="stat-label">{{ t("wins") }}</text>
         </view>
         <view class="stat">
           <text class="stat-value">{{ winRate }}%</text>
-          <text class="stat-label">Win Rate</text>
+          <text class="stat-label">{{ t("winRate") }}</text>
         </view>
       </view>
     </view>
@@ -63,6 +63,28 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Candle Wars", zh: "蜡烛战争" },
+  subtitle: { en: "Price prediction battles", zh: "价格预测对战" },
+  currentPrice: { en: "Current Price", zh: "当前价格" },
+  placePrediction: { en: "Place Prediction", zh: "下注预测" },
+  betAmountPlaceholder: { en: "Bet amount (GAS)", zh: "下注金额 (GAS)" },
+  priceUp: { en: "📈 Price Up", zh: "📈 价格上涨" },
+  priceDown: { en: "📉 Price Down", zh: "📉 价格下跌" },
+  submitting: { en: "Submitting...", zh: "提交中..." },
+  submitPrediction: { en: "Submit Prediction", zh: "提交预测" },
+  battleStats: { en: "Battle Stats", zh: "战斗统计" },
+  battles: { en: "Battles", zh: "战斗" },
+  wins: { en: "Wins", zh: "胜利" },
+  winRate: { en: "Win Rate", zh: "胜率" },
+  minBet: { en: "Min bet: 0.1 GAS", zh: "最小下注：0.1 GAS" },
+  correctWon: { en: "Correct! Won {amount} GAS", zh: "正确！赢得 {amount} GAS" },
+  wrongPrediction: { en: "Wrong prediction", zh: "预测错误" },
+  error: { en: "Error", zh: "错误" },
+};
+const t = createT(translations);
 
 const APP_ID = "miniapp-candlewars";
 const { address, connect } = useWallet();
@@ -93,7 +115,7 @@ const submitPrediction = async () => {
   if (isPredicting.value) return;
   const amount = parseFloat(betAmount.value);
   if (amount < 0.1) {
-    status.value = { msg: "Min bet: 0.1 GAS", type: "error" };
+    status.value = { msg: t("minBet"), type: "error" };
     return;
   }
 
@@ -108,9 +130,9 @@ const submitPrediction = async () => {
     battles.value++;
     if (won) {
       wins.value++;
-      status.value = { msg: `Correct! Won ${amount * 1.8} GAS`, type: "success" };
+      status.value = { msg: t("correctWon").replace("{amount}", String(amount * 1.8)), type: "success" };
     } else {
-      status.value = { msg: "Wrong prediction", type: "error" };
+      status.value = { msg: t("wrongPrediction"), type: "error" };
     }
 
     // Update price
@@ -118,7 +140,7 @@ const submitPrediction = async () => {
     priceChange.value = parseFloat(change);
     currentPrice.value = Math.round(currentPrice.value * (1 + priceChange.value / 100));
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   } finally {
     isPredicting.value = false;
   }

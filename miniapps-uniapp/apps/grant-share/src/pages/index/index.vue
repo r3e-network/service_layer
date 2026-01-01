@@ -2,18 +2,18 @@
   <view class="container">
     <!-- Header -->
     <view class="header">
-      <text class="title">GrantShare</text>
-      <text class="subtitle">Community Funding Platform</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <!-- Stats Cards -->
     <view class="stats-row">
       <view class="stat-card">
-        <text class="stat-label">Total Grants</text>
+        <text class="stat-label">{{ t("totalGrants") }}</text>
         <text class="stat-value">{{ totalGrants }}</text>
       </view>
       <view class="stat-card">
-        <text class="stat-label">Total Funded</text>
+        <text class="stat-label">{{ t("totalFunded") }}</text>
         <text class="stat-value">{{ formatAmount(totalFunded) }} GAS</text>
       </view>
     </view>
@@ -21,20 +21,20 @@
     <!-- Tab Switcher -->
     <view class="tabs">
       <view class="tab" :class="{ active: activeTab === 'browse' }" @click="activeTab = 'browse'">
-        <text>Browse</text>
+        <text>{{ t("browse") }}</text>
       </view>
       <view class="tab" :class="{ active: activeTab === 'create' }" @click="activeTab = 'create'">
-        <text>Create</text>
+        <text>{{ t("create") }}</text>
       </view>
       <view class="tab" :class="{ active: activeTab === 'my' }" @click="activeTab = 'my'">
-        <text>My Grants</text>
+        <text>{{ t("myGrants") }}</text>
       </view>
     </view>
 
     <!-- Browse Panel -->
     <view v-if="activeTab === 'browse'" class="panel">
       <view v-if="grants.length === 0" class="empty-state">
-        <text>No active grants yet</text>
+        <text>{{ t("noActiveGrants") }}</text>
       </view>
       <view v-for="grant in grants" :key="grant.id" class="grant-card">
         <view class="grant-header">
@@ -49,7 +49,7 @@
           <text class="progress-text">{{ formatAmount(grant.funded) }} / {{ formatAmount(grant.goal) }} GAS</text>
         </view>
         <button class="fund-btn" @click="openFundModal(grant)">
-          <text>Fund This Grant</text>
+          <text>{{ t("fundThisGrant") }}</text>
         </button>
       </view>
     </view>
@@ -57,26 +57,26 @@
     <!-- Create Panel -->
     <view v-if="activeTab === 'create'" class="panel">
       <view class="input-group">
-        <text class="input-label">Grant Title</text>
-        <input v-model="newGrant.title" placeholder="Enter title" class="text-input" />
+        <text class="input-label">{{ t("grantTitle") }}</text>
+        <input v-model="newGrant.title" :placeholder="t('enterTitle')" class="text-input" />
       </view>
       <view class="input-group">
-        <text class="input-label">Description</text>
-        <textarea v-model="newGrant.description" placeholder="Describe your project" class="textarea-input" />
+        <text class="input-label">{{ t("description") }}</text>
+        <textarea v-model="newGrant.description" :placeholder="t('describeProject')" class="textarea-input" />
       </view>
       <view class="input-group">
-        <text class="input-label">Funding Goal (GAS)</text>
+        <text class="input-label">{{ t("fundingGoal") }}</text>
         <input v-model="newGrant.goal" type="digit" placeholder="0" class="text-input" />
       </view>
       <button class="action-btn" :disabled="!canCreate || loading" @click="handleCreate">
-        <text>{{ loading ? "Creating..." : "Create Grant" }}</text>
+        <text>{{ loading ? t("creating") : t("createGrant") }}</text>
       </button>
     </view>
 
     <!-- My Grants Panel -->
     <view v-if="activeTab === 'my'" class="panel">
       <view v-if="myGrants.length === 0" class="empty-state">
-        <text>You haven't created any grants</text>
+        <text>{{ t("noGrantsCreated") }}</text>
       </view>
       <view v-for="grant in myGrants" :key="grant.id" class="grant-card">
         <view class="grant-header">
@@ -90,7 +90,7 @@
           <text class="progress-text">{{ formatAmount(grant.funded) }} / {{ formatAmount(grant.goal) }} GAS</text>
         </view>
         <button v-if="grant.funded >= grant.goal" class="withdraw-btn" @click="handleWithdraw(grant)">
-          <text>Withdraw Funds</text>
+          <text>{{ t("withdrawFunds") }}</text>
         </button>
       </view>
     </view>
@@ -98,15 +98,15 @@
     <!-- Fund Modal -->
     <view v-if="showFundModal" class="modal-overlay" @click="showFundModal = false">
       <view class="modal" @click.stop>
-        <text class="modal-title">Fund: {{ selectedGrant?.title }}</text>
+        <text class="modal-title">{{ t("fund") }}: {{ selectedGrant?.title }}</text>
         <view class="input-group">
-          <text class="input-label">Amount (GAS)</text>
+          <text class="input-label">{{ t("amount") }}</text>
           <input v-model="fundAmount" type="digit" placeholder="0" class="text-input" />
         </view>
         <view class="modal-actions">
-          <button class="cancel-btn" @click="showFundModal = false">Cancel</button>
+          <button class="cancel-btn" @click="showFundModal = false">{{ t("cancel") }}</button>
           <button class="confirm-btn" :disabled="loading" @click="handleFund">
-            {{ loading ? "Processing..." : "Confirm" }}
+            {{ loading ? t("processing") : t("confirm") }}
           </button>
         </view>
       </view>
@@ -122,6 +122,35 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "GrantShare", zh: "资助共享" },
+  subtitle: { en: "Community Funding Platform", zh: "社区资助平台" },
+  totalGrants: { en: "Total Grants", zh: "总资助数" },
+  totalFunded: { en: "Total Funded", zh: "总资助额" },
+  browse: { en: "Browse", zh: "浏览" },
+  create: { en: "Create", zh: "创建" },
+  myGrants: { en: "My Grants", zh: "我的资助" },
+  noActiveGrants: { en: "No active grants yet", zh: "暂无活跃资助" },
+  fundThisGrant: { en: "Fund This Grant", zh: "资助此项目" },
+  grantTitle: { en: "Grant Title", zh: "资助标题" },
+  enterTitle: { en: "Enter title", zh: "输入标题" },
+  description: { en: "Description", zh: "描述" },
+  describeProject: { en: "Describe your project", zh: "描述您的项目" },
+  fundingGoal: { en: "Funding Goal (GAS)", zh: "资助目标 (GAS)" },
+  creating: { en: "Creating...", zh: "创建中..." },
+  createGrant: { en: "Create Grant", zh: "创建资助" },
+  noGrantsCreated: { en: "You haven't created any grants", zh: "您还没有创建任何资助" },
+  withdrawFunds: { en: "Withdraw Funds", zh: "提取资金" },
+  fund: { en: "Fund", zh: "资助" },
+  amount: { en: "Amount (GAS)", zh: "金额 (GAS)" },
+  cancel: { en: "Cancel", zh: "取消" },
+  processing: { en: "Processing...", zh: "处理中..." },
+  confirm: { en: "Confirm", zh: "确认" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-grant-share";
 const { address, connect } = useWallet();

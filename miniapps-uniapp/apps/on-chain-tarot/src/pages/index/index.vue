@@ -1,14 +1,14 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">On-Chain Tarot</text>
-      <text class="subtitle">Blockchain-powered divination</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Draw Your Cards</text>
+      <text class="card-title">{{ t("drawYourCards") }}</text>
       <view class="cards-row">
         <view v-for="(card, i) in drawn" :key="i" class="tarot-card" @click="flipCard(i)">
           <text v-if="card.flipped" class="card-face">{{ card.icon }}</text>
@@ -19,14 +19,14 @@
         </view>
       </view>
       <view v-if="!hasDrawn" class="draw-btn" @click="draw" :style="{ opacity: isLoading ? 0.6 : 1 }">
-        <text>{{ isLoading ? "Drawing..." : "Draw 3 Cards (2 GAS)" }}</text>
+        <text>{{ isLoading ? t("drawing") : t("drawCards") }}</text>
       </view>
       <view v-else class="reset-btn" @click="reset">
-        <text>Draw Again</text>
+        <text>{{ t("drawAgain") }}</text>
       </view>
     </view>
     <view v-if="hasDrawn && allFlipped" class="card">
-      <text class="card-title">Your Reading</text>
+      <text class="card-title">{{ t("yourReading") }}</text>
       <text class="reading-text">{{ getReading() }}</text>
     </view>
   </view>
@@ -35,6 +35,25 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "On-Chain Tarot", zh: "链上塔罗" },
+  subtitle: { en: "Blockchain-powered divination", zh: "区块链占卜" },
+  drawYourCards: { en: "Draw Your Cards", zh: "抽取您的牌" },
+  drawCards: { en: "Draw 3 Cards (2 GAS)", zh: "抽取 3 张牌 (2 GAS)" },
+  drawing: { en: "Drawing...", zh: "抽取中..." },
+  drawAgain: { en: "Draw Again", zh: "再次抽取" },
+  yourReading: { en: "Your Reading", zh: "您的解读" },
+  cardsDrawn: { en: "Cards drawn!", zh: "牌已抽取！" },
+  drawingCards: { en: "Drawing cards...", zh: "正在抽取牌..." },
+  readingText: {
+    en: "Your past shows transformation, present reveals balance, and future promises new beginnings. Trust the journey ahead.",
+    zh: "您的过去显示转变，现在揭示平衡，未来承诺新的开始。相信前方的旅程。",
+  },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-onchaintarot";
 const { address, connect } = useWallet();
@@ -79,12 +98,12 @@ const allFlipped = computed(() => drawn.value.every((c) => c.flipped));
 const draw = async () => {
   if (isLoading.value) return;
   try {
-    status.value = { msg: "Drawing cards...", type: "loading" };
+    status.value = { msg: t("drawingCards"), type: "loading" };
     await payGAS("2", `draw:${Date.now()}`);
     const rand = await requestRandom(`tarot:${Date.now()}`);
     const indices = [rand % 22, (rand * 7) % 22, (rand * 13) % 22];
     drawn.value = indices.map((i) => ({ ...tarotDeck[i], flipped: false }));
-    status.value = { msg: "Cards drawn!", type: "success" };
+    status.value = { msg: t("cardsDrawn"), type: "success" };
   } catch (e: any) {
     status.value = { msg: e.message || "Error", type: "error" };
   }
@@ -102,7 +121,7 @@ const reset = () => {
 };
 
 const getReading = () => {
-  return "Your past shows transformation, present reveals balance, and future promises new beginnings. Trust the journey ahead.";
+  return t("readingText");
 };
 </script>
 

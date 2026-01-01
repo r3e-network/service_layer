@@ -1,19 +1,19 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Dark Radio</text>
-      <text class="subtitle">Anonymous broadcasts</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Live Stations</text>
+      <text class="card-title">{{ t("liveStations") }}</text>
       <view v-for="station in stations" :key="station.id" class="station-item" @click="tuneIn(station)">
         <view class="station-icon">📻</view>
         <view class="station-info">
           <text class="station-name">{{ station.name }}</text>
-          <text class="station-listeners">{{ station.listeners }} listening</text>
+          <text class="station-listeners">{{ station.listeners }} {{ t("listening") }}</text>
         </view>
         <view class="station-status" :class="{ active: currentStation?.id === station.id }">
           <text>{{ currentStation?.id === station.id ? "🔊" : "▶️" }}</text>
@@ -21,10 +21,10 @@
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Broadcast Message</text>
-      <uni-easyinput v-model="message" placeholder="Your anonymous message..." />
+      <text class="card-title">{{ t("broadcastMessage") }}</text>
+      <uni-easyinput v-model="message" :placeholder="t('yourMessage')" />
       <view class="action-btn" @click="broadcast">
-        <text>{{ isLoading ? "Broadcasting..." : "Broadcast" }}</text>
+        <text>{{ isLoading ? t("broadcasting") : t("broadcast") }}</text>
       </view>
     </view>
   </view>
@@ -33,6 +33,23 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Dark Radio", zh: "暗黑电台" },
+  subtitle: { en: "Anonymous broadcasts", zh: "匿名广播" },
+  liveStations: { en: "Live Stations", zh: "在线电台" },
+  listening: { en: "listening", zh: "收听中" },
+  broadcastMessage: { en: "Broadcast Message", zh: "广播消息" },
+  yourMessage: { en: "Your anonymous message...", zh: "你的匿名消息..." },
+  broadcasting: { en: "Broadcasting...", zh: "广播中..." },
+  broadcast: { en: "Broadcast", zh: "广播" },
+  tunedTo: { en: "Tuned to", zh: "已调至" },
+  messageBroadcasted: { en: "Message broadcasted anonymously!", zh: "消息已匿名广播！" },
+  error: { en: "Error", zh: "错误" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-darkradio";
 const { address, connect } = useWallet();
@@ -49,17 +66,17 @@ const stations = ref([
 
 const tuneIn = (station: any) => {
   currentStation.value = station;
-  status.value = { msg: `Tuned to ${station.name}`, type: "success" };
+  status.value = { msg: `${t("tunedTo")} ${station.name}`, type: "success" };
 };
 
 const broadcast = async () => {
   if (!message.value.trim() || isLoading.value) return;
   try {
     await payGAS("0.5", `broadcast:${message.value.slice(0, 20)}`);
-    status.value = { msg: "Message broadcasted anonymously!", type: "success" };
+    status.value = { msg: t("messageBroadcasted"), type: "success" };
     message.value = "";
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 </script>

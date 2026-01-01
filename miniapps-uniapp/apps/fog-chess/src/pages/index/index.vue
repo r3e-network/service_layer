@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Fog Chess</text>
-      <text class="subtitle">Hidden chess game</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <view v-if="status" :class="['status-msg', status.type]">
@@ -11,15 +11,15 @@
 
     <view class="card game-info">
       <view class="info-row">
-        <text class="info-label">Turn</text>
-        <text :class="['info-value', currentTurn]">{{ currentTurn === "white" ? "White" : "Black" }}</text>
+        <text class="info-label">{{ t("turn") }}</text>
+        <text :class="['info-value', currentTurn]">{{ currentTurn === "white" ? t("white") : t("black") }}</text>
       </view>
       <view class="info-row">
-        <text class="info-label">Move</text>
+        <text class="info-label">{{ t("move") }}</text>
         <text class="info-value">{{ moveCount }}</text>
       </view>
       <view class="info-row">
-        <text class="info-label">Stake</text>
+        <text class="info-label">{{ t("stake") }}</text>
         <text class="info-value">{{ stake }} GAS</text>
       </view>
     </view>
@@ -46,21 +46,21 @@
     </view>
 
     <view class="card">
-      <text class="card-title">Game Actions</text>
+      <text class="card-title">{{ t("gameActions") }}</text>
       <view class="action-row">
         <view class="action-btn secondary" @click="showRules">
-          <text>Rules</text>
+          <text>{{ t("rules") }}</text>
         </view>
         <view class="action-btn" @click="newGame" :style="{ opacity: isLoading ? 0.6 : 1 }">
-          <text>{{ isLoading ? "Starting..." : "New Game" }}</text>
+          <text>{{ isLoading ? t("starting") : t("newGame") }}</text>
         </view>
       </view>
     </view>
 
     <view class="card">
-      <text class="card-title">Move History</text>
+      <text class="card-title">{{ t("moveHistory") }}</text>
       <view class="history-list">
-        <text v-if="moveHistory.length === 0" class="empty">No moves yet</text>
+        <text v-if="moveHistory.length === 0" class="empty">{{ t("noMoves") }}</text>
         <view v-for="(move, i) in moveHistory" :key="i" class="history-item">
           <text class="move-number">{{ i + 1 }}.</text>
           <text class="move-text">{{ move }}</text>
@@ -73,6 +73,34 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Fog Chess", zh: "迷雾象棋" },
+  subtitle: { en: "Hidden chess game", zh: "隐藏棋盘游戏" },
+  turn: { en: "Turn", zh: "回合" },
+  white: { en: "White", zh: "白方" },
+  black: { en: "Black", zh: "黑方" },
+  move: { en: "Move", zh: "移动" },
+  stake: { en: "Stake", zh: "赌注" },
+  gameActions: { en: "Game Actions", zh: "游戏操作" },
+  rules: { en: "Rules", zh: "规则" },
+  starting: { en: "Starting...", zh: "开始中..." },
+  newGame: { en: "New Game", zh: "新游戏" },
+  moveHistory: { en: "Move History", zh: "移动历史" },
+  noMoves: { en: "No moves yet", zh: "暂无移动" },
+  cannotSee: { en: "Cannot see this square!", zh: "看不到这个方格！" },
+  moveMade: { en: "Move made!", zh: "移动完成！" },
+  startingNewGame: { en: "Starting new game...", zh: "开始新游戏..." },
+  newGameStarted: { en: "New game started!", zh: "新游戏已开始！" },
+  errorStarting: { en: "Error starting game", zh: "开始游戏出错" },
+  rulesText: {
+    en: "Standard chess rules apply. You can only see squares near your pieces!",
+    zh: "标准国际象棋规则。你只能看到棋子附近的方格！",
+  },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-fog-chess";
 const { address, connect } = useWallet();
@@ -128,7 +156,7 @@ const board = ref<Cell[][]>(initBoard());
 
 const selectCell = (row: number, col: number) => {
   if (!board.value[row][col].visible) {
-    status.value = { msg: "Cannot see this square!", type: "error" };
+    status.value = { msg: t("cannotSee"), type: "error" };
     return;
   }
 
@@ -148,7 +176,7 @@ const selectCell = (row: number, col: number) => {
 
       moveCount.value++;
       currentTurn.value = currentTurn.value === "white" ? "black" : "white";
-      status.value = { msg: "Move made!", type: "success" };
+      status.value = { msg: t("moveMade"), type: "success" };
     }
 
     selectedCell.value = null;
@@ -170,7 +198,7 @@ const newGame = async () => {
   if (isLoading.value) return;
 
   try {
-    status.value = { msg: "Starting new game...", type: "loading" };
+    status.value = { msg: t("startingNewGame"), type: "loading" };
     await payGAS(stake.value, `fogchess:new:${Date.now()}`);
 
     board.value = initBoard();
@@ -179,15 +207,15 @@ const newGame = async () => {
     currentTurn.value = "white";
     selectedCell.value = null;
 
-    status.value = { msg: "New game started!", type: "success" };
+    status.value = { msg: t("newGameStarted"), type: "success" };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error starting game", type: "error" };
+    status.value = { msg: e.message || t("errorStarting"), type: "error" };
   }
 };
 
 const showRules = () => {
   status.value = {
-    msg: "Standard chess rules apply. You can only see squares near your pieces!",
+    msg: t("rulesText"),
     type: "success",
   };
 };

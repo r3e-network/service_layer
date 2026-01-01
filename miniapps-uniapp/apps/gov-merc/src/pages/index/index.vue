@@ -70,7 +70,26 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
 import { formatNumber } from "@/shared/utils/format";
+
+const translations = {
+  title: { en: "Gov Merc", zh: "治理雇佣兵" },
+  subtitle: { en: "Delegate voting power", zh: "委托投票权" },
+  availableMercs: { en: "Available Mercs", zh: "可用雇佣兵" },
+  yourDelegations: { en: "Your Delegations", zh: "您的委托" },
+  delegateVotes: { en: "Delegate Votes", zh: "委托投票" },
+  votesToDelegate: { en: "Votes to delegate", zh: "委托票数" },
+  mercAddress: { en: "Merc address", zh: "雇佣兵地址" },
+  delegating: { en: "Delegating...", zh: "委托中..." },
+  delegate: { en: "Delegate", zh: "委托" },
+  revoke: { en: "Revoke", zh: "撤销" },
+  minDelegate: { en: "Min delegate: 1 vote", zh: "最小委托：1票" },
+  delegationSuccess: { en: "Delegation successful!", zh: "委托成功！" },
+  error: { en: "Error", zh: "错误" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-gov-merc";
 const { address, connect } = useWallet();

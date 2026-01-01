@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Guardian Policy</text>
-      <text class="subtitle">Security policy management</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <view v-if="status" :class="['status-msg', status.type]">
@@ -10,7 +10,7 @@
     </view>
 
     <view class="card">
-      <text class="card-title">Active Policies</text>
+      <text class="card-title">{{ t("activePolicies") }}</text>
       <view v-for="policy in policies" :key="policy.id" class="policy-row">
         <view class="policy-info">
           <text class="policy-name">{{ policy.name }}</text>
@@ -23,11 +23,11 @@
     </view>
 
     <view class="card">
-      <text class="card-title">Create Policy</text>
-      <uni-easyinput v-model="policyName" placeholder="Policy name" class="input" />
-      <uni-easyinput v-model="policyRule" placeholder="Rule (e.g., max_tx_amount: 1000)" class="input" />
+      <text class="card-title">{{ t("createPolicy") }}</text>
+      <uni-easyinput v-model="policyName" :placeholder="t('policyName')" class="input" />
+      <uni-easyinput v-model="policyRule" :placeholder="t('policyRule')" class="input" />
       <view class="action-btn" @click="createPolicy">
-        <text>Create Policy</text>
+        <text>{{ t("createPolicy") }}</text>
       </view>
     </view>
   </view>
@@ -35,6 +35,22 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Guardian Policy", zh: "守护策略" },
+  subtitle: { en: "Security policy management", zh: "安全策略管理" },
+  activePolicies: { en: "Active Policies", zh: "活跃策略" },
+  createPolicy: { en: "Create Policy", zh: "创建策略" },
+  policyName: { en: "Policy name", zh: "策略名称" },
+  policyRule: { en: "Rule (e.g., max_tx_amount: 1000)", zh: "规则 (例如: max_tx_amount: 1000)" },
+  fillAllFields: { en: "Please fill all fields", zh: "请填写所有字段" },
+  policyCreated: { en: "Policy created successfully", zh: "策略创建成功" },
+  policyEnabled: { en: "enabled", zh: "已启用" },
+  policyDisabled: { en: "disabled", zh: "已禁用" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-guardian-policy";
 
@@ -61,7 +77,7 @@ const togglePolicy = (id: string) => {
   if (policy) {
     policy.enabled = !policy.enabled;
     status.value = {
-      msg: `Policy ${policy.enabled ? "enabled" : "disabled"}`,
+      msg: `Policy ${policy.enabled ? t("policyEnabled") : t("policyDisabled")}`,
       type: "success",
     };
   }
@@ -69,7 +85,7 @@ const togglePolicy = (id: string) => {
 
 const createPolicy = () => {
   if (!policyName.value || !policyRule.value) {
-    status.value = { msg: "Please fill all fields", type: "error" };
+    status.value = { msg: t("fillAllFields"), type: "error" };
     return;
   }
   policies.value.push({
@@ -78,7 +94,7 @@ const createPolicy = () => {
     description: policyRule.value,
     enabled: true,
   });
-  status.value = { msg: "Policy created successfully", type: "success" };
+  status.value = { msg: t("policyCreated"), type: "success" };
   policyName.value = "";
   policyRule.value = "";
 };

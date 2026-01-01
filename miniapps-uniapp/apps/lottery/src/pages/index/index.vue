@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Neo Lottery</text>
-      <text class="subtitle">Provably fair draws</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <view v-if="status" :class="['status-msg', status.type]">
@@ -14,25 +14,25 @@
       <view class="stats-grid">
         <view class="stat-box">
           <text class="stat-value">#{{ round }}</text>
-          <text class="stat-label">Round</text>
+          <text class="stat-label">{{ t("round") }}</text>
         </view>
         <view class="stat-box">
           <text class="stat-value">{{ formatNum(prizePool) }}</text>
-          <text class="stat-label">Prize Pool</text>
+          <text class="stat-label">{{ t("prizePool") }}</text>
         </view>
         <view class="stat-box">
           <text class="stat-value">{{ totalTickets }}</text>
-          <text class="stat-label">Total</text>
+          <text class="stat-label">{{ t("total") }}</text>
         </view>
         <view class="stat-box">
           <text class="stat-value">{{ userTickets }}</text>
-          <text class="stat-label">Yours</text>
+          <text class="stat-label">{{ t("yours") }}</text>
         </view>
       </view>
     </view>
 
     <view class="card">
-      <text class="card-title">Buy Tickets</text>
+      <text class="card-title">{{ t("buyTickets") }}</text>
       <view class="ticket-row">
         <view class="ticket-btn" @click="adjustTickets(-1)">
           <text>-</text>
@@ -43,18 +43,18 @@
         </view>
       </view>
       <view class="total-row">
-        <text class="total-label">Total Cost</text>
+        <text class="total-label">{{ t("totalCost") }}</text>
         <text class="total-value">{{ formatNum(totalCost, 1) }} GAS</text>
       </view>
       <view class="buy-btn" @click="buyTickets" :style="{ opacity: isLoading ? 0.6 : 1 }">
-        <text>{{ isLoading ? "Processing..." : "Buy Tickets" }}</text>
+        <text>{{ isLoading ? t("processing") : t("buyTickets") }}</text>
       </view>
     </view>
 
     <view class="card">
-      <text class="card-title">Recent Winners</text>
+      <text class="card-title">{{ t("recentWinners") }}</text>
       <view class="winners-list">
-        <text v-if="winners.length === 0" class="empty">No winners yet</text>
+        <text v-if="winners.length === 0" class="empty">{{ t("noWinners") }}</text>
         <view v-for="(w, i) in winners" :key="i" class="winner-item">
           <text class="winner-round">#{{ w.round }}</text>
           <text class="winner-addr">{{ w.address.slice(0, 8) }}...</text>
@@ -69,6 +69,27 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
 import { formatNumber, hexToBytes, randomIntFromBytes } from "@/shared/utils/format";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Neo Lottery", zh: "Neo彩票" },
+  subtitle: { en: "Provably fair draws", zh: "可证明公平抽奖" },
+  round: { en: "Round", zh: "轮次" },
+  prizePool: { en: "Prize Pool", zh: "奖池" },
+  total: { en: "Total", zh: "总计" },
+  yours: { en: "Yours", zh: "您的" },
+  buyTickets: { en: "Buy Tickets", zh: "购买彩票" },
+  totalCost: { en: "Total Cost", zh: "总费用" },
+  processing: { en: "Processing...", zh: "处理中..." },
+  recentWinners: { en: "Recent Winners", zh: "最近中奖者" },
+  noWinners: { en: "No winners yet", zh: "暂无中奖者" },
+  purchasing: { en: "Purchasing...", zh: "购买中..." },
+  bought: { en: "Bought", zh: "已购买" },
+  tickets: { en: "ticket(s)!", zh: "张彩票！" },
+  error: { en: "Error", zh: "错误" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-lottery";
 const { address, connect } = useWallet();
@@ -105,14 +126,14 @@ const adjustTickets = (delta: number) => {
 const buyTickets = async () => {
   if (isLoading.value) return;
   try {
-    status.value = { msg: "Purchasing...", type: "loading" };
+    status.value = { msg: t("purchasing"), type: "loading" };
     await payGAS(String(totalCost.value), `lottery:${round.value}:${tickets.value}`);
-    status.value = { msg: `Bought ${tickets.value} ticket(s)!`, type: "success" };
+    status.value = { msg: `${t("bought")} ${tickets.value} ${t("tickets")}`, type: "success" };
     totalTickets.value += tickets.value;
     userTickets.value += tickets.value;
     prizePool.value += totalCost.value;
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 

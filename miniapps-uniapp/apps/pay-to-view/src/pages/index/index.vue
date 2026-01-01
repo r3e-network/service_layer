@@ -1,54 +1,54 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Pay to View</text>
-      <text class="subtitle">Gated content NFTs</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Premium Content</text>
+      <text class="card-title">{{ t("premiumContent") }}</text>
       <view class="content-list">
         <view v-for="item in contents" :key="item.id" class="content-item" @click="viewContent(item)">
           <text class="content-icon">{{ item.icon }}</text>
           <view class="content-info">
             <text class="content-title">{{ item.title }}</text>
-            <text class="content-creator">by {{ item.creator }}</text>
-            <text class="content-views">{{ item.views }} views</text>
+            <text class="content-creator">{{ t("by") }} {{ item.creator }}</text>
+            <text class="content-views">{{ item.views }} {{ t("views") }}</text>
           </view>
           <view class="content-price">
-            <text v-if="item.unlocked" class="unlocked-badge">Unlocked</text>
+            <text v-if="item.unlocked" class="unlocked-badge">{{ t("unlocked") }}</text>
             <text v-else class="price-text">{{ item.price }} GAS</text>
           </view>
         </view>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Create Content</text>
+      <text class="card-title">{{ t("createContent") }}</text>
       <view class="create-form">
-        <input class="input-field" placeholder="Content title" v-model="newContent.title" />
-        <input class="input-field" placeholder="Price in GAS" v-model="newContent.price" type="number" />
-        <textarea class="textarea-field" placeholder="Content description" v-model="newContent.description" />
+        <input class="input-field" :placeholder="t('contentTitle')" v-model="newContent.title" />
+        <input class="input-field" :placeholder="t('priceInGAS')" v-model="newContent.price" type="number" />
+        <textarea class="textarea-field" :placeholder="t('contentDescription')" v-model="newContent.description" />
         <view class="btn-primary" @click="createContent" :style="{ opacity: isLoading ? 0.6 : 1 }">
-          <text>{{ isLoading ? "Creating..." : "Create (5 GAS fee)" }}</text>
+          <text>{{ isLoading ? t("creating") : t("create") }}</text>
         </view>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Your Stats</text>
+      <text class="card-title">{{ t("yourStats") }}</text>
       <view class="stats-grid">
         <view class="stat-item">
           <text class="stat-value">{{ unlockedCount }}</text>
-          <text class="stat-label">Unlocked</text>
+          <text class="stat-label">{{ t("unlockedCount") }}</text>
         </view>
         <view class="stat-item">
           <text class="stat-value">{{ createdCount }}</text>
-          <text class="stat-label">Created</text>
+          <text class="stat-label">{{ t("createdCount") }}</text>
         </view>
         <view class="stat-item">
           <text class="stat-value">{{ earnings }}</text>
-          <text class="stat-label">Earned</text>
+          <text class="stat-label">{{ t("earned") }}</text>
         </view>
       </view>
     </view>
@@ -58,6 +58,34 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Pay to View", zh: "付费查看" },
+  subtitle: { en: "Gated content NFTs", zh: "门控内容 NFT" },
+  premiumContent: { en: "Premium Content", zh: "优质内容" },
+  by: { en: "by", zh: "作者" },
+  views: { en: "views", zh: "浏览" },
+  unlocked: { en: "Unlocked", zh: "已解锁" },
+  createContent: { en: "Create Content", zh: "创建内容" },
+  contentTitle: { en: "Content title", zh: "内容标题" },
+  priceInGAS: { en: "Price in GAS", zh: "GAS 价格" },
+  contentDescription: { en: "Content description", zh: "内容描述" },
+  create: { en: "Create (5 GAS fee)", zh: "创建 (5 GAS 费用)" },
+  creating: { en: "Creating...", zh: "创建中..." },
+  yourStats: { en: "Your Stats", zh: "您的统计" },
+  unlockedCount: { en: "Unlocked", zh: "已解锁" },
+  createdCount: { en: "Created", zh: "已创建" },
+  earned: { en: "Earned", zh: "已赚取" },
+  viewingContent: { en: "Viewing content...", zh: "查看内容中..." },
+  unlockingContent: { en: "Unlocking content...", zh: "解锁内容中..." },
+  contentUnlocked: { en: "Content unlocked!", zh: "内容已解锁！" },
+  creatingContent: { en: "Creating content...", zh: "创建内容中..." },
+  contentCreated: { en: "Content created!", zh: "内容已创建！" },
+  fillAllFields: { en: "Please fill all fields", zh: "请填写所有字段" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-paytoview";
 const { address, connect } = useWallet();
@@ -94,16 +122,16 @@ const unlockedCount = computed(() => contents.value.filter((c) => c.unlocked).le
 
 const viewContent = async (item: Content) => {
   if (item.unlocked) {
-    status.value = { msg: "Viewing content...", type: "success" };
+    status.value = { msg: t("viewingContent"), type: "success" };
     return;
   }
   if (isLoading.value) return;
   try {
-    status.value = { msg: "Unlocking content...", type: "loading" };
+    status.value = { msg: t("unlockingContent"), type: "loading" };
     await payGAS(item.price, `unlock:${item.id}`);
     item.unlocked = true;
     item.views++;
-    status.value = { msg: "Content unlocked!", type: "success" };
+    status.value = { msg: t("contentUnlocked"), type: "success" };
   } catch (e: any) {
     status.value = { msg: e.message || "Error", type: "error" };
   }
@@ -111,12 +139,12 @@ const viewContent = async (item: Content) => {
 
 const createContent = async () => {
   if (!newContent.value.title || !newContent.value.price) {
-    status.value = { msg: "Please fill all fields", type: "error" };
+    status.value = { msg: t("fillAllFields"), type: "error" };
     return;
   }
   if (isLoading.value) return;
   try {
-    status.value = { msg: "Creating content...", type: "loading" };
+    status.value = { msg: t("creatingContent"), type: "loading" };
     await payGAS("5", `create:${Date.now()}`);
     const icons = ["📊", "🎨", "📚", "🎬", "🎵", "📹"];
     contents.value.unshift({
@@ -130,7 +158,7 @@ const createContent = async () => {
     });
     createdCount.value++;
     newContent.value = { title: "", price: "", description: "" };
-    status.value = { msg: "Content created!", type: "success" };
+    status.value = { msg: t("contentCreated"), type: "success" };
   } catch (e: any) {
     status.value = { msg: e.message || "Error", type: "error" };
   }

@@ -1,31 +1,33 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Scratch Card</text>
-      <text class="subtitle">Instant win prizes</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
       <view class="scratch-area" @click="scratch">
-        <text v-if="!revealed" class="scratch-text">🎫 Tap to Scratch</text>
-        <text v-else class="prize-text">{{ prize > 0 ? `🎉 ${prize} GAS!` : "😢 No Win" }}</text>
+        <text v-if="!revealed" class="scratch-text">{{ t("tapToScratch") }}</text>
+        <text v-else class="prize-text">{{
+          prize > 0 ? t("prizeWin").replace("{0}", String(prize)) : t("noWin")
+        }}</text>
       </view>
       <view class="buy-btn" @click="buyCard" v-if="revealed || !hasCard">
-        <text>{{ isLoading ? "Buying..." : "Buy Card (1 GAS)" }}</text>
+        <text>{{ isLoading ? t("buying") : t("buyCard") }}</text>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Your Stats</text>
+      <text class="card-title">{{ t("yourStats") }}</text>
       <view class="stats-row">
         <view class="stat"
           ><text class="stat-value">{{ cardsScratched }}</text
-          ><text class="stat-label">Scratched</text></view
+          ><text class="stat-label">{{ t("scratched") }}</text></view
         >
         <view class="stat"
           ><text class="stat-value">{{ totalWon }}</text
-          ><text class="stat-label">Won (GAS)</text></view
+          ><text class="stat-label">{{ t("wonGas") }}</text></view
         >
       </view>
     </view>
@@ -35,6 +37,23 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Scratch Card", zh: "刮刮卡" },
+  subtitle: { en: "Instant win prizes", zh: "即时赢取奖品" },
+  tapToScratch: { en: "🎫 Tap to Scratch", zh: "🎫 点击刮开" },
+  prizeWin: { en: "🎉 {0} GAS!", zh: "🎉 {0} GAS！" },
+  noWin: { en: "😢 No Win", zh: "😢 未中奖" },
+  buying: { en: "Buying...", zh: "购买中..." },
+  buyCard: { en: "Buy Card (1 GAS)", zh: "购买卡片 (1 GAS)" },
+  yourStats: { en: "Your Stats", zh: "您的统计" },
+  scratched: { en: "Scratched", zh: "已刮开" },
+  wonGas: { en: "Won (GAS)", zh: "赢得 (GAS)" },
+  cardPurchased: { en: "Card purchased!", zh: "卡片已购买！" },
+  error: { en: "Error", zh: "错误" },
+};
+const t = createT(translations);
 
 const APP_ID = "miniapp-scratchcard";
 const { address, connect } = useWallet();
@@ -55,9 +74,9 @@ const buyCard = async () => {
     hasCard.value = true;
     revealed.value = false;
     prize.value = 0;
-    status.value = { msg: "Card purchased!", type: "success" };
+    status.value = { msg: t("cardPurchased"), type: "success" };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 

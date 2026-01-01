@@ -1,22 +1,22 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Secret Vote</text>
-      <text class="subtitle">Anonymous on-chain voting</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Active Proposals</text>
+      <text class="card-title">{{ t("activeProposals") }}</text>
       <view v-for="p in proposals" :key="p.id" class="proposal-item" @click="selected = p">
         <text class="proposal-title">{{ p.title }}</text>
         <view class="vote-bar">
           <view class="yes-bar" :style="{ width: p.yesPercent + '%' }"></view>
         </view>
         <view class="vote-stats">
-          <text>Yes: {{ p.yesPercent }}%</text>
-          <text>No: {{ 100 - p.yesPercent }}%</text>
+          <text>{{ t("yes") }}: {{ p.yesPercent }}%</text>
+          <text>{{ t("no") }}: {{ 100 - p.yesPercent }}%</text>
         </view>
       </view>
     </view>
@@ -24,8 +24,12 @@
       <view class="vote-modal" v-if="selected">
         <text class="modal-title">{{ selected.title }}</text>
         <view class="vote-btns">
-          <view class="vote-btn yes" @click="vote(true)"><text>Vote Yes</text></view>
-          <view class="vote-btn no" @click="vote(false)"><text>Vote No</text></view>
+          <view class="vote-btn yes" @click="vote(true)"
+            ><text>{{ t("voteYes") }}</text></view
+          >
+          <view class="vote-btn no" @click="vote(false)"
+            ><text>{{ t("voteNo") }}</text></view
+          >
         </view>
       </view>
     </uni-popup>
@@ -34,16 +38,33 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Secret Vote", zh: "秘密投票" },
+  subtitle: { en: "Anonymous on-chain voting", zh: "匿名链上投票" },
+  activeProposals: { en: "Active Proposals", zh: "活跃提案" },
+  yes: { en: "Yes", zh: "是" },
+  no: { en: "No", zh: "否" },
+  voteYes: { en: "Vote Yes", zh: "投赞成票" },
+  voteNo: { en: "Vote No", zh: "投反对票" },
+  votedAnonymously: { en: "Voted {vote} anonymously!", zh: "已匿名投{vote}票！" },
+  increaseStaking: { en: "Increase staking rewards", zh: "增加质押奖励" },
+  addTradingPair: { en: "Add new trading pair", zh: "添加新交易对" },
+};
+
+const t = createT(translations);
 
 const proposals = ref([
-  { id: "1", title: "Increase staking rewards", yesPercent: 65 },
-  { id: "2", title: "Add new trading pair", yesPercent: 42 },
+  { id: "1", title: t("increaseStaking"), yesPercent: 65 },
+  { id: "2", title: t("addTradingPair"), yesPercent: 42 },
 ]);
 const selected = ref<any>(null);
 const status = ref<{ msg: string; type: string } | null>(null);
 
 const vote = (yes: boolean) => {
-  status.value = { msg: `Voted ${yes ? "Yes" : "No"} anonymously!`, type: "success" };
+  const voteText = yes ? t("yes") : t("no");
+  status.value = { msg: t("votedAnonymously").replace("{vote}", voteText), type: "success" };
   selected.value = null;
 };
 </script>

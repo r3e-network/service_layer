@@ -2,15 +2,15 @@
   <view class="container">
     <!-- Header -->
     <view class="header">
-      <text class="title">Neo Name Service</text>
-      <text class="subtitle">Your Identity on Neo</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <!-- Search Box -->
     <view class="search-box">
       <input
         v-model="searchQuery"
-        placeholder="Search for a .neo domain"
+        :placeholder="t('searchPlaceholder')"
         class="search-input"
         @input="checkAvailability"
       />
@@ -22,20 +22,20 @@
       <view class="result-header">
         <text class="result-domain">{{ searchQuery }}.neo</text>
         <text class="result-status" :class="searchResult.available ? 'available' : 'taken'">
-          {{ searchResult.available ? "Available" : "Taken" }}
+          {{ searchResult.available ? t("available") : t("taken") }}
         </text>
       </view>
       <view v-if="searchResult.available" class="result-body">
         <view class="price-row">
-          <text class="price-label">Registration Price</text>
-          <text class="price-value">{{ searchResult.price }} GAS / year</text>
+          <text class="price-label">{{ t("registrationPrice") }}</text>
+          <text class="price-value">{{ searchResult.price }} GAS {{ t("perYear") }}</text>
         </view>
         <button class="register-btn" :disabled="loading" @click="handleRegister">
-          {{ loading ? "Processing..." : "Register Now" }}
+          {{ loading ? t("processing") : t("registerNow") }}
         </button>
       </view>
       <view v-else class="result-body">
-        <text class="owner-label">Owner</text>
+        <text class="owner-label">{{ t("owner") }}</text>
         <text class="owner-value">{{ shortenAddress(searchResult.owner) }}</text>
       </view>
     </view>
@@ -43,33 +43,33 @@
     <!-- Tab Switcher -->
     <view class="tabs">
       <view class="tab" :class="{ active: activeTab === 'my' }" @click="activeTab = 'my'">
-        <text>My Domains</text>
+        <text>{{ t("tabMyDomains") }}</text>
       </view>
       <view class="tab" :class="{ active: activeTab === 'explore' }" @click="activeTab = 'explore'">
-        <text>Explore</text>
+        <text>{{ t("tabExplore") }}</text>
       </view>
     </view>
 
     <!-- My Domains -->
     <view v-if="activeTab === 'my'" class="panel">
       <view v-if="myDomains.length === 0" class="empty-state">
-        <text>You don't own any domains yet</text>
+        <text>{{ t("noDomains") }}</text>
       </view>
       <view v-for="domain in myDomains" :key="domain.name" class="domain-card">
         <view class="domain-info">
           <text class="domain-name">{{ domain.name }}</text>
-          <text class="domain-expiry">Expires: {{ formatDate(domain.expiry) }}</text>
+          <text class="domain-expiry">{{ t("expires") }}: {{ formatDate(domain.expiry) }}</text>
         </view>
         <view class="domain-actions">
-          <button class="action-btn-sm" @click="showManage(domain)">Manage</button>
-          <button class="action-btn-sm renew" @click="handleRenew(domain)">Renew</button>
+          <button class="action-btn-sm" @click="showManage(domain)">{{ t("manage") }}</button>
+          <button class="action-btn-sm renew" @click="handleRenew(domain)">{{ t("renew") }}</button>
         </view>
       </view>
     </view>
 
     <!-- Explore -->
     <view v-if="activeTab === 'explore'" class="panel">
-      <text class="section-title">Recently Registered</text>
+      <text class="section-title">{{ t("recentlyRegistered") }}</text>
       <view v-for="domain in recentDomains" :key="domain.name" class="domain-card">
         <view class="domain-info">
           <text class="domain-name">{{ domain.name }}</text>
@@ -88,6 +88,34 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Neo Name Service", zh: "Neo 域名服务" },
+  subtitle: { en: "Your Identity on Neo", zh: "您在 Neo 上的身份" },
+  searchPlaceholder: { en: "Search for a .neo domain", zh: "搜索 .neo 域名" },
+  available: { en: "Available", zh: "可用" },
+  taken: { en: "Taken", zh: "已被占用" },
+  registrationPrice: { en: "Registration Price", zh: "注册价格" },
+  perYear: { en: "/ year", zh: "/ 年" },
+  registerNow: { en: "Register Now", zh: "立即注册" },
+  processing: { en: "Processing...", zh: "处理中..." },
+  owner: { en: "Owner", zh: "所有者" },
+  tabMyDomains: { en: "My Domains", zh: "我的域名" },
+  tabExplore: { en: "Explore", zh: "探索" },
+  noDomains: { en: "You don't own any domains yet", zh: "您还没有域名" },
+  expires: { en: "Expires", zh: "到期时间" },
+  manage: { en: "Manage", zh: "管理" },
+  renew: { en: "Renew", zh: "续费" },
+  recentlyRegistered: { en: "Recently Registered", zh: "最近注册" },
+  registered: { en: "registered!", zh: "已注册！" },
+  renewed: { en: "renewed!", zh: "已续费！" },
+  registrationFailed: { en: "Registration failed", zh: "注册失败" },
+  renewalFailed: { en: "Renewal failed", zh: "续费失败" },
+  managing: { en: "Managing", zh: "管理中" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-neo-ns";
 const { address, connect } = useWallet();
@@ -167,11 +195,11 @@ async function handleRegister() {
       expiry: Date.now() + 365 * 24 * 60 * 60 * 1000,
     };
     myDomains.value.unshift(domain);
-    showStatus(`${searchQuery.value}.neo registered!`, "success");
+    showStatus(`${searchQuery.value}.neo ${t("registered")}`, "success");
     searchQuery.value = "";
     searchResult.value = null;
   } catch (e: any) {
-    showStatus(e.message || "Registration failed", "error");
+    showStatus(e.message || t("registrationFailed"), "error");
   } finally {
     loading.value = false;
   }
@@ -182,16 +210,16 @@ async function handleRenew(domain: Domain) {
   try {
     await payGAS("10", `nns:renew:${domain.name}`);
     domain.expiry += 365 * 24 * 60 * 60 * 1000;
-    showStatus(`${domain.name} renewed!`, "success");
+    showStatus(`${domain.name} ${t("renewed")}`, "success");
   } catch (e: any) {
-    showStatus(e.message || "Renewal failed", "error");
+    showStatus(e.message || t("renewalFailed"), "error");
   } finally {
     loading.value = false;
   }
 }
 
 function showManage(domain: Domain) {
-  showStatus(`Managing ${domain.name}`, "success");
+  showStatus(`${t("managing")} ${domain.name}`, "success");
 }
 
 onMounted(async () => {

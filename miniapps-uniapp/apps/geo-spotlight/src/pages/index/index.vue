@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Geo Spotlight</text>
-      <text class="subtitle">Location-based content</text>
+      <text class="title">{{ t('title') }}</text>
+      <text class="subtitle">{{ t('subtitle') }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
@@ -34,6 +34,22 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Geo Spotlight", zh: "地理聚光灯" },
+  subtitle: { en: "Location-based content", zh: "基于位置的内容" },
+  nearbySpotlights: { en: "Nearby Spotlights", zh: "附近聚光灯" },
+  createSpotlight: { en: "Create Spotlight", zh: "创建聚光灯" },
+  spotlightTitle: { en: "Spotlight title", zh: "聚光灯标题" },
+  content: { en: "Content", zh: "内容" },
+  creating: { en: "Creating...", zh: "创建中..." },
+  create: { en: "Create", zh: "创建" },
+  spotlightCreated: { en: "Spotlight created!", zh: "聚光灯已创建！" },
+  error: { en: "Error", zh: "错误" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-geospotlight";
 const { address, connect } = useWallet();

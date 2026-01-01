@@ -1,14 +1,14 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Flash Loan</text>
-      <text class="subtitle">Instant uncollateralized loans</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Available Liquidity</text>
+      <text class="card-title">{{ t("availableLiquidity") }}</text>
       <view class="liquidity-row">
         <text class="token">GAS</text>
         <text class="amount">{{ formatNum(gasLiquidity) }}</text>
@@ -19,14 +19,14 @@
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Request Flash Loan</text>
-      <uni-easyinput v-model="loanAmount" type="number" placeholder="Amount" />
+      <text class="card-title">{{ t("requestFlashLoan") }}</text>
+      <uni-easyinput v-model="loanAmount" type="number" :placeholder="t('amountPlaceholder')" />
       <view class="fee-row">
-        <text>Fee (0.09%)</text>
+        <text>{{ t("fee") }}</text>
         <text class="fee">{{ (parseFloat(loanAmount || "0") * 0.0009).toFixed(4) }} GAS</text>
       </view>
       <view class="action-btn" @click="requestLoan">
-        <text>{{ isLoading ? "Processing..." : "Execute Flash Loan" }}</text>
+        <text>{{ isLoading ? t("processing") : t("executeLoan") }}</text>
       </view>
     </view>
   </view>
@@ -36,6 +36,23 @@
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Flash Loan", zh: "闪电贷" },
+  subtitle: { en: "Instant uncollateralized loans", zh: "即时无抵押贷款" },
+  availableLiquidity: { en: "Available Liquidity", zh: "可用流动性" },
+  requestFlashLoan: { en: "Request Flash Loan", zh: "申请闪电贷" },
+  amountPlaceholder: { en: "Amount", zh: "金额" },
+  fee: { en: "Fee (0.09%)", zh: "手续费 (0.09%)" },
+  processing: { en: "Processing...", zh: "处理中..." },
+  executeLoan: { en: "Execute Flash Loan", zh: "执行闪电贷" },
+  invalidAmount: { en: "Invalid amount", zh: "无效金额" },
+  loanExecuted: { en: "Flash loan executed", zh: "闪电贷已执行" },
+  error: { en: "Error", zh: "错误" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-flashloan";
 const { address, connect } = useWallet();
@@ -52,15 +69,15 @@ const requestLoan = async () => {
   if (isLoading.value) return;
   const amount = parseFloat(loanAmount.value);
   if (amount <= 0 || amount > gasLiquidity.value) {
-    status.value = { msg: "Invalid amount", type: "error" };
+    status.value = { msg: t("invalidAmount"), type: "error" };
     return;
   }
   try {
     const fee = (amount * 0.0009).toFixed(4);
     await payGAS(fee, `flashloan:${amount}`);
-    status.value = { msg: `Flash loan executed: ${amount} GAS`, type: "success" };
+    status.value = { msg: `${t("loanExecuted")}: ${amount} GAS`, type: "success" };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 </script>

@@ -1,53 +1,53 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Secret Poker</text>
-      <text class="subtitle">Hidden card poker game</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Your Hand</text>
+      <text class="card-title">{{ t("yourHand") }}</text>
       <view class="cards-row">
         <view v-for="(card, i) in playerHand" :key="i" :class="['poker-card', card.revealed && 'revealed']">
           <text>{{ card.revealed ? card.value : "🂠" }}</text>
         </view>
       </view>
       <view class="info-row">
-        <text class="info-label">Pot:</text>
+        <text class="info-label">{{ t("pot") }}</text>
         <text class="info-value">{{ pot }} GAS</text>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Actions</text>
-      <uni-easyinput v-model="betAmount" type="number" placeholder="Bet amount (GAS)" />
+      <text class="card-title">{{ t("actions") }}</text>
+      <uni-easyinput v-model="betAmount" type="number" :placeholder="t('betAmountPlaceholder')" />
       <view class="actions-row">
         <view class="action-btn" @click="fold" :style="{ opacity: isPlaying ? 0.6 : 1 }">
-          <text>Fold</text>
+          <text>{{ t("fold") }}</text>
         </view>
         <view class="action-btn primary" @click="bet" :style="{ opacity: isPlaying ? 0.6 : 1 }">
-          <text>{{ isPlaying ? "Playing..." : "Bet" }}</text>
+          <text>{{ isPlaying ? t("playing") : t("bet") }}</text>
         </view>
         <view class="action-btn" @click="reveal" :style="{ opacity: isPlaying ? 0.6 : 1 }">
-          <text>Reveal</text>
+          <text>{{ t("reveal") }}</text>
         </view>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Game Stats</text>
+      <text class="card-title">{{ t("gameStats") }}</text>
       <view class="stats-grid">
         <view class="stat">
           <text class="stat-value">{{ gamesPlayed }}</text>
-          <text class="stat-label">Games</text>
+          <text class="stat-label">{{ t("games") }}</text>
         </view>
         <view class="stat">
           <text class="stat-value">{{ gamesWon }}</text>
-          <text class="stat-label">Won</text>
+          <text class="stat-label">{{ t("won") }}</text>
         </view>
         <view class="stat">
           <text class="stat-value">{{ formatNum(totalEarnings) }}</text>
-          <text class="stat-label">Earnings</text>
+          <text class="stat-label">{{ t("earnings") }}</text>
         </view>
       </view>
     </view>
@@ -58,6 +58,32 @@
 import { ref } from "vue";
 import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Secret Poker", zh: "秘密扑克" },
+  subtitle: { en: "Hidden card poker game", zh: "隐藏牌扑克游戏" },
+  yourHand: { en: "Your Hand", zh: "你的手牌" },
+  pot: { en: "Pot:", zh: "底池：" },
+  actions: { en: "Actions", zh: "操作" },
+  betAmountPlaceholder: { en: "Bet amount (GAS)", zh: "下注金额 (GAS)" },
+  fold: { en: "Fold", zh: "弃牌" },
+  bet: { en: "Bet", zh: "下注" },
+  playing: { en: "Playing...", zh: "游戏中..." },
+  reveal: { en: "Reveal", zh: "揭示" },
+  gameStats: { en: "Game Stats", zh: "游戏统计" },
+  games: { en: "Games", zh: "局数" },
+  won: { en: "Won", zh: "胜利" },
+  earnings: { en: "Earnings", zh: "收益" },
+  minBet: { en: "Min bet: 0.1 GAS", zh: "最小下注：0.1 GAS" },
+  betPlaced: { en: "Bet {amount} GAS placed", zh: "已下注 {amount} GAS" },
+  error: { en: "Error", zh: "错误" },
+  foldedHand: { en: "Folded hand", zh: "已弃牌" },
+  wonAmount: { en: "Won {amount} GAS!", zh: "赢得 {amount} GAS！" },
+  lostRound: { en: "Lost this round", zh: "本轮失败" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-secretpoker";
 const { address, connect } = useWallet();
@@ -84,7 +110,7 @@ const bet = async () => {
   if (isPlaying.value) return;
   const amount = parseFloat(betAmount.value);
   if (amount < 0.1) {
-    status.value = { msg: "Min bet: 0.1 GAS", type: "error" };
+    status.value = { msg: t("minBet"), type: "error" };
     return;
   }
 
@@ -92,9 +118,9 @@ const bet = async () => {
   try {
     await payGAS(betAmount.value, "poker:bet");
     pot.value += amount;
-    status.value = { msg: `Bet ${amount} GAS placed`, type: "success" };
+    status.value = { msg: t("betPlaced").replace("{amount}", String(amount)), type: "success" };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   } finally {
     isPlaying.value = false;
   }
@@ -104,7 +130,7 @@ const fold = () => {
   if (isPlaying.value) return;
   pot.value = 0;
   playerHand.value.forEach((c) => (c.revealed = false));
-  status.value = { msg: "Folded hand", type: "error" };
+  status.value = { msg: t("foldedHand"), type: "error" };
 };
 
 const reveal = async () => {
@@ -121,13 +147,13 @@ const reveal = async () => {
     if (won) {
       gamesWon.value++;
       totalEarnings.value += pot.value * 2;
-      status.value = { msg: `Won ${pot.value * 2} GAS!`, type: "success" };
+      status.value = { msg: t("wonAmount").replace("{amount}", String(pot.value * 2)), type: "success" };
     } else {
-      status.value = { msg: "Lost this round", type: "error" };
+      status.value = { msg: t("lostRound"), type: "error" };
     }
     pot.value = 0;
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   } finally {
     isPlaying.value = false;
   }

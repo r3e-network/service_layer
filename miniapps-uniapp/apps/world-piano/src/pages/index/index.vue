@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">World Piano</text>
-      <text class="subtitle">Play together, create music</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
@@ -11,20 +11,20 @@
       <view class="stats-row">
         <view class="stat">
           <text class="stat-value">{{ onlinePlayers }}</text>
-          <text class="stat-label">Online</text>
+          <text class="stat-label">{{ t("online") }}</text>
         </view>
         <view class="stat">
           <text class="stat-value">{{ notesPlayed }}</text>
-          <text class="stat-label">Notes</text>
+          <text class="stat-label">{{ t("notes") }}</text>
         </view>
         <view class="stat">
           <text class="stat-value">{{ songsCreated }}</text>
-          <text class="stat-label">Songs</text>
+          <text class="stat-label">{{ t("songs") }}</text>
         </view>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Piano Keyboard</text>
+      <text class="card-title">{{ t("pianoKeyboard") }}</text>
       <view class="keyboard">
         <view
           v-for="note in whiteKeys"
@@ -47,10 +47,10 @@
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Recent Activity</text>
+      <text class="card-title">{{ t("recentActivity") }}</text>
       <view v-for="(activity, idx) in recentActivity" :key="idx" class="activity-item">
         <text class="activity-user">{{ activity.user }}</text>
-        <text class="activity-note">played {{ activity.note }}</text>
+        <text class="activity-note">{{ t("played") }} {{ activity.note }}</text>
         <text class="activity-time">{{ activity.time }}s ago</text>
       </view>
     </view>
@@ -60,6 +60,22 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "World Piano", zh: "世界钢琴" },
+  subtitle: { en: "Play together, create music", zh: "一起演奏，创造音乐" },
+  online: { en: "Online", zh: "在线" },
+  notes: { en: "Notes", zh: "音符" },
+  songs: { en: "Songs", zh: "歌曲" },
+  pianoKeyboard: { en: "Piano Keyboard", zh: "钢琴键盘" },
+  recentActivity: { en: "Recent Activity", zh: "最近活动" },
+  played: { en: "played", zh: "演奏了" },
+  you: { en: "You", zh: "你" },
+  playedNote: { en: "Played {note} ({freq} Hz)", zh: "演奏了 {note} ({freq} Hz)" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-world-piano";
 const { address, connect } = useWallet();
@@ -98,10 +114,13 @@ const recentActivity = ref([
 const playNote = (note: { key: string; freq: number }) => {
   activeNote.value = note.key;
   notesPlayed.value++;
-  status.value = { msg: `Played ${note.key} (${note.freq.toFixed(2)} Hz)`, type: "success" };
+  status.value = {
+    msg: t("playedNote").replace("{note}", note.key).replace("{freq}", note.freq.toFixed(2)),
+    type: "success",
+  };
 
   recentActivity.value.unshift({
-    user: "You",
+    user: t("you"),
     note: note.key,
     time: 0,
   });

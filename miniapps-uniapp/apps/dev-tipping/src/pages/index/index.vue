@@ -1,30 +1,30 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Dev Tipping</text>
-      <text class="subtitle">Support developers</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Top Developers</text>
+      <text class="card-title">{{ t("topDevelopers") }}</text>
       <view v-for="dev in developers" :key="dev.id" class="dev-item" @click="selectDev(dev)">
         <view class="dev-avatar">👨‍💻</view>
         <view class="dev-info">
           <text class="dev-name">{{ dev.name }}</text>
-          <text class="dev-projects">{{ dev.projects }} projects</text>
+          <text class="dev-projects">{{ dev.projects }} {{ t("projects") }}</text>
         </view>
         <text class="dev-tips">{{ dev.tips }} GAS</text>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Send Tip</text>
-      <uni-easyinput v-model="recipientAddress" placeholder="Developer address" />
-      <uni-easyinput v-model="tipAmount" type="number" placeholder="Tip amount (GAS)" />
-      <uni-easyinput v-model="tipMessage" placeholder="Optional message" />
+      <text class="card-title">{{ t("sendTip") }}</text>
+      <uni-easyinput v-model="recipientAddress" :placeholder="t('developerAddress')" />
+      <uni-easyinput v-model="tipAmount" type="number" :placeholder="t('tipAmount')" />
+      <uni-easyinput v-model="tipMessage" :placeholder="t('optionalMessage')" />
       <view class="action-btn" @click="sendTip">
-        <text>{{ isLoading ? "Sending..." : "Send Tip" }}</text>
+        <text>{{ isLoading ? t("sending") : t("sendTipBtn") }}</text>
       </view>
     </view>
   </view>
@@ -33,6 +33,25 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Dev Tipping", zh: "开发者打赏" },
+  subtitle: { en: "Support developers", zh: "支持开发者" },
+  topDevelopers: { en: "Top Developers", zh: "顶级开发者" },
+  projects: { en: "projects", zh: "项目" },
+  sendTip: { en: "Send Tip", zh: "发送打赏" },
+  developerAddress: { en: "Developer address", zh: "开发者地址" },
+  tipAmount: { en: "Tip amount (GAS)", zh: "打赏金额（GAS）" },
+  optionalMessage: { en: "Optional message", zh: "可选消息" },
+  sending: { en: "Sending...", zh: "发送中..." },
+  sendTipBtn: { en: "Send Tip", zh: "发送打赏" },
+  selected: { en: "Selected", zh: "已选择" },
+  tipSent: { en: "Tip sent successfully!", zh: "打赏发送成功！" },
+  error: { en: "Error", zh: "错误" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-devtipping";
 const { address, connect } = useWallet();
@@ -50,19 +69,19 @@ const developers = ref([
 
 const selectDev = (dev: any) => {
   recipientAddress.value = `N${dev.name.slice(0, 3)}...xyz`;
-  status.value = { msg: `Selected ${dev.name}`, type: "success" };
+  status.value = { msg: `${t("selected")} ${dev.name}`, type: "success" };
 };
 
 const sendTip = async () => {
   if (!recipientAddress.value || !tipAmount.value || isLoading.value) return;
   try {
     await payGAS(tipAmount.value, `tip:${recipientAddress.value.slice(0, 10)}`);
-    status.value = { msg: "Tip sent successfully!", type: "success" };
+    status.value = { msg: t("tipSent"), type: "success" };
     recipientAddress.value = "";
     tipAmount.value = "";
     tipMessage.value = "";
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 </script>

@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Graveyard</text>
-      <text class="subtitle">Permanent data destruction</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <view v-if="status" :class="['status-msg', status.type]">
@@ -10,33 +10,33 @@
     </view>
 
     <view class="card">
-      <text class="card-title">Destruction Stats</text>
+      <text class="card-title">{{ t("destructionStats") }}</text>
       <view class="stats-grid">
         <view class="stat-box">
           <text class="stat-value">{{ totalDestroyed }}</text>
-          <text class="stat-label">Items Destroyed</text>
+          <text class="stat-label">{{ t("itemsDestroyed") }}</text>
         </view>
         <view class="stat-box">
           <text class="stat-value">{{ formatNum(gasReclaimed) }}</text>
-          <text class="stat-label">GAS Reclaimed</text>
+          <text class="stat-label">{{ t("gasReclaimed") }}</text>
         </view>
       </view>
     </view>
 
     <view class="card">
-      <text class="card-title">Destroy Asset</text>
-      <uni-easyinput v-model="assetHash" placeholder="Asset hash or token ID" class="input" />
+      <text class="card-title">{{ t("destroyAsset") }}</text>
+      <uni-easyinput v-model="assetHash" :placeholder="t('assetHashPlaceholder')" class="input" />
       <view class="warning-box">
-        <text class="warning-title">⚠ Warning</text>
-        <text class="warning-text">This action is irreversible. Asset will be permanently destroyed.</text>
+        <text class="warning-title">{{ t("warning") }}</text>
+        <text class="warning-text">{{ t("warningText") }}</text>
       </view>
       <view class="action-btn danger" @click="destroyAsset">
-        <text>Destroy Forever</text>
+        <text>{{ t("destroyForever") }}</text>
       </view>
     </view>
 
     <view class="card">
-      <text class="card-title">Recent Destructions</text>
+      <text class="card-title">{{ t("recentDestructions") }}</text>
       <view class="history-list">
         <view v-for="item in history" :key="item.id" class="history-item">
           <text class="history-hash">{{ item.hash.slice(0, 12) }}...</text>
@@ -50,6 +50,28 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { formatNumber } from "@/shared/utils/format";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Graveyard", zh: "墓地" },
+  subtitle: { en: "Permanent data destruction", zh: "永久数据销毁" },
+  destructionStats: { en: "Destruction Stats", zh: "销毁统计" },
+  itemsDestroyed: { en: "Items Destroyed", zh: "已销毁项目" },
+  gasReclaimed: { en: "GAS Reclaimed", zh: "回收的GAS" },
+  destroyAsset: { en: "Destroy Asset", zh: "销毁资产" },
+  assetHashPlaceholder: { en: "Asset hash or token ID", zh: "资产哈希或代币ID" },
+  warning: { en: "⚠ Warning", zh: "⚠ 警告" },
+  warningText: {
+    en: "This action is irreversible. Asset will be permanently destroyed.",
+    zh: "此操作不可逆。资产将被永久销毁。",
+  },
+  destroyForever: { en: "Destroy Forever", zh: "永久销毁" },
+  recentDestructions: { en: "Recent Destructions", zh: "最近销毁" },
+  enterAssetHash: { en: "Please enter asset hash", zh: "请输入资产哈希" },
+  assetDestroyed: { en: "Asset destroyed permanently", zh: "资产已永久销毁" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-graveyard";
 

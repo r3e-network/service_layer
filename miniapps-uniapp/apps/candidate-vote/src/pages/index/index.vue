@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Candidate Vote</text>
-      <text class="subtitle">Neo Governance Voting</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <view v-if="status" :class="['status-msg', status.type]">
@@ -10,12 +10,12 @@
     </view>
 
     <view class="card">
-      <text class="card-title">Candidates</text>
+      <text class="card-title">{{ t("candidates") }}</text>
       <view v-if="loadingCandidates" class="loading">
-        <text>Loading candidates...</text>
+        <text>{{ t("loadingCandidates") }}</text>
       </view>
       <view v-else-if="candidates.length === 0" class="empty">
-        <text>No candidates found</text>
+        <text>{{ t("noCandidates") }}</text>
       </view>
       <view v-else class="candidate-list">
         <view
@@ -26,34 +26,34 @@
         >
           <view class="candidate-info">
             <text class="candidate-name">{{ c.name || shortenAddress(c.address) }}</text>
-            <text class="candidate-votes">{{ formatVotes(c.votes) }} votes</text>
+            <text class="candidate-votes">{{ formatVotes(c.votes) }} {{ t("votes") }}</text>
           </view>
           <view v-if="c.active" class="active-badge">
-            <text>Active</text>
+            <text>{{ t("active") }}</text>
           </view>
         </view>
       </view>
     </view>
 
     <view class="card">
-      <text class="card-title">Cast Your Vote</text>
+      <text class="card-title">{{ t("castYourVote") }}</text>
       <view class="vote-info">
-        <text class="vote-label">Selected Candidate</text>
-        <text class="vote-value">{{ selectedCandidate ? shortenAddress(selectedCandidate) : "None" }}</text>
+        <text class="vote-label">{{ t("selectedCandidate") }}</text>
+        <text class="vote-value">{{ selectedCandidate ? shortenAddress(selectedCandidate) : t("none") }}</text>
       </view>
       <view class="action-btn" @click="castVote" :style="{ opacity: !selectedCandidate || isLoading ? 0.6 : 1 }">
-        <text>{{ isLoading ? "Processing..." : "Vote" }}</text>
+        <text>{{ isLoading ? t("processing") : t("vote") }}</text>
       </view>
     </view>
 
     <view class="card">
-      <text class="card-title">Network Info</text>
+      <text class="card-title">{{ t("networkInfo") }}</text>
       <view class="info-row">
-        <text class="info-label">Total Votes</text>
+        <text class="info-label">{{ t("totalVotes") }}</text>
         <text class="info-value">{{ formatVotes(totalVotes) }}</text>
       </view>
       <view class="info-row">
-        <text class="info-label">Block Height</text>
+        <text class="info-label">{{ t("blockHeight") }}</text>
         <text class="info-value">{{ blockHeight }}</text>
       </view>
     </view>
@@ -64,8 +64,34 @@
 import { ref, onMounted } from "vue";
 import { useGovernance } from "@neo/uniapp-sdk";
 import type { Candidate } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
 
 const APP_ID = "miniapp-candidate-vote";
+
+const translations = {
+  title: { en: "Candidate Vote", zh: "候选人投票" },
+  subtitle: { en: "Neo Governance Voting", zh: "Neo 治理投票" },
+  candidates: { en: "Candidates", zh: "候选人" },
+  loadingCandidates: { en: "Loading candidates...", zh: "加载候选人中..." },
+  noCandidates: { en: "No candidates found", zh: "未找到候选人" },
+  votes: { en: "votes", zh: "票" },
+  active: { en: "Active", zh: "活跃" },
+  castYourVote: { en: "Cast Your Vote", zh: "投票" },
+  selectedCandidate: { en: "Selected Candidate", zh: "已选候选人" },
+  none: { en: "None", zh: "无" },
+  processing: { en: "Processing...", zh: "处理中..." },
+  vote: { en: "Vote", zh: "投票" },
+  networkInfo: { en: "Network Info", zh: "网络信息" },
+  totalVotes: { en: "Total Votes", zh: "总票数" },
+  blockHeight: { en: "Block Height", zh: "区块高度" },
+  submittingVote: { en: "Submitting vote...", zh: "提交投票中..." },
+  voteSubmitted: { en: "Vote submitted!", zh: "投票已提交！" },
+  voteFailed: { en: "Vote failed", zh: "投票失败" },
+  failedToLoad: { en: "Failed to load candidates", zh: "加载候选人失败" },
+};
+
+const t = createT(translations);
+
 const { isLoading, getCandidates, vote } = useGovernance(APP_ID);
 
 const candidates = ref<Candidate[]>([]);
@@ -95,7 +121,7 @@ const loadCandidates = async () => {
     totalVotes.value = res.totalVotes;
     blockHeight.value = res.blockHeight;
   } catch (e: any) {
-    showStatus(e.message || "Failed to load candidates", "error");
+    showStatus(e.message || t("failedToLoad"), "error");
   } finally {
     loadingCandidates.value = false;
   }
@@ -104,12 +130,12 @@ const loadCandidates = async () => {
 const castVote = async () => {
   if (!selectedCandidate.value || isLoading.value) return;
   try {
-    showStatus("Submitting vote...", "loading");
+    showStatus(t("submittingVote"), "loading");
     await vote(selectedCandidate.value, "1", true);
-    showStatus("Vote submitted!", "success");
+    showStatus(t("voteSubmitted"), "success");
     await loadCandidates();
   } catch (e: any) {
-    showStatus(e.message || "Vote failed", "error");
+    showStatus(e.message || t("voteFailed"), "error");
   }
 };
 

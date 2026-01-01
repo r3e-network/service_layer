@@ -1,13 +1,13 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Price Ticker</text>
-      <text class="subtitle">Real-time crypto prices</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <view class="card">
       <view class="refresh-row">
-        <text class="card-title">Live Prices</text>
+        <text class="card-title">{{ t("livePrices") }}</text>
         <view class="refresh-btn" @click="refreshPrices">
           <text>🔄</text>
         </view>
@@ -24,11 +24,11 @@
     </view>
 
     <view class="card">
-      <text class="card-title">Price Alert</text>
-      <uni-easyinput v-model="alertSymbol" placeholder="Symbol (e.g., GAS)" class="input" />
-      <uni-easyinput v-model="alertPrice" type="number" placeholder="Target price" class="input" />
+      <text class="card-title">{{ t("priceAlert") }}</text>
+      <uni-easyinput v-model="alertSymbol" :placeholder="t('symbolPlaceholder')" class="input" />
+      <uni-easyinput v-model="alertPrice" type="number" :placeholder="t('targetPrice')" class="input" />
       <view class="action-btn" @click="setAlert">
-        <text>Set Alert</text>
+        <text>{{ t("setAlert") }}</text>
       </view>
     </view>
   </view>
@@ -37,6 +37,19 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
 import { formatNumber } from "@/shared/utils/format";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Price Ticker", zh: "价格行情" },
+  subtitle: { en: "Real-time crypto prices", zh: "实时加密货币价格" },
+  livePrices: { en: "Live Prices", zh: "实时价格" },
+  priceAlert: { en: "Price Alert", zh: "价格提醒" },
+  symbolPlaceholder: { en: "Symbol (e.g., GAS)", zh: "代币符号（例如：GAS）" },
+  targetPrice: { en: "Target price", zh: "目标价格" },
+  setAlert: { en: "Set Alert", zh: "设置提醒" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-price-ticker";
 

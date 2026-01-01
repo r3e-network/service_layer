@@ -1,51 +1,51 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Parasite NFT</text>
-      <text class="subtitle">NFTs that feed on others</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Your Parasites</text>
+      <text class="card-title">{{ t("yourParasites") }}</text>
       <view v-for="parasite in parasites" :key="parasite.id" class="parasite-item">
         <text class="parasite-icon">{{ parasite.icon }}</text>
         <view class="parasite-info">
           <text class="parasite-name">{{ parasite.name }}</text>
-          <text class="parasite-level">Level {{ parasite.level }}</text>
+          <text class="parasite-level">{{ t("level") }} {{ parasite.level }}</text>
           <view class="energy-bar">
             <view class="energy-fill" :style="{ width: parasite.energy + '%' }"></view>
           </view>
         </view>
         <view class="parasite-stats">
-          <text class="stat-text">{{ parasite.victims }} victims</text>
+          <text class="stat-text">{{ parasite.victims }} {{ t("victims") }}</text>
         </view>
       </view>
       <view class="mint-btn" @click="mintParasite" :style="{ opacity: isLoading ? 0.6 : 1 }">
-        <text>{{ isLoading ? "Minting..." : "Mint Parasite (8 GAS)" }}</text>
+        <text>{{ isLoading ? t("minting") : t("mintParasite") }}</text>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Available Hosts</text>
+      <text class="card-title">{{ t("availableHosts") }}</text>
       <view class="hosts-list">
         <view v-for="host in hosts" :key="host.id" class="host-item" @click="attachTo(host)">
           <text class="host-icon">{{ host.icon }}</text>
           <view class="host-info">
             <text class="host-name">{{ host.name }}</text>
-            <text class="host-owner">Owner: {{ host.owner }}</text>
+            <text class="host-owner">{{ t("owner") }}: {{ host.owner }}</text>
           </view>
           <text class="host-value">{{ host.value }} GAS</text>
         </view>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">How It Works</text>
+      <text class="card-title">{{ t("howItWorks") }}</text>
       <view class="info-section">
-        <text class="info-text">1. Mint a Parasite NFT</text>
-        <text class="info-text">2. Attach it to other NFTs as a host</text>
-        <text class="info-text">3. Drain energy over time to level up</text>
-        <text class="info-text">4. Higher levels = more drain power</text>
+        <text class="info-text">{{ t("step1") }}</text>
+        <text class="info-text">{{ t("step2") }}</text>
+        <text class="info-text">{{ t("step3") }}</text>
+        <text class="info-text">{{ t("step4") }}</text>
       </view>
     </view>
   </view>
@@ -54,6 +54,31 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Parasite NFT", zh: "寄生 NFT" },
+  subtitle: { en: "NFTs that feed on others", zh: "以其他 NFT 为食的 NFT" },
+  yourParasites: { en: "Your Parasites", zh: "您的寄生体" },
+  level: { en: "Level", zh: "等级" },
+  victims: { en: "victims", zh: "宿主" },
+  mintParasite: { en: "Mint Parasite (8 GAS)", zh: "铸造寄生体 (8 GAS)" },
+  minting: { en: "Minting...", zh: "铸造中..." },
+  availableHosts: { en: "Available Hosts", zh: "可用宿主" },
+  owner: { en: "Owner", zh: "所有者" },
+  howItWorks: { en: "How It Works", zh: "工作原理" },
+  step1: { en: "1. Mint a Parasite NFT", zh: "1. 铸造寄生体 NFT" },
+  step2: { en: "2. Attach it to other NFTs as a host", zh: "2. 将其附着到其他 NFT 作为宿主" },
+  step3: { en: "3. Drain energy over time to level up", zh: "3. 随时间吸取能量以升级" },
+  step4: { en: "4. Higher levels = more drain power", zh: "4. 等级越高 = 吸取能力越强" },
+  mintingParasite: { en: "Minting parasite...", zh: "正在铸造寄生体..." },
+  parasiteMinted: { en: "Parasite minted!", zh: "寄生体已铸造！" },
+  attachingParasite: { en: "Attaching parasite...", zh: "正在附着寄生体..." },
+  attachedTo: { en: "Attached to", zh: "已附着到" },
+  needParasiteFirst: { en: "You need a parasite first", zh: "您需要先拥有寄生体" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-parasite";
 const { address, connect } = useWallet();
@@ -93,7 +118,7 @@ const status = ref<{ msg: string; type: string } | null>(null);
 const mintParasite = async () => {
   if (isLoading.value) return;
   try {
-    status.value = { msg: "Minting parasite...", type: "loading" };
+    status.value = { msg: t("mintingParasite"), type: "loading" };
     await payGAS("8", `mint:${Date.now()}`);
     const names = ["Shadow Leech", "Void Tick", "Dark Mite", "Chaos Worm"];
     const icons = ["🦠", "🕷️", "🐛", "🪱"];
@@ -106,7 +131,7 @@ const mintParasite = async () => {
       energy: 100,
       victims: 0,
     });
-    status.value = { msg: "Parasite minted!", type: "success" };
+    status.value = { msg: t("parasiteMinted"), type: "success" };
   } catch (e: any) {
     status.value = { msg: e.message || "Error", type: "error" };
   }
@@ -114,12 +139,12 @@ const mintParasite = async () => {
 
 const attachTo = async (host: Host) => {
   if (parasites.value.length === 0) {
-    status.value = { msg: "You need a parasite first", type: "error" };
+    status.value = { msg: t("needParasiteFirst"), type: "error" };
     return;
   }
   if (isLoading.value) return;
   try {
-    status.value = { msg: "Attaching parasite...", type: "loading" };
+    status.value = { msg: t("attachingParasite"), type: "loading" };
     await payGAS("3", `attach:${host.id}`);
     const parasite = parasites.value[0];
     parasite.victims++;
@@ -127,7 +152,7 @@ const attachTo = async (host: Host) => {
     if (parasite.victims % 5 === 0) {
       parasite.level++;
     }
-    status.value = { msg: `Attached to ${host.name}!`, type: "success" };
+    status.value = { msg: `${t("attachedTo")} ${host.name}!`, type: "success" };
   } catch (e: any) {
     status.value = { msg: e.message || "Error", type: "error" };
   }

@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">No-Loss Lottery</text>
-      <text class="subtitle">Prize savings account</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <view v-if="status" :class="['status-msg', status.type]"
@@ -10,42 +10,48 @@
     >
 
     <view class="card">
-      <text class="card-title">Pool Stats</text>
+      <text class="card-title">{{ t("poolStats") }}</text>
       <view class="row"
-        ><text>Total deposits</text><text class="v">{{ fmt(pool.totalDeposits, 0) }} GAS</text></view
+        ><text>{{ t("totalDeposits") }}</text
+        ><text class="v">{{ fmt(pool.totalDeposits, 0) }} GAS</text></view
       >
       <view class="row"
-        ><text>Prize pool</text><text class="v">{{ fmt(pool.prizePool, 2) }} GAS</text></view
+        ><text>{{ t("prizePool") }}</text
+        ><text class="v">{{ fmt(pool.prizePool, 2) }} GAS</text></view
       >
       <view class="row"
-        ><text>Next draw</text><text class="v">{{ pool.nextDraw }}</text></view
-      >
-    </view>
-
-    <view class="card">
-      <text class="card-title">Your Stats</text>
-      <view class="row"
-        ><text>Deposit</text><text class="v">{{ fmt(user.deposit, 2) }} GAS</text></view
-      >
-      <view class="row"
-        ><text>Tickets</text><text class="v">{{ user.tickets }}</text></view
-      >
-      <view class="row"
-        ><text>Yield sacrificed</text><text class="v">{{ fmt(user.yieldSacrificed, 3) }} GAS</text></view
+        ><text>{{ t("nextDraw") }}</text
+        ><text class="v">{{ pool.nextDraw }}</text></view
       >
     </view>
 
     <view class="card">
-      <text class="card-title">Join Lottery</text>
-      <uni-easyinput v-model="depositAmount" type="number" placeholder="Amount to deposit" />
+      <text class="card-title">{{ t("yourStats") }}</text>
+      <view class="row"
+        ><text>{{ t("deposit") }}</text
+        ><text class="v">{{ fmt(user.deposit, 2) }} GAS</text></view
+      >
+      <view class="row"
+        ><text>{{ t("tickets") }}</text
+        ><text class="v">{{ user.tickets }}</text></view
+      >
+      <view class="row"
+        ><text>{{ t("yieldSacrificed") }}</text
+        ><text class="v">{{ fmt(user.yieldSacrificed, 3) }} GAS</text></view
+      >
+    </view>
+
+    <view class="card">
+      <text class="card-title">{{ t("joinLottery") }}</text>
+      <uni-easyinput v-model="depositAmount" type="number" :placeholder="t('amountToDeposit')" />
       <view class="info-row">
-        <text>Tickets earned</text>
+        <text>{{ t("ticketsEarned") }}</text>
         <text class="tickets">{{ Math.floor(parseFloat(depositAmount || "0") / 10) }}</text>
       </view>
       <view class="action-btn" @click="joinLottery"
-        ><text>{{ isLoading ? "Processing..." : "Deposit & Get Tickets" }}</text></view
+        ><text>{{ isLoading ? t("processing") : t("depositAndGetTickets") }}</text></view
       >
-      <text class="note">1 ticket per 10 GAS. Principal always withdrawable.</text>
+      <text class="note">{{ t("note") }}</text>
     </view>
   </view>
 </template>
@@ -54,6 +60,32 @@
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "No-Loss Lottery", zh: "无损彩票" },
+  subtitle: { en: "Prize savings account", zh: "奖金储蓄账户" },
+  poolStats: { en: "Pool Stats", zh: "资金池统计" },
+  totalDeposits: { en: "Total deposits", zh: "总存款" },
+  prizePool: { en: "Prize pool", zh: "奖金池" },
+  nextDraw: { en: "Next draw", zh: "下次开奖" },
+  yourStats: { en: "Your Stats", zh: "您的统计" },
+  deposit: { en: "Deposit", zh: "存款" },
+  tickets: { en: "Tickets", zh: "彩票" },
+  yieldSacrificed: { en: "Yield sacrificed", zh: "牺牲收益" },
+  joinLottery: { en: "Join Lottery", zh: "加入彩票" },
+  amountToDeposit: { en: "Amount to deposit", zh: "存款金额" },
+  ticketsEarned: { en: "Tickets earned", zh: "获得彩票" },
+  depositAndGetTickets: { en: "Deposit & Get Tickets", zh: "存款并获取彩票" },
+  processing: { en: "Processing...", zh: "处理中..." },
+  note: { en: "1 ticket per 10 GAS. Principal always withdrawable.", zh: "每 10 GAS 获得 1 张彩票。本金随时可提取。" },
+  minDeposit: { en: "Minimum deposit: 10 GAS", zh: "最低存款：10 GAS" },
+  deposited: { en: "Deposited", zh: "已存款" },
+  earned: { en: "earned", zh: "获得" },
+  paymentFailed: { en: "Payment failed", zh: "支付失败" },
+};
+
+const t = createT(translations);
 
 type StatusType = "success" | "error";
 type Status = { msg: string; type: StatusType };
@@ -73,13 +105,16 @@ const fmt = (n: number, d = 2) => formatNumber(n, d);
 const joinLottery = async (): Promise<void> => {
   if (isLoading.value) return;
   const amount = parseFloat(depositAmount.value);
-  if (!(amount >= 10)) return void (status.value = { msg: "Minimum deposit: 10 GAS", type: "error" });
+  if (!(amount >= 10)) return void (status.value = { msg: t("minDeposit"), type: "error" });
   try {
     await payGAS(amount.toFixed(2), `noloss:deposit:${amount}`);
     const tickets = Math.floor(amount / 10);
-    status.value = { msg: `Deposited ${fmt(amount, 2)} GAS, earned ${tickets} tickets`, type: "success" };
+    status.value = {
+      msg: `${t("deposited")} ${fmt(amount, 2)} GAS, ${t("earned")} ${tickets} ${t("tickets")}`,
+      type: "success",
+    };
   } catch (e: any) {
-    status.value = { msg: e?.message || "Payment failed", type: "error" };
+    status.value = { msg: e?.message || t("paymentFailed"), type: "error" };
   }
 };
 </script>

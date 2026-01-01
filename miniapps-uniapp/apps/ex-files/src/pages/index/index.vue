@@ -1,14 +1,14 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Ex Files</text>
-      <text class="subtitle">Shared memories vault</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Shared Memories</text>
+      <text class="card-title">{{ t("sharedMemories") }}</text>
       <view v-for="memory in memories" :key="memory.id" class="memory-item" @click="viewMemory(memory)">
         <view class="memory-icon">{{ memory.type === "photo" ? "📷" : "📝" }}</view>
         <view class="memory-info">
@@ -19,11 +19,11 @@
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Upload Memory</text>
-      <uni-easyinput v-model="memoryTitle" placeholder="Memory title" />
-      <uni-easyinput v-model="memoryContent" placeholder="Content or URL" />
+      <text class="card-title">{{ t("uploadMemory") }}</text>
+      <uni-easyinput v-model="memoryTitle" :placeholder="t('memoryTitle')" />
+      <uni-easyinput v-model="memoryContent" :placeholder="t('contentOrUrl')" />
       <view class="action-btn" @click="uploadMemory">
-        <text>{{ isLoading ? "Uploading..." : "Upload Memory" }}</text>
+        <text>{{ isLoading ? t("uploading") : t("uploadMemoryBtn") }}</text>
       </view>
     </view>
   </view>
@@ -32,6 +32,26 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Ex Files", zh: "前任档案" },
+  subtitle: { en: "Shared memories vault", zh: "共享回忆保险库" },
+  sharedMemories: { en: "Shared Memories", zh: "共享回忆" },
+  uploadMemory: { en: "Upload Memory", zh: "上传回忆" },
+  memoryTitle: { en: "Memory title", zh: "回忆标题" },
+  contentOrUrl: { en: "Content or URL", zh: "内容或链接" },
+  uploading: { en: "Uploading...", zh: "上传中..." },
+  uploadMemoryBtn: { en: "Upload Memory", zh: "上传回忆" },
+  viewing: { en: "Viewing", zh: "查看" },
+  memoryUploaded: { en: "Memory uploaded securely!", zh: "回忆已安全上传！" },
+  error: { en: "Error", zh: "错误" },
+  firstDate: { en: "First Date", zh: "初次约会" },
+  loveLetter: { en: "Love Letter", zh: "情书" },
+  anniversary: { en: "Anniversary", zh: "纪念日" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-exfiles";
 const { address, connect } = useWallet();
@@ -41,24 +61,24 @@ const memoryTitle = ref("");
 const memoryContent = ref("");
 const status = ref<{ msg: string; type: string } | null>(null);
 const memories = ref([
-  { id: "1", title: "First Date", type: "photo", date: "2023-06-15" },
-  { id: "2", title: "Love Letter", type: "text", date: "2023-08-20" },
-  { id: "3", title: "Anniversary", type: "photo", date: "2024-06-15" },
+  { id: "1", title: t("firstDate"), type: "photo", date: "2023-06-15" },
+  { id: "2", title: t("loveLetter"), type: "text", date: "2023-08-20" },
+  { id: "3", title: t("anniversary"), type: "photo", date: "2024-06-15" },
 ]);
 
 const viewMemory = (memory: any) => {
-  status.value = { msg: `Viewing: ${memory.title}`, type: "success" };
+  status.value = { msg: `${t("viewing")}: ${memory.title}`, type: "success" };
 };
 
 const uploadMemory = async () => {
   if (!memoryTitle.value || !memoryContent.value || isLoading.value) return;
   try {
     await payGAS("0.5", `upload:${memoryTitle.value.slice(0, 20)}`);
-    status.value = { msg: "Memory uploaded securely!", type: "success" };
+    status.value = { msg: t("memoryUploaded"), type: "success" };
     memoryTitle.value = "";
     memoryContent.value = "";
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 </script>

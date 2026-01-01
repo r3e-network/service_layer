@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Algo Battle</text>
-      <text class="subtitle">Code gladiator arena</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <view v-if="status" :class="['status-msg', status.type]">
@@ -11,7 +11,7 @@
 
     <view class="card battle-card">
       <view class="battle-header">
-        <text class="battle-title">{{ battleState === "idle" ? "Ready to Battle" : "Battle in Progress" }}</text>
+        <text class="battle-title">{{ battleState === "idle" ? t("readyToBattle") : t("battleInProgress") }}</text>
         <text class="timer">{{ countdown }}</text>
       </view>
       <view class="fighters">
@@ -34,7 +34,7 @@
     </view>
 
     <view class="card">
-      <text class="card-title">Your Algorithm</text>
+      <text class="card-title">{{ t("yourAlgorithm") }}</text>
       <view class="algo-selector">
         <view
           v-for="algo in algorithms"
@@ -49,20 +49,20 @@
     </view>
 
     <view class="card">
-      <text class="card-title">Entry Fee</text>
+      <text class="card-title">{{ t("entryFee") }}</text>
       <view class="fee-row">
         <uni-easyinput v-model="entryFee" type="digit" placeholder="1.0" class="fee-input" />
         <text class="fee-label">GAS</text>
       </view>
       <view class="action-btn" @click="startBattle" :style="{ opacity: isLoading || battleState !== 'idle' ? 0.6 : 1 }">
-        <text>{{ battleState === "idle" ? "Start Battle" : "Battle Running..." }}</text>
+        <text>{{ battleState === "idle" ? t("startBattle") : t("battleRunning") }}</text>
       </view>
     </view>
 
     <view class="card">
-      <text class="card-title">Battle Log</text>
+      <text class="card-title">{{ t("battleLog") }}</text>
       <view class="log-list">
-        <text v-if="battleLog.length === 0" class="empty">No battles yet</text>
+        <text v-if="battleLog.length === 0" class="empty">{{ t("noBattles") }}</text>
         <view v-for="(log, i) in battleLog" :key="i" class="log-item">
           <text class="log-text">{{ log }}</text>
         </view>
@@ -74,6 +74,36 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Algo Battle", zh: "算法对战" },
+  subtitle: { en: "Code gladiator arena", zh: "代码角斗场" },
+  readyToBattle: { en: "Ready to Battle", zh: "准备战斗" },
+  battleInProgress: { en: "Battle in Progress", zh: "战斗进行中" },
+  yourAlgorithm: { en: "Your Algorithm", zh: "你的算法" },
+  entryFee: { en: "Entry Fee", zh: "入场费" },
+  startBattle: { en: "Start Battle", zh: "开始战斗" },
+  battleRunning: { en: "Battle Running...", zh: "战斗进行中..." },
+  battleLog: { en: "Battle Log", zh: "战斗日志" },
+  noBattles: { en: "No battles yet", zh: "暂无战斗记录" },
+  enteringArena: { en: "Entering arena...", zh: "进入竞技场..." },
+  battleStarted: { en: "Battle started!", zh: "战斗开始！" },
+  entersArena: { en: "enters the arena!", zh: "进入竞技场！" },
+  acceptsChallenge: { en: "accepts the challenge!", zh: "接受挑战！" },
+  deals: { en: "deals", zh: "造成" },
+  damage: { en: "damage!", zh: "点伤害！" },
+  wins: { en: "wins the battle!", zh: "赢得战斗！" },
+  victory: { en: "Victory! You won!", zh: "胜利！你赢了！" },
+  defeat: { en: "Defeat! Better luck next time.", zh: "失败！下次再接再厉。" },
+  errorStarting: { en: "Error starting battle", zh: "启动战斗失败" },
+  fastAggressive: { en: "Fast & aggressive", zh: "快速且激进" },
+  stableBalanced: { en: "Stable & balanced", zh: "稳定且平衡" },
+  memoryEfficient: { en: "Memory efficient", zh: "内存高效" },
+  simpleSlow: { en: "Simple but slow", zh: "简单但缓慢" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-algo-battle";
 const { address, connect } = useWallet();
@@ -90,10 +120,10 @@ const player1 = ref({ name: "QuickSort", health: 100 });
 const player2 = ref({ name: "MergeSort", health: 100 });
 
 const algorithms = [
-  { id: "quicksort", name: "QuickSort", desc: "Fast & aggressive" },
-  { id: "mergesort", name: "MergeSort", desc: "Stable & balanced" },
-  { id: "heapsort", name: "HeapSort", desc: "Memory efficient" },
-  { id: "bubblesort", name: "BubbleSort", desc: "Simple but slow" },
+  { id: "quicksort", name: "QuickSort", desc: t("fastAggressive") },
+  { id: "mergesort", name: "MergeSort", desc: t("stableBalanced") },
+  { id: "heapsort", name: "HeapSort", desc: t("memoryEfficient") },
+  { id: "bubblesort", name: "BubbleSort", desc: t("simpleSlow") },
 ];
 
 const battleLog = ref<string[]>([]);
@@ -112,7 +142,7 @@ const startBattle = async () => {
   if (isLoading.value || battleState.value !== "idle") return;
 
   try {
-    status.value = { msg: "Entering arena...", type: "loading" };
+    status.value = { msg: t("enteringArena"), type: "loading" };
     await payGAS(entryFee.value, `battle:${selectedAlgo.value}:${Date.now()}`);
 
     battleState.value = "fighting";
@@ -121,11 +151,11 @@ const startBattle = async () => {
     battleLog.value = [];
     countdown.value = 30;
 
-    status.value = { msg: "Battle started!", type: "success" };
-    battleLog.value.push(`${player1.value.name} enters the arena!`);
-    battleLog.value.push(`${player2.value.name} accepts the challenge!`);
+    status.value = { msg: t("battleStarted"), type: "success" };
+    battleLog.value.push(`${player1.value.name} ${t("entersArena")}`);
+    battleLog.value.push(`${player2.value.name} ${t("acceptsChallenge")}`);
   } catch (e: any) {
-    status.value = { msg: e.message || "Error starting battle", type: "error" };
+    status.value = { msg: e.message || t("errorStarting"), type: "error" };
   }
 };
 
@@ -139,19 +169,19 @@ onMounted(() => {
         const damage = Math.floor(Math.random() * 15) + 5;
         if (Math.random() < 0.5) {
           player2.value.health = Math.max(0, player2.value.health - damage);
-          battleLog.value.unshift(`${player1.value.name} deals ${damage} damage!`);
+          battleLog.value.unshift(`${player1.value.name} ${t("deals")} ${damage} ${t("damage")}`);
         } else {
           player1.value.health = Math.max(0, player1.value.health - damage);
-          battleLog.value.unshift(`${player2.value.name} deals ${damage} damage!`);
+          battleLog.value.unshift(`${player2.value.name} ${t("deals")} ${damage} ${t("damage")}`);
         }
         battleLog.value = battleLog.value.slice(0, 8);
       }
 
       if (player1.value.health <= 0 || player2.value.health <= 0 || countdown.value <= 0) {
         const winner = player1.value.health > player2.value.health ? player1.value.name : player2.value.name;
-        battleLog.value.unshift(`🏆 ${winner} wins the battle!`);
+        battleLog.value.unshift(`🏆 ${winner} ${t("wins")}`);
         status.value = {
-          msg: winner === player1.value.name ? "Victory! You won!" : "Defeat! Better luck next time.",
+          msg: winner === player1.value.name ? t("victory") : t("defeat"),
           type: winner === player1.value.name ? "success" : "error",
         };
         battleState.value = "idle";

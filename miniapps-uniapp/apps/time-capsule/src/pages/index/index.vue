@@ -1,38 +1,43 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Time Capsule</text>
-      <text class="subtitle">Lock content until future date</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Your Capsules</text>
+      <text class="card-title">{{ t("yourCapsules") }}</text>
       <view v-for="cap in capsules" :key="cap.id" class="capsule-item">
         <text class="capsule-icon">{{ cap.locked ? "🔒" : "🔓" }}</text>
         <view class="capsule-info">
           <text class="capsule-name">{{ cap.name }}</text>
-          <text class="capsule-date">{{ cap.locked ? `Unlocks: ${cap.unlockDate}` : "Unlocked" }}</text>
+          <text class="capsule-date">{{ cap.locked ? `${t("unlocks")} ${cap.unlockDate}` : t("unlocked") }}</text>
         </view>
         <view v-if="!cap.locked" class="open-btn" @click="open(cap)">
-          <text>Open</text>
+          <text>{{ t("open") }}</text>
         </view>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Create Capsule</text>
-      <uni-easyinput v-model="newCapsule.name" placeholder="Capsule name" class="input-field" />
-      <uni-easyinput v-model="newCapsule.content" placeholder="Secret message" class="input-field" />
+      <text class="card-title">{{ t("createCapsule") }}</text>
+      <uni-easyinput v-model="newCapsule.name" :placeholder="t('capsuleNamePlaceholder')" class="input-field" />
+      <uni-easyinput v-model="newCapsule.content" :placeholder="t('secretMessagePlaceholder')" class="input-field" />
       <view class="date-row">
-        <text class="date-label">Unlock in:</text>
+        <text class="date-label">{{ t("unlockIn") }}</text>
         <view class="date-picker">
-          <uni-easyinput v-model="newCapsule.days" type="number" placeholder="Days" class="days-input" />
-          <text class="days-text">days</text>
+          <uni-easyinput
+            v-model="newCapsule.days"
+            type="number"
+            :placeholder="t('daysPlaceholder')"
+            class="days-input"
+          />
+          <text class="days-text">{{ t("days") }}</text>
         </view>
       </view>
       <view class="create-btn" @click="create" :style="{ opacity: isLoading ? 0.6 : 1 }">
-        <text>{{ isLoading ? "Creating..." : "Create Capsule (3 GAS)" }}</text>
+        <text>{{ isLoading ? t("creating") : t("createCapsuleButton") }}</text>
       </view>
     </view>
   </view>
@@ -41,6 +46,30 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Time Capsule", zh: "时间胶囊" },
+  subtitle: { en: "Lock content until future date", zh: "锁定内容直到未来日期" },
+  yourCapsules: { en: "Your Capsules", zh: "你的胶囊" },
+  unlocks: { en: "Unlocks:", zh: "解锁时间：" },
+  unlocked: { en: "Unlocked", zh: "已解锁" },
+  open: { en: "Open", zh: "打开" },
+  createCapsule: { en: "Create Capsule", zh: "创建胶囊" },
+  capsuleNamePlaceholder: { en: "Capsule name", zh: "胶囊名称" },
+  secretMessagePlaceholder: { en: "Secret message", zh: "秘密消息" },
+  unlockIn: { en: "Unlock in:", zh: "解锁时间：" },
+  daysPlaceholder: { en: "Days", zh: "天数" },
+  days: { en: "days", zh: "天" },
+  createCapsuleButton: { en: "Create Capsule (3 GAS)", zh: "创建胶囊 (3 GAS)" },
+  creating: { en: "Creating...", zh: "创建中..." },
+  creatingCapsule: { en: "Creating capsule...", zh: "创建胶囊中..." },
+  capsuleCreated: { en: "Capsule created!", zh: "胶囊已创建！" },
+  error: { en: "Error", zh: "错误" },
+  message: { en: "Message:", zh: "消息：" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-timecapsule";
 const { address, connect } = useWallet();
@@ -64,7 +93,7 @@ const status = ref<{ msg: string; type: string } | null>(null);
 const create = async () => {
   if (isLoading.value || !newCapsule.value.name || !newCapsule.value.content) return;
   try {
-    status.value = { msg: "Creating capsule...", type: "loading" };
+    status.value = { msg: t("creatingCapsule"), type: "loading" };
     await payGAS("3", `create:${Date.now()}`);
     const unlockDate = new Date();
     unlockDate.setDate(unlockDate.getDate() + parseInt(newCapsule.value.days));
@@ -75,15 +104,15 @@ const create = async () => {
       unlockDate: unlockDate.toISOString().split("T")[0],
       locked: true,
     });
-    status.value = { msg: "Capsule created!", type: "success" };
+    status.value = { msg: t("capsuleCreated"), type: "success" };
     newCapsule.value = { name: "", content: "", days: "30" };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 
 const open = (cap: Capsule) => {
-  status.value = { msg: `Message: ${cap.content}`, type: "success" };
+  status.value = { msg: `${t("message")} ${cap.content}`, type: "success" };
 };
 </script>
 

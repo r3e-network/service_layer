@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Coin Flip</text>
-      <text class="subtitle">50/50 chance to double</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
@@ -11,35 +11,35 @@
       <view class="stats-row">
         <view class="stat"
           ><text class="stat-value">{{ wins }}</text
-          ><text class="stat-label">Wins</text></view
+          ><text class="stat-label">{{ t("wins") }}</text></view
         >
         <view class="stat"
           ><text class="stat-value">{{ losses }}</text
-          ><text class="stat-label">Losses</text></view
+          ><text class="stat-label">{{ t("losses") }}</text></view
         >
         <view class="stat"
           ><text class="stat-value">{{ formatNum(totalWon) }}</text
-          ><text class="stat-label">Won</text></view
+          ><text class="stat-label">{{ t("won") }}</text></view
         >
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Place Bet</text>
-      <uni-easyinput v-model="betAmount" type="number" placeholder="Bet amount (GAS)" />
+      <text class="card-title">{{ t("placeBet") }}</text>
+      <uni-easyinput v-model="betAmount" type="number" :placeholder="t('betAmountPlaceholder')" />
       <view class="choice-row">
         <view :class="['choice-btn', choice === 'heads' && 'active']" @click="choice = 'heads'">
-          <text>🪙 Heads</text>
+          <text>{{ t("heads") }}</text>
         </view>
         <view :class="['choice-btn', choice === 'tails' && 'active']" @click="choice = 'tails'">
-          <text>🔴 Tails</text>
+          <text>{{ t("tails") }}</text>
         </view>
       </view>
       <view class="flip-btn" @click="flip" :style="{ opacity: isFlipping ? 0.6 : 1 }">
-        <text>{{ isFlipping ? "Flipping..." : "Flip Coin" }}</text>
+        <text>{{ isFlipping ? t("flipping") : t("flipCoin") }}</text>
       </view>
     </view>
     <view v-if="result" class="result-card">
-      <text class="result-text">{{ result.won ? "🎉 You Won!" : "😢 You Lost" }}</text>
+      <text class="result-text">{{ result.won ? t("youWon") : t("youLost") }}</text>
       <text class="result-outcome">{{ result.outcome }}</text>
     </view>
   </view>
@@ -49,6 +49,28 @@
 import { ref } from "vue";
 import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Coin Flip", zh: "抛硬币" },
+  subtitle: { en: "50/50 chance to double", zh: "50/50 机会翻倍" },
+  wins: { en: "Wins", zh: "胜利" },
+  losses: { en: "Losses", zh: "失败" },
+  won: { en: "Won", zh: "赢得" },
+  placeBet: { en: "Place Bet", zh: "下注" },
+  betAmountPlaceholder: { en: "Bet amount (GAS)", zh: "下注金额 (GAS)" },
+  heads: { en: "🪙 Heads", zh: "🪙 正面" },
+  tails: { en: "🔴 Tails", zh: "🔴 反面" },
+  flipping: { en: "Flipping...", zh: "抛掷中..." },
+  flipCoin: { en: "Flip Coin", zh: "抛硬币" },
+  youWon: { en: "🎉 You Won!", zh: "🎉 你赢了！" },
+  youLost: { en: "😢 You Lost", zh: "😢 你输了" },
+  minBet: { en: "Min bet: 0.1 GAS", zh: "最小下注：0.1 GAS" },
+  wonAmount: { en: "Won {amount} GAS!", zh: "赢得 {amount} GAS！" },
+  betterLuck: { en: "Better luck next time", zh: "下次好运" },
+  error: { en: "Error", zh: "错误" },
+};
+const t = createT(translations);
 
 const APP_ID = "miniapp-coinflip";
 const { address, connect } = useWallet();
@@ -70,7 +92,7 @@ const flip = async () => {
   if (isFlipping.value) return;
   const amount = parseFloat(betAmount.value);
   if (amount < 0.1) {
-    status.value = { msg: "Min bet: 0.1 GAS", type: "error" };
+    status.value = { msg: t("minBet"), type: "error" };
     return;
   }
 
@@ -87,13 +109,13 @@ const flip = async () => {
     if (won) {
       wins.value++;
       totalWon.value += amount;
-      status.value = { msg: `Won ${amount * 2} GAS!`, type: "success" };
+      status.value = { msg: t("wonAmount").replace("{amount}", String(amount * 2)), type: "success" };
     } else {
       losses.value++;
-      status.value = { msg: "Better luck next time", type: "error" };
+      status.value = { msg: t("betterLuck"), type: "error" };
     }
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   } finally {
     isFlipping.value = false;
   }

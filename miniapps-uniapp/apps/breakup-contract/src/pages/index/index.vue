@@ -1,23 +1,23 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Breakup Contract</text>
-      <text class="subtitle">Relationship stakes</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Create Contract</text>
-      <uni-easyinput v-model="partnerAddress" placeholder="Partner's address" />
-      <uni-easyinput v-model="stakeAmount" type="number" placeholder="Stake amount (GAS)" />
-      <uni-easyinput v-model="duration" type="number" placeholder="Duration (days)" />
+      <text class="card-title">{{ t("createContract") }}</text>
+      <uni-easyinput v-model="partnerAddress" :placeholder="t('partnerPlaceholder')" />
+      <uni-easyinput v-model="stakeAmount" type="number" :placeholder="t('stakePlaceholder')" />
+      <uni-easyinput v-model="duration" type="number" :placeholder="t('durationPlaceholder')" />
       <view class="action-btn" @click="createContract">
-        <text>{{ isLoading ? "Creating..." : "Create Contract" }}</text>
+        <text>{{ isLoading ? t("creating") : t("createBtn") }}</text>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Active Contracts</text>
+      <text class="card-title">{{ t("activeContracts") }}</text>
       <view v-for="contract in contracts" :key="contract.id" class="contract-item">
         <view class="contract-header">
           <text class="contract-partner">{{ contract.partner }}</text>
@@ -27,9 +27,9 @@
           <view class="progress-bar" :style="{ width: contract.progress + '%' }"></view>
         </view>
         <view class="contract-footer">
-          <text class="contract-days">{{ contract.daysLeft }} days left</text>
+          <text class="contract-days">{{ contract.daysLeft }} {{ t("daysLeft") }}</text>
           <view class="contract-btn" @click="claimReward(contract)">
-            <text>Claim</text>
+            <text>{{ t("claim") }}</text>
           </view>
         </view>
       </view>
@@ -40,6 +40,27 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Breakup Contract", zh: "分手合约" },
+  subtitle: { en: "Relationship stakes", zh: "关系赌注" },
+  createContract: { en: "Create Contract", zh: "创建合约" },
+  partnerPlaceholder: { en: "Partner's address", zh: "伴侣地址" },
+  stakePlaceholder: { en: "Stake amount (GAS)", zh: "质押金额（GAS）" },
+  durationPlaceholder: { en: "Duration (days)", zh: "持续时间（天）" },
+  creating: { en: "Creating...", zh: "创建中..." },
+  createBtn: { en: "Create Contract", zh: "创建合约" },
+  activeContracts: { en: "Active Contracts", zh: "活跃合约" },
+  daysLeft: { en: "days left", zh: "天剩余" },
+  claim: { en: "Claim", zh: "领取" },
+  contractCreated: { en: "Contract created!", zh: "合约已创建！" },
+  notCompleted: { en: "Contract not completed yet!", zh: "合约尚未完成！" },
+  claimed: { en: "Claimed", zh: "已领取" },
+  error: { en: "Error", zh: "错误" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-breakupcontract";
 const { address, connect } = useWallet();
@@ -58,21 +79,21 @@ const createContract = async () => {
   if (!partnerAddress.value || !stakeAmount.value || isLoading.value) return;
   try {
     await payGAS(stakeAmount.value, `contract:${partnerAddress.value.slice(0, 10)}`);
-    status.value = { msg: "Contract created!", type: "success" };
+    status.value = { msg: t("contractCreated"), type: "success" };
     partnerAddress.value = "";
     stakeAmount.value = "";
     duration.value = "";
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 
 const claimReward = async (contract: any) => {
   if (contract.progress < 100) {
-    status.value = { msg: "Contract not completed yet!", type: "error" };
+    status.value = { msg: t("notCompleted"), type: "error" };
     return;
   }
-  status.value = { msg: `Claimed ${contract.stake} GAS!`, type: "success" };
+  status.value = { msg: `${t("claimed")} ${contract.stake} GAS!`, type: "success" };
 };
 </script>
 

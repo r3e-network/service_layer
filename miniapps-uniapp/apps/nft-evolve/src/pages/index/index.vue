@@ -1,19 +1,19 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">NFT Evolve</text>
-      <text class="subtitle">Level up your NFTs</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Your NFTs</text>
+      <text class="card-title">{{ t("yourNFTs") }}</text>
       <view v-for="nft in nfts" :key="nft.id" class="nft-item" @click="selected = nft">
         <text class="nft-icon">{{ nft.icon }}</text>
         <view class="nft-info">
           <text class="nft-name">{{ nft.name }}</text>
-          <text class="nft-level">Level {{ nft.level }}</text>
+          <text class="nft-level">{{ t("level") }} {{ nft.level }}</text>
         </view>
         <view class="xp-bar">
           <view class="xp-fill" :style="{ width: nft.xp + '%' }"></view>
@@ -22,11 +22,15 @@
     </view>
     <uni-popup ref="popup" type="center" v-if="selected">
       <view class="evolve-modal">
-        <text class="modal-title">Evolve {{ selected?.name }}?</text>
-        <text class="modal-cost">Cost: {{ selected?.level * 5 }} GAS</text>
+        <text class="modal-title">{{ t("evolveQuestion") }} {{ selected?.name }}?</text>
+        <text class="modal-cost">{{ t("cost") }}: {{ selected?.level * 5 }} GAS</text>
         <view class="modal-btns">
-          <view class="cancel-btn" @click="selected = null"><text>Cancel</text></view>
-          <view class="evolve-btn" @click="evolve"><text>Evolve</text></view>
+          <view class="cancel-btn" @click="selected = null"
+            ><text>{{ t("cancel") }}</text></view
+          >
+          <view class="evolve-btn" @click="evolve"
+            ><text>{{ t("evolve") }}</text></view
+          >
         </view>
       </view>
     </uni-popup>
@@ -36,6 +40,21 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "NFT Evolve", zh: "NFT 进化" },
+  subtitle: { en: "Level up your NFTs", zh: "升级您的 NFT" },
+  yourNFTs: { en: "Your NFTs", zh: "您的 NFT" },
+  level: { en: "Level", zh: "等级" },
+  evolveQuestion: { en: "Evolve", zh: "进化" },
+  cost: { en: "Cost", zh: "费用" },
+  cancel: { en: "Cancel", zh: "取消" },
+  evolve: { en: "Evolve", zh: "进化" },
+  evolved: { en: "evolved!", zh: "已进化！" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-nftevolve";
 const { address, connect } = useWallet();
@@ -54,7 +73,7 @@ const evolve = async () => {
     await payGAS(String(selected.value.level * 5), `evolve:${selected.value.id}`);
     selected.value.level++;
     selected.value.xp = 0;
-    status.value = { msg: `${selected.value.name} evolved!`, type: "success" };
+    status.value = { msg: `${selected.value.name} ${t("evolved")}`, type: "success" };
     selected.value = null;
   } catch (e: any) {
     status.value = { msg: e.message || "Error", type: "error" };

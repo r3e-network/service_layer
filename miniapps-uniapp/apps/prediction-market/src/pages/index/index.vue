@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Prediction Market</text>
-      <text class="subtitle">Bet on future outcomes</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <view v-if="status" :class="['status-msg', status.type]">
@@ -13,21 +13,21 @@
       <view class="stats-grid">
         <view class="stat-box">
           <text class="stat-value">{{ formatNum(totalVolume) }}</text>
-          <text class="stat-label">Volume</text>
+          <text class="stat-label">{{ t("volume") }}</text>
         </view>
         <view class="stat-box">
           <text class="stat-value">{{ formatNum(userBalance) }}</text>
-          <text class="stat-label">Balance</text>
+          <text class="stat-label">{{ t("balance") }}</text>
         </view>
         <view class="stat-box">
           <text class="stat-value">{{ activeMarkets }}</text>
-          <text class="stat-label">Markets</text>
+          <text class="stat-label">{{ t("markets") }}</text>
         </view>
       </view>
     </view>
 
     <view class="card">
-      <text class="card-title">Active Markets</text>
+      <text class="card-title">{{ t("activeMarkets") }}</text>
       <view class="markets-list">
         <view v-for="(m, i) in markets" :key="i" class="market-item">
           <text class="market-question">{{ m.question }}</text>
@@ -41,12 +41,12 @@
             </view>
           </view>
           <view class="bet-row">
-            <uni-easyinput v-model="betAmounts[i]" type="number" placeholder="Amount" class="bet-input" />
+            <uni-easyinput v-model="betAmounts[i]" type="number" :placeholder="t('amount')" class="bet-input" />
             <view class="bet-btn yes" @click="placeBet(m.id, true, i)">
-              <text>Yes</text>
+              <text>{{ t("yes") }}</text>
             </view>
             <view class="bet-btn no" @click="placeBet(m.id, false, i)">
-              <text>No</text>
+              <text>{{ t("no") }}</text>
             </view>
           </view>
         </view>
@@ -59,6 +59,24 @@
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Prediction Market", zh: "预测市场" },
+  subtitle: { en: "Bet on future outcomes", zh: "押注未来结果" },
+  volume: { en: "Volume", zh: "交易量" },
+  balance: { en: "Balance", zh: "余额" },
+  markets: { en: "Markets", zh: "市场" },
+  activeMarkets: { en: "Active Markets", zh: "活跃市场" },
+  yes: { en: "Yes", zh: "是" },
+  no: { en: "No", zh: "否" },
+  amount: { en: "Amount", zh: "金额" },
+  minBet: { en: "Min bet: 0.1 GAS", zh: "最小押注：0.1 GAS" },
+  placingBet: { en: "Placing bet...", zh: "正在下注..." },
+  betPlacedOn: { en: "Bet placed on", zh: "已押注" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-prediction-market";
 const { address, connect } = useWallet();
@@ -89,14 +107,14 @@ const placeBet = async (marketId: number, isYes: boolean, index: number) => {
   if (isLoading.value) return;
   const amount = parseFloat(betAmounts.value[index]);
   if (amount < 0.1) {
-    status.value = { msg: "Min bet: 0.1 GAS", type: "error" };
+    status.value = { msg: t("minBet"), type: "error" };
     return;
   }
   try {
-    status.value = { msg: "Placing bet...", type: "loading" };
+    status.value = { msg: t("placingBet"), type: "loading" };
     await payGAS(String(amount), `bet:${marketId}:${isYes ? "yes" : "no"}`);
     userBalance.value -= amount;
-    status.value = { msg: `Bet placed on ${isYes ? "Yes" : "No"}!`, type: "success" };
+    status.value = { msg: `${t("betPlacedOn")} ${isYes ? t("yes") : t("no")}!`, type: "success" };
   } catch (e: any) {
     status.value = { msg: e.message || "Error", type: "error" };
   }

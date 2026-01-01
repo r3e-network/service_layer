@@ -1,28 +1,28 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Whisper Chain</text>
-      <text class="subtitle">Anonymous messaging</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
     <view v-if="status" :class="['status-msg', status.type]">
       <text>{{ status.msg }}</text>
     </view>
     <view class="card">
-      <text class="card-title">Message Chain</text>
+      <text class="card-title">{{ t("messageChain") }}</text>
       <view v-for="msg in chain" :key="msg.id" class="chain-item">
         <view class="chain-header">
-          <text class="chain-author">Anonymous #{{ msg.author }}</text>
+          <text class="chain-author">{{ t("anonymous") }}{{ msg.author }}</text>
           <text class="chain-time">{{ msg.time }}</text>
         </view>
         <text class="chain-message">{{ msg.message }}</text>
-        <text class="chain-hops">{{ msg.hops }} hops</text>
+        <text class="chain-hops">{{ msg.hops }} {{ t("hops") }}</text>
       </view>
     </view>
     <view class="card">
-      <text class="card-title">Add to Chain</text>
-      <uni-easyinput v-model="newMessage" placeholder="Your anonymous message..." />
+      <text class="card-title">{{ t("addToChain") }}</text>
+      <uni-easyinput v-model="newMessage" :placeholder="t('yourMessagePlaceholder')" />
       <view class="action-btn" @click="addToChain">
-        <text>{{ isLoading ? "Sending..." : "Add to Chain" }}</text>
+        <text>{{ isLoading ? t("sending") : t("addToChainButton") }}</text>
       </view>
     </view>
   </view>
@@ -31,6 +31,23 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Whisper Chain", zh: "耳语链" },
+  subtitle: { en: "Anonymous messaging", zh: "匿名消息" },
+  messageChain: { en: "Message Chain", zh: "消息链" },
+  anonymous: { en: "Anonymous #", zh: "匿名 #" },
+  hops: { en: "hops", zh: "跳数" },
+  addToChain: { en: "Add to Chain", zh: "添加到链" },
+  yourMessagePlaceholder: { en: "Your anonymous message...", zh: "你的匿名消息..." },
+  addToChainButton: { en: "Add to Chain", zh: "添加到链" },
+  sending: { en: "Sending...", zh: "发送中..." },
+  messageAdded: { en: "Message added to chain!", zh: "消息已添加到链！" },
+  error: { en: "Error", zh: "错误" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-whisperchain";
 const { address, connect } = useWallet();
@@ -57,10 +74,10 @@ const addToChain = async () => {
       hops: 0,
       time: "Just now",
     });
-    status.value = { msg: "Message added to chain!", type: "success" };
+    status.value = { msg: t("messageAdded"), type: "success" };
     newMessage.value = "";
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 </script>

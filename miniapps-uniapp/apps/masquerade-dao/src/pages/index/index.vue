@@ -1,8 +1,8 @@
 <template>
   <view class="app-container">
     <view class="header">
-      <text class="title">Masquerade DAO</text>
-      <text class="subtitle">Vote behind the mask</text>
+      <text class="title">{{ t("title") }}</text>
+      <text class="subtitle">{{ t("subtitle") }}</text>
     </view>
 
     <view v-if="status" :class="['status-msg', status.type]">
@@ -13,21 +13,21 @@
       <view class="stats-grid">
         <view class="stat-box">
           <text class="stat-value">{{ maskCount }}</text>
-          <text class="stat-label">Masks</text>
+          <text class="stat-label">{{ t("masks") }}</text>
         </view>
         <view class="stat-box">
           <text class="stat-value">{{ reputation }}</text>
-          <text class="stat-label">Rep</text>
+          <text class="stat-label">{{ t("rep") }}</text>
         </view>
         <view class="stat-box">
           <text class="stat-value">{{ proposals }}</text>
-          <text class="stat-label">Active</text>
+          <text class="stat-label">{{ t("active") }}</text>
         </view>
       </view>
     </view>
 
     <view class="card">
-      <text class="card-title">Your Masks</text>
+      <text class="card-title">{{ t("yourMasks") }}</text>
       <view class="masks-grid">
         <view
           v-for="(mask, i) in masks"
@@ -41,21 +41,21 @@
         </view>
       </view>
       <view class="create-btn" @click="createMask">
-        <text>+ Create New Mask</text>
+        <text>{{ t("createNewMask") }}</text>
       </view>
     </view>
 
     <view class="card">
-      <text class="card-title">Proposals</text>
+      <text class="card-title">{{ t("proposals") }}</text>
       <view class="proposals-list">
         <view v-for="(p, i) in proposalsList" :key="i" class="proposal-item">
           <text class="proposal-title">{{ p.title }}</text>
           <view class="vote-options">
             <view class="vote-btn yes" @click="vote(p.id, true)">
-              <text>For {{ p.forVotes }}</text>
+              <text>{{ t("for") }} {{ p.forVotes }}</text>
             </view>
             <view class="vote-btn no" @click="vote(p.id, false)">
-              <text>Against {{ p.againstVotes }}</text>
+              <text>{{ t("against") }} {{ p.againstVotes }}</text>
             </view>
           </view>
         </view>
@@ -67,6 +67,28 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { createT } from "@/shared/utils/i18n";
+
+const translations = {
+  title: { en: "Masquerade DAO", zh: "假面DAO" },
+  subtitle: { en: "Vote behind the mask", zh: "戴着面具投票" },
+  masks: { en: "Masks", zh: "面具" },
+  rep: { en: "Rep", zh: "声誉" },
+  active: { en: "Active", zh: "活跃" },
+  yourMasks: { en: "Your Masks", zh: "您的面具" },
+  createNewMask: { en: "+ Create New Mask", zh: "+ 创建新面具" },
+  proposals: { en: "Proposals", zh: "提案" },
+  for: { en: "For", zh: "支持" },
+  against: { en: "Against", zh: "反对" },
+  creatingMask: { en: "Creating mask...", zh: "创建面具中..." },
+  maskCreated: { en: "Mask created!", zh: "面具已创建！" },
+  selectMask: { en: "Select a mask first", zh: "请先选择一个面具" },
+  voting: { en: "Voting...", zh: "投票中..." },
+  voteCast: { en: "Vote cast!", zh: "投票已提交！" },
+  error: { en: "Error", zh: "错误" },
+};
+
+const t = createT(translations);
 
 const APP_ID = "miniapp-masquerade-dao";
 const { address, connect } = useWallet();
@@ -106,26 +128,26 @@ const proposalsList = ref<Proposal[]>([
 const createMask = async () => {
   if (isLoading.value) return;
   try {
-    status.value = { msg: "Creating mask...", type: "loading" };
+    status.value = { msg: t("creatingMask"), type: "loading" };
     await payGAS("1", "create-mask");
     maskCount.value++;
-    status.value = { msg: "Mask created!", type: "success" };
+    status.value = { msg: t("maskCreated"), type: "success" };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 
 const vote = async (id: number, support: boolean) => {
   if (selectedMask.value === null) {
-    status.value = { msg: "Select a mask first", type: "error" };
+    status.value = { msg: t("selectMask"), type: "error" };
     return;
   }
   try {
-    status.value = { msg: "Voting...", type: "loading" };
+    status.value = { msg: t("voting"), type: "loading" };
     await payGAS("0.1", `vote:${id}:${support}`);
-    status.value = { msg: "Vote cast!", type: "success" };
+    status.value = { msg: t("voteCast"), type: "success" };
   } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 </script>
