@@ -1,0 +1,32 @@
+{
+  "app_id": "miniapp-grant-share",
+  "name": "GrantShare",
+  "name_zh": "资助分享",
+  "description": "Create and fund community grants, share resources with transparent on-chain tracking",
+  "description_zh": "创建和资助社区项目，透明链上追踪资源分享",
+  "version": "1.0.0",
+  "entry_url": "mf://builtin?app=miniapp-grant-share",
+  "permissions": ["wallet", "payments"],
+  "assets_allowed": ["NEO", "GAS"],
+  "category": "social",
+  "tags": ["grants", "funding", "community", "sharing"],
+  "card": {
+    "display": {
+      "type": "live_status",
+      "banner": "/static/banner.svg",
+      "live_status": {
+        "enabled": true,
+        "refresh_interval": 60,
+        "fields": ["total_grants", "total_funded", "active_projects"]
+      }
+    },
+    "info": {
+      "logo": "/static/icon.svg",
+      "owner": {
+        "name": "Neo Community",
+        "address": "NNLi44dJNXtDNSBkofB48aTVYtb1zZrNEs",
+        "verified": true
+      }
+    }
+  }
+}

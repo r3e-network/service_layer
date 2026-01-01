@@ -1,0 +1,35 @@
+{
+  "app_id": "miniapp-neo-ns",
+  "name": "Neo Name Service",
+  "name_zh": "Neo 域名服务",
+  "description": "Register and manage human-readable .neo domain names for your wallet",
+  "description_zh": "注册和管理人类可读的 .neo 域名",
+  "version": "1.0.0",
+  "entry_url": "mf://builtin?app=miniapp-neo-ns",
+  "permissions": ["wallet", "payments"],
+  "assets_allowed": ["GAS"],
+  "category": "utility",
+  "tags": ["domains", "naming", "identity", "nns"],
+  "external_contracts": {
+    "NNS": "0x50ac1c37690cc2cfc594472833cf57505d5f46de"
+  },
+  "card": {
+    "display": {
+      "type": "live_status",
+      "banner": "/static/banner.svg",
+      "live_status": {
+        "enabled": true,
+        "refresh_interval": 60,
+        "fields": ["total_domains", "registered_today", "avg_price"]
+      }
+    },
+    "info": {
+      "logo": "/static/icon.svg",
+      "owner": {
+        "name": "Neo Name Service",
+        "address": "NNLi44dJNXtDNSBkofB48aTVYtb1zZrNEs",
+        "verified": true
+      }
+    }
+  }
+}
