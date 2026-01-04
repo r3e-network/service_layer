@@ -1,6 +1,6 @@
 <template>
   <AppLayout :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
-    <view class="app-container">
+    <view v-if="activeTab === 'create' || activeTab === 'claim'" class="app-container">
       <view class="header">
         <text class="title">{{ t("title") }}</text>
         <text class="subtitle">{{ t("subtitle") }}</text>
@@ -69,6 +69,8 @@
         </NeoCard>
       </view>
 
+    </view>
+
       <!-- Docs Tab -->
       <view v-if="activeTab === 'docs'" class="tab-content scrollable">
         <NeoDoc
@@ -79,7 +81,6 @@
           :features="docFeatures"
         />
       </view>
-    </view>
   </AppLayout>
 </template>
 
@@ -112,10 +113,16 @@ const translations = {
     zh: "红包是一个社交小程序，让你以幸运包的形式发送和领取 GAS。它使用 NeoHub 的安全随机数生成器来公平地在接收者之间分配 GAS。",
   },
   step1: { en: "Enter the total GAS and number of packets to create.", zh: "输入要创建的总 GAS 和红包数量。" },
-  step2: { en: "Click 'Send Red Envelope' to authorize the payment.", zh: "点击"发送红包"授权支付。" },
-  step3: { en: "Recipients can claim their portion randomly until empty!", zh: "接收者可以随机领取他们的份额，直到领完为止！" },
+  step2: { en: "Click 'Send Red Envelope' to authorize the payment.", zh: "点击「发送红包」授权支付。" },
+  step3: {
+    en: "Recipients can claim their portion randomly until empty!",
+    zh: "接收者可以随机领取他们的份额，直到领完为止！",
+  },
   feature1Name: { en: "Secure Distribution", zh: "安全分配" },
-  feature1Desc: { en: "Random amounts are calculated on-chain/TEE for fairness.", zh: "随机金额在链上/TEE 中计算以确保公平。" },
+  feature1Desc: {
+    en: "Random amounts are calculated on-chain/TEE for fairness.",
+    zh: "随机金额在链上/TEE 中计算以确保公平。",
+  },
   feature2Name: { en: "Instant Claim", zh: "即时领取" },
   feature2Desc: { en: "GAS is transferred directly to your Neo wallet.", zh: "GAS 直接转移到你的 Neo 钱包。" },
 };
@@ -129,7 +136,7 @@ const activeTab = ref<string>("create");
 const navTabs: NavTab[] = [
   { id: "create", label: "Create", icon: "🧧" },
   { id: "claim", label: "Claim", icon: "🎁" },
-  { id: "docs", label: "Docs", icon: "book" },
+  { id: "docs", label: t("docs"), icon: "book" },
 ];
 
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
@@ -425,6 +432,7 @@ const claim = async (env: any) => {
 
 .scrollable {
   overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 // ============================================

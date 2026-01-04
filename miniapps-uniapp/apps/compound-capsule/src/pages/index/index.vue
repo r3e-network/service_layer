@@ -349,7 +349,8 @@ const deposit = async (): Promise<void> => {
 
 .tab-content {
   padding: $space-4;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: $space-4;
@@ -357,6 +358,7 @@ const deposit = async (): Promise<void> => {
 
   &.scrollable {
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -787,7 +789,8 @@ const deposit = async (): Promise<void> => {
   }
 
   .progress-fill {
-    height: 100%;
+    flex: 1;
+  min-height: 0;
     background: linear-gradient(90deg, var(--neo-purple) 0%, var(--neo-green) 100%);
     transition: width 0.4s ease;
     box-shadow: 0 0 8px color-mix(in srgb, var(--neo-green) 50%, transparent);

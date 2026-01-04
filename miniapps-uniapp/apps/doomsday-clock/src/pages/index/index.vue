@@ -1,69 +1,112 @@
 <template>
-  <view class="app-container">
-    <view class="header">
-      <text class="title">{{ t("title") }}</text>
-      <text class="subtitle">{{ t("subtitle") }}</text>
+  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <view v-if="activeTab === 'game'" class="tab-content">
+      <view v-if="status" :class="['status-msg', status.type]">
+        <text>{{ status.msg }}</text>
+      </view>
+
+      <!-- Dramatic Countdown Display -->
+      <NeoCard variant="accent" :class="['doomsday-clock-card', dangerLevel]">
+        <view class="clock-header">
+          <text class="clock-label">{{ t("timeUntilEvent") }}</text>
+          <view :class="['danger-badge', dangerLevel]">
+            <text class="danger-text">{{ dangerLevelText }}</text>
+          </view>
+        </view>
+
+        <view class="clock-display">
+          <text :class="['clock-time', dangerLevel, { pulse: shouldPulse }]">{{ countdown }}</text>
+        </view>
+
+        <!-- Danger Level Meter -->
+        <view class="danger-meter">
+          <view class="meter-labels">
+            <text class="meter-label">{{ t("safe") }}</text>
+            <text class="meter-label">{{ t("critical") }}</text>
+          </view>
+          <view class="meter-bar">
+            <view :class="['meter-fill', dangerLevel]" :style="{ width: dangerProgress + '%' }"></view>
+            <view class="meter-indicator" :style="{ left: dangerProgress + '%' }"></view>
+          </view>
+        </view>
+
+        <!-- Event Description -->
+        <view class="event-description">
+          <text class="event-title">{{ t("nextEvent") }}</text>
+          <text class="event-text">{{ currentEventDescription }}</text>
+        </view>
+      </NeoCard>
+
+      <!-- Stats Grid -->
+      <NeoCard>
+        <view class="stats-grid">
+          <view class="stat-box">
+            <text class="stat-value">{{ formatNum(totalStaked) }}</text>
+            <text class="stat-label">{{ t("totalStaked") }}</text>
+          </view>
+          <view class="stat-box">
+            <text class="stat-value">{{ formatNum(userStake) }}</text>
+            <text class="stat-label">{{ t("yourStake") }}</text>
+          </view>
+          <view class="stat-box">
+            <text class="stat-value">{{ participants }}</text>
+            <text class="stat-label">{{ t("players") }}</text>
+          </view>
+        </view>
+      </NeoCard>
+
+      <!-- Stake Section -->
+      <NeoCard>
+        <text class="card-title">{{ t("stakeOnOutcome") }}</text>
+        <NeoInput v-model="stakeAmount" type="number" :placeholder="t('amountToStake')" suffix="GAS" />
+        <view class="outcomes-list">
+          <NeoButton
+            v-for="(outcome, i) in outcomes"
+            :key="i"
+            :variant="selectedOutcome === i ? 'primary' : 'ghost'"
+            block
+            @click="selectedOutcome = i"
+            class="outcome-btn"
+          >
+            <view class="outcome-content">
+              <text class="outcome-name">{{ outcome.name }}</text>
+              <text class="outcome-odds">{{ outcome.odds }}x</text>
+            </view>
+          </NeoButton>
+        </view>
+        <NeoButton variant="primary" size="lg" block @click="placeStake" :disabled="isLoading">
+          {{ isLoading ? t("staking") : t("placeStake") }}
+        </NeoButton>
+      </NeoCard>
     </view>
 
-    <view v-if="status" :class="['status-msg', status.type]">
-      <text>{{ status.msg }}</text>
+    <view v-if="activeTab === 'history'" class="tab-content scrollable">
+      <NeoCard :title="t('eventHistory')">
+        <view class="history-list">
+          <view v-for="(event, i) in history" :key="i" class="history-item">
+            <view class="history-header">
+              <text class="history-date">{{ event.date }}</text>
+              <text :class="['history-result', event.result === t('passed') ? 'passed' : 'failed']">
+                {{ event.result }}
+              </text>
+            </view>
+            <text class="history-desc">{{ event.description }}</text>
+          </view>
+        </view>
+      </NeoCard>
     </view>
 
-    <view class="card clock-card">
-      <text class="clock-label">{{ t("timeUntilEvent") }}</text>
-      <text class="clock-time">{{ countdown }}</text>
-      <view class="clock-progress">
-        <view class="progress-bar" :style="{ width: progress + '%' }"></view>
-      </view>
+    <!-- Docs Tab -->
+    <view v-if="activeTab === 'docs'" class="tab-content scrollable">
+      <NeoDoc
+        :title="t('title')"
+        :subtitle="t('docSubtitle')"
+        :description="t('docDescription')"
+        :steps="docSteps"
+        :features="docFeatures"
+      />
     </view>
-
-    <view class="card">
-      <view class="stats-grid">
-        <view class="stat-box">
-          <text class="stat-value">{{ formatNum(totalStaked) }}</text>
-          <text class="stat-label">{{ t("totalStaked") }}</text>
-        </view>
-        <view class="stat-box">
-          <text class="stat-value">{{ formatNum(userStake) }}</text>
-          <text class="stat-label">{{ t("yourStake") }}</text>
-        </view>
-        <view class="stat-box">
-          <text class="stat-value">{{ participants }}</text>
-          <text class="stat-label">{{ t("players") }}</text>
-        </view>
-      </view>
-    </view>
-
-    <view class="card">
-      <text class="card-title">{{ t("stakeOnOutcome") }}</text>
-      <uni-easyinput v-model="stakeAmount" type="number" :placeholder="t('amountToStake')" />
-      <view class="outcomes-list">
-        <view
-          v-for="(outcome, i) in outcomes"
-          :key="i"
-          :class="['outcome-btn', selectedOutcome === i && 'active']"
-          @click="selectedOutcome = i"
-        >
-          <text class="outcome-name">{{ outcome.name }}</text>
-          <text class="outcome-odds">{{ outcome.odds }}x</text>
-        </view>
-      </view>
-      <view class="stake-btn" @click="placeStake" :style="{ opacity: isLoading ? 0.6 : 1 }">
-        <text>{{ isLoading ? t("staking") : t("placeStake") }}</text>
-      </view>
-    </view>
-
-    <view class="card">
-      <text class="card-title">{{ t("eventHistory") }}</text>
-      <view class="history-list">
-        <view v-for="(event, i) in history" :key="i" class="history-item">
-          <text class="history-date">{{ event.date }}</text>
-          <text class="history-desc">{{ event.description }}</text>
-          <text class="history-result">{{ event.result }}</text>
-        </view>
-      </view>
-    </view>
-  </view>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
@@ -71,6 +114,11 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
+import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoButton from "@/shared/components/NeoButton.vue";
+import NeoCard from "@/shared/components/NeoCard.vue";
+import NeoInput from "@/shared/components/NeoInput.vue";
+import NeoDoc from "@/shared/components/NeoDoc.vue";
 
 const translations = {
   title: { en: "Doomsday Clock", zh: "末日时钟" },
@@ -96,9 +144,44 @@ const translations = {
   passed: { en: "Passed", zh: "通过" },
   feeAdjustment: { en: "Fee Adjustment", zh: "费用调整" },
   failed: { en: "Failed", zh: "失败" },
+  game: { en: "Game", zh: "游戏" },
+  history: { en: "History", zh: "历史" },
+  docs: { en: "Docs", zh: "文档" },
+  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
+  docDescription: {
+    en: "Professional documentation for this application is coming soon.",
+    zh: "此应用程序的专业文档即将推出。",
+  },
+  step1: { en: "Open the application.", zh: "打开应用程序。" },
+  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
+  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
+  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
+  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
+  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
+  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  safe: { en: "SAFE", zh: "安全" },
+  critical: { en: "CRITICAL", zh: "危急" },
+  nextEvent: { en: "NEXT EVENT", zh: "下一事件" },
+  dangerLow: { en: "LOW RISK", zh: "低风险" },
+  dangerMedium: { en: "ELEVATED", zh: "警戒" },
+  dangerHigh: { en: "HIGH ALERT", zh: "高度警戒" },
+  dangerCritical: { en: "CRITICAL", zh: "危急" },
 };
 
 const t = createT(translations);
+
+const navTabs = [
+  { id: "game", icon: "game", label: t("game") },
+  { id: "history", icon: "time", label: t("history") },
+  { id: "docs", icon: "book", label: t("docs") },
+];
+const activeTab = ref("game");
+
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docFeatures = computed(() => [
+  { name: t("feature1Name"), desc: t("feature1Desc") },
+  { name: t("feature2Name"), desc: t("feature2Desc") },
+]);
 
 const APP_ID = "miniapp-doomsday-clock";
 const { address, connect } = useWallet();
@@ -135,6 +218,52 @@ const history = ref<HistoryEvent[]>([
   { date: "2025-12-20", description: t("emergencyProposal"), result: t("passed") },
   { date: "2025-12-15", description: t("feeAdjustment"), result: t("failed") },
 ]);
+
+const currentEventDescription = computed(() => {
+  return outcomes.value[0]?.name || t("protocolUpgrade");
+});
+
+// Calculate danger level based on remaining time
+const totalSeconds = computed(() => {
+  const parts = countdown.value.split(":");
+  const hours = parseInt(parts[0]);
+  const mins = parseInt(parts[1]);
+  const secs = parseInt(parts[2]);
+  return hours * 3600 + mins * 60 + secs;
+});
+
+const dangerLevel = computed(() => {
+  const seconds = totalSeconds.value;
+  if (seconds > 7200) return "low"; // > 2 hours
+  if (seconds > 3600) return "medium"; // > 1 hour
+  if (seconds > 600) return "high"; // > 10 minutes
+  return "critical"; // <= 10 minutes
+});
+
+const dangerLevelText = computed(() => {
+  switch (dangerLevel.value) {
+    case "low":
+      return t("dangerLow");
+    case "medium":
+      return t("dangerMedium");
+    case "high":
+      return t("dangerHigh");
+    case "critical":
+      return t("dangerCritical");
+    default:
+      return t("dangerLow");
+  }
+});
+
+const dangerProgress = computed(() => {
+  const seconds = totalSeconds.value;
+  const maxSeconds = 21600; // 6 hours
+  return Math.min(100, Math.max(0, 100 - (seconds / maxSeconds) * 100));
+});
+
+const shouldPulse = computed(() => {
+  return dangerLevel.value === "critical" || dangerLevel.value === "high";
+});
 
 const formatNum = (n: number) => formatNumber(n, 0);
 
@@ -184,173 +313,432 @@ onMounted(() => {
 onUnmounted(() => clearInterval(timer));
 </script>
 
-<style lang="scss">
-@import "@/shared/styles/theme.scss";
+<style lang="scss" scoped>
+@import "@/shared/styles/tokens.scss";
+@import "@/shared/styles/variables.scss";
 
-.app-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, $color-bg-primary 0%, $color-bg-secondary 100%);
-  color: $color-text-primary;
-  padding: 20px;
-}
+.tab-content {
+  padding: 12px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  overflow: hidden;
 
-.header {
-  text-align: center;
-  margin-bottom: 24px;
-}
-.title {
-  font-size: 1.8em;
-  font-weight: bold;
-  color: $color-governance;
-}
-.subtitle {
-  color: $color-text-secondary;
-  font-size: 0.9em;
-  margin-top: 8px;
+  &.scrollable {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .status-msg {
   text-align: center;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 16px;
+  padding: $space-4;
+  border: $border-width-md solid var(--border-color);
+  background: var(--bg-card);
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
   &.success {
-    background: rgba($color-success, 0.15);
-    color: $color-success;
+    border-color: var(--status-success);
+    box-shadow: 4px 4px 0 var(--status-success);
+    color: var(--status-success);
   }
   &.error {
-    background: rgba($color-error, 0.15);
-    color: $color-error;
+    border-color: var(--status-error);
+    box-shadow: 4px 4px 0 var(--status-error);
+    color: var(--status-error);
+  }
+  &.loading {
+    border-color: var(--neo-green);
+    box-shadow: 4px 4px 0 var(--neo-green);
+    color: var(--neo-green);
   }
 }
 
-.card {
-  background: $color-bg-card;
-  border: 1px solid $color-border;
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 16px;
+// Doomsday Clock Card
+.doomsday-clock-card {
+  position: relative;
+  overflow: hidden;
+
+  &.critical {
+    border-color: var(--brutal-red);
+    animation: borderPulse 1s ease-in-out infinite;
+  }
+
+  &.high {
+    border-color: var(--brutal-orange);
+  }
+
+  &.medium {
+    border-color: var(--brutal-yellow);
+  }
 }
 
-.clock-card {
-  text-align: center;
+.clock-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-4;
 }
+
 .clock-label {
-  color: $color-text-secondary;
-  font-size: 0.9em;
-  display: block;
-  margin-bottom: 8px;
+  color: var(--text-secondary);
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
+
+.danger-badge {
+  padding: $space-2 $space-3;
+  border: $border-width-sm solid var(--border-color);
+  font-size: $font-size-xs;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+
+  &.low {
+    background: var(--brutal-yellow);
+    border-color: var(--brutal-yellow);
+    color: var(--neo-black);
+  }
+
+  &.medium {
+    background: var(--brutal-orange);
+    border-color: var(--brutal-orange);
+    color: var(--neo-black);
+  }
+
+  &.high {
+    background: var(--brutal-red);
+    border-color: var(--brutal-red);
+    color: var(--neo-white);
+  }
+
+  &.critical {
+    background: var(--brutal-red);
+    border-color: var(--brutal-red);
+    color: var(--neo-white);
+    animation: badgePulse 0.5s ease-in-out infinite;
+  }
+}
+
+.danger-text {
+  display: block;
+}
+
+.clock-display {
+  text-align: center;
+  margin: $space-6 0;
+}
+
 .clock-time {
-  font-size: 2.5em;
-  font-weight: bold;
-  color: $color-governance;
+  font-size: 64px;
+  font-weight: $font-weight-black;
   display: block;
-  margin-bottom: 16px;
+  font-family: $font-mono;
+  line-height: 1;
+  text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
+
+  &.low {
+    color: var(--brutal-yellow);
+  }
+
+  &.medium {
+    color: var(--brutal-orange);
+  }
+
+  &.high {
+    color: var(--brutal-red);
+  }
+
+  &.critical {
+    color: var(--brutal-red);
+  }
+
+  &.pulse {
+    animation: timePulse 1s ease-in-out infinite;
+  }
 }
-.clock-progress {
-  height: 8px;
-  background: rgba($color-governance, 0.2);
-  border-radius: 4px;
+
+// Danger Meter
+.danger-meter {
+  margin-top: $space-6;
+}
+
+.meter-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: $space-2;
+}
+
+.meter-label {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+}
+
+.meter-bar {
+  height: 24px;
+  background: var(--bg-secondary);
+  border: $border-width-md solid var(--border-color);
+  position: relative;
   overflow: hidden;
 }
-.progress-bar {
-  height: 100%;
-  background: $color-governance;
-  transition: width 0.3s;
+
+.meter-fill {
+  flex: 1;
+  min-height: 0;
+  transition: width 0.3s ease-out;
+  position: relative;
+
+  &.low {
+    background: var(--brutal-yellow);
+  }
+
+  &.medium {
+    background: var(--brutal-orange);
+  }
+
+  &.high {
+    background: var(--brutal-red);
+  }
+
+  &.critical {
+    background: var(--brutal-red);
+    animation: meterPulse 0.5s ease-in-out infinite;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(0, 0, 0, 0.1) 10px,
+      rgba(0, 0, 0, 0.1) 20px
+    );
+  }
 }
 
-.card-title {
-  color: $color-governance;
-  font-size: 1.1em;
-  font-weight: bold;
+.meter-indicator {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 4px;
+  background: var(--neo-black);
+  border: 2px solid var(--neo-white);
+  transform: translateX(-50%);
+  transition: left 0.3s ease-out;
+  z-index: 2;
+}
+
+// Event Description
+.event-description {
+  margin-top: $space-6;
+  padding: $space-4;
+  background: var(--bg-secondary);
+  border: $border-width-sm solid var(--border-color);
+}
+
+.event-title {
   display: block;
-  margin-bottom: 12px;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  margin-bottom: $space-2;
 }
 
+.event-text {
+  display: block;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: var(--text-primary);
+}
+
+// Stats Grid
 .stats-grid {
   display: flex;
-  gap: 8px;
+  gap: $space-3;
 }
+
 .stat-box {
   flex: 1;
   text-align: center;
-  background: rgba($color-governance, 0.1);
-  border-radius: 8px;
-  padding: 12px;
-}
-.stat-value {
-  color: $color-governance;
-  font-size: 1.2em;
-  font-weight: bold;
-  display: block;
-}
-.stat-label {
-  color: $color-text-secondary;
-  font-size: 0.8em;
+  background: var(--bg-secondary);
+  border: $border-width-sm solid var(--border-color);
+  box-shadow: $shadow-sm;
+  padding: $space-4;
 }
 
+.stat-value {
+  color: var(--neo-green);
+  font-size: $font-size-xl;
+  font-weight: $font-weight-black;
+  display: block;
+  font-family: $font-mono;
+}
+
+.stat-label {
+  color: var(--text-secondary);
+  font-size: $font-size-xs;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: $font-weight-bold;
+}
+
+// Card Title
+.card-title {
+  color: var(--neo-green);
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: block;
+  margin-bottom: $space-4;
+}
+
+// Outcomes List
 .outcomes-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin: 16px 0;
+  gap: $space-3;
+  margin: $space-4 0;
 }
+
 .outcome-btn {
-  padding: 12px;
-  background: rgba($color-governance, 0.1);
-  border: 2px solid transparent;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  &.active {
-    border-color: $color-governance;
-    background: rgba($color-governance, 0.2);
+  .outcome-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .outcome-name {
+    color: currentColor;
+    font-weight: $font-weight-semibold;
+  }
+
+  .outcome-odds {
+    color: currentColor;
+    font-weight: $font-weight-black;
+    font-family: $font-mono;
   }
 }
-.outcome-name {
-  color: $color-text-primary;
-}
-.outcome-odds {
-  color: $color-governance;
-  font-weight: bold;
-}
 
-.stake-btn {
-  background: linear-gradient(135deg, $color-governance 0%, darken($color-governance, 10%) 100%);
-  color: #fff;
-  padding: 14px;
-  border-radius: 12px;
-  text-align: center;
-  font-weight: bold;
-}
-
+// History List
 .history-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: $space-3;
 }
+
 .history-item {
-  padding: 12px;
-  background: rgba($color-governance, 0.05);
-  border-radius: 8px;
+  padding: $space-4;
+  background: var(--bg-secondary);
+  border: $border-width-sm solid var(--border-color);
+  box-shadow: $shadow-sm;
+  transition:
+    transform $transition-fast,
+    box-shadow $transition-fast;
+
+  &:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: $shadow-md;
+  }
+}
+
+.history-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: $space-2;
 }
+
 .history-date {
-  color: $color-text-secondary;
-  font-size: 0.85em;
+  color: var(--text-secondary);
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
+
 .history-desc {
-  color: $color-text-primary;
-  flex: 1;
-  margin: 0 12px;
+  color: var(--text-primary);
+  font-weight: $font-weight-medium;
+  display: block;
 }
+
 .history-result {
-  color: $color-governance;
-  font-weight: bold;
-  font-size: 0.9em;
+  font-weight: $font-weight-black;
+  font-size: $font-size-sm;
+  font-family: $font-mono;
+  padding: $space-1 $space-2;
+  border: $border-width-sm solid var(--border-color);
+
+  &.passed {
+    color: var(--status-success);
+    border-color: var(--status-success);
+  }
+
+  &.failed {
+    color: var(--status-error);
+    border-color: var(--status-error);
+  }
+}
+
+// Animations
+@keyframes timePulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+@keyframes borderPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--brutal-red);
+  }
+  50% {
+    box-shadow: 0 0 20px 4px var(--brutal-red);
+  }
+}
+
+@keyframes badgePulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes meterPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
 }
 </style>

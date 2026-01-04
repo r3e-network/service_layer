@@ -16,14 +16,31 @@ declare global {
 const ALLOWED_ORIGINS = [
   "https://miniapp.neo.org",
   "https://testnet.miniapp.neo.org",
-  ...(process.env.NODE_ENV === "development" ? ["http://localhost:3000", "http://127.0.0.1:3000"] : []),
+  ...(process.env.NODE_ENV === "development"
+    ? [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:3002",
+        "http://localhost:3003",
+        "http://localhost:3004",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+        "http://127.0.0.1:3002",
+      ]
+    : []),
 ];
 
 /**
  * Validate SDK injection to prevent tampering
+ * Check for either new interface (invoke/getConfig) or legacy interface (wallet/payments)
  */
 function validateSDK(sdk: MiniAppSDK): boolean {
-  return sdk && typeof sdk === "object" && typeof sdk.invoke === "function" && typeof sdk.getConfig === "function";
+  if (!sdk || typeof sdk !== "object") return false;
+  // New interface: invoke + getConfig
+  const hasNewInterface = typeof sdk.invoke === "function" && typeof sdk.getConfig === "function";
+  // Legacy interface: wallet or payments object
+  const hasLegacyInterface = typeof sdk.wallet === "object" || typeof sdk.payments === "object";
+  return hasNewInterface || hasLegacyInterface;
 }
 
 /**

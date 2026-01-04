@@ -246,7 +246,8 @@ const getReading = () => {
 
 .tab-content {
   padding: 12px;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -254,6 +255,7 @@ const getReading = () => {
 
   &.scrollable {
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   &.mystical-bg {
@@ -401,7 +403,7 @@ const getReading = () => {
   height: 140px;
   perspective: 1000px;
   cursor: pointer;
-  transition: transform $transition-base;
+  transition: transform $transition-normal;
 
   &:hover {
     transform: translateY(-5px);
@@ -414,7 +416,8 @@ const getReading = () => {
 
 .card-inner {
   width: 100%;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   position: relative;
   transform-style: preserve-3d;
   transition: transform 0.6s;
@@ -423,7 +426,8 @@ const getReading = () => {
 .card-front,
 .card-back {
   width: 100%;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   position: absolute;
   backface-visibility: hidden;
   display: flex;

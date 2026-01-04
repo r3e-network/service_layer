@@ -401,7 +401,8 @@ onUnmounted(() => clearInterval(gameTimer));
 
 .tab-content {
   padding: $space-4;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: $space-4;
@@ -409,6 +410,7 @@ onUnmounted(() => clearInterval(gameTimer));
 
   &.scrollable {
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -426,7 +428,8 @@ onUnmounted(() => clearInterval(gameTimer));
 
 .crash-canvas {
   width: 100%;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   display: block;
 }
 
@@ -502,7 +505,8 @@ onUnmounted(() => clearInterval(gameTimer));
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   pointer-events: none;
   z-index: 30;
 }

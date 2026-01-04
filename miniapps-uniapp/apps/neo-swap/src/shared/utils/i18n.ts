@@ -23,13 +23,13 @@ export function getLocale(): SupportedLocale {
 /**
  * Simple translation function factory
  * @param translations - Object with en/zh translations
- * @returns Translation function
+ * @returns Translation function that dynamically reads locale
  */
 export function createT<T extends Record<string, { en: string; zh: string }>>(
   translations: T,
 ): (key: keyof T) => string {
-  const locale = getLocale();
   return (key: keyof T) => {
+    const locale = getLocale();
     const entry = translations[key];
     if (!entry) return String(key);
     return entry[locale] || entry.en;

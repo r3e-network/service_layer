@@ -1,54 +1,108 @@
 <template>
-  <view class="app-container">
-    <view class="header">
-      <text class="title">{{ t("title") }}</text>
-      <text class="subtitle">{{ t("subtitle") }}</text>
-    </view>
+  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <view v-if="activeTab === 'game'" class="tab-content">
+      <view v-if="status" :class="['status-msg', status.type]">
+        <text>{{ status.msg }}</text>
+      </view>
 
-    <view v-if="status" :class="['status-msg', status.type]">
-      <text>{{ status.msg }}</text>
-    </view>
-
-    <view class="card">
-      <view class="stats-grid">
-        <view class="stat-box">
-          <text class="stat-value">{{ formatNum(totalBurned) }}</text>
-          <text class="stat-label">{{ t("totalBurned") }}</text>
+      <!-- Total Burned Hero Section with Fire Animation -->
+      <NeoCard variant="default" class="hero-card">
+        <view class="fire-container">
+          <view class="flame flame-1"></view>
+          <view class="flame flame-2"></view>
+          <view class="flame flame-3"></view>
         </view>
-        <view class="stat-box">
+        <view class="hero-content">
+          <text class="hero-label">{{ t("totalBurned") }}</text>
+          <text class="hero-value">{{ formatNum(totalBurned) }}</text>
+          <text class="hero-suffix">GAS</text>
+        </view>
+      </NeoCard>
+
+      <!-- Stats Grid -->
+      <view class="stats-grid">
+        <view class="stat-box stat-box-user">
+          <text class="stat-icon">🔥</text>
           <text class="stat-value">{{ formatNum(userBurned) }}</text>
           <text class="stat-label">{{ t("youBurned") }}</text>
         </view>
-        <view class="stat-box">
+        <view class="stat-box stat-box-rank">
+          <text class="stat-icon">{{ getRankIcon(rank) }}</text>
           <text class="stat-value">#{{ rank }}</text>
           <text class="stat-label">{{ t("rank") }}</text>
         </view>
       </view>
-    </view>
 
-    <view class="card">
-      <text class="card-title">{{ t("burnTokens") }}</text>
-      <uni-easyinput v-model="burnAmount" type="number" :placeholder="t('amountPlaceholder')" />
-      <view class="reward-info">
-        <text class="reward-label">{{ t("estimatedRewards") }}</text>
-        <text class="reward-value">{{ formatNum(estimatedReward) }} {{ t("points") }}</text>
-      </view>
-      <view class="burn-btn" @click="burnTokens" :style="{ opacity: isLoading ? 0.6 : 1 }">
-        <text>{{ isLoading ? t("burning") : t("burnNow") }}</text>
-      </view>
-    </view>
-
-    <view class="card">
-      <text class="card-title">{{ t("leaderboard") }}</text>
-      <view class="leaderboard-list">
-        <view v-for="(entry, i) in leaderboard" :key="i" :class="['leader-item', entry.isUser && 'highlight']">
-          <text class="leader-rank">#{{ entry.rank }}</text>
-          <text class="leader-addr">{{ entry.address }}</text>
-          <text class="leader-burned">{{ formatNum(entry.burned) }}</text>
+      <!-- Burn Action Card -->
+      <NeoCard :title="t('burnTokens')" variant="accent" class="burn-card">
+        <NeoInput v-model="burnAmount" type="number" :placeholder="t('amountPlaceholder')" suffix="GAS" />
+        <view class="reward-info">
+          <text class="reward-label">{{ t("estimatedRewards") }}</text>
+          <text class="reward-value">+{{ formatNum(estimatedReward) }} {{ t("points") }}</text>
         </view>
-      </view>
+        <NeoButton variant="primary" size="lg" block :loading="isLoading" @click="burnTokens" class="burn-button">
+          <text class="burn-button-text">🔥 {{ t("burnNow") }}</text>
+        </NeoButton>
+      </NeoCard>
+
+      <!-- Leaderboard with Medal Icons -->
+      <NeoCard :title="t('leaderboard')" variant="default" class="leaderboard-card">
+        <view class="leaderboard-list">
+          <view
+            v-for="(entry, i) in leaderboard"
+            :key="i"
+            :class="['leader-item', entry.isUser && 'highlight', `rank-${entry.rank}`]"
+          >
+            <view class="leader-rank-container">
+              <text class="leader-medal">{{ getMedalIcon(entry.rank) }}</text>
+              <text class="leader-rank">#{{ entry.rank }}</text>
+            </view>
+            <text class="leader-addr">{{ entry.address }}</text>
+            <view class="leader-burned-container">
+              <text class="leader-burned">{{ formatNum(entry.burned) }}</text>
+              <text class="leader-burned-suffix">GAS</text>
+            </view>
+          </view>
+        </view>
+      </NeoCard>
     </view>
-  </view>
+
+    <view v-if="activeTab === 'stats'" class="tab-content scrollable">
+      <NeoCard :title="t('statistics')" variant="default">
+        <view class="stat-row">
+          <text class="stat-label">{{ t("totalGames") }}</text>
+          <text class="stat-value">{{ burnCount }}</text>
+        </view>
+        <view class="stat-row">
+          <text class="stat-label">{{ t("youBurned") }}</text>
+          <text class="stat-value">{{ formatNum(userBurned) }} GAS</text>
+        </view>
+        <view class="stat-row">
+          <text class="stat-label">{{ t("totalBurned") }}</text>
+          <text class="stat-value">{{ formatNum(totalBurned) }} GAS</text>
+        </view>
+        <view class="stat-row">
+          <text class="stat-label">{{ t("rank") }}</text>
+          <text class="stat-value">#{{ rank }}</text>
+        </view>
+        <view class="stat-row">
+          <text class="stat-label">{{ t("estimatedRewards") }}</text>
+          <text class="stat-value">{{ formatNum(estimatedReward) }} {{ t("points") }}</text>
+        </view>
+      </NeoCard>
+    </view>
+
+    <!-- Docs Tab -->
+    <view v-if="activeTab === 'docs'" class="tab-content scrollable">
+      <NeoDoc
+        :title="t('title')"
+        :subtitle="t('docSubtitle')"
+        :description="t('docDescription')"
+        :steps="docSteps"
+        :features="docFeatures"
+      />
+    </view>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
@@ -56,6 +110,11 @@ import { ref, computed } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
+import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoButton from "@/shared/components/NeoButton.vue";
+import NeoCard from "@/shared/components/NeoCard.vue";
+import NeoInput from "@/shared/components/NeoInput.vue";
+import NeoDoc from "@/shared/components/NeoDoc.vue";
 
 const translations = {
   title: { en: "Burn League", zh: "燃烧联盟" },
@@ -73,9 +132,39 @@ const translations = {
   burned: { en: "Burned", zh: "已燃烧" },
   success: { en: "successfully!", zh: "成功！" },
   error: { en: "Error", zh: "错误" },
+  game: { en: "Game", zh: "游戏" },
+  stats: { en: "Stats", zh: "统计" },
+  statistics: { en: "Statistics", zh: "统计数据" },
+  totalGames: { en: "Total Games", zh: "总游戏数" },
+  docs: { en: "Docs", zh: "文档" },
+  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
+  docDescription: {
+    en: "Professional documentation for this application is coming soon.",
+    zh: "此应用程序的专业文档即将推出。",
+  },
+  step1: { en: "Open the application.", zh: "打开应用程序。" },
+  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
+  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
+  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
+  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
+  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
+  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
 };
 
 const t = createT(translations);
+
+const navTabs = [
+  { id: "game", icon: "game", label: t("game") },
+  { id: "stats", icon: "chart", label: t("stats") },
+  { id: "docs", icon: "book", label: t("docs") },
+];
+const activeTab = ref("game");
+
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docFeatures = computed(() => [
+  { name: t("feature1Name"), desc: t("feature1Desc") },
+  { name: t("feature2Name"), desc: t("feature2Desc") },
+]);
 
 const APP_ID = "miniapp-burn-league";
 const { address, connect } = useWallet();
@@ -93,6 +182,7 @@ const burnAmount = ref("10");
 const totalBurned = ref(50000);
 const userBurned = ref(250);
 const rank = ref(15);
+const burnCount = ref(0);
 const status = ref<{ msg: string; type: string } | null>(null);
 
 const leaderboard = ref<LeaderEntry[]>([
@@ -104,6 +194,19 @@ const leaderboard = ref<LeaderEntry[]>([
 
 const estimatedReward = computed(() => parseFloat(burnAmount.value || "0") * 10);
 const formatNum = (n: number) => formatNumber(n, 0);
+
+const getMedalIcon = (rank: number): string => {
+  if (rank === 1) return "🥇";
+  if (rank === 2) return "🥈";
+  if (rank === 3) return "🥉";
+  return "";
+};
+
+const getRankIcon = (rank: number): string => {
+  if (rank <= 3) return "👑";
+  if (rank <= 10) return "⭐";
+  return "📊";
+};
 
 const burnTokens = async () => {
   if (isLoading.value) return;
@@ -117,6 +220,7 @@ const burnTokens = async () => {
     await payGAS(burnAmount.value, "burn");
     userBurned.value += amount;
     totalBurned.value += amount;
+    burnCount.value++;
     status.value = { msg: `${t("burned")} ${amount} GAS! +${estimatedReward.value} ${t("points")}`, type: "success" };
   } catch (e: any) {
     status.value = { msg: e.message || t("error"), type: "error" };
@@ -124,136 +228,394 @@ const burnTokens = async () => {
 };
 </script>
 
-<style lang="scss">
-@import "@/shared/styles/theme.scss";
+<style lang="scss" scoped>
+@import "@/shared/styles/tokens.scss";
+@import "@/shared/styles/variables.scss";
 
-.app-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, $color-bg-primary 0%, $color-bg-secondary 100%);
-  color: $color-text-primary;
-  padding: 20px;
-}
+.tab-content {
+  padding: $space-3;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  overflow: hidden;
 
-.header {
-  text-align: center;
-  margin-bottom: 24px;
-}
-.title {
-  font-size: 1.8em;
-  font-weight: bold;
-  color: $color-governance;
-}
-.subtitle {
-  color: $color-text-secondary;
-  font-size: 0.9em;
-  margin-top: 8px;
+  &.scrollable {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .status-msg {
   text-align: center;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 16px;
+  padding: $space-3;
+  border: $border-width-md solid var(--border-color);
+  box-shadow: $shadow-md;
+  margin-bottom: $space-4;
+  font-weight: $font-weight-bold;
+
   &.success {
-    background: rgba($color-success, 0.15);
-    color: $color-success;
+    background: var(--status-success);
+    color: var(--neo-black);
+    border-color: var(--neo-green);
   }
+
   &.error {
-    background: rgba($color-error, 0.15);
-    color: $color-error;
+    background: var(--status-error);
+    color: var(--neo-white);
+    border-color: var(--brutal-red);
+  }
+
+  &.loading {
+    background: var(--brutal-yellow);
+    color: var(--neo-black);
+    border-color: var(--brutal-orange);
   }
 }
 
-.card {
-  background: $color-bg-card;
-  border: 1px solid $color-border;
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 16px;
+/* Hero Card with Fire Animation */
+.hero-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--brutal-orange) 0%, var(--brutal-red) 100%);
+  border: $border-width-lg solid var(--brutal-red);
+  box-shadow:
+    0 8px 0 var(--brutal-red),
+    0 12px 20px rgba(0, 0, 0, 0.3);
 }
 
-.card-title {
-  color: $color-governance;
-  font-size: 1.1em;
-  font-weight: bold;
+.fire-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+.flame {
+  width: 30px;
+  height: 40px;
+  background: linear-gradient(to top, var(--brutal-orange), var(--brutal-yellow));
+  border-radius: 50% 50% 0 0;
+  animation: flicker 1.5s infinite ease-in-out;
+  opacity: 0.8;
+
+  &.flame-1 {
+    animation-delay: 0s;
+  }
+
+  &.flame-2 {
+    animation-delay: 0.3s;
+    height: 50px;
+  }
+
+  &.flame-3 {
+    animation-delay: 0.6s;
+    height: 35px;
+  }
+}
+
+@keyframes flicker {
+  0%,
+  100% {
+    transform: scaleY(1) scaleX(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scaleY(1.2) scaleX(0.9);
+    opacity: 1;
+  }
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: $space-6 $space-4;
+}
+
+.hero-label {
   display: block;
-  margin-bottom: 12px;
+  color: var(--neo-white);
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: $space-2;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
+.hero-value {
+  display: block;
+  color: var(--neo-white);
+  font-size: 48px;
+  font-weight: $font-weight-black;
+  line-height: 1;
+  text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
+  animation: pulse 2s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.hero-suffix {
+  display: block;
+  color: var(--brutal-yellow);
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  margin-top: $space-2;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Stats Grid */
 .stats-grid {
   display: flex;
-  gap: 8px;
+  gap: $space-3;
 }
+
 .stat-box {
   flex: 1;
   text-align: center;
-  background: rgba($color-governance, 0.1);
-  border-radius: 8px;
-  padding: 12px;
+  background: var(--bg-elevated);
+  border: $border-width-md solid var(--neo-green);
+  box-shadow: 4px 4px 0 var(--neo-green);
+  padding: $space-4;
+  transition: all $transition-fast;
+
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 var(--neo-green);
+  }
 }
+
+.stat-box-user {
+  border-color: var(--brutal-orange);
+  box-shadow: 4px 4px 0 var(--brutal-orange);
+
+  &:active {
+    box-shadow: 2px 2px 0 var(--brutal-orange);
+  }
+}
+
+.stat-box-rank {
+  border-color: var(--brutal-yellow);
+  box-shadow: 4px 4px 0 var(--brutal-yellow);
+
+  &:active {
+    box-shadow: 2px 2px 0 var(--brutal-yellow);
+  }
+}
+
+.stat-icon {
+  display: block;
+  font-size: 32px;
+  margin-bottom: $space-2;
+}
+
 .stat-value {
-  color: $color-governance;
-  font-size: 1.2em;
-  font-weight: bold;
+  color: var(--text-primary);
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-black;
+  display: block;
+  line-height: $line-height-tight;
+}
+
+.stat-label {
+  color: var(--text-secondary);
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: $space-2;
   display: block;
 }
-.stat-label {
-  color: $color-text-secondary;
-  font-size: 0.8em;
+
+/* Burn Card */
+.burn-card {
+  background: var(--bg-card);
 }
 
 .reward-info {
   display: flex;
   justify-content: space-between;
-  padding: 12px;
-  background: rgba($color-governance, 0.1);
-  border-radius: 8px;
-  margin: 16px 0;
-}
-.reward-label {
-  color: $color-text-secondary;
-}
-.reward-value {
-  color: $color-governance;
-  font-weight: bold;
+  align-items: center;
+  padding: $space-4;
+  background: var(--bg-elevated);
+  border: $border-width-md solid var(--brutal-yellow);
+  box-shadow: 4px 4px 0 var(--brutal-yellow);
+  margin: $space-4 0;
+  border-radius: $radius-sm;
 }
 
-.burn-btn {
-  background: linear-gradient(135deg, $color-governance 0%, darken($color-governance, 10%) 100%);
-  color: #fff;
-  padding: 14px;
-  border-radius: 12px;
-  text-align: center;
-  font-weight: bold;
+.reward-label {
+  color: var(--text-secondary);
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+}
+
+.reward-value {
+  color: var(--brutal-yellow);
+  font-size: $font-size-xl;
+  font-weight: $font-weight-black;
+}
+
+.burn-button {
+  background: linear-gradient(135deg, var(--brutal-orange), var(--brutal-red));
+  border-color: var(--brutal-red);
+
+  &:active {
+    background: var(--brutal-red);
+  }
+}
+
+.burn-button-text {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-black;
+}
+
+/* Leaderboard */
+.leaderboard-card {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .leaderboard-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: $space-2;
+  overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
+
 .leader-item {
   display: flex;
   justify-content: space-between;
-  padding: 12px;
-  background: rgba($color-governance, 0.05);
-  border-radius: 8px;
+  align-items: center;
+  padding: $space-3;
+  background: var(--bg-secondary);
+  border: $border-width-md solid var(--border-color);
+  box-shadow: 3px 3px 0 var(--neo-black);
+  transition: all $transition-fast;
+
   &.highlight {
-    background: rgba($color-governance, 0.15);
-    border: 1px solid $color-governance;
+    background: var(--bg-elevated);
+    border-color: var(--neo-green);
+    box-shadow: 5px 5px 0 var(--neo-green);
+  }
+
+  &.rank-1 {
+    border-color: var(--brutal-yellow);
+    box-shadow: 5px 5px 0 var(--brutal-yellow);
+    background: linear-gradient(
+      135deg,
+      rgba(var(--brutal-yellow-rgb, 255, 222, 89), 0.1),
+      rgba(var(--brutal-yellow-rgb, 255, 222, 89), 0.05)
+    );
+  }
+
+  &.rank-2 {
+    border-color: var(--text-secondary);
+    box-shadow: 5px 5px 0 var(--text-secondary);
+    background: linear-gradient(
+      135deg,
+      rgba(var(--text-secondary-rgb, 192, 192, 192), 0.1),
+      rgba(var(--text-secondary-rgb, 192, 192, 192), 0.05)
+    );
+  }
+
+  &.rank-3 {
+    border-color: var(--brutal-orange);
+    box-shadow: 5px 5px 0 var(--brutal-orange);
+    background: linear-gradient(
+      135deg,
+      rgba(var(--brutal-orange-rgb, 205, 127, 50), 0.1),
+      rgba(var(--brutal-orange-rgb, 205, 127, 50), 0.05)
+    );
+  }
+
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--neo-black);
   }
 }
+
+.leader-rank-container {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  min-width: 80px;
+}
+
+.leader-medal {
+  font-size: 24px;
+}
+
 .leader-rank {
-  color: $color-governance;
-  font-weight: bold;
-  width: 40px;
+  color: var(--text-primary);
+  font-weight: $font-weight-black;
+  font-size: $font-size-lg;
 }
+
 .leader-addr {
-  color: $color-text-primary;
+  color: var(--text-primary);
+  font-weight: $font-weight-semibold;
   flex: 1;
+  padding: 0 $space-3;
+  font-size: $font-size-base;
 }
+
+.leader-burned-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
 .leader-burned {
-  color: $color-governance;
-  font-weight: bold;
+  color: var(--brutal-orange);
+  font-weight: $font-weight-black;
+  font-size: $font-size-lg;
+}
+
+.leader-burned-suffix {
+  color: var(--text-secondary);
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+}
+
+/* Stats Tab */
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: $space-3 0;
+  border-bottom: $border-width-sm solid var(--border-color);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  .stat-label {
+    color: var(--text-secondary);
+    font-weight: $font-weight-semibold;
+  }
+
+  .stat-value {
+    font-weight: $font-weight-bold;
+    color: var(--text-primary);
+  }
 }
 </style>

@@ -1,56 +1,69 @@
 <template>
-  <view class="app-container">
-    <view class="header">
-      <text class="title">{{ t("title") }}</text>
-      <text class="subtitle">{{ t("subtitle") }}</text>
-    </view>
+  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <!-- Destroy Tab -->
+    <view v-if="activeTab === 'destroy'" class="tab-content">
+      <view v-if="status" :class="['status-msg', status.type]">
+        <text>{{ status.msg }}</text>
+      </view>
 
-    <view v-if="status" :class="['status-msg', status.type]">
-      <text>{{ status.msg }}</text>
-    </view>
-
-    <view class="card">
-      <text class="card-title">{{ t("destructionStats") }}</text>
-      <view class="stats-grid">
-        <view class="stat-box">
-          <text class="stat-value">{{ totalDestroyed }}</text>
-          <text class="stat-label">{{ t("itemsDestroyed") }}</text>
+      <NeoCard :title="t('destructionStats')" variant="default">
+        <view class="stats-grid">
+          <view class="stat-box">
+            <text class="stat-value">{{ totalDestroyed }}</text>
+            <text class="stat-label">{{ t("itemsDestroyed") }}</text>
+          </view>
+          <view class="stat-box">
+            <text class="stat-value">{{ formatNum(gasReclaimed) }}</text>
+            <text class="stat-label">{{ t("gasReclaimed") }}</text>
+          </view>
         </view>
-        <view class="stat-box">
-          <text class="stat-value">{{ formatNum(gasReclaimed) }}</text>
-          <text class="stat-label">{{ t("gasReclaimed") }}</text>
+      </NeoCard>
+
+      <NeoCard :title="t('destroyAsset')" variant="danger">
+        <NeoInput v-model="assetHash" :placeholder="t('assetHashPlaceholder')" type="text" />
+        <view class="warning-box">
+          <text class="warning-title">{{ t("warning") }}</text>
+          <text class="warning-text">{{ t("warningText") }}</text>
         </view>
-      </view>
+        <NeoButton variant="danger" size="lg" block @click="destroyAsset">
+          {{ t("destroyForever") }}
+        </NeoButton>
+      </NeoCard>
     </view>
 
-    <view class="card">
-      <text class="card-title">{{ t("destroyAsset") }}</text>
-      <uni-easyinput v-model="assetHash" :placeholder="t('assetHashPlaceholder')" class="input" />
-      <view class="warning-box">
-        <text class="warning-title">{{ t("warning") }}</text>
-        <text class="warning-text">{{ t("warningText") }}</text>
-      </view>
-      <view class="action-btn danger" @click="destroyAsset">
-        <text>{{ t("destroyForever") }}</text>
-      </view>
+    <!-- History Tab -->
+    <view v-if="activeTab === 'history'" class="tab-content scrollable">
+      <NeoCard :title="t('recentDestructions')" variant="default">
+        <view class="history-list">
+          <view v-for="item in history" :key="item.id" class="history-item">
+            <text class="history-hash">{{ item.hash.slice(0, 12) }}...</text>
+            <text class="history-time">{{ item.time }}</text>
+          </view>
+        </view>
+      </NeoCard>
     </view>
 
-    <view class="card">
-      <text class="card-title">{{ t("recentDestructions") }}</text>
-      <view class="history-list">
-        <view v-for="item in history" :key="item.id" class="history-item">
-          <text class="history-hash">{{ item.hash.slice(0, 12) }}...</text>
-          <text class="history-time">{{ item.time }}</text>
-        </view>
-      </view>
+    <!-- Docs Tab -->
+    <view v-if="activeTab === 'docs'" class="tab-content scrollable">
+      <NeoDoc
+        :title="t('title')"
+        :subtitle="t('docSubtitle')"
+        :description="t('docDescription')"
+        :steps="docSteps"
+        :features="docFeatures"
+      />
     </view>
-  </view>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
+import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoButton from "@/shared/components/NeoButton.vue";
+import NeoCard from "@/shared/components/NeoCard.vue";
+import NeoInput from "@/shared/components/NeoInput.vue";
 
 const translations = {
   title: { en: "Graveyard", zh: "墓地" },
@@ -69,10 +82,39 @@ const translations = {
   recentDestructions: { en: "Recent Destructions", zh: "最近销毁" },
   enterAssetHash: { en: "Please enter asset hash", zh: "请输入资产哈希" },
   assetDestroyed: { en: "Asset destroyed permanently", zh: "资产已永久销毁" },
+  destroy: { en: "Destroy", zh: "销毁" },
+  history: { en: "History", zh: "历史" },
+
+  docs: { en: "Docs", zh: "文档" },
+  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
+  docDescription: {
+    en: "Professional documentation for this application is coming soon.",
+    zh: "此应用程序的专业文档即将推出。",
+  },
+  step1: { en: "Open the application.", zh: "打开应用程序。" },
+  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
+  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
+  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
+  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
+  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
+  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
 };
 
 const t = createT(translations);
 
+const navTabs = [
+  { id: "destroy", icon: "trash", label: t("destroy") },
+  { id: "history", icon: "time", label: t("history") },
+  { id: "docs", icon: "book", label: t("docs") },
+];
+
+const activeTab = ref("destroy");
+
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docFeatures = computed(() => [
+  { name: t("feature1Name"), desc: t("feature1Desc") },
+  { name: t("feature2Name"), desc: t("feature2Desc") },
+]);
 const APP_ID = "miniapp-graveyard";
 
 interface HistoryItem {
@@ -110,126 +152,133 @@ const destroyAsset = () => {
 };
 </script>
 
-<style lang="scss">
-@import "@/shared/styles/theme.scss";
-.app-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, $color-bg-primary 0%, $color-bg-secondary 100%);
-  color: $color-text-primary;
-  padding: 20px;
+<style lang="scss" scoped>
+@import "@/shared/styles/tokens.scss";
+@import "@/shared/styles/variables.scss";
+
+.tab-content {
+  padding: $space-4;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  overflow: hidden;
+
+  &.scrollable {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
-.header {
-  text-align: center;
-  margin-bottom: 24px;
-}
-.title {
-  font-size: 1.8em;
-  font-weight: bold;
-  color: $color-utility;
-}
-.subtitle {
-  color: $color-text-secondary;
-  font-size: 0.9em;
-  margin-top: 8px;
-}
+
 .status-msg {
   text-align: center;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 16px;
+  padding: $space-4;
+  border: $border-width-md solid var(--border-color);
+  box-shadow: $shadow-md;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
   &.success {
-    background: rgba($color-success, 0.15);
-    color: $color-success;
+    background: var(--status-success);
+    color: $neo-black;
+    border-color: $neo-black;
   }
+
   &.error {
-    background: rgba($color-error, 0.15);
-    color: $color-error;
+    background: var(--status-error);
+    color: $neo-white;
+    border-color: $neo-black;
   }
 }
-.card {
-  background: $color-bg-card;
-  border: 1px solid $color-border;
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 16px;
-}
-.card-title {
-  color: $color-utility;
-  font-size: 1.1em;
-  font-weight: bold;
-  display: block;
-  margin-bottom: 12px;
-}
+
 .stats-grid {
   display: flex;
-  gap: 12px;
+  gap: $space-4;
 }
+
 .stat-box {
   flex: 1;
   text-align: center;
-  background: rgba($color-utility, 0.1);
-  border-radius: 8px;
-  padding: 16px;
+  background: var(--bg-secondary);
+  border: $border-width-md solid var(--border-color);
+  box-shadow: $shadow-sm;
+  padding: $space-5;
 }
+
 .stat-value {
-  color: $color-utility;
-  font-size: 1.5em;
-  font-weight: bold;
+  color: var(--neo-green);
+  font-size: $font-size-3xl;
+  font-weight: $font-weight-black;
   display: block;
+  line-height: 1.2;
 }
+
 .stat-label {
-  color: $color-text-secondary;
-  font-size: 0.8em;
+  color: var(--text-secondary);
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: $space-2;
 }
-.input {
-  margin-bottom: 12px;
-}
+
 .warning-box {
-  background: rgba($color-error, 0.1);
-  border: 1px solid rgba($color-error, 0.3);
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 12px;
+  background: var(--bg-secondary);
+  border: $border-width-md solid var(--status-error);
+  box-shadow: $shadow-md;
+  padding: $space-4;
+  margin: $space-4 0;
 }
+
 .warning-title {
-  color: $color-error;
-  font-weight: bold;
+  color: var(--status-error);
+  font-weight: $font-weight-bold;
+  font-size: $font-size-base;
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: $space-2;
+  text-transform: uppercase;
 }
+
 .warning-text {
-  color: $color-text-secondary;
-  font-size: 0.85em;
+  color: var(--text-secondary);
+  font-size: $font-size-sm;
+  line-height: 1.5;
 }
-.action-btn {
-  background: linear-gradient(135deg, $color-utility 0%, darken($color-utility, 10%) 100%);
-  color: #fff;
-  padding: 14px;
-  border-radius: 12px;
-  text-align: center;
-  font-weight: bold;
-  &.danger {
-    background: linear-gradient(135deg, $color-error 0%, darken($color-error, 10%) 100%);
-  }
-}
+
 .history-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: $space-3;
 }
+
 .history-item {
   display: flex;
   justify-content: space-between;
-  padding: 10px;
-  background: rgba($color-utility, 0.1);
-  border-radius: 8px;
+  align-items: center;
+  padding: $space-4;
+  background: var(--bg-secondary);
+  border: $border-width-sm solid var(--border-color);
+  box-shadow: $shadow-sm;
+  transition: transform $transition-fast;
+
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+  }
 }
+
 .history-hash {
-  color: $color-text-primary;
-  font-family: monospace;
+  color: var(--text-primary);
+  font-family: $font-mono;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
 }
+
 .history-time {
-  color: $color-text-secondary;
-  font-size: 0.85em;
+  color: var(--text-muted);
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
 }
 </style>

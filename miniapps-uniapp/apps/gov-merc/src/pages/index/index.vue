@@ -1,81 +1,139 @@
 <template>
-  <view class="app-container">
-    <view class="header">
-      <text class="title">Vote Mercenary</text>
-      <text class="subtitle">Rent your voting power</text>
-    </view>
-
-    <view v-if="status" :class="['status-msg', status.type]">
-      <text>{{ status.msg }}</text>
-    </view>
-
-    <view class="card">
-      <view class="stats-grid">
-        <view class="stat-box">
-          <text class="stat-value">{{ formatNum(votingPower) }}</text>
-          <text class="stat-label">Your VP</text>
-        </view>
-        <view class="stat-box">
-          <text class="stat-value">{{ formatNum(earned) }}</text>
-          <text class="stat-label">Earned</text>
-        </view>
-        <view class="stat-box">
-          <text class="stat-value">{{ activeRentals }}</text>
-          <text class="stat-label">Rentals</text>
-        </view>
+  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <!-- Rent Tab -->
+    <view v-if="activeTab === 'rent'" class="tab-content scrollable">
+      <view v-if="status" :class="['status-msg', status.type]">
+        <text>{{ status.msg }}</text>
       </view>
-    </view>
 
-    <view class="card">
-      <text class="card-title">Rent Out Your Votes</text>
-      <uni-easyinput v-model="rentAmount" type="number" placeholder="Voting power to rent" />
-      <uni-easyinput v-model="rentPrice" type="number" placeholder="Price per vote (GAS)" />
-      <view class="duration-row">
-        <view
-          v-for="d in durations"
-          :key="d.hours"
-          :class="['duration-btn', rentDuration === d.hours && 'active']"
-          @click="rentDuration = d.hours"
-        >
-          <text>{{ d.label }}</text>
-        </view>
-      </view>
-      <view class="list-btn" @click="listVotes" :style="{ opacity: isLoading ? 0.6 : 1 }">
-        <text>{{ isLoading ? "Listing..." : "List for Rent" }}</text>
-      </view>
-    </view>
-
-    <view class="card">
-      <text class="card-title">Available Rentals</text>
-      <view class="rentals-list">
-        <text v-if="rentals.length === 0" class="empty">No rentals available</text>
-        <view v-for="(r, i) in rentals" :key="i" class="rental-item">
-          <view class="rental-header">
-            <text class="rental-power">{{ r.power }} VP</text>
-            <text class="rental-price">{{ r.price }} GAS</text>
+      <NeoCard variant="accent">
+        <view class="stats-grid">
+          <view class="stat-box">
+            <text class="stat-value">{{ formatNum(votingPower) }}</text>
+            <text class="stat-label">Your VP</text>
           </view>
-          <view class="rental-meta">
-            <text class="rental-duration">{{ r.duration }}</text>
-            <text class="rental-owner">{{ r.owner }}</text>
+          <view class="stat-box">
+            <text class="stat-value">{{ formatNum(earned) }}</text>
+            <text class="stat-label">Earned</text>
           </view>
-          <view class="rent-btn" @click="rentVotes(r.id)">
-            <text>Rent Now</text>
+          <view class="stat-box">
+            <text class="stat-value">{{ activeRentals }}</text>
+            <text class="stat-label">Rentals</text>
           </view>
         </view>
-      </view>
+      </NeoCard>
+
+      <NeoCard title="Rent Out Your Votes">
+        <view class="form-group">
+          <NeoInput v-model="rentAmount" type="number" placeholder="Voting power to rent" label="VP Amount" />
+          <NeoInput v-model="rentPrice" type="number" placeholder="Price per vote" suffix="GAS" label="Price" />
+          <view class="duration-row">
+            <view
+              v-for="d in durations"
+              :key="d.hours"
+              :class="['duration-btn', rentDuration === d.hours && 'active']"
+              @click="rentDuration = d.hours"
+            >
+              <text>{{ d.label }}</text>
+            </view>
+          </view>
+          <NeoButton variant="primary" size="lg" block :loading="isLoading" @click="listVotes">
+            {{ isLoading ? "Listing..." : "List for Rent" }}
+          </NeoButton>
+        </view>
+      </NeoCard>
     </view>
-  </view>
+
+    <!-- Market Tab -->
+    <view v-if="activeTab === 'market'" class="tab-content scrollable">
+      <NeoCard title="Delegate Marketplace">
+        <view class="delegates-list">
+          <text v-if="delegates.length === 0" class="empty">No delegates available</text>
+          <view v-for="(d, i) in delegates" :key="i" :class="['delegate-card', d.tier]">
+            <view class="delegate-header">
+              <view class="delegate-avatar" :class="d.tier">
+                <text class="avatar-text">{{ d.name.substring(0, 2).toUpperCase() }}</text>
+              </view>
+              <view class="delegate-info">
+                <text class="delegate-name">{{ d.name }}</text>
+                <text class="delegate-address">{{ d.address }}</text>
+              </view>
+              <view v-if="d.tier === 'elite'" class="elite-badge">
+                <text class="badge-text">ELITE</text>
+              </view>
+            </view>
+
+            <view class="delegate-stats">
+              <view class="stat-item">
+                <text class="stat-label">Reputation</text>
+                <text class="stat-value reputation">{{ d.reputation }}%</text>
+              </view>
+              <view class="stat-item">
+                <text class="stat-label">Success Rate</text>
+                <text class="stat-value success">{{ d.successRate }}%</text>
+              </view>
+              <view class="stat-item">
+                <text class="stat-label">Commission</text>
+                <text class="stat-value commission">{{ d.commission }}%</text>
+              </view>
+            </view>
+
+            <view class="delegate-metrics">
+              <view class="metric">
+                <text class="metric-label">Total Delegated</text>
+                <text class="metric-value">{{ formatNum(d.totalDelegated) }} VP</text>
+              </view>
+              <view class="metric">
+                <text class="metric-label">Votes Cast</text>
+                <text class="metric-value">{{ d.votesCast }}</text>
+              </view>
+            </view>
+
+            <view class="delegate-actions">
+              <NeoInput v-model="d.delegateAmount" type="number" placeholder="Amount to delegate" size="sm" />
+              <NeoButton
+                variant="primary"
+                size="md"
+                block
+                :loading="isLoading"
+                @click="delegateToMerc(d.id, d.delegateAmount)"
+              >
+                Delegate Now
+              </NeoButton>
+            </view>
+          </view>
+        </view>
+      </NeoCard>
+    </view>
+
+    <!-- Docs Tab -->
+    <view v-if="activeTab === 'docs'" class="tab-content scrollable">
+      <NeoDoc
+        :title="t('title')"
+        :subtitle="t('docSubtitle')"
+        :description="t('docDescription')"
+        :steps="docSteps"
+        :features="docFeatures"
+      />
+    </view>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import { formatNumber } from "@/shared/utils/format";
+import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoButton from "@/shared/components/NeoButton.vue";
+import NeoInput from "@/shared/components/NeoInput.vue";
+import NeoCard from "@/shared/components/NeoCard.vue";
 
 const translations = {
   title: { en: "Gov Merc", zh: "治理雇佣兵" },
   subtitle: { en: "Delegate voting power", zh: "委托投票权" },
+  rent: { en: "Rent", zh: "出租" },
+  market: { en: "Market", zh: "市场" },
   availableMercs: { en: "Available Mercs", zh: "可用雇佣兵" },
   yourDelegations: { en: "Your Delegations", zh: "您的委托" },
   delegateVotes: { en: "Delegate Votes", zh: "委托投票" },
@@ -87,19 +145,51 @@ const translations = {
   minDelegate: { en: "Min delegate: 1 vote", zh: "最小委托：1票" },
   delegationSuccess: { en: "Delegation successful!", zh: "委托成功！" },
   error: { en: "Error", zh: "错误" },
+
+  docs: { en: "Docs", zh: "文档" },
+  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
+  docDescription: {
+    en: "Professional documentation for this application is coming soon.",
+    zh: "此应用程序的专业文档即将推出。",
+  },
+  step1: { en: "Open the application.", zh: "打开应用程序。" },
+  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
+  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
+  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
+  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
+  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
+  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
 };
 
 const t = createT(translations);
 
+const navTabs = [
+  { id: "rent", icon: "wallet", label: t("rent") },
+  { id: "market", icon: "cart", label: t("market") },
+  { id: "docs", icon: "book", label: t("docs") },
+];
+
+const activeTab = ref("rent");
+
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docFeatures = computed(() => [
+  { name: t("feature1Name"), desc: t("feature1Desc") },
+  { name: t("feature2Name"), desc: t("feature2Desc") },
+]);
 const APP_ID = "miniapp-gov-merc";
 const { address, connect } = useWallet();
 
-interface Rental {
+interface Delegate {
   id: number;
-  power: number;
-  price: number;
-  duration: string;
-  owner: string;
+  name: string;
+  address: string;
+  tier: "elite" | "standard";
+  reputation: number;
+  successRate: number;
+  commission: number;
+  totalDelegated: number;
+  votesCast: number;
+  delegateAmount: string;
 }
 
 const { payGAS, isLoading } = usePayments(APP_ID);
@@ -119,9 +209,43 @@ const durations = [
   { hours: 168, label: "7d" },
 ];
 
-const rentals = ref<Rental[]>([
-  { id: 1, power: 500, price: 2.5, duration: "24h", owner: "0x1a2b...3c4d" },
-  { id: 2, power: 1000, price: 4.0, duration: "3d", owner: "0x5e6f...7g8h" },
+const delegates = ref<Delegate[]>([
+  {
+    id: 1,
+    name: "Alpha Delegate",
+    address: "0x1a2b...3c4d",
+    tier: "elite",
+    reputation: 98,
+    successRate: 95,
+    commission: 2.5,
+    totalDelegated: 125000,
+    votesCast: 342,
+    delegateAmount: "",
+  },
+  {
+    id: 2,
+    name: "Beta Governance",
+    address: "0x5e6f...7g8h",
+    tier: "elite",
+    reputation: 96,
+    successRate: 92,
+    commission: 3.0,
+    totalDelegated: 98000,
+    votesCast: 287,
+    delegateAmount: "",
+  },
+  {
+    id: 3,
+    name: "Gamma Voter",
+    address: "0x9i0j...1k2l",
+    tier: "standard",
+    reputation: 88,
+    successRate: 85,
+    commission: 5.0,
+    totalDelegated: 45000,
+    votesCast: 156,
+    delegateAmount: "",
+  },
 ]);
 
 const formatNum = (n: number) => formatNumber(n, 1);
@@ -143,14 +267,22 @@ const listVotes = async () => {
   }
 };
 
-const rentVotes = async (id: number) => {
+const delegateToMerc = async (id: number, amount: string) => {
+  if (isLoading.value) return;
+  const delegateAmount = parseFloat(amount);
+  if (!delegateAmount || delegateAmount < 1) {
+    status.value = { msg: "Min: 1 VP", type: "error" };
+    return;
+  }
   try {
-    status.value = { msg: "Renting votes...", type: "loading" };
-    const rental = rentals.value.find((r) => r.id === id);
-    if (rental) {
-      await payGAS(String(rental.price), `rent:${id}`);
-      votingPower.value += rental.power;
-      status.value = { msg: `Rented ${rental.power} VP!`, type: "success" };
+    status.value = { msg: "Delegating votes...", type: "loading" };
+    const delegate = delegates.value.find((d) => d.id === id);
+    if (delegate) {
+      const fee = (delegateAmount * delegate.commission) / 100;
+      await payGAS(String(fee), `delegate:${id}:${delegateAmount}`);
+      votingPower.value -= delegateAmount;
+      status.value = { msg: `Delegated ${delegateAmount} VP to ${delegate.name}!`, type: "success" };
+      delegate.delegateAmount = "";
     }
   } catch (e: any) {
     status.value = { msg: e.message || "Error", type: "error" };
@@ -158,157 +290,322 @@ const rentVotes = async (id: number) => {
 };
 </script>
 
-<style lang="scss">
-@import "@/shared/styles/theme.scss";
+<style lang="scss" scoped>
+@import "@/shared/styles/tokens.scss";
+@import "@/shared/styles/variables.scss";
 
-.app-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, $color-bg-primary 0%, $color-bg-secondary 100%);
-  color: $color-text-primary;
-  padding: 20px;
-}
+.tab-content {
+  padding: $space-4;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 
-.header {
-  text-align: center;
-  margin-bottom: 24px;
-}
-.title {
-  font-size: 1.8em;
-  font-weight: bold;
-  color: $color-governance;
-}
-.subtitle {
-  color: $color-text-secondary;
-  font-size: 0.9em;
-  margin-top: 8px;
+  &.scrollable {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .status-msg {
   text-align: center;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 16px;
+  padding: $space-4;
+  margin-bottom: $space-5;
+  border: $border-width-md solid var(--border-color);
+  box-shadow: $shadow-md;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
   &.success {
-    background: rgba($color-success, 0.15);
-    color: $color-success;
+    background: var(--status-success);
+    color: $neo-black;
+    border-color: $neo-black;
   }
   &.error {
-    background: rgba($color-error, 0.15);
-    color: $color-error;
+    background: var(--status-error);
+    color: $neo-white;
+    border-color: $neo-black;
+  }
+  &.loading {
+    background: var(--brutal-yellow);
+    color: $neo-black;
+    border-color: $neo-black;
   }
 }
 
-.card {
-  background: $color-bg-card;
-  border: 1px solid $color-border;
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 16px;
+// Form layout
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: $space-5;
 }
 
-.card-title {
-  color: $color-governance;
-  font-size: 1.1em;
-  font-weight: bold;
-  display: block;
-  margin-bottom: 12px;
-}
-
+// Stats grid
 .stats-grid {
   display: flex;
-  gap: 8px;
+  gap: $space-3;
 }
+
 .stat-box {
   flex: 1;
   text-align: center;
-  background: rgba($color-governance, 0.1);
-  border-radius: 8px;
-  padding: 12px;
-}
-.stat-value {
-  color: $color-governance;
-  font-size: 1.2em;
-  font-weight: bold;
-  display: block;
-}
-.stat-label {
-  color: $color-text-secondary;
-  font-size: 0.8em;
-}
+  background: var(--bg-elevated);
+  border: $border-width-md solid var(--neo-green);
+  box-shadow: 3px 3px 0 var(--neo-green);
+  padding: $space-4;
+  transition: transform $transition-fast;
 
-.duration-row {
-  display: flex;
-  gap: 8px;
-  margin: 16px 0;
-}
-.duration-btn {
-  flex: 1;
-  padding: 12px;
-  text-align: center;
-  background: rgba($color-governance, 0.1);
-  border: 2px solid transparent;
-  border-radius: 8px;
-  &.active {
-    border-color: $color-governance;
-    background: rgba($color-governance, 0.2);
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--neo-green);
   }
 }
 
-.list-btn {
-  background: linear-gradient(135deg, $color-governance 0%, darken($color-governance, 10%) 100%);
-  color: #fff;
-  padding: 14px;
-  border-radius: 12px;
-  text-align: center;
-  font-weight: bold;
+.stat-value {
+  color: var(--neo-green);
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-black;
+  display: block;
+  line-height: $line-height-tight;
 }
 
-.rentals-list {
+.stat-label {
+  color: var(--text-secondary);
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: $space-1;
+}
+
+// Duration selector
+.duration-row {
+  display: flex;
+  gap: $space-2;
+}
+
+.duration-btn {
+  flex: 1;
+  padding: $space-3;
+  text-align: center;
+  background: var(--bg-secondary);
+  border: $border-width-md solid var(--border-color);
+  box-shadow: $shadow-sm;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  font-size: $font-size-sm;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+  }
+
+  &.active {
+    background: var(--neo-green);
+    color: $neo-black;
+    border-color: $neo-black;
+    box-shadow: 3px 3px 0 $neo-black;
+  }
+}
+
+// Delegates list
+.delegates-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: $space-5;
 }
+
 .empty {
-  color: $color-text-secondary;
+  color: var(--text-muted);
   text-align: center;
+  padding: $space-8;
+  font-weight: $font-weight-medium;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
-.rental-item {
-  padding: 14px;
-  background: rgba($color-governance, 0.05);
-  border-radius: 12px;
+
+// Delegate card
+.delegate-card {
+  padding: $space-5;
+  background: var(--bg-elevated);
+  border: $border-width-md solid var(--neo-purple);
+  box-shadow: 4px 4px 0 var(--neo-purple);
+  transition: all $transition-fast;
+
+  &.elite {
+    border-color: var(--brutal-yellow);
+    box-shadow: 4px 4px 0 var(--brutal-yellow);
+  }
+
+  &:active {
+    transform: translate(3px, 3px);
+    box-shadow: 1px 1px 0 var(--neo-purple);
+
+    &.elite {
+      box-shadow: 1px 1px 0 var(--brutal-yellow);
+    }
+  }
 }
-.rental-header {
+
+// Delegate header
+.delegate-header {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
+  align-items: center;
+  gap: $space-3;
+  margin-bottom: $space-4;
+  padding-bottom: $space-4;
+  border-bottom: $border-width-sm solid var(--border-color);
+  position: relative;
 }
-.rental-power {
-  color: $color-governance;
-  font-weight: bold;
-  font-size: 1.1em;
-}
-.rental-price {
-  color: $color-text-primary;
-  font-weight: bold;
-}
-.rental-meta {
+
+.delegate-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--neo-purple);
+  border: $border-width-md solid $neo-black;
   display: flex;
-  justify-content: space-between;
-  font-size: 0.85em;
-  margin-bottom: 10px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &.elite {
+    background: var(--brutal-yellow);
+    box-shadow: 0 0 12px var(--brutal-yellow);
+  }
 }
-.rental-duration {
-  color: $color-text-secondary;
+
+.avatar-text {
+  color: $neo-black;
+  font-weight: $font-weight-black;
+  font-size: $font-size-lg;
 }
-.rental-owner {
-  color: $color-text-secondary;
+
+.delegate-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
 }
-.rent-btn {
-  background: rgba($color-governance, 0.2);
-  color: $color-governance;
-  padding: 10px;
-  border-radius: 8px;
+
+.delegate-name {
+  color: var(--text-primary);
+  font-weight: $font-weight-black;
+  font-size: $font-size-lg;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.delegate-address {
+  color: var(--text-muted);
+  font-family: $font-mono;
+  font-size: $font-size-xs;
+}
+
+.elite-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: var(--brutal-yellow);
+  color: $neo-black;
+  padding: $space-1 $space-3;
+  border: $border-width-sm solid $neo-black;
+  box-shadow: 2px 2px 0 $neo-black;
+}
+
+.badge-text {
+  font-weight: $font-weight-black;
+  font-size: $font-size-xs;
+  letter-spacing: 1px;
+}
+
+// Delegate stats
+.delegate-stats {
+  display: flex;
+  gap: $space-3;
+  margin-bottom: $space-4;
+}
+
+.stat-item {
+  flex: 1;
   text-align: center;
-  font-weight: bold;
+  padding: $space-3;
+  background: var(--bg-secondary);
+  border: $border-width-sm solid var(--border-color);
+}
+
+.stat-item .stat-label {
+  display: block;
+  color: var(--text-secondary);
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: $space-1;
+}
+
+.stat-item .stat-value {
+  display: block;
+  font-weight: $font-weight-black;
+  font-size: $font-size-lg;
+  font-family: $font-mono;
+
+  &.reputation {
+    color: var(--neo-purple);
+  }
+
+  &.success {
+    color: var(--neo-green);
+  }
+
+  &.commission {
+    color: var(--brutal-yellow);
+  }
+}
+
+// Delegate metrics
+.delegate-metrics {
+  display: flex;
+  gap: $space-4;
+  margin-bottom: $space-4;
+  padding: $space-3;
+  background: var(--bg-secondary);
+  border: $border-width-sm solid var(--border-color);
+}
+
+.metric {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.metric-label {
+  color: var(--text-secondary);
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-value {
+  color: var(--text-primary);
+  font-weight: $font-weight-black;
+  font-size: $font-size-md;
+  font-family: $font-mono;
+}
+
+// Delegate actions
+.delegate-actions {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  margin-top: $space-4;
+  padding-top: $space-4;
+  border-top: $border-width-sm solid var(--border-color);
 }
 </style>

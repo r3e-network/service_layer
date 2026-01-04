@@ -292,7 +292,8 @@ const purchaseTile = async () => {
 
 .tab-content {
   padding: $space-3;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: $space-3;
@@ -300,6 +301,7 @@ const purchaseTile = async () => {
 
   &.scrollable {
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -310,7 +312,7 @@ const purchaseTile = async () => {
   font-weight: $font-weight-bold;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-family: $font-family-mono;
+  font-family: $font-mono;
 
   &.success {
     background: var(--status-success);
@@ -340,7 +342,7 @@ const purchaseTile = async () => {
   padding: $space-3;
   background: var(--bg-secondary);
   border: $border-width-sm solid var(--border-color);
-  font-family: $font-family-mono;
+  font-family: $font-mono;
 
   .coord-label {
     color: var(--text-secondary);
@@ -387,7 +389,7 @@ const purchaseTile = async () => {
   .zoom-level {
     min-width: 48px;
     text-align: center;
-    font-family: $font-family-mono;
+    font-family: $font-mono;
     font-weight: $font-weight-bold;
     color: var(--text-primary);
     font-size: $font-size-base;
@@ -411,7 +413,7 @@ const purchaseTile = async () => {
   grid-template-columns: repeat(8, 1fr);
   gap: 2px;
   transform-origin: center;
-  transition: transform $transition-base;
+  transition: transform $transition-normal;
 }
 
 .pixel {
@@ -555,7 +557,7 @@ const purchaseTile = async () => {
   color: var(--text-primary);
   font-size: $font-size-sm;
   font-weight: $font-weight-bold;
-  font-family: $font-family-mono;
+  font-family: $font-mono;
 
   &.status-owned {
     color: var(--neo-orange);
@@ -591,7 +593,7 @@ const purchaseTile = async () => {
     font-size: $font-size-2xl;
     font-weight: $font-weight-bold;
     color: var(--neo-green);
-    font-family: $font-family-mono;
+    font-family: $font-mono;
     margin-bottom: $space-2;
   }
 

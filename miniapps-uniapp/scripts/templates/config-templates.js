@@ -10,6 +10,7 @@ import path from "path";
 
 export default defineConfig({
   plugins: [uni()],
+  base: "./",
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),

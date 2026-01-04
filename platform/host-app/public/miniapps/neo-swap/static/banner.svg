@@ -1,18 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" fill="none">
-  <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#0d1117"/>
-      <stop offset="100%" style="stop-color:#1a1a2e"/>
-    </linearGradient>
-  </defs>
-  <rect width="400" height="200" fill="url(#bg)"/>
-  <circle cx="320" cy="100" r="50" stroke="#ff6b9d" stroke-width="2" opacity="0.3"/>
-  <path d="M300 90L320 70L340 90" stroke="#00d4aa" stroke-width="4" stroke-linecap="round"/>
-  <path d="M340 110L320 130L300 110" stroke="#ff6b9d" stroke-width="4" stroke-linecap="round"/>
-  <text x="40" y="85" font-family="Arial" font-size="26" font-weight="bold" fill="#ff6b9d">NEO ↔ GAS</text>
-  <text x="40" y="115" font-family="Arial" font-size="14" fill="#8b949e">Instant swap powered by Flamingo</text>
-  <rect x="40" y="140" width="60" height="24" rx="4" fill="#00d4aa" opacity="0.2"/>
-  <text x="52" y="157" font-family="Arial" font-size="11" fill="#00d4aa">NEO</text>
-  <rect x="110" y="140" width="60" height="24" rx="4" fill="#ff6b9d" opacity="0.2"/>
-  <text x="122" y="157" font-family="Arial" font-size="11" fill="#ff6b9d">GAS</text>
-</svg>
+<svg width="1200" height="400" viewBox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#1d4ed8;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+            </linearGradient>
+            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="1" stroke-opacity="0.1"/>
+            </pattern>
+        </defs>
+        <rect width="1200" height="400" fill="url(#bg)" />
+        <rect width="1200" height="400" fill="url(#grid)" />
+        <circle cx="190" cy="336" r="189" fill="white" fill-opacity="0.12" /><circle cx="789" cy="1" r="98" fill="white" fill-opacity="0.13" /><circle cx="875" cy="282" r="142" fill="white" fill-opacity="0.13" /><circle cx="544" cy="371" r="165" fill="white" fill-opacity="0.07" /><circle cx="1054" cy="363" r="62" fill="white" fill-opacity="0.05" /><circle cx="192" cy="112" r="172" fill="white" fill-opacity="0.12" /><circle cx="455" cy="337" r="114" fill="white" fill-opacity="0.1" /><circle cx="547" cy="335" r="143" fill="white" fill-opacity="0.14" /><circle cx="77" cy="18" r="185" fill="white" fill-opacity="0.07" /><circle cx="172" cy="216" r="124" fill="white" fill-opacity="0.14" />
+        
+        <!-- Big decorative icon on right -->
+        <g transform="translate(850, -50) scale(20)" stroke="white" stroke-width="1.5" fill="none" stroke-opacity="0.2">
+             <path d="M7 10h14l-4-4m-6 8H4l4 4" />
+        </g>
+        
+        <!-- Smaller focused icon on left-center -->
+        <g transform="translate(100, 100) scale(8)" stroke="white" stroke-width="2" fill="none" filter="drop-shadow(3px 3px 2px rgba(0,0,0,0.3))">
+             <path d="M7 10h14l-4-4m-6 8H4l4 4" />
+        </g>
+    </svg>

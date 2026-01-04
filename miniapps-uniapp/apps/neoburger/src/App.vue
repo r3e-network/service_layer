@@ -1,22 +1,23 @@
 <script setup lang="ts">
-import { onLaunch, onShow, onHide } from "@dcloudio/uni-app";
+import { initTheme, listenForThemeChanges } from "./shared/utils/theme";
+import { onMounted, onUnmounted } from "vue";
 
-onLaunch(() => {
-  console.log("NeoBurger MiniApp launched");
+let cleanup: (() => void) | undefined;
+
+onMounted(() => {
+  initTheme();
+  cleanup = listenForThemeChanges();
 });
 
-onShow(() => {
-  console.log("NeoBurger MiniApp shown");
-});
-
-onHide(() => {
-  console.log("NeoBurger MiniApp hidden");
+onUnmounted(() => {
+  cleanup?.();
 });
 </script>
 
-<style>
+<style lang="scss">
+
 page {
-  background-color: #0f0f1a;
-  min-height: 100vh;
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  height: 100%;
 }
 </style>

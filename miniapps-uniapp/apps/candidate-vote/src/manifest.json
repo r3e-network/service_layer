@@ -1,9 +1,9 @@
 {
   "app_id": "miniapp-candidate-vote",
   "name": "Candidate Vote",
-  "name_zh": "候选人投票",
+  "name_zh": "\u5019\u9009\u4eba\u6295\u7968",
   "description": "Vote for platform candidate and earn GAS rewards",
-  "description_zh": "为平台候选人投票并获得 GAS 奖励",
+  "description_zh": "\u4e3a\u5e73\u53f0\u5019\u9009\u4eba\u6295\u7968\u5e76\u83b7\u5f97 GAS \u5956\u52b1",
   "version": "1.0.0",
   "entry_url": "mf://builtin?app=miniapp-candidate-vote",
   "permissions": [
@@ -23,7 +23,11 @@
   ],
   "card": {
     "display": {
-      "type": "live_voting"
+      "type": "live_voting",
+      "banner": "/static/banner.svg"
+    },
+    "info": {
+      "logo": "/static/icon.svg"
     }
   }
 }

@@ -1,148 +1,165 @@
 <template>
-  <view class="app-container">
-    <!-- Header with Network Stats -->
-    <view class="header">
-      <text class="title">{{ t("title") }}</text>
-      <text class="subtitle">{{ t("subtitle") }}</text>
-    </view>
-
-    <!-- Network Stats Cards -->
-    <view class="stats-grid">
-      <view class="network-card mainnet">
-        <text class="network-label">{{ t("mainnet") }}</text>
-        <view class="network-stats">
-          <view class="stat-item">
-            <text class="stat-value">{{ formatNum(stats.mainnet.height) }}</text>
-            <text class="stat-label">{{ t("blockHeight") }}</text>
-          </view>
-          <view class="stat-item">
-            <text class="stat-value">{{ formatNum(stats.mainnet.txCount) }}</text>
-            <text class="stat-label">{{ t("transactions") }}</text>
+  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <view v-if="activeTab === 'search' || activeTab === 'history'" class="app-container">
+      <!-- Network Stats Cards -->
+      <view class="stats-grid">
+        <view class="network-card mainnet">
+          <text class="network-label">{{ t("mainnet") }}</text>
+          <view class="network-stats">
+            <view class="stat-item">
+              <text class="stat-value">{{ formatNum(stats.mainnet.height) }}</text>
+              <text class="stat-label">{{ t("blockHeight") }}</text>
+            </view>
+            <view class="stat-item">
+              <text class="stat-value">{{ formatNum(stats.mainnet.txCount) }}</text>
+              <text class="stat-label">{{ t("transactions") }}</text>
+            </view>
           </view>
         </view>
-      </view>
-      <view class="network-card testnet">
-        <text class="network-label">{{ t("testnet") }}</text>
-        <view class="network-stats">
-          <view class="stat-item">
-            <text class="stat-value">{{ formatNum(stats.testnet.height) }}</text>
-            <text class="stat-label">{{ t("blockHeight") }}</text>
-          </view>
-          <view class="stat-item">
-            <text class="stat-value">{{ formatNum(stats.testnet.txCount) }}</text>
-            <text class="stat-label">{{ t("transactions") }}</text>
+        <view class="network-card testnet">
+          <text class="network-label">{{ t("testnet") }}</text>
+          <view class="network-stats">
+            <view class="stat-item">
+              <text class="stat-value">{{ formatNum(stats.testnet.height) }}</text>
+              <text class="stat-label">{{ t("blockHeight") }}</text>
+            </view>
+            <view class="stat-item">
+              <text class="stat-value">{{ formatNum(stats.testnet.txCount) }}</text>
+              <text class="stat-label">{{ t("transactions") }}</text>
+            </view>
           </view>
         </view>
       </view>
-    </view>
 
-    <!-- Search Section -->
-    <view class="search-section">
-      <view class="search-box">
-        <input v-model="searchQuery" class="search-input" :placeholder="t('searchPlaceholder')" @confirm="search" />
-        <view class="search-btn" @click="search">
-          <text>{{ t("search") }}</text>
-        </view>
-      </view>
-      <view class="network-toggle">
-        <view :class="['toggle-btn', selectedNetwork === 'mainnet' && 'active']" @click="selectedNetwork = 'mainnet'">
-          <text>{{ t("mainnet") }}</text>
-        </view>
-        <view :class="['toggle-btn', selectedNetwork === 'testnet' && 'active']" @click="selectedNetwork = 'testnet'">
-          <text>{{ t("testnet") }}</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- Status Message -->
-    <view v-if="status" :class="['status-msg', status.type]">
-      <text>{{ status.msg }}</text>
-    </view>
-
-    <!-- Loading -->
-    <view v-if="isLoading" class="loading">
-      <text>{{ t("searching") }}</text>
-    </view>
-
-    <!-- Search Results -->
-    <view v-if="searchResult" class="result-section">
-      <text class="section-title">{{ t("searchResult") }}</text>
-
-      <!-- Transaction Result -->
-      <view v-if="searchResult.type === 'transaction'" class="result-card">
-        <view class="result-header">
-          <text class="result-type">{{ t("transaction") }}</text>
-          <text :class="['vm-state', searchResult.data.vmState]">
-            {{ searchResult.data.vmState }}
-          </text>
-        </view>
-        <view class="result-row">
-          <text class="label">{{ t("hash") }}</text>
-          <text class="value hash">{{ searchResult.data.hash }}</text>
-        </view>
-        <view class="result-row">
-          <text class="label">{{ t("block") }}</text>
-          <text class="value">{{ searchResult.data.blockIndex }}</text>
-        </view>
-        <view class="result-row">
-          <text class="label">{{ t("time") }}</text>
-          <text class="value">{{ formatTime(searchResult.data.blockTime) }}</text>
-        </view>
-        <view class="result-row">
-          <text class="label">{{ t("sender") }}</text>
-          <text class="value addr">{{ searchResult.data.sender }}</text>
-        </view>
-        <view class="result-row">
-          <text class="label">System Fee:</text>
-          <text class="value">{{ searchResult.data.systemFee }} GAS</text>
-        </view>
-        <view class="result-row">
-          <text class="label">Network Fee:</text>
-          <text class="value">{{ searchResult.data.networkFee }} GAS</text>
-        </view>
+      <!-- Status Message -->
+      <view v-if="status" :class="['status-msg', status.type]">
+        <text>{{ status.msg }}</text>
       </view>
 
-      <!-- Address Result -->
-      <view v-else-if="searchResult.type === 'address'" class="result-card">
-        <view class="result-header">
-          <text class="result-type">{{ t("address") }}</text>
+      <!-- Search Tab -->
+      <view v-if="activeTab === 'search'" class="tab-content">
+        <view class="search-section">
+          <view class="search-box">
+            <input v-model="searchQuery" class="search-input" :placeholder="t('searchPlaceholder')" @confirm="search" />
+            <view class="search-btn" @click="search">
+              <text>{{ t("search") }}</text>
+            </view>
+          </view>
+          <view class="network-toggle">
+            <view
+              :class="['toggle-btn', selectedNetwork === 'mainnet' && 'active']"
+              @click="selectedNetwork = 'mainnet'"
+            >
+              <text>{{ t("mainnet") }}</text>
+            </view>
+            <view
+              :class="['toggle-btn', selectedNetwork === 'testnet' && 'active']"
+              @click="selectedNetwork = 'testnet'"
+            >
+              <text>{{ t("testnet") }}</text>
+            </view>
+          </view>
         </view>
-        <view class="result-row">
-          <text class="label">Address:</text>
-          <text class="value addr">{{ searchResult.data.address }}</text>
+
+        <view v-if="isLoading" class="loading">
+          <text>{{ t("searching") }}</text>
         </view>
-        <view class="result-row">
-          <text class="label">Transactions:</text>
-          <text class="value">{{ searchResult.data.txCount }}</text>
+
+        <view v-if="searchResult" class="result-section">
+          <text class="section-title">{{ t("searchResult") }}</text>
+          <view v-if="searchResult.type === 'transaction'" class="result-card">
+            <view class="result-header">
+              <text class="result-type">{{ t("transaction") }}</text>
+              <text :class="['vm-state', searchResult.data.vmState]">{{ searchResult.data.vmState }}</text>
+            </view>
+            <view class="result-row">
+              <text class="label">{{ t("hash") }}</text>
+              <text class="value hash">{{ searchResult.data.hash }}</text>
+            </view>
+            <view class="result-row">
+              <text class="label">{{ t("block") }}</text>
+              <text class="value">{{ searchResult.data.blockIndex }}</text>
+            </view>
+            <view class="result-row">
+              <text class="label">{{ t("time") }}</text>
+              <text class="value">{{ formatTime(searchResult.data.blockTime) }}</text>
+            </view>
+            <view class="result-row">
+              <text class="label">{{ t("sender") }}</text>
+              <text class="value addr">{{ searchResult.data.sender }}</text>
+            </view>
+            <view class="result-row">
+              <text class="label">System Fee:</text>
+              <text class="value">{{ searchResult.data.systemFee }} GAS</text>
+            </view>
+            <view class="result-row">
+              <text class="label">Network Fee:</text>
+              <text class="value">{{ searchResult.data.networkFee }} GAS</text>
+            </view>
+          </view>
+
+          <view v-else-if="searchResult.type === 'address'" class="result-card">
+            <view class="result-header">
+              <text class="result-type">{{ t("address") }}</text>
+            </view>
+            <view class="result-row">
+              <text class="label">Address:</text>
+              <text class="value addr">{{ searchResult.data.address }}</text>
+            </view>
+            <view class="result-row">
+              <text class="label">Transactions:</text>
+              <text class="value">{{ searchResult.data.txCount }}</text>
+            </view>
+            <view class="tx-list" v-if="searchResult.data.transactions?.length">
+              <text class="list-title">{{ t("recentTransactions") }}</text>
+              <view
+                v-for="tx in searchResult.data.transactions"
+                :key="tx.hash"
+                class="tx-item"
+                @click="viewTx(tx.hash)"
+              >
+                <text class="tx-hash">{{ truncateHash(tx.hash) }}</text>
+                <text class="tx-time">{{ formatTime(tx.blockTime) }}</text>
+              </view>
+            </view>
+          </view>
         </view>
-        <view class="tx-list" v-if="searchResult.data.transactions?.length">
-          <text class="list-title">{{ t("recentTransactions") }}</text>
-          <view v-for="tx in searchResult.data.transactions" :key="tx.hash" class="tx-item" @click="viewTx(tx.hash)">
-            <text class="tx-hash">{{ truncateHash(tx.hash) }}</text>
+      </view>
+
+      <!-- History Tab -->
+      <view v-if="activeTab === 'history'" class="tab-content">
+        <view v-if="recentTxs.length" class="recent-section">
+          <text class="section-title">{{ t("recentTransactions") }}</text>
+          <view v-for="tx in recentTxs" :key="tx.hash" class="tx-item" @click="viewTx(tx.hash)">
+            <view class="tx-info">
+              <text class="tx-hash">{{ truncateHash(tx.hash) }}</text>
+              <text :class="['vm-state-small', tx.vmState]">{{ tx.vmState }}</text>
+            </view>
             <text class="tx-time">{{ formatTime(tx.blockTime) }}</text>
           </view>
         </view>
       </view>
     </view>
 
-    <!-- Recent Transactions -->
-    <view v-if="!searchResult && recentTxs.length" class="recent-section">
-      <text class="section-title">{{ t("recentTransactions") }}</text>
-      <view v-for="tx in recentTxs" :key="tx.hash" class="tx-item" @click="viewTx(tx.hash)">
-        <view class="tx-info">
-          <text class="tx-hash">{{ truncateHash(tx.hash) }}</text>
-          <text :class="['vm-state-small', tx.vmState]">{{ tx.vmState }}</text>
-        </view>
-        <text class="tx-time">{{ formatTime(tx.blockTime) }}</text>
-      </view>
+    <!-- Docs Tab -->
+    <view v-if="activeTab === 'docs'" class="tab-content scrollable">
+      <NeoDoc
+        :title="t('title')"
+        :subtitle="t('docSubtitle')"
+        :description="t('docDescription')"
+        :steps="docSteps"
+        :features="docFeatures"
+      />
     </view>
-  </view>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
+import AppLayout from "@/shared/components/AppLayout.vue";
+import type { NavTab } from "@/shared/components/NavBar.vue";
 
 const translations = {
   title: { en: "Neo Explorer", zh: "Neo 浏览器" },
@@ -167,14 +184,41 @@ const translations = {
   pleaseEnterQuery: { en: "Please enter a search query", zh: "请输入搜索内容" },
   noResults: { en: "No results found", zh: "未找到结果" },
   searchFailed: { en: "Search failed", zh: "搜索失败" },
+  tabSearch: { en: "Search", zh: "搜索" },
+  tabHistory: { en: "History", zh: "历史" },
+
+  docs: { en: "Docs", zh: "文档" },
+  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
+  docDescription: {
+    en: "Professional documentation for this application is coming soon.",
+    zh: "此应用程序的专业文档即将推出。",
+  },
+  step1: { en: "Open the application.", zh: "打开应用程序。" },
+  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
+  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
+  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
+  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
+  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
+  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
 };
 
 const t = createT(translations);
 
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docFeatures = computed(() => [
+  { name: t("feature1Name"), desc: t("feature1Desc") },
+  { name: t("feature2Name"), desc: t("feature2Desc") },
+]);
 const APP_ID = "miniapp-explorer";
 const API_BASE = "/api/explorer";
 
-// State
+const activeTab = ref("search");
+const navTabs: NavTab[] = [
+  { id: "search", icon: "search", label: t("tabSearch") },
+  { id: "history", icon: "clock", label: t("tabHistory") },
+  { id: "docs", icon: "book", label: t("docs") },
+];
+
 const searchQuery = ref("");
 const selectedNetwork = ref<"mainnet" | "testnet">("testnet");
 const isLoading = ref(false);
@@ -187,7 +231,6 @@ const stats = ref({
   testnet: { height: 0, txCount: 0 },
 });
 
-// Formatters
 const formatNum = (n: number) => formatNumber(n, 0);
 
 const formatTime = (time: string) => {
@@ -200,7 +243,6 @@ const truncateHash = (hash: string) => {
   return `${hash.slice(0, 10)}...${hash.slice(-8)}`;
 };
 
-// Fetch network stats
 const fetchStats = async () => {
   try {
     const res = await uni.request({
@@ -215,7 +257,6 @@ const fetchStats = async () => {
   }
 };
 
-// Fetch recent transactions
 const fetchRecentTxs = async () => {
   try {
     const res = await uni.request({
@@ -230,7 +271,6 @@ const fetchRecentTxs = async () => {
   }
 };
 
-// Search
 const search = async () => {
   const query = searchQuery.value.trim();
   if (!query) {
@@ -260,94 +300,96 @@ const search = async () => {
   }
 };
 
-// View transaction details
 const viewTx = (hash: string) => {
   searchQuery.value = hash;
+  activeTab.value = "search";
   search();
 };
 
-// Initialize
 onMounted(() => {
   fetchStats();
   fetchRecentTxs();
-
-  // Refresh stats every 15 seconds
   setInterval(fetchStats, 15000);
 });
 </script>
 
-<style lang="scss">
-@import "@/shared/styles/theme.scss";
-
-$color-explorer: #00e599;
-$color-mainnet: #00d4aa;
-$color-testnet: #ffa500;
+<style lang="scss" scoped>
+@import "@/shared/styles/tokens.scss";
+@import "@/shared/styles/variables.scss";
 
 .app-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, $color-bg-primary 0%, $color-bg-secondary 100%);
-  color: #fff;
-  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  padding: $space-4;
 }
 
-.header {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.title {
-  font-size: 1.6em;
-  font-weight: bold;
-  color: $color-explorer;
-}
-
-.subtitle {
-  color: $color-text-secondary;
-  font-size: 0.85em;
-  margin-top: 6px;
+.tab-content {
+  flex: 1;
 }
 
 .stats-grid {
   display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: $space-3;
+  margin-bottom: $space-5;
 }
 
 .network-card {
   flex: 1;
-  background: $color-bg-card;
-  border: 1px solid $color-border;
-  border-radius: 12px;
-  padding: 14px;
+  background: var(--bg-card);
+  border: $border-width-md solid var(--border-color);
+  border-radius: $radius-lg;
+  padding: $space-4;
+  position: relative;
+  overflow: hidden;
+  box-shadow: $shadow-sm;
+  transition: all 0.3s ease;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    flex: 1;
+  min-height: 0;
+    background: var(--accent-color);
+  }
 
   &.mainnet {
-    border-left: 3px solid $color-mainnet;
+    --accent-color: var(--neo-green);
+
+    &:hover {
+      border-color: var(--accent-color);
+      box-shadow: $shadow-md;
+    }
   }
 
   &.testnet {
-    border-left: 3px solid $color-testnet;
+    --accent-color: var(--brutal-orange);
+
+    &:hover {
+      border-color: var(--accent-color);
+      box-shadow: $shadow-md;
+    }
   }
 }
 
 .network-label {
-  font-size: 0.75em;
-  font-weight: bold;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
   text-transform: uppercase;
-  margin-bottom: 10px;
+  margin-bottom: $space-3;
   display: block;
-}
-
-.mainnet .network-label {
-  color: $color-mainnet;
-}
-
-.testnet .network-label {
-  color: $color-testnet;
+  color: var(--accent-color);
+  letter-spacing: 0.5px;
 }
 
 .network-stats {
   display: flex;
-  gap: 8px;
+  gap: $space-2;
 }
 
 .stat-item {
@@ -356,177 +398,242 @@ $color-testnet: #ffa500;
 }
 
 .stat-value {
-  font-size: 1.1em;
-  font-weight: bold;
-  color: #fff;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: var(--text-primary);
   display: block;
 }
 
 .stat-label {
-  font-size: 0.7em;
-  color: $color-text-secondary;
+  font-size: $font-size-xs;
+  color: var(--text-secondary);
 }
 
 .search-section {
-  margin-bottom: 20px;
+  margin-bottom: $space-5;
 }
 
 .search-box {
   display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: $space-2;
+  margin-bottom: $space-3;
 }
 
 .search-input {
   flex: 1;
-  background: $color-bg-card;
-  border: 1px solid $color-border;
-  border-radius: 8px;
-  padding: 12px;
-  color: #fff;
-  font-size: 0.9em;
+  background: var(--bg-card);
+  border: $border-width-md solid var(--border-color);
+  border-radius: $radius-md;
+  padding: $space-3 $space-4;
+  color: var(--text-primary);
+  font-size: $font-size-sm;
+  font-family: $font-mono;
+  transition: all 0.2s ease;
+
+  &:focus {
+    border-color: var(--brutal-orange);
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brutal-orange) 10%, transparent);
+  }
+
+  &::placeholder {
+    color: var(--text-tertiary);
+  }
 }
 
 .search-btn {
-  background: $color-explorer;
-  color: #000;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-weight: bold;
+  background: var(--brutal-orange);
+  color: var(--neo-white);
+  padding: $space-3 $space-5;
+  border-radius: $radius-md;
+  font-weight: $font-weight-bold;
+  border: $border-width-md solid var(--border-color);
+  box-shadow: $shadow-sm;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: $shadow-md;
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: $shadow-sm;
+  }
 }
 
 .network-toggle {
   display: flex;
-  gap: 8px;
+  gap: $space-2;
 }
 
 .toggle-btn {
   flex: 1;
   text-align: center;
-  padding: 10px;
-  background: $color-bg-card;
-  border: 1px solid $color-border;
-  border-radius: 8px;
-  color: $color-text-secondary;
+  padding: $space-2 $space-3;
+  background: var(--bg-card);
+  border: $border-width-md solid var(--border-color);
+  border-radius: $radius-md;
+  color: var(--text-secondary);
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--text-secondary);
+  }
 
   &.active {
-    border-color: $color-explorer;
-    color: $color-explorer;
+    background: color-mix(in srgb, var(--brutal-orange) 10%, transparent);
+    border-color: var(--brutal-orange);
+    color: var(--brutal-orange);
+    font-weight: $font-weight-bold;
   }
 }
 
 .status-msg {
   text-align: center;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 16px;
+  padding: $space-2;
+  border-radius: $radius-md;
+  margin-bottom: $space-4;
 
   &.success {
-    background: rgba($color-success, 0.15);
-    color: $color-success;
+    background: color-mix(in srgb, var(--status-success) 15%, transparent);
+    color: var(--status-success);
   }
 
   &.error {
-    background: rgba($color-error, 0.15);
-    color: $color-error;
+    background: color-mix(in srgb, var(--status-error) 15%, transparent);
+    color: var(--status-error);
   }
 }
 
 .loading {
   text-align: center;
-  padding: 20px;
-  color: $color-text-secondary;
+  padding: $space-5;
+  color: var(--text-secondary);
 }
 
 .section-title {
-  font-size: 1em;
-  font-weight: bold;
-  color: $color-explorer;
-  margin-bottom: 12px;
+  font-size: $font-size-base;
+  font-weight: $font-weight-bold;
+  color: var(--brutal-orange);
+  margin-bottom: $space-3;
   display: block;
 }
 
 .result-section,
 .recent-section {
-  margin-top: 20px;
+  margin-top: $space-5;
 }
 
 .result-card {
-  background: $color-bg-card;
-  border: 1px solid $color-border;
-  border-radius: 12px;
-  padding: 16px;
+  background: var(--bg-card);
+  border: $border-width-md solid var(--border-color);
+  border-radius: $radius-lg;
+  padding: $space-4;
+  box-shadow: $shadow-sm;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: $shadow-md;
+    border-color: var(--brutal-orange);
+  }
 }
 
 .result-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid $color-border;
+  margin-bottom: $space-3;
+  padding-bottom: $space-3;
+  border-bottom: $border-width-sm solid var(--border-color);
 }
 
 .result-type {
-  font-weight: bold;
-  color: $color-explorer;
+  font-weight: $font-weight-bold;
+  color: var(--brutal-orange);
 }
 
 .vm-state {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.75em;
-  font-weight: bold;
+  padding: $space-1 $space-3;
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: $border-width-sm solid transparent;
 
   &.HALT {
-    background: rgba($color-success, 0.2);
-    color: $color-success;
+    background: color-mix(in srgb, var(--neo-green) 15%, transparent);
+    color: var(--neo-green);
+    border-color: color-mix(in srgb, var(--neo-green) 30%, transparent);
   }
 
   &.FAULT {
-    background: rgba($color-error, 0.2);
-    color: $color-error;
+    background: color-mix(in srgb, var(--status-error) 15%, transparent);
+    color: var(--status-error);
+    border-color: color-mix(in srgb, var(--status-error) 30%, transparent);
   }
 }
 
 .result-row {
   display: flex;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba($color-border, 0.5);
+  padding: $space-3 0;
+  border-bottom: $border-width-sm solid var(--border-color);
+  align-items: flex-start;
+  gap: $space-3;
 
   &:last-child {
     border-bottom: none;
   }
+
+  &:hover {
+    background: color-mix(in srgb, var(--brutal-orange) 3%, transparent);
+    margin: 0 (-$space-2);
+    padding-left: $space-2;
+    padding-right: $space-2;
+    border-radius: $radius-sm;
+  }
 }
 
 .label {
-  width: 100px;
-  color: $color-text-secondary;
-  font-size: 0.85em;
+  min-width: 100px;
+  color: var(--text-secondary);
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  text-transform: capitalize;
 }
 
 .value {
   flex: 1;
-  font-size: 0.85em;
+  font-size: $font-size-sm;
   word-break: break-all;
+  color: var(--text-primary);
+  line-height: 1.5;
 
   &.hash,
   &.addr {
-    font-family: monospace;
-    color: $color-explorer;
+    font-family: $font-mono;
+    color: var(--brutal-orange);
+    background: color-mix(in srgb, var(--brutal-orange) 5%, transparent);
+    padding: $space-1 $space-2;
+    border-radius: $radius-sm;
+    border: $border-width-sm solid color-mix(in srgb, var(--brutal-orange) 20%, transparent);
   }
 }
 
 .tx-list {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid $color-border;
+  margin-top: $space-4;
+  padding-top: $space-4;
+  border-top: $border-width-sm solid var(--border-color);
 }
 
 .list-title {
-  font-size: 0.9em;
-  color: $color-text-secondary;
-  margin-bottom: 10px;
+  font-size: $font-size-sm;
+  color: var(--text-secondary);
+  margin-bottom: $space-2;
   display: block;
 }
 
@@ -534,43 +641,83 @@ $color-testnet: #ffa500;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
-  background: $color-bg-card;
-  border: 1px solid $color-border;
-  border-radius: 8px;
-  margin-bottom: 8px;
+  padding: $space-3;
+  background: var(--bg-card);
+  border: $border-width-md solid var(--border-color);
+  border-radius: $radius-md;
+  margin-bottom: $space-2;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    flex: 1;
+  min-height: 0;
+    width: 3px;
+    background: var(--brutal-orange);
+    transform: scaleY(0);
+    transition: transform 0.2s ease;
+  }
+
+  &:hover {
+    border-color: var(--brutal-orange);
+    box-shadow: $shadow-sm;
+    transform: translateX(2px);
+
+    &::before {
+      transform: scaleY(1);
+    }
+  }
+
+  &:active {
+    transform: translateX(0);
+  }
 }
 
 .tx-info {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: $space-2;
 }
 
 .tx-hash {
-  font-family: monospace;
-  font-size: 0.85em;
-  color: $color-explorer;
+  font-family: $font-mono;
+  font-size: $font-size-sm;
+  color: var(--brutal-orange);
+  font-weight: $font-weight-medium;
+  letter-spacing: -0.5px;
 }
 
 .tx-time {
-  font-size: 0.75em;
-  color: $color-text-secondary;
+  font-size: $font-size-xs;
+  color: var(--text-secondary);
+  font-weight: $font-weight-normal;
 }
 
 .vm-state-small {
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.65em;
+  padding: $space-1 $space-2;
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border: $border-width-sm solid transparent;
 
   &.HALT {
-    background: rgba($color-success, 0.2);
-    color: $color-success;
+    background: color-mix(in srgb, var(--neo-green) 15%, transparent);
+    color: var(--neo-green);
+    border-color: color-mix(in srgb, var(--neo-green) 30%, transparent);
   }
 
   &.FAULT {
-    background: rgba($color-error, 0.2);
-    color: $color-error;
+    background: color-mix(in srgb, var(--status-error) 15%, transparent);
+    color: var(--status-error);
+    border-color: color-mix(in srgb, var(--status-error) 30%, transparent);
   }
 }
 </style>

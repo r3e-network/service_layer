@@ -51,7 +51,22 @@ export function useWallet() {
     return sdk.wallet.invokeIntent(requestId);
   };
 
-  const getBalance = async (): Promise<WalletBalances> => {
+  const invokeContract = async (params: { scriptHash: string; operation: string; args: any[] }) => {
+    const sdk = await waitForSDK();
+    // Use the generic invoke method path
+    return sdk.invoke("invokeFunction", {
+      contract: params.scriptHash,
+      method: params.operation,
+      args: params.args
+    });
+  };
+
+  const getAddress = async () => {
+    const sdk = await waitForSDK();
+    return sdk.wallet.getAddress();
+  }
+
+  const getBalance = async (token?: string): Promise<string | WalletBalances> => {
     isLoading.value = true;
     error.value = null;
     try {
@@ -65,6 +80,10 @@ export function useWallet() {
       }
       const data = await res.json();
       balances.value = data.balances;
+
+      if (token) {
+        return data.balances[token] || "0";
+      }
       return data.balances;
     } catch (e) {
       error.value = e as Error;
@@ -105,9 +124,21 @@ export function useWallet() {
           address.value = addr;
           isConnected.value = true;
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   });
 
-  return { address, balances, isConnected, isLoading, error, connect, invokeIntent, getBalance, getTransactions };
+  return {
+    address,
+    balances,
+    isConnected,
+    isLoading,
+    error,
+    connect,
+    invokeIntent,
+    invokeContract,
+    getAddress,
+    getBalance,
+    getTransactions
+  };
 }

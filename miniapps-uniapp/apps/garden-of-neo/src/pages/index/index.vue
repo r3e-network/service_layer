@@ -319,13 +319,15 @@ const harvestAll = () => {
 
 .tab-content {
   padding: 12px;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 
   &.scrollable {
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 .status-msg {
@@ -455,7 +457,8 @@ const harvestAll = () => {
 
 .soil-texture {
   width: 100%;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   background: repeating-linear-gradient(
     45deg,
     transparent,
@@ -519,7 +522,8 @@ const harvestAll = () => {
 }
 
 .growth-fill {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   background: linear-gradient(90deg, var(--neo-green) 0%, var(--brutal-yellow) 100%);
   transition: width $transition-normal;
   box-shadow: 0 0 8px color-mix(in srgb, var(--neo-green) 50%, transparent);
