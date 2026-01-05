@@ -164,10 +164,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoDoc from "@/shared/components/NeoDoc.vue";
 import NeoButton from "@/shared/components/NeoButton.vue";
 import NeoInput from "@/shared/components/NeoInput.vue";
 import NeoCard from "@/shared/components/NeoCard.vue";
@@ -269,25 +270,70 @@ const stats = computed(() => ({
   activeTrusts: trusts.value.length,
 }));
 
+// Fetch trusts data
+const fetchData = async () => {
+  try {
+    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
+    if (!sdk?.invoke) return;
+
+    const data = (await sdk.invoke("heritageTrust.getTrusts", { appId: APP_ID })) as Trust[] | null;
+    if (data) {
+      trusts.value = data;
+    }
+  } catch (e) {
+    console.warn("[HeritageTrust] Failed to fetch data:", e);
+  }
+};
+
+// Register trust for inactivity monitoring via Edge Function automation
+const registerInactivityMonitor = async (trustId: string) => {
+  try {
+    await fetch("/api/automation/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        appId: APP_ID,
+        taskName: `monitor-${trustId}`,
+        taskType: "conditional",
+        payload: {
+          action: "custom",
+          handler: "heritage:checkInactivity",
+          data: { trustId, inactivityDays: 90 },
+        },
+        schedule: { intervalSeconds: 24 * 60 * 60 }, // Check daily
+      }),
+    });
+  } catch (e) {
+    console.warn("[HeritageTrust] Failed to register monitor:", e);
+  }
+};
+
 const create = async () => {
   if (isLoading.value || !newTrust.value.name || !newTrust.value.beneficiary || !newTrust.value.value) return;
   try {
     status.value = { msg: "Creating trust...", type: "loading" };
     await payGAS(newTrust.value.value, `trust:${Date.now()}`);
+    const trustId = Date.now().toString();
     trusts.value.push({
-      id: Date.now().toString(),
+      id: trustId,
       name: newTrust.value.name,
       beneficiary: newTrust.value.beneficiary,
       value: parseFloat(newTrust.value.value),
       icon: "📜",
       status: "active",
     });
+    // Register for inactivity monitoring
+    await registerInactivityMonitor(trustId);
     status.value = { msg: t("trustCreated"), type: "success" };
     newTrust.value = { name: "", beneficiary: "", value: "" };
   } catch (e: any) {
     status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
+
+onMounted(() => {
+  fetchData();
+});
 </script>
 
 <style lang="scss" scoped>
@@ -300,12 +346,9 @@ const create = async () => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .status-msg {
@@ -486,7 +529,9 @@ const create = async () => {
   background: var(--bg-elevated);
   border: $border-width-sm solid var(--border-color);
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .asset-fill {

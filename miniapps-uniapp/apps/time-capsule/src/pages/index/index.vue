@@ -110,19 +110,18 @@
           </view>
         </view>
       </view>
-
     </view>
 
     <!-- Docs Tab -->
-      <view v-if="activeTab === 'docs'" class="tab-content scrollable">
-        <NeoDoc
-          :title="t('title')"
-          :subtitle="t('docSubtitle')"
-          :description="t('docDescription')"
-          :steps="docSteps"
-          :features="docFeatures"
-        />
-      </view>
+    <view v-if="activeTab === 'docs'" class="tab-content scrollable">
+      <NeoDoc
+        :title="t('title')"
+        :subtitle="t('docSubtitle')"
+        :description="t('docDescription')"
+        :steps="docSteps"
+        :features="docFeatures"
+      />
+    </view>
   </AppLayout>
 </template>
 
@@ -131,6 +130,7 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoDoc from "@/shared/components/NeoDoc.vue";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
 const translations = {
@@ -217,6 +217,7 @@ const currentTime = ref(Date.now());
 let countdownInterval: number | null = null;
 
 onMounted(() => {
+  fetchData();
   countdownInterval = setInterval(() => {
     currentTime.value = Date.now();
   }, 1000) as unknown as number;
@@ -250,6 +251,43 @@ const canCreate = computed(() => {
   );
 });
 
+// Fetch capsules and register automation for unlock
+const fetchData = async () => {
+  try {
+    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
+    if (!sdk?.invoke) return;
+
+    const data = (await sdk.invoke("timeCapsule.getCapsules", { appId: APP_ID })) as Capsule[] | null;
+    if (data) {
+      capsules.value = data;
+    }
+  } catch (e) {
+    console.warn("[TimeCapsule] Failed to fetch data:", e);
+  }
+};
+
+// Register capsule for auto-unlock via Edge Function automation
+const registerAutoUnlock = async (capsuleId: string, unlockDate: string) => {
+  try {
+    await fetch("/api/automation/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        appId: APP_ID,
+        taskName: `unlock-${capsuleId}`,
+        taskType: "scheduled",
+        payload: {
+          action: "custom",
+          handler: "timeCapsule:unlock",
+          data: { capsuleId, unlockDate },
+        },
+      }),
+    });
+  } catch (e) {
+    console.warn("[TimeCapsule] Failed to register auto-unlock:", e);
+  }
+};
+
 const create = async () => {
   if (isLoading.value || !canCreate.value) return;
 
@@ -259,14 +297,19 @@ const create = async () => {
 
     const unlockDate = new Date();
     unlockDate.setDate(unlockDate.getDate() + parseInt(newCapsule.value.days));
+    const unlockDateStr = unlockDate.toISOString().split("T")[0];
+    const capsuleId = Date.now().toString();
 
     capsules.value.push({
-      id: Date.now().toString(),
+      id: capsuleId,
       name: newCapsule.value.name,
       content: newCapsule.value.content,
-      unlockDate: unlockDate.toISOString().split("T")[0],
+      unlockDate: unlockDateStr,
       locked: true,
     });
+
+    // Register for auto-unlock via automation service
+    await registerAutoUnlock(capsuleId, unlockDateStr);
 
     status.value = { msg: t("capsuleCreated"), type: "success" };
     newCapsule.value = { name: "", content: "", days: "30" };
@@ -290,7 +333,7 @@ const open = (cap: Capsule) => {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch;
   padding: $space-4;
 }
 

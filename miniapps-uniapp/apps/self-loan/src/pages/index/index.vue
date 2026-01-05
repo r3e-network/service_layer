@@ -179,6 +179,7 @@ import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
 import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoDoc from "@/shared/components/NeoDoc.vue";
 
 const translations = {
   title: { en: "Self Loan", zh: "自我贷款" },
@@ -196,11 +197,11 @@ const translations = {
   monthlyPayment: { en: "Monthly payment", zh: "月供" },
   borrowNow: { en: "Borrow Now", zh: "立即借款" },
   processing: { en: "Processing...", zh: "处理中..." },
-  note: { en: "12-month term. Auto-deduct from future deposits.", zh: "12个月期限。自动从未来存款中扣除。" },
+  note: { en: "Collateral locked for 12-month term. 0% liquidation risk.", zh: "抵押品锁定12个月。0%清算风险。" },
   enterAmount: { en: "Enter 1-{max}", zh: "请输入 1-{max}" },
-  loanApproved: { en: "Loan approved: {amount} GAS borrowed", zh: "贷款已批准：已借款 {amount} GAS" },
-  paymentFailed: { en: "Payment failed", zh: "支付失败" },
-  main: { en: "Main", zh: "主页" },
+  loanApproved: { en: "Loan approved: {amount} GAS borrowed", zh: "贷款批准：已借 {amount} GAS" },
+  paymentFailed: { en: "Transaction failed", zh: "交易失败" },
+  main: { en: "Borrow", zh: "借款" },
   stats: { en: "Stats", zh: "统计" },
   statistics: { en: "Statistics", zh: "统计数据" },
   totalLoans: { en: "Total Loans", zh: "总贷款数" },
@@ -256,7 +257,7 @@ const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
-const APP_ID = "miniapp-self-loan";
+const APP_ID = "miniapp-selfloan";
 const { address, connect } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
 
@@ -331,10 +332,20 @@ const takeLoan = async (): Promise<void> => {
       type: "error",
     });
   }
-  const collateral = (amount * 1.5).toFixed(2);
-  const fee = "0.015";
+
+  const collateral = amount * 1.5;
+
   try {
-    await payGAS(fee, `selfloan:borrow:${amount}:collateral:${collateral}`);
+    // Lock collateral via smart contract
+    const result = await payGAS(collateral, `self-loan:collateral:${amount}`);
+    if (!result.success) {
+      status.value = { msg: t("paymentFailed"), type: "error" };
+      return;
+    }
+
+    // Update loan state
+    loan.value.borrowed += amount;
+    loan.value.collateralLocked += collateral;
 
     stats.value.totalLoans++;
     stats.value.totalBorrowed += amount;
@@ -346,8 +357,8 @@ const takeLoan = async (): Promise<void> => {
     if (loanHistory.value.length > 10) loanHistory.value.pop();
 
     status.value = { msg: t("loanApproved").replace("{amount}", fmt(amount, 2)), type: "success" };
-  } catch (e: any) {
-    status.value = { msg: e?.message || t("paymentFailed"), type: "error" };
+  } catch (e) {
+    status.value = { msg: t("paymentFailed"), type: "error" };
   }
 };
 </script>
@@ -362,12 +373,9 @@ const takeLoan = async (): Promise<void> => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .status-msg {
@@ -576,7 +584,9 @@ const takeLoan = async (): Promise<void> => {
   background: var(--bg-secondary);
   border: $border-width-sm solid var(--border-color);
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .collateral-fill {
@@ -840,5 +850,25 @@ const takeLoan = async (): Promise<void> => {
   text-align: center;
   padding: $space-4;
   font-weight: $font-weight-medium;
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
 }
 </style>

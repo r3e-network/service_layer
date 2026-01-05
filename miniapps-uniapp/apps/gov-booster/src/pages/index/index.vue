@@ -384,7 +384,9 @@ const voteOnProposal = async (id: number) => {
   background: var(--bg-secondary);
   border: $border-width-md solid var(--border-color);
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   box-shadow: inset 2px 2px 4px var(--shadow-color);
 }
 

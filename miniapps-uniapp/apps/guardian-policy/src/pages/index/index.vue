@@ -134,6 +134,7 @@
 import { ref, computed } from "vue";
 import { createT } from "@/shared/utils/i18n";
 import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoDoc from "@/shared/components/NeoDoc.vue";
 import NeoButton from "@/shared/components/NeoButton.vue";
 import NeoInput from "@/shared/components/NeoInput.vue";
 
@@ -354,12 +355,9 @@ const getActionIcon = (type: string) => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 // Security Dashboard
@@ -420,7 +418,9 @@ const getActionIcon = (type: string) => {
   height: 12px;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 9999px;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   border: 2px solid var(--neo-black);
 }
 
@@ -848,5 +848,25 @@ const getActionIcon = (type: string) => {
   display: block;
   font-size: $font-size-xs;
   color: var(--text-secondary);
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
 }
 </style>

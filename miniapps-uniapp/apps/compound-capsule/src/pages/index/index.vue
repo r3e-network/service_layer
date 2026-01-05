@@ -2,6 +2,12 @@
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <!-- Main Tab -->
     <view v-if="activeTab === 'main'" class="tab-content">
+      <!-- DEMO Mode Banner -->
+      <view class="demo-banner">
+        <text class="demo-badge">{{ t("demoMode") }}</text>
+        <text class="demo-note">{{ t("demoNote") }}</text>
+      </view>
+
       <view v-if="status" :class="['status-msg', status.type]">
         <text>{{ status.msg }}</text>
       </view>
@@ -171,37 +177,43 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { ref, computed, onMounted } from "vue";
+import { useWallet } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
 import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoDoc from "@/shared/components/NeoDoc.vue";
 import NeoButton from "@/shared/components/NeoButton.vue";
 import NeoInput from "@/shared/components/NeoInput.vue";
 import NeoCard from "@/shared/components/NeoCard.vue";
 
+// Simulation mode - no real payments
+const isLoading = ref(false);
+
 const translations = {
-  title: { en: "Compound Capsule", zh: "复利胶囊" },
-  vaultStats: { en: "Vault Stats", zh: "金库统计" },
+  title: { en: "Yield Simulator", zh: "收益模拟器" },
+  demoMode: { en: "EDUCATIONAL DEMO", zh: "教育演示" },
+  demoNote: { en: "Simulated yields - no real funds involved", zh: "模拟收益 - 不涉及真实资金" },
+  vaultStats: { en: "Example Vault", zh: "示例金库" },
   apy: { en: "APY", zh: "年化收益率" },
   tvl: { en: "TVL", zh: "总锁仓量" },
   compoundFreq: { en: "Compound freq", zh: "复利频率" },
-  yourPosition: { en: "Your Position", zh: "你的仓位" },
+  yourPosition: { en: "Simulated Position", zh: "模拟仓位" },
   deposited: { en: "Deposited", zh: "已存入" },
   earned: { en: "Earned", zh: "已赚取" },
   est30d: { en: "Est. 30d", zh: "预计30天" },
   manage: { en: "Manage", zh: "管理" },
-  createCapsule: { en: "Create Capsule", zh: "创建胶囊" },
+  createCapsule: { en: "Simulate Deposit", zh: "模拟存款" },
   lockPeriod: { en: "Lock Period", zh: "锁定期限" },
   projectedReturns: { en: "Projected Returns", zh: "预计收益" },
   amountPlaceholder: { en: "Amount (GAS)", zh: "金额 (GAS)" },
-  processing: { en: "Processing...", zh: "处理中..." },
-  deposit: { en: "Deposit", zh: "存入" },
-  mockDepositFee: { en: "Mock deposit fee: {fee} GAS", zh: "模拟存款费用：{fee} GAS" },
+  processing: { en: "Simulating...", zh: "模拟中..." },
+  deposit: { en: "Run Simulation", zh: "运行模拟" },
+  exampleRates: { en: "Example rates for educational purposes", zh: "仅供教育目的的示例利率" },
   enterValidAmount: { en: "Enter a valid amount", zh: "请输入有效金额" },
-  depositedAmount: { en: "Deposited {amount} GAS", zh: "已存入 {amount} GAS" },
-  paymentFailed: { en: "Payment failed", zh: "支付失败" },
-  main: { en: "Main", zh: "主页" },
+  depositedAmount: { en: "Simulation: {amount} GAS deposited scenario", zh: "模拟：{amount} GAS 存款场景" },
+  simulationError: { en: "Simulation error", zh: "模拟错误" },
+  main: { en: "Simulate", zh: "模拟" },
   stats: { en: "Stats", zh: "统计" },
   activeCapsules: { en: "Active Capsules", zh: "活跃胶囊" },
   maturesIn: { en: "Matures in", zh: "到期时间" },
@@ -251,7 +263,6 @@ const docFeatures = computed(() => [
 ]);
 const APP_ID = "miniapp-compound-capsule";
 const { address, connect } = useWallet();
-const { payGAS, isLoading } = usePayments(APP_ID);
 
 const vault = ref<Vault>({ apy: 18.5, tvl: 125000, compoundFreq: "Every 6h" });
 const position = ref<Position>({ deposited: 100, earned: 1.2345, est30d: 1.54 });
@@ -320,26 +331,73 @@ const recentActivity = ref<{ icon: string; amount: number; timestamp: string }[]
 
 const fmt = (n: number, d = 2) => formatNumber(n, d);
 
+// Fetch data and register automation for auto-compounding
+const fetchData = async () => {
+  try {
+    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
+    if (!sdk?.invoke) return;
+
+    // Fetch capsule data
+    const data = (await sdk.invoke("compoundCapsule.getData", { appId: APP_ID })) as {
+      capsules: typeof activeCapsules.value;
+      stats: typeof stats.value;
+    } | null;
+
+    if (data) {
+      activeCapsules.value = data.capsules || [];
+      stats.value = data.stats || stats.value;
+    }
+
+    // Register for auto-compound automation via Edge Function
+    await fetch("/api/automation/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        appId: APP_ID,
+        taskName: "autoCompound",
+        taskType: "scheduled",
+        payload: {
+          action: "custom",
+          handler: "compound:autoCompound",
+        },
+        schedule: { intervalSeconds: 6 * 60 * 60 }, // 6 hours
+      }),
+    });
+  } catch (e) {
+    console.warn("[CompoundCapsule] Failed to fetch data:", e);
+  }
+};
+
+onMounted(() => {
+  fetchData();
+});
+
 const deposit = async (): Promise<void> => {
   if (isLoading.value) return;
   const amt = parseFloat(amount.value);
   if (!(amt > 0)) return void (status.value = { msg: t("enterValidAmount"), type: "error" });
-  try {
-    await payGAS((amt + parseFloat(depositFee)).toFixed(3), `compound:deposit:${amt}`);
-    position.value.deposited += amt;
 
-    stats.value.totalDeposits++;
-    recentActivity.value.unshift({
-      icon: "💰",
-      amount: amt,
-      timestamp: new Date().toLocaleTimeString(),
-    });
-    if (recentActivity.value.length > 10) recentActivity.value.pop();
+  // Simulation mode - no real payment
+  isLoading.value = true;
 
-    status.value = { msg: t("depositedAmount").replace("{amount}", String(amt)), type: "success" };
-  } catch (e: any) {
-    status.value = { msg: e?.message || t("paymentFailed"), type: "error" };
-  }
+  // Simulate processing delay
+  await new Promise((resolve) => setTimeout(resolve, 1200));
+
+  position.value.deposited += amt;
+  // Simulate earned based on APY
+  position.value.earned += amt * (vault.value.apy / 100 / 12);
+  position.value.est30d = position.value.deposited * (vault.value.apy / 100 / 12);
+
+  stats.value.totalDeposits++;
+  recentActivity.value.unshift({
+    icon: "💰",
+    amount: amt,
+    timestamp: new Date().toLocaleTimeString(),
+  });
+  if (recentActivity.value.length > 10) recentActivity.value.pop();
+
+  status.value = { msg: t("depositedAmount").replace("{amount}", String(amt)), type: "success" };
+  isLoading.value = false;
 };
 </script>
 
@@ -354,12 +412,35 @@ const deposit = async (): Promise<void> => {
   display: flex;
   flex-direction: column;
   gap: $space-4;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
 
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+// DEMO Banner
+.demo-banner {
+  background: linear-gradient(135deg, var(--neo-green) 0%, var(--brutal-yellow) 100%);
+  border: $border-width-md solid var(--neo-black);
+  padding: $space-3 $space-4;
+  text-align: center;
+  box-shadow: $shadow-md;
+}
+
+.demo-badge {
+  display: block;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-black;
+  color: var(--neo-black);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.demo-note {
+  display: block;
+  font-size: $font-size-sm;
+  color: var(--neo-black);
+  margin-top: $space-1;
+  opacity: 0.8;
 }
 
 .status-msg {
@@ -408,7 +489,9 @@ const deposit = async (): Promise<void> => {
     background: var(--bg-secondary);
     border: $border-width-lg solid var(--border-color);
     border-radius: 40px;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
     box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
   }
 
@@ -790,7 +873,7 @@ const deposit = async (): Promise<void> => {
 
   .progress-fill {
     flex: 1;
-  min-height: 0;
+    min-height: 0;
     background: linear-gradient(90deg, var(--neo-purple) 0%, var(--neo-green) 100%);
     transition: width 0.4s ease;
     box-shadow: 0 0 8px color-mix(in srgb, var(--neo-green) 50%, transparent);

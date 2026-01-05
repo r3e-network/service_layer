@@ -106,10 +106,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
-import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
 import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoDoc from "@/shared/components/NeoDoc.vue";
 import NeoButton from "@/shared/components/NeoButton.vue";
 import NeoInput from "@/shared/components/NeoInput.vue";
 import NeoCard from "@/shared/components/NeoCard.vue";
@@ -171,6 +172,7 @@ const docFeatures = computed(() => [
 const APP_ID = "miniapp-neo-crash";
 const { address, connect } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
+const { requestRandom } = useRNG(APP_ID);
 
 const betAmount = ref("1.0");
 const autoCashout = ref("2.0");
@@ -178,13 +180,9 @@ const currentMultiplier = ref(1.0);
 const gameState = ref<"waiting" | "running" | "crashed">("waiting");
 const currentBet = ref(0);
 const status = ref<{ msg: string; type: string } | null>(null);
-const history = ref([
-  { multiplier: 1.52 },
-  { multiplier: 3.21 },
-  { multiplier: 1.08 },
-  { multiplier: 2.45 },
-  { multiplier: 1.89 },
-]);
+const history = ref<Array<{ multiplier: number }>>([]);
+const dataLoading = ref(true);
+const crashPoint = ref(0); // VRF-determined crash point
 
 // Canvas and animation state
 const canvasContext = ref<any>(null);
@@ -342,6 +340,23 @@ const handleCanvasTouch = () => {
   // Optional: handle touch interactions
 };
 
+// Fetch VRF crash point for next round
+const fetchCrashPoint = async () => {
+  try {
+    const randomHex = await requestRandom(`crash:${Date.now()}`);
+    if (randomHex) {
+      // Convert hex to crash multiplier (1.0 - 10.0 range)
+      const randomValue = parseInt(randomHex.slice(0, 8), 16) / 0xffffffff;
+      crashPoint.value = 1.0 + randomValue * 9.0;
+    } else {
+      crashPoint.value = 1.5 + Math.random() * 3; // Fallback
+    }
+  } catch (e) {
+    console.warn("[NeoCrash] VRF failed, using fallback:", e);
+    crashPoint.value = 1.5 + Math.random() * 3;
+  }
+};
+
 let gameTimer: number;
 onMounted(() => {
   // Initialize canvas
@@ -352,6 +367,8 @@ onMounted(() => {
   gameTimer = setInterval(() => {
     if (gameState.value === "waiting") {
       graphPoints.value = [];
+      // Fetch VRF crash point before starting
+      fetchCrashPoint();
       setTimeout(() => {
         gameState.value = "running";
         currentMultiplier.value = 1.0;
@@ -373,7 +390,8 @@ onMounted(() => {
         cashOut();
       }
 
-      if (Math.random() < 0.02 || currentMultiplier.value > 10) {
+      // Use VRF-determined crash point instead of Math.random()
+      if (currentMultiplier.value >= crashPoint.value) {
         gameState.value = "crashed";
         triggerExplosion();
         drawGraph();
@@ -393,6 +411,28 @@ onMounted(() => {
 });
 
 onUnmounted(() => clearInterval(gameTimer));
+
+// Fetch game history from contract
+const fetchData = async () => {
+  try {
+    dataLoading.value = true;
+    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
+    if (!sdk?.invoke) return;
+
+    const data = (await sdk.invoke("neoCrash.getHistory", { appId: APP_ID, limit: 10 })) as Array<{
+      multiplier: number;
+    }> | null;
+    if (data) {
+      history.value = data;
+    }
+  } catch (e) {
+    console.warn("[NeoCrash] Failed to fetch data:", e);
+  } finally {
+    dataLoading.value = false;
+  }
+};
+
+fetchData();
 </script>
 
 <style lang="scss" scoped>
@@ -406,12 +446,9 @@ onUnmounted(() => clearInterval(gameTimer));
   display: flex;
   flex-direction: column;
   gap: $space-4;
-  overflow: hidden;
-
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 // === CRASH GAME GRAPH ===
@@ -422,7 +459,9 @@ onUnmounted(() => clearInterval(gameTimer));
   background: var(--bg-card);
   border: $border-width-lg solid var(--border-color);
   box-shadow: $shadow-lg;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   margin-bottom: $space-4;
 }
 

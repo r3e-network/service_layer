@@ -267,6 +267,59 @@ const shouldPulse = computed(() => {
 
 const formatNum = (n: number) => formatNumber(n, 0);
 
+// Fetch data and check automation status
+const fetchData = async () => {
+  try {
+    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
+    if (!sdk?.invoke) return;
+
+    const data = (await sdk.invoke("doomsdayClock.getData", { appId: APP_ID })) as {
+      countdown: string;
+      totalStaked: number;
+      userStake: number;
+      participants: number;
+      outcomes: typeof outcomes.value;
+      history: typeof history.value;
+    } | null;
+
+    if (data) {
+      countdown.value = data.countdown || countdown.value;
+      totalStaked.value = data.totalStaked || 0;
+      userStake.value = data.userStake || 0;
+      participants.value = data.participants || 0;
+      if (data.outcomes) outcomes.value = data.outcomes;
+      if (data.history) history.value = data.history;
+    }
+  } catch (e) {
+    console.warn("[DoomsdayClock] Failed to fetch data:", e);
+  }
+};
+
+// Trigger event settlement when countdown reaches zero via Edge Function
+const triggerEventSettlement = async () => {
+  try {
+    await fetch("/api/automation/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        appId: APP_ID,
+        taskName: "settlement",
+        taskType: "scheduled",
+        payload: {
+          action: "custom",
+          handler: "doomsday:settlement",
+          data: { event: "settlement" },
+        },
+      }),
+    });
+
+    // Refresh data after settlement
+    setTimeout(() => fetchData(), 2000);
+  } catch (e) {
+    console.warn("[DoomsdayClock] Event settlement failed:", e);
+  }
+};
+
 const placeStake = async () => {
   if (isLoading.value || selectedOutcome.value === null) {
     status.value = { msg: t("selectOutcome"), type: "error" };
@@ -289,7 +342,11 @@ const placeStake = async () => {
 };
 
 let timer: number;
+let lastSeconds = 0;
+
 onMounted(() => {
+  fetchData();
+
   timer = setInterval(() => {
     const parts = countdown.value.split(":");
     let hours = parseInt(parts[0]);
@@ -305,6 +362,14 @@ onMounted(() => {
       mins = 59;
       secs = 59;
     }
+
+    const currentSeconds = hours * 3600 + mins * 60 + secs;
+
+    // Trigger settlement when countdown reaches zero
+    if (lastSeconds > 0 && currentSeconds === 0) {
+      triggerEventSettlement();
+    }
+    lastSeconds = currentSeconds;
 
     countdown.value = `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   }, 1000);
@@ -324,12 +389,9 @@ onUnmounted(() => clearInterval(timer));
   display: flex;
   flex-direction: column;
   gap: $space-4;
-  overflow: hidden;
-
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .status-msg {
@@ -361,7 +423,9 @@ onUnmounted(() => clearInterval(timer));
 // Doomsday Clock Card
 .doomsday-clock-card {
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 
   &.critical {
     border-color: var(--brutal-red);

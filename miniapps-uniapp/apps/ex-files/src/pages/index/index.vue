@@ -142,6 +142,7 @@ import { ref, computed } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoDoc from "@/shared/components/NeoDoc.vue";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
 const translations = {
@@ -363,17 +364,18 @@ const uploadMemory = async () => {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch;
   padding: $space-4;
 }
 
 .tab-content {
   flex: 1;
-  flex: 1;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 // Status Message
@@ -485,7 +487,9 @@ const uploadMemory = async () => {
   background: var(--bg-card);
   border: $border-width-md solid var(--border-color);
   border-radius: $radius-lg;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   transition: transform $transition-fast;
 
   &.file-photo {
@@ -734,6 +738,27 @@ const uploadMemory = async () => {
       transform: translate(2px, 2px);
       box-shadow: 3px 3px 0 var(--neo-purple);
     }
+  }
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 </style>

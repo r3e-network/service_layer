@@ -122,10 +122,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoDoc from "@/shared/components/NeoDoc.vue";
 import NeoButton from "@/shared/components/NeoButton.vue";
 import NeoCard from "@/shared/components/NeoCard.vue";
 import NeoStats from "@/shared/components/NeoStats.vue";
@@ -201,22 +202,16 @@ const navTabs = [
   { id: "docs", icon: "book", label: t("docs") },
 ];
 
-const maskCount = ref(3);
-const reputation = ref(85);
-const proposals = ref(5);
+const maskCount = ref(0);
+const reputation = ref(0);
+const proposals = ref(0);
 const selectedMask = ref(0);
 const status = ref<{ msg: string; type: string } | null>(null);
+const dataLoading = ref(true);
 
-const masks = ref<Mask[]>([
-  { icon: "🎭", name: "Shadow", power: 100 },
-  { icon: "👺", name: "Demon", power: 250 },
-  { icon: "🦊", name: "Fox", power: 150 },
-]);
+const masks = ref<Mask[]>([]);
 
-const proposalsList = ref<Proposal[]>([
-  { id: 1, title: "Increase treasury allocation", forVotes: 450, againstVotes: 120, revealTime: "2h 15m" },
-  { id: 2, title: "New governance model", forVotes: 380, againstVotes: 200, revealTime: "5h 42m" },
-]);
+const proposalsList = ref<Proposal[]>([]);
 
 const statsData = computed<StatItem[]>(() => [
   { label: t("masks"), value: maskCount.value, variant: "default" },
@@ -254,6 +249,35 @@ const vote = async (id: number, support: boolean) => {
     status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
+
+// Fetch data from contract
+const fetchData = async () => {
+  try {
+    dataLoading.value = true;
+    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
+    if (!sdk?.invoke) return;
+
+    const data = (await sdk.invoke("masqueradeDao.getData", { appId: APP_ID })) as {
+      masks: Mask[];
+      proposals: Proposal[];
+      reputation: number;
+    } | null;
+
+    if (data) {
+      masks.value = data.masks || [];
+      proposalsList.value = data.proposals || [];
+      maskCount.value = data.masks?.length || 0;
+      reputation.value = data.reputation || 0;
+      proposals.value = data.proposals?.length || 0;
+    }
+  } catch (e) {
+    console.warn("[MasqueradeDAO] Failed to fetch:", e);
+  } finally {
+    dataLoading.value = false;
+  }
+};
+
+onMounted(() => fetchData());
 </script>
 
 <style lang="scss" scoped>
@@ -322,7 +346,9 @@ const vote = async (id: number, support: boolean) => {
   cursor: pointer;
   transition: all $transition-fast;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 
   &::before {
     content: "";
@@ -450,7 +476,7 @@ const vote = async (id: number, support: boolean) => {
     left: 0;
     width: 4px;
     flex: 1;
-  min-height: 0;
+    min-height: 0;
     background: var(--neo-purple);
     opacity: 0.5;
   }

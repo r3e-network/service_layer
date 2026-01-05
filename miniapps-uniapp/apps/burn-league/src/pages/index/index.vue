@@ -239,12 +239,9 @@ const burnTokens = async () => {
   display: flex;
   flex-direction: column;
   gap: $space-4;
-  overflow: hidden;
-
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .status-msg {
@@ -277,7 +274,9 @@ const burnTokens = async () => {
 /* Hero Card with Fire Animation */
 .hero-card {
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   background: linear-gradient(135deg, var(--brutal-orange) 0%, var(--brutal-red) 100%);
   border: $border-width-lg solid var(--brutal-red);
   box-shadow:

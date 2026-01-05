@@ -154,12 +154,9 @@ const withdraw = () => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .header {
@@ -186,6 +183,7 @@ const withdraw = () => {
   border: $border-width-md solid;
   margin-bottom: $space-4;
   font-weight: $font-weight-bold;
+  animation: slideDown 0.3s ease-out;
 
   &.success {
     background: var(--status-success);
@@ -223,6 +221,19 @@ const withdraw = () => {
   background: var(--bg-secondary);
   border: $border-width-sm solid var(--border-color);
   margin-bottom: $space-4;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(139, 92, 246, 0.1), transparent);
+    animation: shimmer 3s infinite;
+  }
 }
 
 .balance {
@@ -230,6 +241,9 @@ const withdraw = () => {
   font-weight: $font-weight-black;
   color: var(--neo-purple);
   display: block;
+  animation: pulse 2s ease-in-out infinite;
+  position: relative;
+  z-index: 1;
 }
 
 .balance-label {
@@ -286,6 +300,37 @@ const withdraw = () => {
   &.secondary {
     background: var(--bg-secondary);
     color: var(--text-primary);
+  }
+}
+
+// Animations
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) rotate(45deg);
   }
 }
 </style>

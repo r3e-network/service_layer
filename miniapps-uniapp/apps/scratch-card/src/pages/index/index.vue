@@ -111,6 +111,7 @@ import { ref, computed } from "vue";
 import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoDoc from "@/shared/components/NeoDoc.vue";
 
 const translations = {
   title: { en: "Scratch Card", zh: "刮刮卡" },
@@ -236,12 +237,9 @@ const scratch = async () => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .status-msg {
@@ -311,7 +309,9 @@ const scratch = async () => {
   aspect-ratio: 1.6;
   border: $border-width-lg solid var(--border-color);
   box-shadow: $shadow-lg;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   background: var(--bg-card);
 
   &.scratching {

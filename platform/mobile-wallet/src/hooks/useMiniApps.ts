@@ -1,29 +1,27 @@
+/**
+ * useMiniApps Hook
+ * Manages MiniApp discovery, search, and filtering
+ */
+
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { fetchTrending, searchMiniApps, TrendingApp, SearchResult } from "@/lib/api/miniapps";
+import type { MiniAppInfo, MiniAppCategory } from "@/types/miniapp";
+import { BUILTIN_APPS, getAppsByCategory } from "@/lib/miniapp";
 
-export interface MiniApp {
-  app_id: string;
-  name: string;
-  description: string;
-  icon: string;
-  category: string;
-  stats?: {
-    users_24h: number;
-    txs_24h: number;
-    volume_24h: string;
-  };
-}
+// Re-export MiniAppInfo as MiniApp for backward compatibility
+export type MiniApp = MiniAppInfo;
 
-const BUILTIN_APPS: MiniApp[] = [
-  { app_id: "lottery", name: "Neo Lottery", description: "Provably fair lottery", icon: "🎰", category: "Gaming" },
-  { app_id: "coinflip", name: "Coin Flip", description: "50/50 coin flip", icon: "🪙", category: "Gaming" },
-  { app_id: "dicegame", name: "Dice Game", description: "Roll and win", icon: "🎲", category: "Gaming" },
-  { app_id: "redenvelope", name: "Red Envelope", description: "Send GAS gifts", icon: "🧧", category: "Social" },
-  { app_id: "secretvote", name: "Secret Vote", description: "Private voting", icon: "🗳️", category: "Governance" },
-  { app_id: "predictionmarket", name: "Prediction", description: "Trade outcomes", icon: "📊", category: "DeFi" },
-];
+const CATEGORIES: Array<"All" | MiniAppCategory> = ["All", "gaming", "defi", "governance", "utility", "social", "nft"];
 
-const CATEGORIES = ["All", "Gaming", "DeFi", "Social", "Governance"];
+const CATEGORY_DISPLAY: Record<string, string> = {
+  All: "All",
+  gaming: "Gaming",
+  defi: "DeFi",
+  governance: "Governance",
+  utility: "Utility",
+  social: "Social",
+  nft: "NFT",
+};
 
 export function useMiniApps() {
   const [selectedCategory, setCategory] = useState("All");
@@ -79,12 +77,15 @@ export function useMiniApps() {
   const apps = useMemo(() => {
     if (searchQuery.trim()) return searchResults;
     if (trendingApps.length > 0) return trendingApps;
-    // Fallback filter
+    // Fallback to builtin apps
     if (selectedCategory === "All") return BUILTIN_APPS;
-    return BUILTIN_APPS.filter((app) => app.category === selectedCategory);
+    return getAppsByCategory(selectedCategory as MiniAppCategory);
   }, [searchQuery, searchResults, trendingApps, selectedCategory]);
 
   const clearSearch = useCallback(() => setSearchQuery(""), []);
+
+  // Get display name for category
+  const getCategoryDisplay = useCallback((cat: string) => CATEGORY_DISPLAY[cat] || cat, []);
 
   return {
     apps,
@@ -96,6 +97,7 @@ export function useMiniApps() {
     clearSearch,
     isLoading,
     error,
+    getCategoryDisplay,
   };
 }
 
@@ -105,8 +107,14 @@ function mapTrendingToMiniApp(data: TrendingApp[]): MiniApp[] {
     name: t.name,
     description: "",
     icon: t.icon,
-    category: t.category,
-    stats: t.stats,
+    category: (t.category?.toLowerCase() || "utility") as MiniAppCategory,
+    entry_url: `/miniapps/${t.app_id}/index.html`,
+    stats: {
+      users_24h: t.stats?.users_24h,
+      txs_24h: t.stats?.txs_24h,
+      volume_24h: t.stats?.volume_24h,
+    },
+    permissions: {},
   }));
 }
 
@@ -116,6 +124,8 @@ function mapSearchToMiniApp(data: SearchResult[]): MiniApp[] {
     name: s.name,
     description: s.description,
     icon: s.icon,
-    category: s.category,
+    category: (s.category?.toLowerCase() || "utility") as MiniAppCategory,
+    entry_url: `/miniapps/${s.app_id}/index.html`,
+    permissions: {},
   }));
 }

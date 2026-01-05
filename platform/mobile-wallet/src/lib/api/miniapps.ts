@@ -3,7 +3,7 @@
  * Fetches trending apps and search results from host-app API
  */
 
-const API_BASE = "https://miniapps.neo.org/api";
+const API_BASE = "https://neomini.app/api";
 
 export interface TrendingApp {
   app_id: string;

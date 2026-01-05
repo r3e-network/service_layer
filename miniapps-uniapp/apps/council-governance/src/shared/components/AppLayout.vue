@@ -1,5 +1,5 @@
 <template>
-  <view class="mobile-container">
+  <view :class="['mobile-container', isEmbedded && 'embedded']">
     <view class="app-layout">
       <view class="app-content">
         <slot />
@@ -16,6 +16,9 @@
 
 <script setup lang="ts">
 import NavBar, { type NavTab } from "./NavBar.vue";
+
+const isEmbedded =
+  typeof window !== "undefined" && new URLSearchParams(window.location.search).get("embedded") === "1";
 
 defineProps<{
   title?: string;
@@ -63,6 +66,10 @@ defineEmits<{
     border-left: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
     border-right: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
   }
+}
+
+.mobile-container.embedded .app-layout {
+  max-width: 100%;
 }
 
 .app-content {

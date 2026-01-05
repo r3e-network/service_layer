@@ -112,6 +112,7 @@ import { ref, computed } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoDoc from "@/shared/components/NeoDoc.vue";
 import NeoButton from "@/shared/components/NeoButton.vue";
 import NeoInput from "@/shared/components/NeoInput.vue";
 import NeoCard from "@/shared/components/NeoCard.vue";
@@ -547,5 +548,25 @@ const sendTip = async () => {
   font-size: $font-size-base;
   font-weight: $font-weight-black;
   color: var(--neo-green);
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 </style>

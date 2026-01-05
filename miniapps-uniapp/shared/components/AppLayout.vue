@@ -1,21 +1,25 @@
 <template>
-  <view class="mobile-container">
-    <view class="app-layout">
-      <view class="app-content">
-        <slot />
+  <view :class="['mobile-container', isEmbedded && 'embedded']">
+    <view class="aspect-wrapper">
+      <view class="app-layout">
+        <view class="app-content">
+          <slot />
+        </view>
+        <NavBar
+          v-if="tabs && tabs.length > 0"
+          :tabs="tabs"
+          :active-tab="activeTab"
+          @change="$emit('tab-change', $event)"
+        />
       </view>
-      <NavBar
-        v-if="tabs && tabs.length > 0"
-        :tabs="tabs"
-        :active-tab="activeTab"
-        @change="$emit('tab-change', $event)"
-      />
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
 import NavBar, { type NavTab } from "./NavBar.vue";
+
+const isEmbedded = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("embedded") === "1";
 
 defineProps<{
   title?: string;
@@ -35,21 +39,32 @@ defineEmits<{
 <style lang="scss">
 @import "@/shared/styles/theme.scss";
 
-// Mobile container - centers the app and maintains aspect ratio
+// iPhone 14 Pro Max aspect ratio: 430 x 932 = 0.461
+$aspect-ratio: calc(430 / 932);
+
+// Mobile container - centers the app
 .mobile-container {
   width: 100%;
-  height: 100vh;
-  height: 100dvh; // Dynamic viewport height for mobile browsers
+  height: 100%;
   display: flex;
   justify-content: center;
-  align-items: stretch;
+  align-items: center;
   background: var(--bg-primary, #0a0a0a);
   overflow: hidden;
 }
 
+// Aspect ratio wrapper - maintains mobile proportions
+.aspect-wrapper {
+  height: 100%;
+  max-height: 100%;
+  aspect-ratio: $aspect-ratio;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 .app-layout {
   width: 100%;
-  max-width: 430px; // iPhone 14 Pro Max width - standard mobile width
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -57,11 +72,26 @@ defineEmits<{
   color: var(--text-primary, #ffffff);
   overflow: hidden;
   position: relative;
+  border-left: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  border-right: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+}
 
-  // Subtle border on larger screens to define the app boundary
-  @media (min-width: 480px) {
-    border-left: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
-    border-right: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+// Embedded mode: fill container completely (use 100% instead of viewport units for iframe)
+.mobile-container.embedded {
+  height: 100%;
+  max-height: 100%;
+
+  .aspect-wrapper {
+    aspect-ratio: unset;
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+  }
+
+  .app-layout {
+    border: none;
+    height: 100%;
+    max-height: 100%;
   }
 }
 
@@ -73,11 +103,7 @@ defineEmits<{
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-
-  // Smooth scrolling
   scroll-behavior: smooth;
-
-  // Hide scrollbar but keep functionality
   scrollbar-width: thin;
   scrollbar-color: var(--text-muted, #666) transparent;
 

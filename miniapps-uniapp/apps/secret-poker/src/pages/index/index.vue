@@ -238,8 +238,7 @@ const dealNewHand = () => {
 
 // Play card sound effect (placeholder)
 const playCardSound = () => {
-  // In a real app, you would play an audio file here
-  console.log("Card clicked!");
+  // Sound effect placeholder - implement with actual audio in production
 };
 
 // Show celebration animation
@@ -339,11 +338,9 @@ const reveal = async () => {
   display: flex;
   flex-direction: column;
   gap: $space-4;
-  overflow: hidden;
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 // === CELEBRATION ANIMATION ===
@@ -465,7 +462,9 @@ const reveal = async () => {
   border: $border-width-lg solid var(--border-color);
   border-radius: $radius-lg;
   box-shadow: $shadow-lg;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .table-felt {

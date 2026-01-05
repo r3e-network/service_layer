@@ -120,11 +120,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import { formatNumber } from "@/shared/utils/format";
 import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoDoc from "@/shared/components/NeoDoc.vue";
 import NeoButton from "@/shared/components/NeoButton.vue";
 import NeoInput from "@/shared/components/NeoInput.vue";
 import NeoCard from "@/shared/components/NeoCard.vue";
@@ -197,10 +198,11 @@ const { payGAS, isLoading } = usePayments(APP_ID);
 const rentAmount = ref("100");
 const rentPrice = ref("0.5");
 const rentDuration = ref(24);
-const votingPower = ref(1000);
-const earned = ref(12.5);
-const activeRentals = ref(2);
+const votingPower = ref(0);
+const earned = ref(0);
+const activeRentals = ref(0);
 const status = ref<{ msg: string; type: string } | null>(null);
+const dataLoading = ref(true);
 
 const durations = [
   { hours: 6, label: "6h" },
@@ -209,44 +211,7 @@ const durations = [
   { hours: 168, label: "7d" },
 ];
 
-const delegates = ref<Delegate[]>([
-  {
-    id: 1,
-    name: "Alpha Delegate",
-    address: "0x1a2b...3c4d",
-    tier: "elite",
-    reputation: 98,
-    successRate: 95,
-    commission: 2.5,
-    totalDelegated: 125000,
-    votesCast: 342,
-    delegateAmount: "",
-  },
-  {
-    id: 2,
-    name: "Beta Governance",
-    address: "0x5e6f...7g8h",
-    tier: "elite",
-    reputation: 96,
-    successRate: 92,
-    commission: 3.0,
-    totalDelegated: 98000,
-    votesCast: 287,
-    delegateAmount: "",
-  },
-  {
-    id: 3,
-    name: "Gamma Voter",
-    address: "0x9i0j...1k2l",
-    tier: "standard",
-    reputation: 88,
-    successRate: 85,
-    commission: 5.0,
-    totalDelegated: 45000,
-    votesCast: 156,
-    delegateAmount: "",
-  },
-]);
+const delegates = ref<Delegate[]>([]);
 
 const formatNum = (n: number) => formatNumber(n, 1);
 
@@ -288,6 +253,35 @@ const delegateToMerc = async (id: number, amount: string) => {
     status.value = { msg: e.message || "Error", type: "error" };
   }
 };
+
+// Fetch data from contract
+const fetchData = async () => {
+  try {
+    dataLoading.value = true;
+    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
+    if (!sdk?.invoke) return;
+
+    const data = (await sdk.invoke("govMerc.getData", { appId: APP_ID })) as {
+      votingPower: number;
+      earned: number;
+      activeRentals: number;
+      delegates: Delegate[];
+    } | null;
+
+    if (data) {
+      votingPower.value = data.votingPower;
+      earned.value = data.earned;
+      activeRentals.value = data.activeRentals;
+      delegates.value = data.delegates || [];
+    }
+  } catch (e) {
+    console.warn("[GovMerc] Failed to fetch data:", e);
+  } finally {
+    dataLoading.value = false;
+  }
+};
+
+onMounted(() => fetchData());
 </script>
 
 <style lang="scss" scoped>
@@ -300,12 +294,9 @@ const delegateToMerc = async (id: number, amount: string) => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .status-msg {
@@ -607,5 +598,25 @@ const delegateToMerc = async (id: number, amount: string) => {
   margin-top: $space-4;
   padding-top: $space-4;
   border-top: $border-width-sm solid var(--border-color);
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
 }
 </style>

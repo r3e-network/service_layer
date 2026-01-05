@@ -112,6 +112,7 @@ import { ref, computed } from "vue";
 import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoDoc from "@/shared/components/NeoDoc.vue";
 import NeoButton from "@/shared/components/NeoButton.vue";
 import NeoCard from "@/shared/components/NeoCard.vue";
 
@@ -250,13 +251,10 @@ const getReading = () => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   position: relative;
-
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
 
   &.mystical-bg {
     background: linear-gradient(

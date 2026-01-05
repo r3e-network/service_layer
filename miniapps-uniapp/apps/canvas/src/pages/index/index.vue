@@ -279,12 +279,9 @@ const mintCanvas = async () => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .status-msg {
@@ -320,7 +317,7 @@ const mintCanvas = async () => {
   padding: $space-4;
   box-shadow: $shadow-lg;
   overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch;
   max-height: calc(100vh - 180px);
 }
 
@@ -629,5 +626,37 @@ const mintCanvas = async () => {
   color: var(--neo-green);
   font-weight: $font-weight-bold;
   font-size: $font-size-base;
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 </style>

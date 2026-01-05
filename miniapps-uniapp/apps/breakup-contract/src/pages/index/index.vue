@@ -115,15 +115,15 @@
     </view>
 
     <!-- Docs Tab -->
-      <view v-if="activeTab === 'docs'" class="tab-content scrollable">
-        <NeoDoc
-          :title="t('title')"
-          :subtitle="t('docSubtitle')"
-          :description="t('docDescription')"
-          :steps="docSteps"
-          :features="docFeatures"
-        />
-      </view>
+    <view v-if="activeTab === 'docs'" class="tab-content scrollable">
+      <NeoDoc
+        :title="t('title')"
+        :subtitle="t('docSubtitle')"
+        :description="t('docDescription')"
+        :steps="docSteps"
+        :features="docFeatures"
+      />
+    </view>
   </AppLayout>
 </template>
 
@@ -132,6 +132,7 @@ import { ref, computed } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoDoc from "@/shared/components/NeoDoc.vue";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
 const translations = {
@@ -258,7 +259,7 @@ const breakContract = async (contract: any) => {
   display: flex;
   flex-direction: column;
   padding: $space-4;
-  min-height: 100vh;
+  height: 100%;
 }
 
 // ============================================
@@ -586,7 +587,9 @@ const breakContract = async (contract: any) => {
   padding: $space-5;
   box-shadow: $shadow-md;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 
   &::before {
     content: "";
@@ -595,7 +598,7 @@ const breakContract = async (contract: any) => {
     left: 0;
     width: 4px;
     flex: 1;
-  min-height: 0;
+    min-height: 0;
     background: var(--brutal-pink);
   }
 }

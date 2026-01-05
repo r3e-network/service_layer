@@ -89,6 +89,7 @@ import { ref, computed, onMounted } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoDoc from "@/shared/components/NeoDoc.vue";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
 const translations = {
@@ -253,7 +254,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch;
   padding: $space-4;
 }
 
@@ -601,6 +602,26 @@ onMounted(async () => {
     &:hover {
       box-shadow: $shadow-md;
     }
+  }
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
   }
 }
 </style>

@@ -1,0 +1,13 @@
+{
+  "name": "Neo Treasury",
+  "appid": "miniapp-neo-treasury",
+  "description": "Track Neo Foundation and Ecosystem Fund balances",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "h5": {
+    "title": "Neo Treasury",
+    "router": {
+      "mode": "hash"
+    }
+  }
+}

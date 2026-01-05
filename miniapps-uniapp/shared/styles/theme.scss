@@ -25,17 +25,12 @@ page {
   box-sizing: border-box !important;
 }
 
+// In iframe context, use 100% instead of viewport units
+// Viewport units don't work correctly inside iframes
 html,
 body {
-  height: 100dvh;
-  height: 100vh;
-}
-
-@supports (height: 100dvh) {
-  html,
-  body {
-    height: 100dvh;
-  }
+  height: 100% !important;
+  min-height: 0 !important;
 }
 
 // ============================================

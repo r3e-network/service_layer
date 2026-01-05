@@ -1,6 +1,7 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
-    <view v-if="activeTab === 'swap' || activeTab === 'pool'">
+    <!-- Swap Tab -->
+    <view v-if="activeTab === 'swap'">
       <!-- Swap Card -->
       <view class="swap-card">
         <!-- From Token Card -->
@@ -137,6 +138,47 @@
       </view>
     </view>
 
+    <!-- Pool Tab -->
+    <view v-if="activeTab === 'pool'" class="tab-content">
+      <view class="pool-section">
+        <view class="pool-header">
+          <text class="pool-title">{{ t("liquidityPool") }}</text>
+          <text class="pool-subtitle">{{ t("poolSubtitle") }}</text>
+        </view>
+
+        <!-- Pool Stats -->
+        <view class="pool-stats">
+          <view class="stat-card">
+            <text class="stat-label">TVL</text>
+            <text class="stat-value">$12.5M</text>
+          </view>
+          <view class="stat-card">
+            <text class="stat-label">APR</text>
+            <text class="stat-value highlight">24.5%</text>
+          </view>
+        </view>
+
+        <!-- Your Position -->
+        <view class="position-card">
+          <text class="position-title">{{ t("yourPosition") }}</text>
+          <view class="position-row">
+            <text class="position-label">NEO/GAS LP</text>
+            <text class="position-value">0.00</text>
+          </view>
+          <view class="position-row">
+            <text class="position-label">{{ t("poolShare") }}</text>
+            <text class="position-value">0.00%</text>
+          </view>
+        </view>
+
+        <!-- Add Liquidity Button -->
+        <button class="pool-btn" disabled>
+          {{ t("addLiquidity") }}
+        </button>
+        <text class="coming-soon">{{ t("comingSoon") }}</text>
+      </view>
+    </view>
+
     <!-- Docs Tab -->
     <view v-if="activeTab === 'docs'" class="tab-content scrollable">
       <NeoDoc
@@ -155,6 +197,7 @@ import { ref, computed, onMounted } from "vue";
 import { useWallet } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoDoc from "@/shared/components/NeoDoc.vue";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
@@ -184,6 +227,11 @@ const translations = {
   swapFailed: { en: "Swap failed", zh: "兑换失败" },
   tabSwap: { en: "Swap", zh: "兑换" },
   tabPool: { en: "Pool", zh: "流动池" },
+  poolSubtitle: { en: "Provide liquidity and earn fees", zh: "提供流动性并赚取手续费" },
+  yourPosition: { en: "Your Position", zh: "您的仓位" },
+  poolShare: { en: "Pool Share", zh: "池份额" },
+  addLiquidity: { en: "Add Liquidity", zh: "添加流动性" },
+  comingSoon: { en: "Coming Soon", zh: "即将推出" },
 
   docs: { en: "Docs", zh: "文档" },
   docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
@@ -826,12 +874,9 @@ onMounted(() => {
   flex: 1;
   flex: 1;
   min-height: 0;
-  overflow: hidden;
-
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 // === MODAL TITLE ===
@@ -839,5 +884,114 @@ onMounted(() => {
   font-size: $font-size-lg;
   font-weight: $font-weight-bold;
   color: var(--text-primary);
+}
+
+// === POOL SECTION ===
+.pool-section {
+  padding: $space-4;
+}
+
+.pool-header {
+  text-align: center;
+  margin-bottom: $space-5;
+}
+
+.pool-title {
+  display: block;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: var(--text-primary);
+  margin-bottom: $space-2;
+}
+
+.pool-subtitle {
+  font-size: $font-size-sm;
+  color: var(--text-secondary);
+}
+
+.pool-stats {
+  display: flex;
+  gap: $space-3;
+  margin-bottom: $space-4;
+}
+
+.stat-card {
+  flex: 1;
+  background: var(--bg-card);
+  border: $border-width-sm solid var(--border-color);
+  padding: $space-4;
+  text-align: center;
+}
+
+.stat-label {
+  display: block;
+  font-size: $font-size-xs;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-bottom: $space-2;
+}
+
+.stat-value {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: var(--text-primary);
+
+  &.highlight {
+    color: var(--neo-green);
+  }
+}
+
+.position-card {
+  background: var(--bg-card);
+  border: $border-width-sm solid var(--border-color);
+  padding: $space-4;
+  margin-bottom: $space-4;
+}
+
+.position-title {
+  display: block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: var(--text-primary);
+  margin-bottom: $space-3;
+}
+
+.position-row {
+  display: flex;
+  justify-content: space-between;
+  padding: $space-2 0;
+}
+
+.position-label {
+  font-size: $font-size-sm;
+  color: var(--text-secondary);
+}
+
+.position-value {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: var(--text-primary);
+}
+
+.pool-btn {
+  width: 100%;
+  background: var(--bg-secondary);
+  border: $border-width-md solid var(--border-color);
+  padding: $space-4;
+  font-size: $font-size-base;
+  font-weight: $font-weight-bold;
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.coming-soon {
+  display: block;
+  text-align: center;
+  font-size: $font-size-xs;
+  color: var(--text-muted);
+  margin-top: $space-3;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 </style>

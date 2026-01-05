@@ -7,7 +7,7 @@ import { PaymentModal } from "@/components/PaymentModal";
 import { SignMessageModal } from "@/components/SignMessageModal";
 import { signMessage } from "@/lib/neo/signing";
 
-const MINIAPP_BASE_URL = "https://miniapps.neo.org";
+const MINIAPP_BASE_URL = "https://neomini.app";
 
 interface PaymentRequest {
   appId: string;

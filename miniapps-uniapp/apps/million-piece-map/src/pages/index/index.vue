@@ -297,12 +297,9 @@ const purchaseTile = async () => {
   display: flex;
   flex-direction: column;
   gap: $space-3;
-  overflow: hidden;
-
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .status-msg {

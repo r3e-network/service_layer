@@ -119,10 +119,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoDoc from "@/shared/components/NeoDoc.vue";
 import NeoButton from "@/shared/components/NeoButton.vue";
 
 const translations = {
@@ -197,25 +198,14 @@ interface Plot {
   isWatering?: boolean;
 }
 
-const plots = ref<Plot[]>([
-  { id: "1", plant: { icon: "🌻", name: "Sunflower", growth: 80 } },
-  { id: "2", plant: { icon: "🌹", name: "Rose", growth: 60 } },
-  { id: "3", plant: null },
-  { id: "4", plant: null },
-  { id: "5", plant: { icon: "🌷", name: "Tulip", growth: 100 } },
-  { id: "6", plant: null },
-]);
+const plots = ref<Plot[]>([]);
 
-const seeds = ref([
-  { id: "1", name: "Sunflower", icon: "🌻", price: "3", growTime: 24 },
-  { id: "2", name: "Rose", icon: "🌹", price: "5", growTime: 48 },
-  { id: "3", name: "Tulip", icon: "🌷", price: "4", growTime: 36 },
-  { id: "4", name: "Orchid", icon: "🌺", price: "8", growTime: 72 },
-]);
+const seeds = ref<Array<{ id: string; name: string; icon: string; price: string; growTime: number }>>([]);
 
 const status = ref<{ msg: string; type: string } | null>(null);
-const totalHarvested = ref(12);
+const totalHarvested = ref(0);
 const selectedPlot = ref<Plot | null>(null);
+const dataLoading = ref(true);
 
 const totalPlants = computed(() => plots.value.filter((p) => p.plant).length);
 const readyToHarvest = computed(() => plots.value.filter((p) => p.plant && p.plant.growth >= 100).length);
@@ -311,6 +301,49 @@ const harvestAll = () => {
     status.value = { msg: t("noReady"), type: "error" };
   }
 };
+
+// Fetch garden data from contract
+const fetchData = async () => {
+  try {
+    dataLoading.value = true;
+    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
+    if (!sdk?.invoke) return;
+
+    const data = (await sdk.invoke("garden.getData", { appId: APP_ID })) as {
+      plots: Plot[];
+      seeds: typeof seeds.value;
+      totalHarvested: number;
+    } | null;
+
+    if (data) {
+      plots.value = data.plots || [];
+      seeds.value = data.seeds || [];
+      totalHarvested.value = data.totalHarvested || 0;
+    }
+
+    // Register for plant growth automation via Edge Function
+    await fetch("/api/automation/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        appId: APP_ID,
+        taskName: "plantGrowth",
+        taskType: "scheduled",
+        payload: {
+          action: "custom",
+          handler: "garden:plantGrowth",
+        },
+        schedule: { intervalSeconds: 60 * 60 }, // 1 hour
+      }),
+    });
+  } catch (e) {
+    console.warn("[Garden] Failed to fetch:", e);
+  } finally {
+    dataLoading.value = false;
+  }
+};
+
+onMounted(() => fetchData());
 </script>
 
 <style lang="scss" scoped>
@@ -323,12 +356,9 @@ const harvestAll = () => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 .status-msg {
   text-align: center;
@@ -396,7 +426,9 @@ const harvestAll = () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   transition: all $transition-fast;
 
   &:active {

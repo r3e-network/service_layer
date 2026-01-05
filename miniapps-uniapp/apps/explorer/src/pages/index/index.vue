@@ -159,6 +159,7 @@ import { ref, computed, onMounted } from "vue";
 import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
 import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoDoc from "@/shared/components/NeoDoc.vue";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
 const translations = {
@@ -243,8 +244,18 @@ const truncateHash = (hash: string) => {
   return `${hash.slice(0, 10)}...${hash.slice(-8)}`;
 };
 
+// Fetch stats via SDK datafeed service
 const fetchStats = async () => {
   try {
+    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
+    if (sdk?.invoke) {
+      const data = (await sdk.invoke("datafeed.getNetworkStats", { appId: APP_ID })) as typeof stats.value | null;
+      if (data) {
+        stats.value = data;
+        return;
+      }
+    }
+    // Fallback to REST API
     const res = await uni.request({
       url: `${API_BASE}/stats`,
       method: "GET",
@@ -257,8 +268,22 @@ const fetchStats = async () => {
   }
 };
 
+// Fetch recent transactions via SDK datafeed service
 const fetchRecentTxs = async () => {
   try {
+    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
+    if (sdk?.invoke) {
+      const data = (await sdk.invoke("datafeed.getRecentTransactions", {
+        appId: APP_ID,
+        network: selectedNetwork.value,
+        limit: 10,
+      })) as { transactions: any[] } | null;
+      if (data?.transactions) {
+        recentTxs.value = data.transactions;
+        return;
+      }
+    }
+    // Fallback to REST API
     const res = await uni.request({
       url: `${API_BASE}/recent?network=${selectedNetwork.value}&limit=10`,
       method: "GET",
@@ -322,7 +347,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch;
   padding: $space-4;
 }
 
@@ -343,7 +368,9 @@ onMounted(() => {
   border-radius: $radius-lg;
   padding: $space-4;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   box-shadow: $shadow-sm;
   transition: all 0.3s ease;
 
@@ -354,7 +381,7 @@ onMounted(() => {
     left: 0;
     width: 4px;
     flex: 1;
-  min-height: 0;
+    min-height: 0;
     background: var(--accent-color);
   }
 
@@ -657,7 +684,7 @@ onMounted(() => {
     left: 0;
     top: 0;
     flex: 1;
-  min-height: 0;
+    min-height: 0;
     width: 3px;
     background: var(--brutal-orange);
     transform: scaleY(0);
@@ -718,6 +745,27 @@ onMounted(() => {
     background: color-mix(in srgb, var(--status-error) 15%, transparent);
     color: var(--status-error);
     border-color: color-mix(in srgb, var(--status-error) 30%, transparent);
+  }
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
   }
 }
 </style>

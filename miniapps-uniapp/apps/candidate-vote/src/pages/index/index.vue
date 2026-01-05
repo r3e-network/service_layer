@@ -290,12 +290,9 @@ onMounted(() => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .status-msg {
@@ -525,7 +522,9 @@ onMounted(() => {
   background: var(--bg-primary);
   border: $border-width-sm solid var(--border-color);
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   margin-bottom: $space-2;
 }
 
@@ -535,6 +534,7 @@ onMounted(() => {
   background: var(--neo-purple);
   transition: width $transition-normal;
   border-right: $border-width-sm solid var(--border-color);
+  animation: progressGrow 0.8s ease-out;
 }
 
 // Selected Indicator
@@ -587,5 +587,33 @@ onMounted(() => {
   font-weight: $font-weight-bold;
   font-family: $font-mono;
   font-size: $font-size-lg;
+}
+
+// Animations
+@keyframes slideIn {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes progressGrow {
+  from {
+    width: 0;
+  }
 }
 </style>

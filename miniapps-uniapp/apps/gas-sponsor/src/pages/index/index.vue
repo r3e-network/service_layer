@@ -283,7 +283,10 @@ const translations = {
   walletCheck: { en: "Wallet Connected", zh: "钱包已连接" },
   docs: { en: "Docs", zh: "文档" },
   docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: { en: "Professional documentation for this application is coming soon.", zh: "此应用程序的专业文档即将推出。" },
+  docDescription: {
+    en: "Professional documentation for this application is coming soon.",
+    zh: "此应用程序的专业文档即将推出。",
+  },
   feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
   feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
   feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
@@ -401,12 +404,18 @@ const docFeatures = computed(() => [
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch;
   padding: $space-4;
 }
 
 .tab-content {
   flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .status-msg {
@@ -461,7 +470,9 @@ const docFeatures = computed(() => [
   background: var(--bg-secondary);
   border: $border-width-lg solid var(--border-color);
   box-shadow: $shadow-md;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .fuel-level {
@@ -486,8 +497,13 @@ const docFeatures = computed(() => [
 }
 
 @keyframes wave {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(4px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(4px);
+  }
 }
 
 .tank-gauge {
@@ -525,7 +541,7 @@ const docFeatures = computed(() => [
   position: relative;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: -8px;
     left: 50%;
@@ -932,6 +948,6 @@ const docFeatures = computed(() => [
 // Scrollable content
 .scrollable {
   overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

@@ -3,7 +3,7 @@
  * Fetches MiniApp details and stats
  */
 
-const API_BASE = "https://miniapps.neo.org/api";
+const API_BASE = "https://neomini.app/api";
 
 export interface AppDetail {
   app_id: string;

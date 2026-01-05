@@ -1,119 +1,122 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
-    <view v-if="activeTab === 'game'" class="tab-content">
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
-
-      <!-- Hero Section: Countdown + Prize Pool -->
-      <view class="hero-card">
-        <view class="countdown-container">
-          <view class="countdown-circle">
-            <svg class="countdown-ring" viewBox="0 0 120 120">
-              <circle class="countdown-ring-bg" cx="60" cy="60" r="54" />
-              <circle
-                class="countdown-ring-progress"
-                cx="60"
-                cy="60"
-                r="54"
-                :style="{ strokeDashoffset: countdownProgress }"
-              />
-            </svg>
-            <view class="countdown-text">
-              <text class="countdown-time">{{ countdown }}</text>
-              <text class="countdown-label">{{ t("timeLeft") }}</text>
-            </view>
-          </view>
+    <view v-if="activeTab === 'game'" class="game-layout">
+      <!-- Fixed Hero Section: Countdown + Prize Pool (non-scrollable) -->
+      <view class="hero-fixed">
+        <view v-if="status" :class="['status-msg', status.type]">
+          <text>{{ status.msg }}</text>
         </view>
 
-        <!-- Lottery Balls Display -->
-        <view class="lottery-balls">
-          <view
-            v-for="(ball, i) in lotteryBalls"
-            :key="i"
-            class="lottery-ball"
-            :style="{ animationDelay: `${i * 0.1}s` }"
-          >
-            <text class="ball-number">{{ ball }}</text>
-          </view>
-        </view>
-
-        <!-- Prize Pool with Glow -->
-        <view class="prize-pool-display">
-          <text class="prize-label">{{ t("prizePool") }}</text>
-          <view class="prize-amount-container">
-            <text class="prize-amount">{{ formatNum(prizePool) }}</text>
-            <text class="prize-currency">GAS</text>
-          </view>
-          <view class="prize-glow"></view>
-        </view>
-      </view>
-
-      <!-- Stats Grid -->
-      <view class="stats-grid">
-        <view class="stat-box">
-          <text class="stat-icon">🎯</text>
-          <text class="stat-value">#{{ round }}</text>
-          <text class="stat-label">{{ t("round") }}</text>
-        </view>
-        <view class="stat-box">
-          <text class="stat-icon">🎫</text>
-          <text class="stat-value">{{ totalTickets }}</text>
-          <text class="stat-label">{{ t("total") }}</text>
-        </view>
-        <view class="stat-box highlight">
-          <text class="stat-icon">✨</text>
-          <text class="stat-value">{{ userTickets }}</text>
-          <text class="stat-label">{{ t("yours") }}</text>
-        </view>
-      </view>
-
-      <!-- Buy Tickets Section -->
-      <view class="card ticket-purchase-card">
-        <text class="card-title">{{ t("buyTickets") }}</text>
-
-        <!-- Ticket Selector -->
-        <view class="ticket-selector">
-          <view class="ticket-btn" @click="adjustTickets(-1)">
-            <text>−</text>
-          </view>
-          <view class="ticket-display">
-            <view class="ticket-visual">
-              <view
-                v-for="n in Math.min(tickets, 5)"
-                :key="n"
-                class="mini-ticket"
-                :style="{ transform: `translateX(${(n - 1) * -8}px) rotate(${(n - 1) * 5}deg)` }"
-              >
-                <text class="mini-ticket-text">🎫</text>
+        <view class="hero-card">
+          <view class="countdown-container">
+            <view class="countdown-circle">
+              <svg class="countdown-ring" viewBox="0 0 220 220">
+                <circle class="countdown-ring-bg" cx="110" cy="110" r="99" />
+                <circle
+                  class="countdown-ring-progress"
+                  cx="110"
+                  cy="110"
+                  r="99"
+                  :style="{ strokeDashoffset: countdownProgress }"
+                />
+              </svg>
+              <view class="countdown-text">
+                <text class="countdown-time">{{ countdown }}</text>
+                <text class="countdown-label">{{ t("timeLeft") }}</text>
               </view>
-              <text v-if="tickets > 5" class="ticket-overflow">+{{ tickets - 5 }}</text>
             </view>
-            <text class="ticket-count">{{ tickets }} {{ t("ticketsLabel") }}</text>
           </view>
-          <view class="ticket-btn" @click="adjustTickets(1)">
-            <text>+</text>
+
+          <!-- Lottery Balls Display -->
+          <view class="lottery-balls">
+            <view
+              v-for="(ball, i) in lotteryBalls"
+              :key="i"
+              class="lottery-ball"
+              :style="{ animationDelay: `${i * 0.1}s` }"
+            >
+              <text class="ball-number">{{ ball }}</text>
+            </view>
+          </view>
+
+          <!-- Prize Pool with Glow -->
+          <view class="prize-pool-display">
+            <text class="prize-label">{{ t("prizePool") }}</text>
+            <view class="prize-amount-container">
+              <text class="prize-amount">{{ formatNum(prizePool) }}</text>
+              <text class="prize-currency">GAS</text>
+            </view>
           </view>
         </view>
 
-        <!-- Total Cost -->
-        <view class="total-row">
-          <text class="total-label">{{ t("totalCost") }}</text>
-          <text class="total-value">{{ formatNum(totalCost, 1) }} GAS</text>
-        </view>
-
-        <!-- Buy Button -->
-        <view class="buy-btn" @click="buyTickets" :style="{ opacity: isLoading ? 0.6 : 1 }">
-          <text class="buy-btn-text">{{ isLoading ? t("processing") : t("buyNow") }}</text>
-          <text class="buy-btn-icon">💰</text>
+        <!-- Stats Grid -->
+        <view class="stats-grid">
+          <view class="stat-box">
+            <text class="stat-icon">🎯</text>
+            <text class="stat-value">#{{ round }}</text>
+            <text class="stat-label">{{ t("round") }}</text>
+          </view>
+          <view class="stat-box">
+            <text class="stat-icon">🎫</text>
+            <text class="stat-value">{{ totalTickets }}</text>
+            <text class="stat-label">{{ t("total") }}</text>
+          </view>
+          <view class="stat-box highlight">
+            <text class="stat-icon">✨</text>
+            <text class="stat-value">{{ userTickets }}</text>
+            <text class="stat-label">{{ t("yours") }}</text>
+          </view>
         </view>
       </view>
 
-      <!-- Recent Winners -->
+      <!-- Scrollable Buy Section -->
+      <view class="buy-section">
+        <view class="card ticket-purchase-card">
+          <text class="card-title">{{ t("buyTickets") }}</text>
+
+          <!-- Ticket Selector -->
+          <view class="ticket-selector">
+            <view class="ticket-btn" @click="adjustTickets(-1)">
+              <text>−</text>
+            </view>
+            <view class="ticket-display">
+              <view class="ticket-visual">
+                <view
+                  v-for="n in Math.min(tickets, 5)"
+                  :key="n"
+                  class="mini-ticket"
+                  :style="{ transform: `translateX(${(n - 1) * -8}px) rotate(${(n - 1) * 5}deg)` }"
+                >
+                  <text class="mini-ticket-text">🎫</text>
+                </view>
+                <text v-if="tickets > 5" class="ticket-overflow">+{{ tickets - 5 }}</text>
+              </view>
+              <text class="ticket-count">{{ tickets }} {{ t("ticketsLabel") }}</text>
+            </view>
+            <view class="ticket-btn" @click="adjustTickets(1)">
+              <text>+</text>
+            </view>
+          </view>
+
+          <!-- Total Cost -->
+          <view class="total-row">
+            <text class="total-label">{{ t("totalCost") }}</text>
+            <text class="total-value">{{ formatNum(totalCost, 1) }} GAS</text>
+          </view>
+
+          <!-- Buy Button -->
+          <view class="buy-btn" @click="buyTickets" :style="{ opacity: isLoading ? 0.6 : 1 }">
+            <text class="buy-btn-text">{{ isLoading ? t("processing") : t("buyNow") }}</text>
+            <text class="buy-btn-icon">💰</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- Winners Tab -->
+    <view v-if="activeTab === 'winners'" class="tab-content scrollable">
       <view class="card winners-card">
-        <text class="card-title">
-          <text>🏆 {{ t("recentWinners") }}</text>
-        </text>
+        <text class="card-title">🏆 {{ t("recentWinners") }}</text>
         <view class="winners-list">
           <text v-if="winners.length === 0" class="empty">{{ t("noWinners") }}</text>
           <view v-for="(w, i) in winners" :key="i" class="winner-item">
@@ -168,11 +171,13 @@ import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
 import { formatNumber, hexToBytes, randomIntFromBytes } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
 import AppLayout from "@/shared/components/AppLayout.vue";
+import NeoDoc from "@/shared/components/NeoDoc.vue";
 
 const translations = {
   title: { en: "Neo Lottery", zh: "Neo彩票" },
   subtitle: { en: "Provably fair draws", zh: "可证明公平抽奖" },
-  game: { en: "Game", zh: "游戏" },
+  game: { en: "Play", zh: "游戏" },
+  winners: { en: "Winners", zh: "中奖" },
   stats: { en: "Stats", zh: "统计" },
   statistics: { en: "Statistics", zh: "统计数据" },
   totalGames: { en: "Total Games", zh: "总游戏数" },
@@ -213,6 +218,7 @@ const t = createT(translations);
 
 const navTabs = [
   { id: "game", icon: "game", label: t("game") },
+  { id: "winners", icon: "trophy", label: t("winners") },
   { id: "stats", icon: "chart", label: t("stats") },
   { id: "docs", icon: "book", label: t("docs") },
 ];
@@ -241,18 +247,15 @@ const { requestRandom } = useRNG(APP_ID);
 
 const tickets = ref(1);
 const countdown = ref("01:00");
-const round = ref(1);
-const prizePool = ref(12.5);
-const totalTickets = ref(125);
-const userTickets = ref(3);
-const winners = ref<Winner[]>([
-  { round: 12, address: "0xAbCdEf1234567890AbCdEf1234567890AbCdEf12", prize: 8.5 },
-  { round: 11, address: "0x1234567890AbCdEf1234567890AbCdEf12345678", prize: 6.2 },
-  { round: 10, address: "0xFeDcBa0987654321FeDcBa0987654321FeDcBa09", prize: 4.8 },
-]);
+const round = ref(0);
+const prizePool = ref(0);
+const totalTickets = ref(0);
+const userTickets = ref(0);
+const winners = ref<Winner[]>([]);
 const status = ref<{ msg: string; type: string } | null>(null);
 const roundStart = ref(Date.now());
 const remainingMs = ref(ROUND_DURATION);
+const dataLoading = ref(true);
 
 // Lottery balls for visual display
 const lotteryBalls = computed(() => {
@@ -262,7 +265,7 @@ const lotteryBalls = computed(() => {
 
 // Countdown progress for circular ring
 const countdownProgress = computed(() => {
-  const circumference = 2 * Math.PI * 54;
+  const circumference = 2 * Math.PI * 99;
   const progress = remainingMs.value / ROUND_DURATION;
   return circumference * (1 - progress);
 });
@@ -289,8 +292,81 @@ const buyTickets = async () => {
   }
 };
 
+// Fetch lottery data from contract
+const fetchLotteryData = async () => {
+  try {
+    dataLoading.value = true;
+    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
+    if (!sdk?.invoke) return;
+
+    // Fetch current round info
+    const roundInfo = (await sdk.invoke("lottery.getRoundInfo", { appId: APP_ID })) as {
+      round: number;
+      prizePool: number;
+      totalTickets: number;
+      endTime: number;
+    } | null;
+
+    if (roundInfo) {
+      round.value = roundInfo.round;
+      prizePool.value = roundInfo.prizePool;
+      totalTickets.value = roundInfo.totalTickets;
+      roundStart.value = roundInfo.endTime - ROUND_DURATION;
+    }
+
+    // Fetch user tickets
+    const userInfo = (await sdk.invoke("lottery.getUserTickets", { appId: APP_ID })) as {
+      tickets: number;
+    } | null;
+    if (userInfo) {
+      userTickets.value = userInfo.tickets;
+    }
+
+    // Fetch recent winners
+    const winnersData = (await sdk.invoke("lottery.getWinners", { appId: APP_ID, limit: 10 })) as Winner[] | null;
+    if (winnersData) {
+      winners.value = winnersData;
+    }
+  } catch (e) {
+    console.warn("[Lottery] Failed to fetch data:", e);
+  } finally {
+    dataLoading.value = false;
+  }
+};
+
+// Check if round ended and trigger draw
+const checkAndTriggerDraw = async () => {
+  if (remainingMs.value <= 0 && totalTickets.value > 0) {
+    try {
+      // Use Edge Function automation API
+      await fetch("/api/automation/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          appId: APP_ID,
+          taskName: "draw",
+          taskType: "scheduled",
+          payload: {
+            action: "custom",
+            handler: "lottery:draw",
+            data: { round: round.value },
+          },
+        }),
+      });
+
+      // Refresh data after draw
+      setTimeout(() => fetchLotteryData(), 2000);
+    } catch (e) {
+      console.warn("[Lottery] Draw trigger failed:", e);
+    }
+  }
+};
+
 let timer: number;
+let lastRemaining = ROUND_DURATION;
+
 onMounted(() => {
+  fetchLotteryData();
   timer = setInterval(() => {
     const elapsed = Date.now() - roundStart.value;
     const remaining = Math.max(0, ROUND_DURATION - (elapsed % ROUND_DURATION));
@@ -298,6 +374,12 @@ onMounted(() => {
     const mins = Math.floor(remaining / 60000);
     const secs = Math.floor((remaining % 60000) / 1000);
     countdown.value = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+
+    // Detect round end transition
+    if (lastRemaining > 0 && remaining === 0) {
+      checkAndTriggerDraw();
+    }
+    lastRemaining = remaining;
   }, 100);
 });
 
@@ -315,12 +397,35 @@ onUnmounted(() => clearInterval(timer));
   display: flex;
   flex-direction: column;
   gap: $space-4;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
 
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+// Game layout with fixed hero and scrollable buy section
+.game-layout {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.hero-fixed {
+  flex-shrink: 0;
+  padding: $space-3;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.buy-section {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 $space-3 $space-3;
+  -webkit-overflow-scrolling: touch;
 }
 
 .status-msg {
@@ -360,7 +465,9 @@ onUnmounted(() => clearInterval(timer));
   padding: $space-6;
   margin-bottom: $space-4;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 // Countdown Circle
@@ -372,8 +479,8 @@ onUnmounted(() => clearInterval(timer));
 
 .countdown-circle {
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: 220px;
+  height: 220px;
 }
 
 .countdown-ring {
@@ -394,7 +501,7 @@ onUnmounted(() => clearInterval(timer));
   stroke: var(--neo-green);
   stroke-width: 8;
   stroke-linecap: round;
-  stroke-dasharray: 339.292;
+  stroke-dasharray: 622.035;
   transition: stroke-dashoffset 0.1s linear;
   filter: drop-shadow(0 0 8px var(--neo-green));
 }
@@ -486,9 +593,8 @@ onUnmounted(() => clearInterval(timer));
 .prize-amount {
   font-size: $font-size-4xl;
   font-weight: $font-weight-black;
-  color: var(--brutal-yellow);
+  color: #d4af37;
   font-family: $font-mono;
-  text-shadow: 0 0 20px var(--brutal-yellow);
   animation: glow 2s ease-in-out infinite;
 }
 
@@ -866,15 +972,10 @@ onUnmounted(() => clearInterval(timer));
 @keyframes glow {
   0%,
   100% {
-    text-shadow:
-      0 0 20px var(--brutal-yellow),
-      0 0 30px var(--brutal-yellow);
+    text-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
   }
   50% {
-    text-shadow:
-      0 0 30px var(--brutal-yellow),
-      0 0 40px var(--brutal-yellow),
-      0 0 50px var(--brutal-orange);
+    text-shadow: 0 0 12px rgba(212, 175, 55, 0.6);
   }
 }
 

@@ -2,6 +2,12 @@
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <!-- Active Proposals Tab -->
     <view v-if="activeTab === 'active'" class="tab-content">
+      <view v-if="status" :class="['status-msg', status.type]">
+        <text>{{ status.msg }}</text>
+      </view>
+      <view v-if="loadingCandidates" class="loading-state">
+        <text>{{ t("loadingCandidates") }}</text>
+      </view>
       <!-- Voting Power Card -->
       <view class="voting-power-card">
         <view class="power-header">
@@ -13,12 +19,12 @@
         </view>
       </view>
 
-      <view v-if="!isCandidate" class="warning-banner">
+      <view v-if="candidatesLoaded && !isCandidate" class="warning-banner">
         <text>{{ t("notCandidate") }}</text>
       </view>
 
       <view class="action-bar">
-        <NeoButton variant="primary" size="md" block @click="showCreateModal = true">
+        <NeoButton variant="primary" size="md" block @click="activeTab = 'create'">
           + {{ t("createProposal") }}
         </NeoButton>
       </view>
@@ -127,6 +133,17 @@
 
           <text class="detail-title">{{ selectedProposal.title }}</text>
           <text class="detail-description">{{ selectedProposal.description }}</text>
+          <view v-if="selectedProposal.type === 1" class="policy-details">
+            <text class="section-label">{{ t("policyDetails") }}</text>
+            <view class="policy-detail-row">
+              <text class="policy-detail-label">{{ t("policyMethod") }}</text>
+              <text class="policy-detail-value">{{ getPolicyMethodLabel(selectedProposal.policyMethod) }}</text>
+            </view>
+            <view class="policy-detail-row">
+              <text class="policy-detail-label">{{ t("policyValue") }}</text>
+              <text class="policy-detail-value">{{ selectedProposal.policyValue || "—" }}</text>
+            </view>
+          </view>
 
           <!-- Timeline -->
           <view class="timeline-section">
@@ -151,28 +168,45 @@
           <view v-if="selectedProposal.status === 1" class="voting-section">
             <text class="section-label">{{ t("castYourVote") }}</text>
             <view class="vote-buttons">
-              <view class="vote-btn for" @click="castVote(selectedProposal.id, 'for')">
+              <view
+                :class="['vote-btn', 'for', { disabled: !canVoteOnProposal(selectedProposal.id) }]"
+                @click="castVote(selectedProposal.id, 'for')"
+              >
                 <text class="vote-btn-label">{{ t("for") }}</text>
                 <text class="vote-btn-count">{{ selectedProposal.yesVotes }}</text>
               </view>
-              <view class="vote-btn abstain" @click="castVote(selectedProposal.id, 'abstain')">
+              <view
+                :class="['vote-btn', 'abstain', { disabled: !canVoteOnProposal(selectedProposal.id) }]"
+                @click="castVote(selectedProposal.id, 'abstain')"
+              >
                 <text class="vote-btn-label">{{ t("abstain") }}</text>
                 <text class="vote-btn-count">{{ selectedProposal.abstainVotes || 0 }}</text>
               </view>
-              <view class="vote-btn against" @click="castVote(selectedProposal.id, 'against')">
+              <view
+                :class="['vote-btn', 'against', { disabled: !canVoteOnProposal(selectedProposal.id) }]"
+                @click="castVote(selectedProposal.id, 'against')"
+              >
                 <text class="vote-btn-label">{{ t("against") }}</text>
                 <text class="vote-btn-count">{{ selectedProposal.noVotes }}</text>
               </view>
+            </view>
+            <view v-if="!canVoteOnProposal(selectedProposal.id)" class="vote-hint">
+              <text v-if="!address">{{ t("connectWallet") }}</text>
+              <text v-else-if="!isCandidate">{{ t("notCandidate") }}</text>
+              <text v-else>{{ t("alreadyVoted") }}</text>
             </view>
           </view>
         </view>
       </view>
     </view>
 
-    <!-- Create Modal -->
-    <view v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
-      <view class="modal-content">
-        <text class="modal-title">{{ t("createProposal") }}</text>
+    <!-- Create Proposal Tab -->
+    <view v-if="activeTab === 'create'" class="tab-content scrollable">
+      <view v-if="status" :class="['status-msg', status.type]">
+        <text>{{ status.msg }}</text>
+      </view>
+      <view class="create-card">
+        <text class="section-title">{{ t("createProposal") }}</text>
         <view class="form-group">
           <text class="form-label">{{ t("proposalType") }}</text>
           <view class="type-selector">
@@ -203,6 +237,26 @@
             class="form-input-wrapper"
           />
         </view>
+        <view v-if="newProposal.type === 1" class="policy-fields">
+          <text class="form-label">{{ t("policyMethod") }}</text>
+          <view class="method-selector">
+            <view
+              v-for="method in policyMethods"
+              :key="method.value"
+              :class="['method-btn', newProposal.policyMethod === method.value && 'active']"
+              @click="newProposal.policyMethod = method.value"
+            >
+              <text>{{ method.label }}</text>
+            </view>
+          </view>
+          <text class="form-label">{{ t("policyValue") }}</text>
+          <uni-easyinput
+            v-model="newProposal.policyValue"
+            :placeholder="t('policyValuePlaceholder')"
+            :inputBorder="false"
+            class="form-input-wrapper"
+          />
+        </view>
         <view class="form-group">
           <text class="form-label">{{ t("duration") }}</text>
           <view class="duration-selector">
@@ -216,14 +270,9 @@
             </view>
           </view>
         </view>
-        <view class="modal-actions">
-          <NeoButton variant="secondary" size="md" @click="showCreateModal = false">
-            {{ t("cancel") }}
-          </NeoButton>
-          <NeoButton variant="primary" size="md" @click="createProposal">
-            {{ t("submit") }}
-          </NeoButton>
-        </view>
+        <NeoButton variant="primary" size="lg" block @click="createProposal">
+          {{ t("submit") }}
+        </NeoButton>
       </view>
     </view>
 
@@ -241,7 +290,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useGovernance, useWallet } from "@neo/uniapp-sdk";
+import type { Candidate } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import { formatCountdown } from "@/shared/utils/format";
 import AppLayout from "@/shared/components/AppLayout.vue";
@@ -251,18 +302,34 @@ import NeoDoc from "@/shared/components/NeoDoc.vue";
 const translations = {
   title: { en: "Council Governance", zh: "议会治理" },
   active: { en: "Active", zh: "进行中" },
+  create: { en: "Create", zh: "创建" },
   history: { en: "History", zh: "历史" },
   createProposal: { en: "Create Proposal", zh: "创建提案" },
   noActiveProposals: { en: "No active proposals", zh: "暂无进行中的提案" },
   noHistory: { en: "No history", zh: "暂无历史记录" },
   textType: { en: "Text", zh: "文本" },
   policyType: { en: "Policy Change", zh: "策略变更" },
+  policyDetails: { en: "Policy Details", zh: "策略详情" },
+  policyMethod: { en: "Policy Method", zh: "策略方法" },
+  policyValue: { en: "Policy Value", zh: "策略值" },
+  policyValuePlaceholder: { en: "Enter policy value", zh: "输入策略值" },
+  methodFeePerByte: { en: "Set Fee Per Byte", zh: "设置每字节费用" },
+  methodExecFeeFactor: { en: "Set Exec Fee Factor", zh: "设置执行费系数" },
+  methodStoragePrice: { en: "Set Storage Price", zh: "设置存储价格" },
+  methodMaxBlockSize: { en: "Set Max Block Size", zh: "设置区块最大大小" },
+  methodMaxTransactions: { en: "Set Max Transactions/Block", zh: "设置每块最大交易数" },
+  methodMaxSystemFee: { en: "Set Max System Fee", zh: "设置最大系统费用" },
   yes: { en: "Yes", zh: "赞成" },
   no: { en: "No", zh: "反对" },
   for: { en: "For", zh: "赞成" },
   against: { en: "Against", zh: "反对" },
   abstain: { en: "Abstain", zh: "弃权" },
   notCandidate: { en: "You are not a council member", zh: "您不是议会成员" },
+  connectWallet: { en: "Connect wallet to vote", zh: "连接钱包以投票" },
+  alreadyVoted: { en: "You already voted on this proposal", zh: "您已对该提案投票" },
+  voteRecorded: { en: "Vote recorded", zh: "投票已记录" },
+  loadingCandidates: { en: "Loading council candidates...", zh: "加载议会候选人中..." },
+  failedToLoadCandidates: { en: "Failed to load council candidates", zh: "加载议会候选人失败" },
   yourVotingPower: { en: "Your Voting Power", zh: "您的投票权重" },
   councilMember: { en: "Council Member", zh: "议会成员" },
   quorum: { en: "Quorum", zh: "法定人数" },
@@ -278,6 +345,9 @@ const translations = {
   duration: { en: "Duration", zh: "有效期" },
   titlePlaceholder: { en: "Enter proposal title", zh: "输入提案标题" },
   descPlaceholder: { en: "Enter proposal description", zh: "输入提案描述" },
+  fillAllFields: { en: "Please enter a title and description", zh: "请填写标题和描述" },
+  policyFieldsRequired: { en: "Select a policy method and value", zh: "请选择策略方法并填写数值" },
+  proposalSubmitted: { en: "Proposal submitted", zh: "提案已提交" },
   cancel: { en: "Cancel", zh: "取消" },
   submit: { en: "Submit", zh: "提交" },
   passed: { en: "Passed", zh: "已通过" },
@@ -301,31 +371,50 @@ const translations = {
   feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
 };
 const t = createT(translations);
+const APP_ID = "miniapp-council-governance";
 
 const navTabs = [
   { id: "active", icon: "vote", label: t("active") },
+  { id: "create", icon: "file", label: t("create") },
   { id: "history", icon: "history", label: t("history") },
   { id: "docs", icon: "book", label: t("docs") },
 ];
 const activeTab = ref("active");
 
-const isCandidate = ref(true);
-const showCreateModal = ref(false);
+const { address } = useWallet();
+const { isLoading: loadingCandidates, getCandidates } = useGovernance(APP_ID);
+const candidates = ref<Candidate[]>([]);
+const candidatesLoaded = ref(false);
 const selectedProposal = ref<Proposal | null>(null);
+const status = ref<{ msg: string; type: "success" | "error" | "info" } | null>(null);
 const votingPower = ref(100);
 const quorumThreshold = 10; // Minimum votes needed
+const parseVotes = (votes: string) => Number(votes.replace(/,/g, "")) || 0;
+const councilMembers = computed(() =>
+  [...candidates.value].sort((a, b) => parseVotes(b.votes) - parseVotes(a.votes)).slice(0, 21),
+);
+const isCandidate = computed(() => {
+  if (!address.value) return false;
+  return councilMembers.value.some((candidate) => candidate.address === address.value);
+});
 
 interface Proposal {
   id: number;
   type: number;
   title: string;
   description: string;
+  policyMethod?: string;
+  policyValue?: string;
   yesVotes: number;
   noVotes: number;
   abstainVotes?: number;
   expiryTime: number;
   status: number;
 }
+
+type VoteChoice = "for" | "against" | "abstain";
+
+const votesByProposal = ref<Record<number, Record<string, VoteChoice>>>({});
 
 const activeProposals = ref<Proposal[]>([
   {
@@ -347,6 +436,8 @@ const historyProposals = ref<Proposal[]>([
     type: 1,
     title: "Update fee structure",
     description: "Change fee distribution to better align with network costs.",
+    policyMethod: "setFeePerByte",
+    policyValue: "0.001",
     yesVotes: 8,
     noVotes: 1,
     abstainVotes: 0,
@@ -361,10 +452,21 @@ const durations = [
   { label: "14 Days", value: 1209600000 },
 ];
 
+const policyMethods = [
+  { value: "setFeePerByte", label: t("methodFeePerByte") },
+  { value: "setExecFeeFactor", label: t("methodExecFeeFactor") },
+  { value: "setStoragePrice", label: t("methodStoragePrice") },
+  { value: "setMaxBlockSize", label: t("methodMaxBlockSize") },
+  { value: "setMaxTransactionsPerBlock", label: t("methodMaxTransactions") },
+  { value: "setMaxSystemFee", label: t("methodMaxSystemFee") },
+];
+
 const newProposal = ref({
   type: 0,
   title: "",
   description: "",
+  policyMethod: "",
+  policyValue: "",
   duration: 604800000,
 });
 
@@ -399,20 +501,113 @@ const getStatusText = (status: number) => {
   return texts[status] || "";
 };
 
+const showStatus = (msg: string, type: "success" | "error" | "info" = "info") => {
+  status.value = { msg, type };
+  setTimeout(() => {
+    status.value = null;
+  }, 4000);
+};
+
+const getPolicyMethodLabel = (method?: string) =>
+  policyMethods.find((item) => item.value === method)?.label || method || "—";
+
+const getMyVote = (proposalId: number): VoteChoice | null => {
+  const voter = address.value;
+  if (!voter) return null;
+  return votesByProposal.value[proposalId]?.[voter] ?? null;
+};
+
+const canVoteOnProposal = (proposalId: number) => {
+  if (!address.value) return false;
+  if (!isCandidate.value) return false;
+  return !getMyVote(proposalId);
+};
+
 const selectProposal = (p: Proposal) => {
   selectedProposal.value = p;
 };
 
-const castVote = (proposalId: number, voteType: "for" | "against" | "abstain") => {
-  console.log(`Casting ${voteType} vote for proposal ${proposalId}`);
-  // TODO: Implement actual voting logic
+const castVote = (proposalId: number, voteType: VoteChoice) => {
+  const proposal = activeProposals.value.find((p) => p.id === proposalId);
+  if (!proposal || proposal.status !== 1) return;
+  const voter = address.value;
+  if (!voter) {
+    showStatus(t("connectWallet"), "error");
+    return;
+  }
+  if (!isCandidate.value) {
+    showStatus(t("notCandidate"), "error");
+    return;
+  }
+  if (getMyVote(proposalId)) {
+    showStatus(t("alreadyVoted"), "error");
+    return;
+  }
+
+  if (!votesByProposal.value[proposalId]) {
+    votesByProposal.value[proposalId] = {};
+  }
+  votesByProposal.value[proposalId][voter] = voteType;
+
+  // Update vote counts based on vote type
+  if (voteType === "for") {
+    proposal.yesVotes += 1;
+  } else if (voteType === "against") {
+    proposal.noVotes += 1;
+  } else if (voteType === "abstain") {
+    proposal.abstainVotes = (proposal.abstainVotes || 0) + 1;
+  }
+
+  showStatus(t("voteRecorded"), "success");
   selectedProposal.value = null;
 };
 
 const createProposal = () => {
-  console.log("Creating proposal:", newProposal.value);
-  showCreateModal.value = false;
+  if (!newProposal.value.title || !newProposal.value.description) {
+    showStatus(t("fillAllFields"), "error");
+    return;
+  }
+  if (newProposal.value.type === 1 && (!newProposal.value.policyMethod || !newProposal.value.policyValue)) {
+    showStatus(t("policyFieldsRequired"), "error");
+    return;
+  }
+
+  const proposal: Proposal = {
+    id: activeProposals.value.length + historyProposals.value.length + 1,
+    type: newProposal.value.type,
+    title: newProposal.value.title,
+    description: newProposal.value.description,
+    policyMethod: newProposal.value.type === 1 ? newProposal.value.policyMethod : undefined,
+    policyValue: newProposal.value.type === 1 ? newProposal.value.policyValue : undefined,
+    yesVotes: 0,
+    noVotes: 0,
+    abstainVotes: 0,
+    expiryTime: Date.now() + newProposal.value.duration,
+    status: 1,
+  };
+
+  activeProposals.value.unshift(proposal);
+
+  // Reset form
+  newProposal.value = { type: 0, title: "", description: "", policyMethod: "", policyValue: "", duration: 604800000 };
+  showStatus(t("proposalSubmitted"), "success");
+  activeTab.value = "active";
 };
+
+const loadCandidates = async () => {
+  try {
+    const res = await getCandidates();
+    candidates.value = res.candidates || [];
+  } catch (e: any) {
+    showStatus(e.message || t("failedToLoadCandidates"), "error");
+  } finally {
+    candidatesLoaded.value = true;
+  }
+};
+
+onMounted(() => {
+  loadCandidates();
+});
 
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
 const docFeatures = computed(() => [
@@ -427,10 +622,50 @@ const docFeatures = computed(() => [
 
 .tab-content {
   padding: 12px;
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.status-msg {
+  text-align: center;
+  padding: $space-3;
+  border: $border-width-md solid var(--border-color);
+  margin-bottom: $space-3;
+  font-weight: $font-weight-bold;
+
+  &.success {
+    background: var(--status-success);
+    color: $neo-black;
+    border-color: $neo-black;
+    box-shadow: $shadow-md;
   }
+
+  &.error {
+    background: var(--status-error);
+    color: $neo-white;
+    border-color: $neo-black;
+    box-shadow: $shadow-md;
+  }
+
+  &.info {
+    background: var(--status-info);
+    color: $neo-white;
+    border-color: $neo-black;
+    box-shadow: $shadow-md;
+  }
+}
+
+.loading-state {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: $font-size-sm;
+  margin-bottom: $space-3;
+  font-weight: $font-weight-medium;
 }
 
 // Voting Power Card
@@ -482,6 +717,22 @@ const docFeatures = computed(() => [
 
 .action-bar {
   margin-bottom: $space-3;
+}
+
+.create-card {
+  background: var(--bg-card);
+  border: $border-width-md solid var(--border-color);
+  box-shadow: $shadow-md;
+  padding: $space-5;
+}
+
+.section-title {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-black;
+  color: var(--text-primary);
+  display: block;
+  margin-bottom: $space-4;
+  text-transform: uppercase;
 }
 
 .empty-state {
@@ -584,7 +835,9 @@ const docFeatures = computed(() => [
   height: 6px;
   background: var(--bg-secondary);
   border: 2px solid var(--border-color);
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .quorum-progress {
@@ -723,7 +976,7 @@ const docFeatures = computed(() => [
   max-width: 400px;
   max-height: 80vh;
   overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch;
 
   &.proposal-modal {
     max-width: 500px;
@@ -799,6 +1052,13 @@ const docFeatures = computed(() => [
   gap: $space-2;
 }
 
+.method-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  margin-bottom: $space-3;
+}
+
 .type-btn,
 .duration-btn {
   flex: 1;
@@ -808,6 +1068,26 @@ const docFeatures = computed(() => [
   border: $border-width-md solid var(--border-color);
   color: var(--text-secondary);
   font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  transition: all $transition-fast;
+
+  &.active {
+    background: var(--neo-green);
+    border-color: $neo-black;
+    color: $neo-black;
+    box-shadow: $shadow-sm;
+  }
+}
+
+.method-btn {
+  flex: 1 1 140px;
+  padding: $space-2 $space-3;
+  text-align: center;
+  background: var(--bg-card);
+  border: $border-width-md solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: $font-size-xs;
   font-weight: $font-weight-bold;
   text-transform: uppercase;
   transition: all $transition-fast;
@@ -978,6 +1258,11 @@ const docFeatures = computed(() => [
       }
     }
   }
+
+  &.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
 }
 
 .vote-btn-label {
@@ -992,5 +1277,44 @@ const docFeatures = computed(() => [
   font-size: $font-size-xl;
   font-weight: $font-weight-black;
   color: var(--text-primary);
+}
+
+.vote-hint {
+  margin-top: $space-3;
+  font-size: $font-size-xs;
+  color: var(--text-secondary);
+  font-weight: $font-weight-medium;
+  text-align: center;
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
 }
 </style>

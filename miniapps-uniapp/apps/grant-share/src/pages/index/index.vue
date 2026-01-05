@@ -352,16 +352,20 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch;
   padding: $space-4;
   gap: $space-4;
 }
 
 .tab-content {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: $space-4;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Status Banner */
@@ -609,7 +613,9 @@ onMounted(async () => {
   height: 16px;
   background: var(--bg-secondary);
   border: $border-width-md solid var(--border-color);
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   position: relative;
 }
 
@@ -746,6 +752,27 @@ onMounted(async () => {
 /* Scrollable */
 .scrollable {
   overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch;
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 </style>

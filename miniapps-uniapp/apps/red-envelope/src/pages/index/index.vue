@@ -68,25 +68,24 @@
           </view>
         </NeoCard>
       </view>
-
     </view>
 
-      <!-- Docs Tab -->
-      <view v-if="activeTab === 'docs'" class="tab-content scrollable">
-        <NeoDoc
-          :title="t('title')"
-          :subtitle="t('docSubtitle')"
-          :description="t('docDescription')"
-          :steps="docSteps"
-          :features="docFeatures"
-        />
-      </view>
+    <!-- Docs Tab -->
+    <view v-if="activeTab === 'docs'" class="tab-content scrollable">
+      <NeoDoc
+        :title="t('title')"
+        :subtitle="t('docSubtitle')"
+        :description="t('docDescription')"
+        :steps="docSteps"
+        :features="docFeatures"
+      />
+    </view>
   </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import { AppLayout, NeoButton, NeoInput, NeoCard, NeoDoc } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
@@ -131,6 +130,7 @@ const t = createT(translations);
 const APP_ID = "miniapp-redenvelope";
 const { address, connect } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
+const { requestRandom } = useRNG(APP_ID);
 
 const activeTab = ref<string>("create");
 const navTabs: NavTab[] = [
@@ -171,8 +171,15 @@ const claim = async (env: any) => {
 
   openingId.value = env.id;
 
-  setTimeout(() => {
-    const claimedAmount = (Math.random() * 2 + 0.5).toFixed(2);
+  try {
+    // Use VRF for fair random amount distribution
+    const randomHex = await requestRandom(`envelope:${env.id}:${Date.now()}`);
+    let randomValue = 0.5;
+    if (randomHex) {
+      randomValue = parseInt(randomHex.slice(0, 8), 16) / 0xffffffff;
+    }
+    const claimedAmount = (randomValue * 2 + 0.5).toFixed(2);
+
     luckyMessage.value = {
       amount: parseFloat(claimedAmount),
       from: env.from,
@@ -182,7 +189,11 @@ const claim = async (env: any) => {
     openingId.value = null;
 
     status.value = { msg: t("claimedFrom").replace("{0}", env.from), type: "success" };
-  }, 800);
+  } catch (e) {
+    console.warn("[RedEnvelope] VRF claim failed:", e);
+    openingId.value = null;
+    status.value = { msg: t("error"), type: "error" };
+  }
 };
 </script>
 
@@ -195,7 +206,7 @@ const claim = async (env: any) => {
   flex-direction: column;
   padding: $space-4;
   gap: $space-4;
-  min-height: 100vh;
+  height: 100%;
 }
 
 // ============================================
@@ -432,7 +443,7 @@ const claim = async (env: any) => {
 
 .scrollable {
   overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch;
 }
 
 // ============================================
@@ -452,7 +463,9 @@ const claim = async (env: any) => {
 
 .send-button {
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   transition: transform $transition-fast;
 }
 
@@ -598,21 +611,7 @@ const claim = async (env: any) => {
     2px 2px 0 rgba(0, 0, 0, 0.3),
     0 0 10px color-mix(in srgb, var(--brutal-yellow) 50%, transparent);
   display: block;
-  animation: glow 2s ease-in-out infinite;
-}
-
-@keyframes glow {
-  0%,
-  100% {
-    text-shadow:
-      2px 2px 0 rgba(0, 0, 0, 0.3),
-      0 0 10px color-mix(in srgb, var(--brutal-yellow) 50%, transparent);
-  }
-  50% {
-    text-shadow:
-      2px 2px 0 rgba(0, 0, 0, 0.3),
-      0 0 20px color-mix(in srgb, var(--brutal-yellow) 80%, transparent);
-  }
+  animation: pulse 2s ease-in-out infinite;
 }
 
 // Hongbao Seal
@@ -627,24 +626,12 @@ const claim = async (env: any) => {
   justify-content: center;
   margin: 0 auto $space-4;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  animation: sealPulse 2s ease-in-out infinite;
+  animation: pulse 2s ease-in-out infinite;
 }
 
 .seal-text {
   font-size: $font-size-2xl;
   line-height: 1;
-}
-
-@keyframes sealPulse {
-  0%,
-  100% {
-    transform: scale(1);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
-  }
 }
 
 // Hongbao Info
@@ -679,7 +666,7 @@ const claim = async (env: any) => {
 
 .sparkle {
   font-size: $font-size-lg;
-  animation: sparkle 1.5s ease-in-out infinite;
+  animation: pulse 1.5s ease-in-out infinite;
   display: inline-block;
 }
 
@@ -693,17 +680,5 @@ const claim = async (env: any) => {
 
 .sparkle:nth-child(3) {
   animation-delay: 1s;
-}
-
-@keyframes sparkle {
-  0%,
-  100% {
-    opacity: 0.3;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.2);
-  }
 }
 </style>

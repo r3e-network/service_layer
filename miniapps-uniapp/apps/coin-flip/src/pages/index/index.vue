@@ -223,14 +223,10 @@ const flip = async () => {
   display: flex;
   flex-direction: column;
   background: var(--bg-primary);
-  overflow: hidden;
-
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: $space-4;
-    -webkit-overflow-scrolling: touch;
-  }
+  padding: $space-4;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .arena {
