@@ -134,9 +134,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
+import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
+import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 import AppLayout from "@/shared/components/AppLayout.vue";
 import NeoDoc from "@/shared/components/NeoDoc.vue";
 import NeoButton from "@/shared/components/NeoButton.vue";
@@ -147,7 +149,7 @@ const translations = {
   subtitle: { en: "Permanent data destruction", zh: "永久数据销毁" },
   destructionStats: { en: "Destruction Stats", zh: "销毁统计" },
   itemsDestroyed: { en: "Destroyed", zh: "已销毁" },
-  gasReclaimed: { en: "GAS Reclaimed", zh: "回收GAS" },
+  gasReclaimed: { en: "GAS Fees", zh: "GAS 费用" },
   destroyAsset: { en: "Destruction Chamber", zh: "销毁室" },
   assetHashPlaceholder: { en: "Enter asset hash or token ID...", zh: "输入资产哈希或代币ID..." },
   warning: { en: "⚠ DANGER ZONE", zh: "⚠ 危险区域" },
@@ -169,7 +171,11 @@ const translations = {
   confirmText: { en: "Are you absolutely sure? This cannot be undone.", zh: "您确定吗？此操作无法撤销。" },
   confirmDestroy: { en: "Yes, Destroy It", zh: "确认销毁" },
   cancel: { en: "Cancel", zh: "取消" },
-
+  connectWallet: { en: "Connect wallet", zh: "请连接钱包" },
+  contractUnavailable: { en: "Contract unavailable", zh: "合约不可用" },
+  receiptMissing: { en: "Payment receipt missing", zh: "支付凭证缺失" },
+  buryPending: { en: "Burial confirmation pending", zh: "销毁确认中" },
+  error: { en: "Error", zh: "错误" },
   docs: { en: "Docs", zh: "文档" },
   docSubtitle: { en: "Permanent asset destruction service", zh: "永久资产销毁服务" },
   docDescription: {
@@ -179,10 +185,11 @@ const translations = {
   step1: { en: "Enter the asset hash or token ID", zh: "输入资产哈希或代币ID" },
   step2: { en: "Review the warning carefully", zh: "仔细阅读警告信息" },
   step3: { en: "Confirm destruction - this is permanent!", zh: "确认销毁 - 此操作永久生效！" },
+  step4: { en: "View destruction records in the History tab.", zh: "在历史标签页查看销毁记录。" },
   feature1Name: { en: "Permanent Deletion", zh: "永久删除" },
   feature1Desc: { en: "Assets are destroyed on-chain forever", zh: "资产在链上永久销毁" },
-  feature2Name: { en: "GAS Recovery", zh: "GAS回收" },
-  feature2Desc: { en: "Reclaim storage fees from destroyed assets", zh: "从销毁的资产中回收存储费用" },
+  feature2Name: { en: "On-Chain Proofs", zh: "链上证明" },
+  feature2Desc: { en: "Destruction is recorded on-chain", zh: "销毁记录上链" },
 };
 
 const t = createT(translations);
@@ -195,12 +202,16 @@ const navTabs = [
 
 const activeTab = ref("destroy");
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
+
 const APP_ID = "miniapp-graveyard";
+const { address, connect, invokeContract, invokeRead, getContractHash } = useWallet();
+const { payGAS, isLoading } = usePayments(APP_ID);
+const { list: listEvents } = useEvents();
 
 interface HistoryItem {
   id: string;
@@ -213,12 +224,32 @@ const gasReclaimed = ref(0);
 const assetHash = ref("");
 const status = ref<{ msg: string; type: string } | null>(null);
 const history = ref<HistoryItem[]>([]);
-const dataLoading = ref(true);
 const showConfirm = ref(false);
 const isDestroying = ref(false);
 const showWarningShake = ref(false);
+const contractHash = ref<string | null>(null);
 
 const formatNum = (n: number) => formatNumber(n, 2);
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const waitForEvent = async (txid: string, eventName: string) => {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const res = await listEvents({ app_id: APP_ID, event_name: eventName, limit: 25 });
+    const match = res.events.find((evt) => evt.tx_hash === txid);
+    if (match) return match;
+    await sleep(1500);
+  }
+  return null;
+};
+
+const ensureContractHash = async () => {
+  if (!contractHash.value) {
+    contractHash.value = (await getContractHash()) as string;
+  }
+  if (!contractHash.value) throw new Error(t("contractUnavailable"));
+  return contractHash.value as string;
+};
 
 const getDestructionIcon = (index: number) => {
   const icons = ["💀", "⚰️", "🪦", "☠️", "🔥"];
@@ -237,49 +268,92 @@ const initiateDestroy = () => {
 
 const executeDestroy = async () => {
   showConfirm.value = false;
+  if (isLoading.value || isDestroying.value) return;
   isDestroying.value = true;
 
-  // Simulate destruction animation
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-
-  history.value.unshift({
-    id: String(Date.now()),
-    hash: assetHash.value,
-    time: new Date().toLocaleString(),
-  });
-  totalDestroyed.value += 1;
-  gasReclaimed.value += Math.random() * 0.5 + 0.1;
-  status.value = { msg: t("assetDestroyed"), type: "success" };
-  assetHash.value = "";
-  isDestroying.value = false;
-};
-
-// Fetch graveyard data from contract
-const fetchData = async () => {
   try {
-    dataLoading.value = true;
-    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
-    if (!sdk?.invoke) return;
+    if (!address.value) await connect();
+    if (!address.value) throw new Error(t("connectWallet"));
+    const contract = await ensureContractHash();
 
-    const data = (await sdk.invoke("graveyard.getStats", { appId: APP_ID })) as {
-      totalDestroyed: number;
-      gasReclaimed: number;
-      history: HistoryItem[];
-    } | null;
+    const payment = await payGAS("0.1", `graveyard:bury:${assetHash.value.slice(0, 10)}`);
+    const receiptId = payment.receipt_id;
+    if (!receiptId) throw new Error(t("receiptMissing"));
 
-    if (data) {
-      totalDestroyed.value = data.totalDestroyed;
-      gasReclaimed.value = data.gasReclaimed;
-      history.value = data.history || [];
-    }
-  } catch (e) {
-    console.warn("[Graveyard] Failed to fetch data:", e);
+    const tx = await invokeContract({
+      scriptHash: contract,
+      operation: "BuryMemory",
+      args: [
+        { type: "Hash160", value: address.value as string },
+        { type: "String", value: assetHash.value },
+        { type: "Integer", value: Number(receiptId) },
+      ],
+    });
+
+    const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
+    const evt = txid ? await waitForEvent(txid, "MemoryBuried") : null;
+    if (!evt) throw new Error(t("buryPending"));
+
+    const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
+    const memoryId = String(values[0] ?? "");
+    const contentHash = String(values[2] ?? assetHash.value);
+    history.value.unshift({
+      id: memoryId || String(Date.now()),
+      hash: contentHash,
+      time: new Date(evt.created_at || Date.now()).toLocaleString(),
+    });
+
+    totalDestroyed.value += 1;
+    gasReclaimed.value = Number((totalDestroyed.value * 0.1).toFixed(2));
+    status.value = { msg: t("assetDestroyed"), type: "success" };
+    assetHash.value = "";
+  } catch (e: any) {
+    status.value = { msg: e?.message || t("error"), type: "error" };
   } finally {
-    dataLoading.value = false;
+    isDestroying.value = false;
   }
 };
 
-onMounted(() => fetchData());
+const loadStats = async () => {
+  if (!contractHash.value) {
+    contractHash.value = (await getContractHash()) as string;
+  }
+  if (!contractHash.value) return;
+  try {
+    const totalRes = await invokeRead({ contractHash: contractHash.value, operation: "TotalMemories" });
+    totalDestroyed.value = Number(parseInvokeResult(totalRes) || 0);
+    gasReclaimed.value = Number((totalDestroyed.value * 0.1).toFixed(2));
+  } catch (e) {
+    console.warn("[Graveyard] Failed to load stats:", e);
+  }
+};
+
+const loadHistory = async () => {
+  try {
+    const res = await listEvents({ app_id: APP_ID, event_name: "MemoryBuried", limit: 20 });
+    history.value = res.events.map((evt) => {
+      const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
+      return {
+        id: String(values[0] ?? evt.id),
+        hash: String(values[2] ?? ""),
+        time: new Date(evt.created_at || Date.now()).toLocaleString(),
+      };
+    });
+  } catch (e) {
+    console.warn("[Graveyard] Failed to load history:", e);
+  }
+};
+
+onMounted(async () => {
+  await loadStats();
+  await loadHistory();
+});
+
+watch(activeTab, async (tab) => {
+  if (tab === "history") {
+    await loadHistory();
+  }
+});
 </script>
 
 <style lang="scss" scoped>
@@ -287,250 +361,185 @@ onMounted(() => fetchData());
 @import "@/shared/styles/variables.scss";
 
 .tab-content {
-  padding: $space-4;
+  padding: $space-6;
   flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+  gap: $space-6;
 }
 
 .status-msg {
   text-align: center;
   padding: $space-4;
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  font-weight: $font-weight-bold;
+  border: 4px solid black;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  animation: slideDown 0.3s ease-out;
-
+  font-size: 12px;
+  box-shadow: 6px 6px 0 black;
+  font-style: italic;
   &.success {
-    background: var(--status-success);
-    color: $neo-black;
-    border-color: $neo-black;
+    background: var(--neo-green);
+    color: black;
   }
-
   &.error {
-    background: var(--status-error);
-    color: $neo-white;
-    border-color: $neo-black;
+    background: var(--brutal-red);
+    color: white;
   }
 }
 
 // Graveyard Hero Section
 .graveyard-hero {
-  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-lg;
-  padding: $space-4;
+  background: white;
+  border: 4px solid black;
+  padding: $space-8;
   position: relative;
   overflow: hidden;
+  box-shadow: 12px 12px 0 black;
 }
 
 .tombstone-scene {
-  height: 160px;
+  height: 140px;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  margin-bottom: $space-8;
   position: relative;
-  margin-bottom: $space-4;
+  border-bottom: 6px solid black;
+  background: #f0f0f0;
+  padding: 0 20px;
 }
 
 .moon {
   position: absolute;
-  top: 10px;
-  right: 20px;
+  top: 15px;
+  right: 30px;
   width: 50px;
   height: 50px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #f5f5dc 0%, #fffacd 100%);
-  box-shadow: 0 0 30px rgba(255, 250, 205, 0.5);
-  animation: moonGlow 4s ease-in-out infinite;
-}
-
-.fog {
-  position: absolute;
-  bottom: 30px;
-  height: 40px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  animation: fogDrift 8s linear infinite;
-
-  &.fog-1 {
-    left: -100%;
-    width: 200%;
-  }
-
-  &.fog-2 {
-    left: -50%;
-    width: 150%;
-    animation-delay: -4s;
-    opacity: 0.5;
-  }
+  background: #ffde59;
+  border: 4px solid black;
 }
 
 .tombstone {
-  position: absolute;
-  bottom: 20px;
+  width: 60px;
+  height: 90px;
+  background: white;
+  border: 4px solid black;
   display: flex;
-  flex-direction: column;
   align-items: center;
-
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+  box-shadow: 4px -4px 0 black;
   &.tombstone-1 {
-    left: 15%;
     transform: rotate(-5deg);
   }
-  &.tombstone-2 {
-    left: 45%;
-    transform: rotate(0deg);
-  }
   &.tombstone-3 {
-    left: 75%;
     transform: rotate(5deg);
   }
 }
 
-.tombstone-top {
-  width: 40px;
-  height: 20px;
-  background: #4a4a4a;
-  border-radius: 20px 20px 0 0;
-  border: 2px solid #333;
-}
-
-.tombstone-body {
-  width: 40px;
-  height: 50px;
-  background: linear-gradient(180deg, #5a5a5a 0%, #3a3a3a 100%);
-  border: 2px solid #333;
-  border-top: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .rip {
-  font-size: 8px;
-  color: #888;
-  font-weight: bold;
-}
-
-.ground {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 25px;
-  background: linear-gradient(180deg, #2d4a2d 0%, #1a2f1a 100%);
-  border-top: 2px solid #1a2f1a;
+  font-size: 14px;
+  color: black;
+  font-weight: $font-weight-black;
+  letter-spacing: 2px;
+  font-style: italic;
 }
 
 // Hero Stats
 .hero-stats {
   display: flex;
-  gap: $space-3;
+  gap: $space-4;
 }
-
 .hero-stat {
   flex: 1;
   text-align: center;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: $space-3;
-  border-radius: 8px;
+  background: #ffde59;
+  padding: $space-4;
+  border: 4px solid black;
+  box-shadow: 6px 6px 0 black;
+  transition: transform 0.2s;
+  &:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0 black;
+  }
 }
-
 .hero-stat-icon {
-  font-size: $font-size-2xl;
+  font-size: 32px;
   display: block;
-  margin-bottom: $space-1;
+  margin-bottom: 8px;
 }
-
 .hero-stat-value {
-  font-size: $font-size-2xl;
+  font-size: 24px;
   font-weight: $font-weight-black;
-  color: var(--neo-green);
-  display: block;
+  color: black;
   font-family: $font-mono;
-}
-
-.hero-stat-label {
-  font-size: $font-size-xs;
-  color: rgba(255, 255, 255, 0.6);
-  text-transform: uppercase;
   display: block;
+  font-style: italic;
+}
+.hero-stat-label {
+  font-size: 10px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  color: black;
+  letter-spacing: 1px;
 }
 
 // Destruction Chamber
 .destruction-chamber {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-lg;
-  padding: $space-4;
+  padding: $space-8;
+  background: white;
+  border: 4px solid black;
+  box-shadow: 12px 12px 0 black;
 }
-
 .chamber-header {
   display: flex;
   align-items: center;
-  gap: $space-2;
-  margin-bottom: $space-4;
+  gap: $space-4;
+  margin-bottom: $space-8;
+  border-bottom: 6px solid black;
+  padding-bottom: $space-3;
 }
-
-.chamber-icon {
-  font-size: $font-size-xl;
-  animation: flicker 0.5s ease-in-out infinite;
-}
-
 .chamber-title {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  color: var(--status-error);
+  font-size: 24px;
+  font-weight: $font-weight-black;
+  color: black;
   text-transform: uppercase;
-}
-
-.input-container {
-  margin-bottom: $space-4;
+  font-style: italic;
 }
 
 // Warning Box
 .warning-box {
   display: flex;
-  gap: $space-3;
-  background: rgba(239, 68, 68, 0.1);
-  border: $border-width-md solid var(--status-error);
-  padding: $space-4;
-  margin-bottom: $space-4;
-
+  gap: $space-5;
+  background: #ff7e7e;
+  color: black;
+  padding: $space-6;
+  border: 4px solid black;
+  margin-bottom: $space-8;
+  box-shadow: 8px 8px 0 black;
   &.shake {
     animation: shake 0.5s ease-in-out;
   }
 }
 
-.warning-icon-container {
-  flex-shrink: 0;
-}
-
 .warning-icon {
-  font-size: $font-size-2xl;
-  animation: pulse 2s ease-in-out infinite;
+  font-size: 40px;
 }
-
-.warning-content {
-  flex: 1;
-}
-
 .warning-title {
-  color: var(--status-error);
-  font-weight: $font-weight-bold;
-  font-size: $font-size-base;
-  display: block;
-  margin-bottom: $space-1;
+  font-weight: $font-weight-black;
+  font-size: 16px;
+  text-transform: uppercase;
+  border-bottom: 3px solid black;
+  margin-bottom: 8px;
+  display: inline-block;
+  font-style: italic;
 }
-
 .warning-text {
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
-  line-height: 1.5;
+  font-size: 12px;
+  font-weight: $font-weight-black;
+  line-height: 1.2;
+  text-transform: uppercase;
 }
 
 // Destroy Button
@@ -538,92 +547,59 @@ onMounted(() => fetchData());
   position: relative;
 }
 
-.btn-icon {
-  margin-right: $space-2;
-}
-
-.fire-particles {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-}
-
-.particle {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background: var(--status-error);
-  border-radius: 50%;
-  animation: particleRise 1s ease-out infinite;
-}
-
-@for $i from 1 through 12 {
-  .particle-#{$i} {
-    animation-delay: #{$i * 0.1}s;
-    left: #{random(60) - 30}px;
-  }
-}
-
 // Confirmation Modal
 .confirm-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  animation: fadeIn 0.2s ease-out;
+  z-index: 100;
+  padding: $space-4;
 }
-
 .confirm-modal {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--status-error);
-  box-shadow: 0 0 40px rgba(239, 68, 68, 0.3);
-  padding: $space-6;
-  max-width: 320px;
+  background: white;
+  border: 6px solid black;
+  padding: $space-10;
+  width: 100%;
+  max-width: 400px;
   text-align: center;
-  animation: scaleIn 0.3s ease-out;
+  box-shadow: 20px 20px 0 black;
 }
-
 .confirm-skull {
-  font-size: 64px;
-  animation: skullBounce 1s ease-in-out infinite;
+  font-size: 80px;
+  display: block;
+  margin-bottom: $space-6;
 }
-
 .confirm-title {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-bold;
-  color: var(--status-error);
-  display: block;
-  margin: $space-3 0;
-}
-
-.confirm-text {
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
-  display: block;
-  margin-bottom: $space-3;
-}
-
-.confirm-hash {
-  background: var(--bg-secondary);
-  padding: $space-2;
-  font-family: $font-mono;
-  font-size: $font-size-xs;
-  color: var(--text-primary);
-  word-break: break-all;
+  font-size: 28px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
   margin-bottom: $space-4;
+  color: black;
+  font-style: italic;
+}
+.confirm-text {
+  font-size: 14px;
+  font-weight: $font-weight-black;
+  margin-bottom: $space-6;
+  text-transform: uppercase;
+}
+.confirm-hash {
+  font-family: $font-mono;
+  font-size: 12px;
+  background: #f0f0f0;
+  padding: $space-4;
+  border: 3px solid black;
+  word-break: break-all;
+  margin-bottom: $space-8;
+  font-weight: $font-weight-bold;
 }
 
 .confirm-actions {
   display: flex;
-  gap: $space-3;
+  gap: $space-6;
 }
 
 // History Tab
@@ -631,190 +607,87 @@ onMounted(() => fetchData());
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: $space-4;
+  margin-bottom: $space-8;
+  border-bottom: 6px solid black;
+  padding-bottom: $space-3;
 }
 
 .history-title {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
+  font-size: 24px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  font-style: italic;
 }
-
 .history-count {
-  font-size: $font-size-sm;
-  color: var(--text-muted);
-}
-
-.empty-state {
-  text-align: center;
-  padding: $space-8;
-}
-
-.empty-icon {
-  font-size: 64px;
-  display: block;
-  margin-bottom: $space-3;
-  opacity: 0.5;
-}
-
-.empty-text {
-  color: var(--text-muted);
-  font-size: $font-size-base;
+  font-size: 14px;
+  font-weight: $font-weight-black;
+  background: black;
+  color: var(--neo-green);
+  padding: 4px 12px;
+  border: 2px solid black;
+  transform: rotate(3deg);
 }
 
 .history-list {
   display: flex;
   flex-direction: column;
-  gap: $space-3;
+  gap: $space-6;
 }
 
 .history-item {
   display: flex;
   align-items: center;
-  gap: $space-3;
-  padding: $space-3;
-  background: var(--bg-card);
-  border: $border-width-sm solid var(--border-color);
-  box-shadow: $shadow-sm;
-  animation: fadeIn 0.3s ease-out both;
+  gap: $space-5;
+  padding: $space-6;
+  background: white;
+  border: 4px solid black;
+  box-shadow: 8px 8px 0 black;
+  transition: transform 0.2s;
+  &:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 11px 11px 0 black;
+  }
 }
 
 .history-icon {
-  font-size: $font-size-xl;
-  width: 40px;
+  font-size: 40px;
+  width: 60px;
   text-align: center;
+  border-right: 4px solid black;
+  margin-right: $space-3;
 }
-
-.history-info {
-  flex: 1;
-}
-
 .history-hash {
-  color: var(--text-primary);
   font-family: $font-mono;
-  font-size: $font-size-sm;
+  font-size: 14px;
+  font-weight: $font-weight-black;
   display: block;
-}
-
-.history-time {
-  color: var(--text-muted);
-  font-size: $font-size-xs;
-}
-
-.history-badge {
-  background: var(--status-error);
-  padding: $space-1 $space-2;
-}
-
-.badge-text {
-  color: white;
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
+  margin-bottom: 6px;
   text-transform: uppercase;
 }
-
-// Animations
-@keyframes moonGlow {
-  0%,
-  100% {
-    box-shadow: 0 0 30px rgba(255, 250, 205, 0.5);
-  }
-  50% {
-    box-shadow: 0 0 50px rgba(255, 250, 205, 0.8);
-  }
+.history-time {
+  font-size: 11px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  color: #666;
+}
+.history-badge {
+  background: black;
+  color: white;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: $font-weight-black;
+  border: 2px solid black;
+  transform: skew(-10deg);
 }
 
-@keyframes fogDrift {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(50%);
-  }
-}
-
-@keyframes flicker {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 @keyframes shake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-5px);
-  }
-  75% {
-    transform: translateX(5px);
-  }
-}
-
-@keyframes particleRise {
-  0% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(-50px);
-    opacity: 0;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes skullBounce {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes slideDown {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  0%, 100% { transform: translateX(0) rotate(0); }
+  25% { transform: translateX(-8px) rotate(-1deg); }
+  75% { transform: translateX(8px) rotate(1deg); }
 }
 </style>

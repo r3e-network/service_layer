@@ -10,9 +10,9 @@
         <text class="subtitle">{{ t("subtitle") }}</text>
       </view>
 
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
+        <text class="font-bold">{{ status.msg }}</text>
+      </NeoCard>
 
       <!-- Create Contract Tab -->
       <view v-if="activeTab === 'create'" class="tab-content">
@@ -29,27 +29,17 @@
 
             <view class="form-group">
               <text class="form-label">{{ t("partnerLabel") }}</text>
-              <uni-easyinput v-model="partnerAddress" :placeholder="t('partnerPlaceholder')" class="contract-input" />
+              <NeoInput v-model="partnerAddress" :placeholder="t('partnerPlaceholder')" />
             </view>
 
             <view class="form-group">
               <text class="form-label">{{ t("stakeLabel") }}</text>
-              <uni-easyinput
-                v-model="stakeAmount"
-                type="number"
-                :placeholder="t('stakePlaceholder')"
-                class="contract-input"
-              />
+              <NeoInput v-model="stakeAmount" type="number" :placeholder="t('stakePlaceholder')" />
             </view>
 
             <view class="form-group">
               <text class="form-label">{{ t("durationLabel") }}</text>
-              <uni-easyinput
-                v-model="duration"
-                type="number"
-                :placeholder="t('durationPlaceholder')"
-                class="contract-input"
-              />
+              <NeoInput v-model="duration" type="number" :placeholder="t('durationPlaceholder')" />
             </view>
 
             <view class="signature-section">
@@ -59,9 +49,9 @@
               </view>
             </view>
 
-            <view class="action-btn" @click="createContract">
-              <text>{{ isLoading ? t("creating") : t("createBtn") }}</text>
-            </view>
+            <NeoButton variant="primary" size="lg" block :loading="isLoading" @click="createContract">
+              {{ isLoading ? t("creating") : t("createBtn") }}
+            </NeoButton>
           </view>
         </view>
       </view>
@@ -102,11 +92,18 @@
             </view>
 
             <view class="contract-actions">
-              <view v-if="contract.progress >= 100" class="claim-btn" @click="claimReward(contract)">
-                <text>{{ t("claim") }}</text>
+              <view
+                v-if="contract.status === 'pending' && canSignContract(contract)"
+                class="claim-btn"
+                @click="signContract(contract)"
+              >
+                <text>{{ t("signContract") }}</text>
               </view>
-              <view v-else class="break-btn" @click="breakContract(contract)">
+              <view v-else-if="contract.status === 'active'" class="break-btn" @click="breakContract(contract)">
                 <text>{{ t("breakContract") }}</text>
+              </view>
+              <view v-else class="contract-status-text">
+                <text>{{ t(contract.status) }}</text>
               </view>
             </view>
           </view>
@@ -128,11 +125,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { ref, computed, onMounted } from "vue";
+import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
+import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
+import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
 const translations = {
@@ -164,15 +161,16 @@ const translations = {
   daysLeft: { en: "days left", zh: "天剩余" },
   progress: { en: "Progress", zh: "进度" },
 
+  pending: { en: "Pending", zh: "待签署" },
   active: { en: "Active", zh: "活跃" },
   broken: { en: "Broken", zh: "已破裂" },
+  ended: { en: "Ended", zh: "已结束" },
 
-  claim: { en: "Claim Reward", zh: "领取奖励" },
+  signContract: { en: "Sign Contract", zh: "签署合约" },
   breakContract: { en: "Break Contract", zh: "违约" },
 
   contractCreated: { en: "Contract created successfully!", zh: "合约创建成功！" },
-  notCompleted: { en: "Contract not completed yet!", zh: "合约尚未完成！" },
-  claimed: { en: "Claimed", zh: "已领取" },
+  contractSigned: { en: "Contract signed", zh: "合约已签署" },
   contractBroken: { en: "Contract broken! Stake forfeited.", zh: "合约已破裂！质押被没收。" },
   error: { en: "Error", zh: "错误" },
 
@@ -185,6 +183,7 @@ const translations = {
   step1: { en: "Connect your wallet.", zh: "连接您的钱包。" },
   step2: { en: "Enter partner address and stake amount.", zh: "输入伴侣地址和质押金额。" },
   step3: { en: "Sign the contract and wait for completion!", zh: "签署合约并等待完成！" },
+  step4: { en: "Track active contracts in the Contracts tab.", zh: "在合约标签页跟踪活跃合约。" },
   feature1Name: { en: "Crypto Stakes", zh: "加密质押" },
   feature1Desc: { en: "Real GAS locked in contract.", zh: "真实的 GAS 锁定在合约中。" },
   feature2Name: { en: "On-Chain Proof", zh: "链上证明" },
@@ -193,15 +192,17 @@ const translations = {
 
 const t = createT(translations);
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 
 const APP_ID = "miniapp-breakupcontract";
-const { address, connect } = useWallet();
+const { address, connect, invokeContract, invokeRead, getContractHash } = useWallet();
+const { list: listEvents } = useEvents();
 const { payGAS, isLoading } = usePayments(APP_ID);
+const contractHash = ref<string | null>(null);
 
 const activeTab = ref<string>("create");
 const navTabs: NavTab[] = [
@@ -214,195 +215,260 @@ const partnerAddress = ref("");
 const stakeAmount = ref("");
 const duration = ref("");
 const status = ref<{ msg: string; type: string } | null>(null);
-const contracts = ref([
-  { id: "1", partner: "NX8...abc", stake: "10", progress: 65, daysLeft: 105, status: "active" },
-  { id: "2", partner: "NY2...def", stake: "5", progress: 100, daysLeft: 0, status: "active" },
-  { id: "3", partner: "NZ9...ghi", stake: "15", progress: 20, daysLeft: 240, status: "broken" },
-]);
+type ContractStatus = "pending" | "active" | "broken" | "ended";
+interface RelationshipContractView {
+  id: number;
+  party1: string;
+  party2: string;
+  partner: string;
+  stake: number;
+  stakeRaw: string;
+  progress: number;
+  daysLeft: number;
+  status: ContractStatus;
+}
+
+const contracts = ref<RelationshipContractView[]>([]);
+
+const toFixed8 = (value: string) => {
+  const num = Number.parseFloat(value);
+  if (!Number.isFinite(num)) return "0";
+  return Math.floor(num * 1e8).toString();
+};
+
+const toGas = (value: any) => {
+  const num = Number(value ?? 0);
+  return Number.isFinite(num) ? num / 1e8 : 0;
+};
+
+const ensureContractHash = async () => {
+  if (!contractHash.value) {
+    contractHash.value = await getContractHash();
+  }
+  if (!contractHash.value) {
+    throw new Error("Contract not configured");
+  }
+};
+
+const parseContract = (id: number, data: any[]): RelationshipContractView | null => {
+  if (!Array.isArray(data) || data.length < 9) return null;
+  const party1 = String(data[0] ?? "");
+  const party2 = String(data[1] ?? "");
+  const stakeRaw = String(data[2] ?? "0");
+  const party1Signed = Boolean(data[3]);
+  const party2Signed = Boolean(data[4]);
+  const startTime = Number(data[5] ?? 0) * 1000;
+  const duration = Number(data[6] ?? 0);
+  const active = Boolean(data[7]);
+  const completed = Boolean(data[8]);
+
+  const now = Date.now();
+  const endTime = startTime + duration;
+  const elapsed = startTime > 0 ? Math.max(0, Math.min(duration, now - startTime)) : 0;
+  const progress = duration > 0 ? Math.round((elapsed / duration) * 100) : 0;
+  const daysLeft = duration > 0 ? Math.max(0, Math.ceil((endTime - now) / 86400000)) : 0;
+
+  let status: ContractStatus = "pending";
+  if (party2Signed && active) status = "active";
+  else if (completed) status = "broken";
+  else if (party2Signed && !active) status = "ended";
+
+  const partner = address.value && address.value === party1 ? party2 : party1;
+
+  return {
+    id,
+    party1,
+    party2,
+    partner,
+    stake: toGas(stakeRaw),
+    stakeRaw,
+    progress,
+    daysLeft,
+    status,
+  };
+};
+
+const loadContracts = async () => {
+  try {
+    await ensureContractHash();
+    const createdEvents = await listEvents({ app_id: APP_ID, event_name: "ContractCreated", limit: 50 });
+    const ids = new Set<number>();
+    createdEvents.events.forEach((evt) => {
+      const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
+      const id = Number(values[0] ?? 0);
+      if (id > 0) ids.add(id);
+    });
+
+    const contractViews: RelationshipContractView[] = [];
+    for (const id of Array.from(ids).sort((a, b) => b - a)) {
+      const res = await invokeRead({
+        contractHash: contractHash.value!,
+        operation: "GetContract",
+        args: [{ type: "Integer", value: id }],
+      });
+      const parsed = parseContract(id, parseInvokeResult(res));
+      if (parsed) contractViews.push(parsed);
+    }
+    contracts.value = contractViews;
+  } catch (e) {
+    console.warn("Failed to load contracts", e);
+  }
+};
+
+const canSignContract = (contract: RelationshipContractView) =>
+  Boolean(address.value && contract.status === "pending" && contract.party2 === address.value);
 
 const createContract = async () => {
   if (!partnerAddress.value || !stakeAmount.value || isLoading.value) return;
+  const stake = parseFloat(stakeAmount.value);
+  const durationDays = parseInt(duration.value, 10);
+  if (!Number.isFinite(stake) || stake < 1 || !Number.isFinite(durationDays) || durationDays < 30) {
+    status.value = { msg: t("error"), type: "error" };
+    return;
+  }
   try {
-    await payGAS(stakeAmount.value, `contract:${partnerAddress.value.slice(0, 10)}`);
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) {
+      throw new Error(t("error"));
+    }
+    await ensureContractHash();
+    const payment = await payGAS(stakeAmount.value, `contract:${partnerAddress.value.slice(0, 10)}`);
+    const receiptId = payment.receipt_id;
+    if (!receiptId) {
+      throw new Error("Missing payment receipt");
+    }
+    await invokeContract({
+      scriptHash: contractHash.value!,
+      operation: "CreateContract",
+      args: [
+        { type: "Hash160", value: address.value },
+        { type: "Hash160", value: partnerAddress.value },
+        { type: "Integer", value: toFixed8(stakeAmount.value) },
+        { type: "Integer", value: durationDays },
+        { type: "Integer", value: receiptId },
+      ],
+    });
     status.value = { msg: t("contractCreated"), type: "success" };
     partnerAddress.value = "";
     stakeAmount.value = "";
     duration.value = "";
+    await loadContracts();
   } catch (e: any) {
     status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
 
-const claimReward = async (contract: any) => {
-  if (contract.progress < 100) {
-    status.value = { msg: t("notCompleted"), type: "error" };
-    return;
+const signContract = async (contract: RelationshipContractView) => {
+  if (isLoading.value || !address.value) return;
+  try {
+    await ensureContractHash();
+    const payment = await payGAS(contract.stake.toFixed(8), `contract:sign:${contract.id}`);
+    const receiptId = payment.receipt_id;
+    if (!receiptId) {
+      throw new Error("Missing payment receipt");
+    }
+    await invokeContract({
+      scriptHash: contractHash.value!,
+      operation: "SignContract",
+      args: [
+        { type: "Integer", value: contract.id },
+        { type: "Hash160", value: address.value },
+        { type: "Integer", value: receiptId },
+      ],
+    });
+    status.value = { msg: t("contractSigned"), type: "success" };
+    await loadContracts();
+  } catch (e: any) {
+    status.value = { msg: e.message || t("error"), type: "error" };
   }
-  status.value = { msg: `${t("claimed")} ${contract.stake} GAS!`, type: "success" };
 };
 
-const breakContract = async (contract: any) => {
-  status.value = { msg: t("contractBroken"), type: "error" };
-  contract.status = "broken";
+const breakContract = async (contract: RelationshipContractView) => {
+  if (!address.value) {
+    status.value = { msg: t("error"), type: "error" };
+    return;
+  }
+  try {
+    await ensureContractHash();
+    await invokeContract({
+      scriptHash: contractHash.value!,
+      operation: "TriggerBreakup",
+      args: [
+        { type: "Integer", value: contract.id },
+        { type: "Hash160", value: address.value },
+      ],
+    });
+    status.value = { msg: t("contractBroken"), type: "error" };
+    await loadContracts();
+  } catch (e: any) {
+    status.value = { msg: e.message || t("error"), type: "error" };
+  }
 };
+
+onMounted(() => {
+  loadContracts();
+});
 </script>
 
 <style lang="scss" scoped>
 @import "@/shared/styles/tokens.scss";
 @import "@/shared/styles/variables.scss";
 
-// ============================================
-// LAYOUT
-// ============================================
-
 .app-container {
-  display: flex;
-  flex-direction: column;
   padding: $space-4;
-  height: 100%;
-}
-
-// ============================================
-// HEADER WITH HEART ANIMATION
-// ============================================
-
-.header {
-  text-align: center;
-  margin-bottom: $space-6;
-  position: relative;
-}
-
-.heart-icon {
-  position: relative;
-  display: inline-block;
-  margin-bottom: $space-3;
-  height: 60px;
-  width: 60px;
-}
-
-.heart {
-  font-size: 48px;
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  animation: heartbeat 1.5s ease-in-out infinite;
-}
-
-.broken-heart {
-  font-size: 48px;
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  opacity: 0;
-  animation: fadeInOut 3s ease-in-out infinite;
-}
-
-@keyframes heartbeat {
-  0%,
-  100% {
-    transform: translateX(-50%) scale(1);
-  }
-  50% {
-    transform: translateX(-50%) scale(1.1);
-  }
-}
-
-@keyframes fadeInOut {
-  0%,
-  40%,
-  100% {
-    opacity: 0;
-  }
-  50%,
-  90% {
-    opacity: 1;
-  }
-}
-
-.title {
-  font-size: $font-size-3xl;
-  font-weight: $font-weight-black;
-  color: var(--brutal-pink);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  display: block;
-}
-
-.subtitle {
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
-  margin-top: $space-2;
-  display: block;
-}
-
-// ============================================
-// STATUS MESSAGES
-// ============================================
-
-.status-msg {
-  text-align: center;
-  padding: $space-3;
-  border-radius: $radius-md;
-  margin-bottom: $space-4;
-  border: $border-width-md solid;
-  font-weight: $font-weight-semibold;
-
-  &.success {
-    background: color-mix(in srgb, var(--status-success) 15%, transparent);
-    color: var(--status-success);
-    border-color: var(--status-success);
-  }
-
-  &.error {
-    background: color-mix(in srgb, var(--status-error) 15%, transparent);
-    color: var(--status-error);
-    border-color: var(--status-error);
-  }
-}
-
-// ============================================
-// TAB CONTENT
-// ============================================
-
-.tab-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  gap: $space-4;
 }
 
-// ============================================
-// CONTRACT DOCUMENT STYLING
-// ============================================
+.header {
+  text-align: center;
+  margin-bottom: $space-4;
+}
+
+.heart-icon {
+  font-size: 32px;
+  display: flex;
+  justify-content: center;
+  gap: $space-2;
+}
+.title {
+  font-size: 32px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  color: var(--brutal-pink);
+  text-shadow: 4px 4px 0 black;
+}
+.subtitle {
+  font-size: 10px;
+  font-weight: $font-weight-black;
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
 
 .contract-document {
-  background: var(--bg-card);
-  border: $border-width-lg solid var(--border-color);
-  border-radius: $radius-lg;
+  background: white;
+  border: 4px solid black;
+  box-shadow: 10px 10px 0 black;
   padding: $space-6;
-  box-shadow: $shadow-lg;
   position: relative;
-
   &::before {
     content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: 8px;
-    background: repeating-linear-gradient(
-      90deg,
-      var(--brutal-pink) 0px,
-      var(--brutal-pink) 10px,
-      transparent 10px,
-      transparent 20px
-    );
+    height: 10px;
+    background: repeating-linear-gradient(45deg, var(--brutal-pink), var(--brutal-pink) 10px, black 10px, black 20px);
   }
 }
 
@@ -410,367 +476,178 @@ const breakContract = async (contract: any) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: $space-5;
-  padding-bottom: $space-4;
-  border-bottom: $border-width-md dashed var(--border-color);
+  margin-bottom: $space-4;
+  border-bottom: 2px dashed black;
+  padding: $space-2 0;
 }
-
 .document-title {
-  font-size: $font-size-xl;
   font-weight: $font-weight-black;
-  color: var(--brutal-pink);
-  letter-spacing: 2px;
+  font-size: 14px;
   text-transform: uppercase;
 }
-
 .document-seal {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: var(--brutal-pink);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-sm;
-}
-
-.seal-text {
   font-size: 24px;
-}
-
-.document-body {
-  display: flex;
-  flex-direction: column;
-  gap: $space-4;
+  opacity: 0.5;
+  filter: grayscale(1);
 }
 
 .document-clause {
-  font-size: $font-size-sm;
-  color: var(--text-secondary);
-  line-height: $line-height-relaxed;
-  font-style: italic;
+  font-size: 8px;
+  font-weight: $font-weight-bold;
+  line-height: 1.4;
   padding: $space-3;
-  background: rgba(255, 255, 255, 0.03);
-  border-left: $border-width-md solid var(--brutal-pink);
-  border-radius: $radius-sm;
+  border: 1px dashed black;
+  background: #f9f9f9;
+  display: block;
+  margin-bottom: $space-4;
 }
-
-// ============================================
-// FORM STYLING
-// ============================================
 
 .form-group {
   display: flex;
   flex-direction: column;
   gap: $space-2;
+  margin-bottom: $space-4;
 }
-
 .form-label {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-semibold;
-  color: var(--text-primary);
+  font-size: 8px;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  opacity: 0.6;
 }
-
-.contract-input {
-  border: $border-width-md solid var(--border-color);
-  border-radius: $radius-md;
-  background: var(--bg-secondary);
-}
-
-// ============================================
-// SIGNATURE SECTION WITH ANIMATION
-// ============================================
 
 .signature-section {
-  margin-top: $space-4;
+  border-top: 2px dashed black;
   padding-top: $space-4;
-  border-top: $border-width-md dashed var(--border-color);
+  margin-top: $space-2;
 }
-
 .signature-label {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-semibold;
-  color: var(--text-secondary);
-  display: block;
-  margin-bottom: $space-2;
+  font-size: 8px;
+  font-weight: $font-weight-black;
+  opacity: 0.6;
+  text-transform: uppercase;
 }
-
 .signature-line {
-  position: relative;
-  padding: $space-3;
-  border-bottom: $border-width-md solid var(--brutal-pink);
-  min-height: 40px;
-  display: flex;
-  align-items: center;
-
-  &::after {
-    content: "✍️";
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    font-size: 20px;
-    animation: signatureFloat 2s ease-in-out infinite;
-  }
-}
-
-@keyframes signatureFloat {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
-}
-
-.signature-placeholder {
   font-family: $font-mono;
-  font-size: $font-size-sm;
+  font-size: 12px;
+  font-weight: $font-weight-black;
   color: var(--brutal-pink);
-  font-weight: $font-weight-medium;
+  padding: $space-2 0;
+  border-bottom: 3px solid var(--brutal-pink);
 }
-
-// ============================================
-// ACTION BUTTON
-// ============================================
-
-.action-btn {
-  background: var(--brutal-pink);
-  color: var(--neo-white);
-  padding: $space-4;
-  border-radius: $radius-lg;
-  text-align: center;
-  font-weight: $font-weight-bold;
-  font-size: $font-size-base;
-  margin-top: $space-4;
-  border: $border-width-md solid var(--neo-black);
-  box-shadow: $shadow-md;
-  cursor: pointer;
-  transition: all $transition-normal;
-
-  &:active {
-    transform: translate(3px, 3px);
-    box-shadow: 2px 2px 0 var(--neo-black);
-  }
-}
-
-// ============================================
-// CONTRACTS LIST
-// ============================================
 
 .contracts-list {
   display: flex;
   flex-direction: column;
   gap: $space-4;
 }
-
 .section-title {
-  font-size: $font-size-2xl;
+  font-size: 16px;
   font-weight: $font-weight-black;
-  color: var(--brutal-pink);
   text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: $space-2;
+  border-bottom: 2px solid black;
+  padding-bottom: $space-1;
 }
-
-// ============================================
-// CONTRACT CARD
-// ============================================
 
 .contract-card {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  border-radius: $radius-lg;
-  padding: $space-5;
-  box-shadow: $shadow-md;
-  position: relative;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    flex: 1;
-    min-height: 0;
-    background: var(--brutal-pink);
-  }
+  background: white;
+  border: 2px solid black;
+  padding: $space-4;
+  box-shadow: 6px 6px 0 black;
+  border-left: 8px solid var(--brutal-pink);
 }
-
-// ============================================
-// STATUS BADGE
-// ============================================
 
 .contract-status-badge {
   display: inline-flex;
-  align-items: center;
-  gap: $space-2;
-  padding: $space-2 $space-3;
-  border-radius: $radius-md;
-  border: $border-width-md solid;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  margin-bottom: $space-4;
-
-  &.active {
-    background: color-mix(in srgb, var(--neo-green) 15%, transparent);
-    border-color: var(--neo-green);
-    color: var(--neo-green);
-  }
-
-  &.broken {
-    background: color-mix(in srgb, var(--brutal-red) 15%, transparent);
-    border-color: var(--brutal-red);
-    color: var(--brutal-red);
-  }
-}
-
-.status-icon {
-  font-size: 18px;
-}
-
-.status-text {
+  padding: 2px 8px;
+  border: 1px solid black;
+  font-size: 8px;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-// ============================================
-// CONTRACT INFO
-// ============================================
-
-.contract-info {
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
-  margin-bottom: $space-4;
+  margin-bottom: $space-2;
+  &.active {
+    background: var(--neo-green);
+  }
+  &.pending {
+    background: var(--brutal-yellow);
+  }
+  &.broken {
+    background: var(--brutal-red);
+    color: white;
+  }
 }
 
 .info-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  font-size: 10px;
+  padding: 2px 0;
+  border-bottom: 1px solid #eee;
 }
-
 .info-label {
-  font-size: $font-size-sm;
-  color: var(--text-secondary);
-  font-weight: $font-weight-medium;
+  opacity: 0.6;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
 }
-
 .info-value {
-  font-size: $font-size-sm;
-  color: var(--text-primary);
-  font-weight: $font-weight-semibold;
   font-family: $font-mono;
+  font-weight: $font-weight-black;
 }
-
-.stake-amount {
-  color: var(--brutal-pink);
-  font-weight: $font-weight-bold;
-}
-
-// ============================================
-// PROGRESS SECTION WITH HEART ANIMATION
-// ============================================
 
 .contract-progress-section {
-  margin-bottom: $space-4;
-}
-
-.progress-label {
-  font-size: $font-size-sm;
-  color: var(--text-secondary);
-  font-weight: $font-weight-medium;
-  display: block;
-  margin-bottom: $space-2;
-}
-
-.progress-track {
-  height: 12px;
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  border-radius: $radius-md;
-  overflow: hidden;
-  position: relative;
-}
-
-.progress-fill {
-  flex: 1;
-  min-height: 0;
-  background: linear-gradient(90deg, var(--brutal-pink), var(--brutal-red));
-  transition: width $transition-slow;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
-
-.progress-heart {
-  font-size: 16px;
-  margin-right: -8px;
-  animation: heartPulse 1s ease-in-out infinite;
-}
-
-@keyframes heartPulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.2);
-  }
-}
-
-// ============================================
-// CONTRACT ACTIONS
-// ============================================
-
-.contract-actions {
-  display: flex;
-  gap: $space-3;
   margin-top: $space-4;
 }
-
-.claim-btn,
-.break-btn {
-  flex: 1;
-  padding: $space-3;
-  border-radius: $radius-md;
-  text-align: center;
-  font-weight: $font-weight-bold;
-  font-size: $font-size-sm;
-  border: $border-width-md solid;
-  cursor: pointer;
-  transition: all $transition-normal;
+.progress-label {
+  font-size: 8px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  color: black;
+}
+.progress-track {
+  height: 12px;
+  background: #eee;
+  margin-top: 4px;
+  border: 2px solid black;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--brutal-pink);
+  border-right: 2px solid black;
 }
 
+.contract-actions {
+  margin-top: $space-4;
+  display: flex;
+  gap: $space-2;
+}
+.break-btn,
 .claim-btn {
-  background: var(--neo-green);
-  color: var(--neo-black);
-  border-color: var(--neo-black);
-  box-shadow: 3px 3px 0 var(--neo-black);
-
+  flex: 1;
+  text-align: center;
+  padding: $space-2;
+  border: 2px solid black;
+  font-weight: $font-weight-black;
+  font-size: 10px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all $transition-fast;
   &:active {
     transform: translate(2px, 2px);
-    box-shadow: 1px 1px 0 var(--neo-black);
+    box-shadow: none;
   }
 }
-
 .break-btn {
   background: var(--brutal-red);
-  color: var(--neo-white);
-  border-color: var(--neo-black);
-  box-shadow: 3px 3px 0 var(--neo-black);
+  color: white;
+  box-shadow: 4px 4px 0 black;
+}
+.claim-btn {
+  background: var(--neo-green);
+  color: black;
+  box-shadow: 4px 4px 0 black;
+}
 
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: 1px 1px 0 var(--neo-black);
-  }
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

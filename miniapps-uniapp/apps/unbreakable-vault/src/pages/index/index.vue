@@ -1,12 +1,11 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab === 'vault'" class="tab-content scrollable">
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
+        <text class="font-bold uppercase">{{ status.msg }}</text>
+      </NeoCard>
 
-      <view class="card">
-        <text class="card-title">{{ t("vaultBalance") }}</text>
+      <NeoCard :title="t('vaultBalance')" variant="accent">
         <view class="balance-display">
           <text class="balance">{{ formatNum(vaultBalance) }}</text>
           <text class="balance-label">GAS</text>
@@ -15,24 +14,22 @@
           <text class="security-label">{{ t("securityLevel") }}</text>
           <text class="security-value">{{ t("maximum") }}</text>
         </view>
-      </view>
+      </NeoCard>
 
-      <view class="card">
-        <text class="card-title">{{ t("deposit") }}</text>
-        <uni-easyinput v-model="depositAmount" type="number" :placeholder="t('amountToDeposit')" class="input" />
-        <view class="action-btn" @click="deposit" :style="{ opacity: isLoading ? 0.6 : 1 }">
-          <text>{{ isLoading ? t("processing") : t("depositToVault") }}</text>
-        </view>
-      </view>
+      <NeoCard :title="t('deposit')" variant="default">
+        <NeoInput v-model="depositAmount" type="number" :placeholder="t('amountToDeposit')" class="mb-4" />
+        <NeoButton variant="primary" block :loading="isLoading" @click="deposit">
+          {{ isLoading ? t("processing") : t("depositToVault") }}
+        </NeoButton>
+      </NeoCard>
 
-      <view class="card">
-        <text class="card-title">{{ t("withdraw") }}</text>
-        <uni-easyinput v-model="withdrawAmount" type="number" :placeholder="t('amountToWithdraw')" class="input" />
-        <text class="warning-text">{{ t("timeLockWarning") }}</text>
-        <view class="action-btn secondary" @click="withdraw">
-          <text>{{ t("requestWithdrawal") }}</text>
-        </view>
-      </view>
+      <NeoCard :title="t('withdraw')" variant="default">
+        <NeoInput v-model="withdrawAmount" type="number" :placeholder="t('amountToWithdraw')" class="mb-2" />
+        <text class="warning-text block mb-4">{{ t("timeLockWarning") }}</text>
+        <NeoButton variant="secondary" block @click="withdraw">
+          {{ t("requestWithdrawal") }}
+        </NeoButton>
+      </NeoCard>
     </view>
 
     <!-- Docs Tab -->
@@ -53,8 +50,7 @@ import { ref, computed } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
+import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard } from "@/shared/components";
 
 const translations = {
   title: { en: "Unbreakable Vault", zh: "坚不可摧的保险库" },
@@ -84,6 +80,10 @@ const translations = {
   step1: { en: "Connect your wallet.", zh: "连接您的钱包。" },
   step2: { en: "Deposit GAS into the vault.", zh: "将 GAS 存入保险库。" },
   step3: { en: "Request withdrawal and wait for the time-lock.", zh: "请求取款并等待时间锁。" },
+  step4: {
+    en: "After 24 hours, complete the withdrawal to receive your GAS.",
+    zh: "24小时后，完成取款以收到您的 GAS。",
+  },
   feature1Name: { en: "Time-Lock", zh: "时间锁" },
   feature1Desc: { en: "24-hour protection on all withdrawals.", zh: "所有提款均受 24 小时保护。" },
   feature2Name: { en: "TEE Secured", zh: "TEE 安全性" },
@@ -99,13 +99,13 @@ const navTabs = [
 
 const activeTab = ref("vault");
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 
-const APP_ID = "miniapp-unbreakable-vault";
+const APP_ID = "miniapp-unbreakablevault";
 const { address, connect } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
 
@@ -151,186 +151,85 @@ const withdraw = () => {
 .tab-content {
   padding: $space-4;
   flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
+  gap: $space-4;
   overflow-y: auto;
-  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: $space-6;
-}
-
-.title {
-  font-size: $font-size-3xl;
-  font-weight: $font-weight-black;
-  color: var(--neo-purple);
-  text-transform: uppercase;
-}
-
-.subtitle {
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
-  margin-top: $space-2;
-}
-
-.status-msg {
-  text-align: center;
-  padding: $space-3;
-  border: $border-width-md solid;
-  margin-bottom: $space-4;
-  font-weight: $font-weight-bold;
-  animation: slideDown 0.3s ease-out;
-
-  &.success {
-    background: var(--status-success);
-    color: var(--neo-black);
-    border-color: var(--neo-black);
-  }
-
-  &.error {
-    background: var(--status-error);
-    color: var(--neo-white);
-    border-color: var(--neo-black);
-  }
-}
-
-.card {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  padding: $space-5;
-  margin-bottom: $space-4;
-}
-
-.card-title {
-  color: var(--neo-purple);
-  font-size: $font-size-lg;
-  font-weight: $font-weight-black;
-  display: block;
-  margin-bottom: $space-3;
-  text-transform: uppercase;
 }
 
 .balance-display {
   text-align: center;
-  padding: $space-6;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-  margin-bottom: $space-4;
+  padding: $space-8;
+  background: white;
+  border: 4px solid black;
+  box-shadow: 8px 8px 0 black;
+  margin-bottom: $space-6;
   position: relative;
   overflow: hidden;
-
-  &::before {
-    content: "";
+  &::after {
+    content: "UNBREAKABLE";
     position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(45deg, transparent, rgba(139, 92, 246, 0.1), transparent);
-    animation: shimmer 3s infinite;
+    top: 5px;
+    right: -20px;
+    background: var(--brutal-yellow);
+    color: black;
+    font-size: 8px;
+    font-weight: $font-weight-black;
+    padding: 2px 20px;
+    transform: rotate(45deg);
+    border: 1px solid black;
   }
 }
 
 .balance {
-  font-size: $font-size-4xl;
+  font-size: 48px;
   font-weight: $font-weight-black;
-  color: var(--neo-purple);
+  color: black;
   display: block;
-  animation: pulse 2s ease-in-out infinite;
-  position: relative;
-  z-index: 1;
+  font-family: $font-mono;
+  line-height: 1;
 }
 
 .balance-label {
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
+  font-size: 14px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  margin-top: 4px;
+  display: block;
 }
 
 .security-row {
   display: flex;
   justify-content: space-between;
-  padding-top: $space-2;
-}
-
-.security-label {
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
+  font-size: 12px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  background: black;
+  color: white;
+  padding: 8px 12px;
+  margin-top: $space-4;
 }
 
 .security-value {
-  color: var(--neo-green);
-  font-weight: $font-weight-bold;
-}
-
-.input {
-  margin-bottom: $space-4;
+  color: var(--brutal-green);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
 }
 
 .warning-text {
+  font-size: 10px;
   color: var(--brutal-yellow);
-  font-size: $font-size-xs;
-  display: block;
-  margin-bottom: $space-4;
-  text-align: center;
-  font-weight: $font-weight-bold;
-}
-
-.action-btn {
-  background: var(--neo-purple);
-  color: var(--neo-white);
-  padding: $space-4;
-  border-radius: $radius-md;
-  text-align: center;
+  background: black;
+  padding: 4px 8px;
+  display: inline-block;
   font-weight: $font-weight-black;
   text-transform: uppercase;
-  border: $border-width-md solid var(--neo-black);
-  box-shadow: $shadow-sm;
-  cursor: pointer;
-
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: none;
-  }
-
-  &.secondary {
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-  }
+  border: 1px solid black;
+  box-shadow: 2px 2px 0 black;
 }
 
-// Animations
-@keyframes slideDown {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.02);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%) rotate(45deg);
-  }
-  100% {
-    transform: translateX(100%) rotate(45deg);
-  }
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

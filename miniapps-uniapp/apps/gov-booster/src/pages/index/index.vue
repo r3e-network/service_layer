@@ -1,9 +1,9 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view class="app-container">
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4">
+        <text class="text-center font-bold">{{ status.msg }}</text>
+      </NeoCard>
 
       <view v-if="activeTab === 'boost'" class="tab-content">
         <!-- Power Meter Card -->
@@ -150,8 +150,7 @@ import { ref, computed } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import { formatNumber } from "@/shared/utils/format";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import { NeoButton, NeoCard, NeoInput, NeoDoc } from "@/shared/components";
+import { AppLayout, NeoButton, NeoCard, NeoInput, NeoDoc } from "@/shared/components";
 
 const translations = {
   title: { en: "Gov Booster", zh: "治理助推器" },
@@ -179,28 +178,50 @@ const translations = {
   error: { en: "Error", zh: "错误" },
 
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Professional documentation for this application is coming soon.",
-    zh: "此应用程序的专业文档即将推出。",
+  docSubtitle: {
+    en: "Amplify your governance voting power",
+    zh: "放大您的治理投票权",
   },
-  step1: { en: "Open the application.", zh: "打开应用程序。" },
-  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
-  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
-  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
-  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
-  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  docDescription: {
+    en: "Gov Booster lets you enhance your voting power on Neo governance proposals. Delegate votes, track governance activity, and receive proposal notifications.",
+    zh: "Gov Booster 让您增强在 Neo 治理提案上的投票权。委托投票、跟踪治理活动并接收提案通知。",
+  },
+  step1: {
+    en: "Connect your Neo wallet with NEO holdings",
+    zh: "连接持有 NEO 的钱包",
+  },
+  step2: {
+    en: "View active governance proposals",
+    zh: "查看活跃的治理提案",
+  },
+  step3: {
+    en: "Boost your voting power or delegate to others",
+    zh: "增强您的投票权或委托给他人",
+  },
+  step4: {
+    en: "Cast your enhanced vote on proposals",
+    zh: "对提案投出增强后的票",
+  },
+  feature1Name: { en: "Vote Amplification", zh: "投票放大" },
+  feature1Desc: {
+    en: "Boost your voting weight through staking mechanisms.",
+    zh: "通过质押机制增强您的投票权重。",
+  },
+  feature2Name: { en: "Proposal Alerts", zh: "提案提醒" },
+  feature2Desc: {
+    en: "Get notified when new proposals need your attention.",
+    zh: "当新提案需要您关注时获得通知。",
+  },
 };
 
 const t = createT(translations);
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
-const APP_ID = "miniapp-gov-booster";
+const APP_ID = "miniapp-govbooster";
 const { address, connect } = useWallet();
 
 interface Proposal {
@@ -301,441 +322,56 @@ const voteOnProposal = async (id: number) => {
 @import "@/shared/styles/variables.scss";
 
 .app-container {
-  display: flex;
-  flex-direction: column;
   padding: $space-4;
-  min-flex: 1;
-  min-height: 0;
-}
-
-.tab-content {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: $space-4;
-}
-
-.status-msg {
-  text-align: center;
-  padding: $space-3;
-  margin-bottom: $space-4;
-  border: $border-width-md solid var(--border-color);
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-
-  &.success {
-    background: var(--status-success);
-    color: $neo-black;
-    border-color: darken($status-success, 10%);
-    box-shadow: 4px 4px 0 darken($status-success, 20%);
-  }
-  &.error {
-    background: var(--status-error);
-    color: $neo-white;
-    border-color: darken($status-error, 10%);
-    box-shadow: 4px 4px 0 darken($status-error, 20%);
-  }
-  &.loading {
-    background: var(--neo-green);
-    color: $neo-black;
-    border-color: darken($neo-green, 10%);
-    box-shadow: 4px 4px 0 darken($neo-green, 20%);
-  }
-}
-
-// Power Meter Container
-.power-meter-container {
-  display: flex;
-  flex-direction: column;
-  gap: $space-4;
-}
-
-.power-header {
-  text-align: center;
-  padding: $space-4 0;
-  border-bottom: $border-width-md solid var(--border-color);
-}
-
-.power-title {
-  display: block;
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: $space-2;
-  font-weight: $font-weight-semibold;
-}
-
-.power-value {
-  display: block;
-  color: var(--neo-purple);
-  font-size: $font-size-3xl;
-  font-weight: $font-weight-black;
-  text-shadow: 2px 2px 0 var(--shadow-color);
-}
-
-// Boost Gauge
-.boost-gauge {
-  padding: 0 $space-2;
-}
-
-.gauge-track {
-  height: 24px;
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  position: relative;
   overflow-y: auto;
-  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  box-shadow: inset 2px 2px 4px var(--shadow-color);
 }
 
-.gauge-fill {
-  flex: 1;
-  min-height: 0;
-  background: linear-gradient(90deg, var(--neo-green) 0%, var(--brutal-yellow) 50%, var(--neo-purple) 100%);
-  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 12px var(--neo-green);
-  animation: pulse-glow 2s ease-in-out infinite;
-}
+.tab-content { display: flex; flex-direction: column; gap: $space-4; }
 
-@keyframes pulse-glow {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.85;
-  }
-}
+.power-header { text-align: center; padding: $space-6 0; border-bottom: 4px solid black; margin-bottom: $space-6; background: white; border: 3px solid black; box-shadow: 6px 6px 0 black; }
+.power-title { font-weight: $font-weight-black; text-transform: uppercase; font-size: 10px; border-bottom: 2px solid black; display: inline-block; margin-bottom: 4px; }
+.power-value { font-weight: $font-weight-black; font-size: 40px; color: black; font-family: $font-mono; display: block; }
 
-.gauge-labels {
-  display: flex;
-  justify-content: space-between;
-  margin-top: $space-2;
-  padding: 0 $space-1;
-}
+.boost-gauge { margin-bottom: $space-6; }
+.gauge-track { height: 20px; background: white; border: 3px solid black; padding: 2px; }
+.gauge-fill { height: 100%; background: var(--neo-green); border-right: 2px solid black; transition: width 0.6s ease; }
+.gauge-labels { display: flex; justify-content: space-between; margin-top: 8px; font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; }
 
-.gauge-label {
-  color: var(--text-muted);
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-}
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: $space-3; }
+.stat-box { padding: $space-3; background: white; border: 2px solid black; text-align: center; box-shadow: 3px 3px 0 black; }
+.stat-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+.stat-value { font-weight: $font-weight-black; font-family: $font-mono; color: black; font-size: 16px; border-bottom: 2px solid black; display: block; margin-bottom: 4px; }
+.stat-label { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; opacity: 0.6; }
 
-// Stats Grid
-.stats-grid {
-  display: flex;
-  gap: $space-3;
-}
-
-.stat-box {
-  flex: 1;
-  text-align: center;
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  padding: $space-4 $space-3;
-  box-shadow: $shadow-md;
-  transition: all $transition-fast;
-
-  &:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0 var(--shadow-color);
-  }
-}
-
-.stat-icon {
-  display: block;
-  font-size: $font-size-2xl;
-  margin-bottom: $space-2;
-}
-
-.stat-value {
-  color: var(--neo-green);
-  font-size: $font-size-xl;
-  font-weight: $font-weight-black;
-  display: block;
-  margin-bottom: $space-1;
-}
-
-.stat-label {
-  color: var(--text-secondary);
-  font-size: $font-size-xs;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: $font-weight-semibold;
-}
-
-// Calculator Section
-.calculator-section {
-  display: flex;
-  flex-direction: column;
-  gap: $space-4;
-}
-
-.input-section {
-  display: flex;
-  flex-direction: column;
-  gap: $space-2;
-}
-
-.input-label,
-.section-label {
-  color: var(--text-primary);
-  font-size: $font-size-sm;
-  font-weight: $font-weight-semibold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.duration-section {
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
-}
-
-.duration-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: $space-2;
-}
-
+.duration-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: $space-3; margin: $space-4 0; }
 .duration-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: $space-3;
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  cursor: pointer;
-  transition: all $transition-fast;
-  box-shadow: $shadow-sm;
-
-  &:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 4px 4px 0 var(--shadow-color);
-  }
-
-  &:active {
-    transform: translate(1px, 1px);
-    box-shadow: 2px 2px 0 var(--shadow-color);
-  }
-
-  &.active {
-    background: var(--neo-purple);
-    border-color: var(--neo-purple);
-    box-shadow: 4px 4px 0 var(--shadow-color);
-
-    .duration-period,
-    .duration-boost-label {
-      color: var(--neo-white);
-    }
-
-    .duration-multiplier {
-      color: var(--brutal-yellow);
-    }
-  }
+  padding: $space-3; background: white; border: 3px solid black; text-align: center;
+  box-shadow: 4px 4px 0 black; transition: all $transition-fast;
+  &.active { background: var(--brutal-yellow); transform: translate(2px, 2px); box-shadow: 2px 2px 0 black; }
 }
+.duration-period { font-weight: $font-weight-black; display: block; font-size: 14px; }
+.duration-multiplier { font-size: 12px; color: black; font-weight: $font-weight-black; background: white; padding: 2px 6px; border: 1px solid black; margin-top: 4px; display: inline-block; }
 
-.duration-period {
-  font-size: $font-size-base;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-  margin-bottom: $space-1;
-}
+.projection-box { background: black; color: white; padding: $space-4; border: 3px solid black; margin-bottom: $space-6; box-shadow: 8px 8px 0 rgba(0,0,0,0.2); }
+.projection-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px; font-weight: $font-weight-black; text-transform: uppercase; }
+.projection-value { font-weight: $font-weight-black; font-family: $font-mono; color: var(--brutal-green); }
+.projection-increase { color: var(--brutal-yellow); font-weight: $font-weight-black; }
 
-.duration-multiplier {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-black;
-  color: var(--neo-green);
-  margin-bottom: $space-1;
-}
+.boost-item { padding: $space-4; background: white; border: 3px solid black; margin-bottom: $space-4; box-shadow: 5px 5px 0 black; }
+.boost-header { display: flex; justify-content: space-between; font-weight: $font-weight-black; font-size: 14px; text-transform: uppercase; border-bottom: 2px solid black; padding-bottom: 4px; margin-bottom: 8px; }
+.boost-multiplier { background: var(--brutal-green); padding: 0 8px; border: 1px solid black; }
+.boost-footer { font-size: 10px; font-weight: $font-weight-black; opacity: 1; display: flex; justify-content: space-between; margin: 8px 0; text-transform: uppercase; }
+.boost-progress { height: 10px; background: white; border: 2px solid black; }
+.boost-progress-bar { height: 100%; background: black; }
 
-.duration-boost-label {
-  font-size: $font-size-xs;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-}
+.proposal-item { padding: $space-4; background: white; border: 3px solid black; margin-bottom: $space-4; cursor: pointer; transition: all $transition-fast; box-shadow: 4px 4px 0 var(--brutal-yellow); &:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--brutal-yellow); } }
+.proposal-title { font-weight: $font-weight-black; text-transform: uppercase; font-size: 14px; border-bottom: 2px solid black; display: inline-block; margin-bottom: 8px; }
+.proposal-meta { display: flex; justify-content: space-between; font-size: 10px; font-weight: $font-weight-black; opacity: 1; margin-top: 8px; text-transform: uppercase; background: #eee; padding: 4px 8px; border: 1px solid black; }
 
-// Projection Box
-.projection-box {
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  padding: $space-4;
-  box-shadow: inset 2px 2px 4px var(--shadow-color);
-}
-
-.projection-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: $space-2 0;
-
-  &:not(:last-child) {
-    border-bottom: $border-width-sm solid var(--border-color);
-  }
-}
-
-.projection-label {
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
-  font-weight: $font-weight-semibold;
-  text-transform: uppercase;
-}
-
-.projection-value {
-  color: var(--neo-purple);
-  font-size: $font-size-xl;
-  font-weight: $font-weight-black;
-}
-
-.projection-increase {
-  color: var(--neo-green);
-  font-size: $font-size-xl;
-  font-weight: $font-weight-black;
-}
-
-// Boost Button
-.boost-button {
-  margin-top: $space-2;
-  animation: pulse-button 2s ease-in-out infinite;
-}
-
-@keyframes pulse-button {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.02);
-  }
-}
-
-// Boosts List
-.boosts-list {
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
-}
-
-.boost-item {
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  padding: $space-4;
-  box-shadow: $shadow-md;
-  transition: all $transition-fast;
-
-  &:hover {
-    transform: translate(-1px, -1px);
-    box-shadow: 5px 5px 0 var(--shadow-color);
-  }
-}
-
-.boost-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: $space-3;
-}
-
-.boost-amount {
-  color: var(--text-primary);
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-}
-
-.boost-multiplier {
-  color: var(--brutal-yellow);
-  font-size: $font-size-xl;
-  font-weight: $font-weight-black;
-  background: var(--neo-purple);
-  padding: $space-1 $space-3;
-  border: $border-width-sm solid var(--border-color);
-}
-
-.boost-footer {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: $space-2;
-  font-size: $font-size-sm;
-}
-
-.boost-date {
-  color: var(--text-secondary);
-  font-weight: $font-weight-medium;
-}
-
-.boost-expires {
-  color: var(--neo-green);
-  font-weight: $font-weight-semibold;
-}
-
-.boost-progress {
-  height: 8px;
-  background: var(--bg-tertiary);
-  border: $border-width-sm solid var(--border-color);
-  overflow: hidden;
-}
-
-.boost-progress-bar {
-  flex: 1;
-  min-height: 0;
-  background: linear-gradient(90deg, var(--neo-green), var(--brutal-yellow));
-  transition: width 0.3s ease;
-}
-
-.proposals-list {
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
-}
-
-.empty {
-  color: var(--text-muted);
-  text-align: center;
-  padding: $space-6;
-  font-weight: $font-weight-medium;
-}
-
-.proposal-item {
-  padding: $space-4;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-  box-shadow: $shadow-sm;
-  cursor: pointer;
-  transition: all $transition-fast;
-
-  &:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: $shadow-md;
-  }
-
-  &:active {
-    transform: translate(1px, 1px);
-    box-shadow: $shadow-sm;
-  }
-}
-
-.proposal-title {
-  color: var(--text-primary);
-  font-weight: $font-weight-bold;
-  display: block;
-  margin-bottom: $space-2;
-  font-size: $font-size-base;
-}
-
-.proposal-meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: $font-size-sm;
-}
-
-.proposal-votes {
-  color: var(--neo-green);
-  font-weight: $font-weight-semibold;
-}
-
-.proposal-ends {
-  color: var(--text-secondary);
-}
+.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 </style>

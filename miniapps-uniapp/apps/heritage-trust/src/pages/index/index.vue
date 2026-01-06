@@ -2,9 +2,13 @@
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <!-- Main Tab -->
     <view v-if="activeTab === 'main'" class="tab-content">
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <NeoCard
+        v-if="status"
+        :variant="status.type === 'error' ? 'danger' : status.type === 'loading' ? 'warning' : 'success'"
+        class="mb-4 text-center"
+      >
+        <text class="font-bold">{{ status.msg }}</text>
+      </NeoCard>
 
       <!-- Trust Documents Section -->
       <NeoCard :title="t('yourTrusts')" variant="default">
@@ -135,17 +139,19 @@
     <!-- Stats Tab -->
     <view v-if="activeTab === 'stats'" class="tab-content scrollable">
       <NeoCard :title="t('statistics')" variant="success">
-        <view class="stat-row">
-          <text class="stat-label">{{ t("totalTrusts") }}</text>
-          <text class="stat-value">{{ stats.totalTrusts }}</text>
-        </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("totalValue") }}</text>
-          <text class="stat-value">{{ stats.totalValue }} GAS</text>
-        </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("activeTrusts") }}</text>
-          <text class="stat-value">{{ stats.activeTrusts }}</text>
+        <view class="stats-grid-neo">
+          <view class="stat-item-neo">
+            <text class="stat-label">{{ t("totalTrusts") }}</text>
+            <text class="stat-value">{{ stats.totalTrusts }}</text>
+          </view>
+          <view class="stat-item-neo">
+            <text class="stat-label">{{ t("totalValue") }}</text>
+            <text class="stat-value">{{ stats.totalValue }} GAS</text>
+          </view>
+          <view class="stat-item-neo">
+            <text class="stat-label">{{ t("activeTrusts") }}</text>
+            <text class="stat-value">{{ stats.activeTrusts }}</text>
+          </view>
         </view>
       </NeoCard>
     </view>
@@ -167,11 +173,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
-import NeoButton from "@/shared/components/NeoButton.vue";
-import NeoInput from "@/shared/components/NeoInput.vue";
-import NeoCard from "@/shared/components/NeoCard.vue";
+import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard } from "@/shared/components";
 
 const translations = {
   title: { en: "Heritage Trust", zh: "遗产信托" },
@@ -215,18 +217,40 @@ const translations = {
   triggered: { en: "TRIGGERED", zh: "已触发" },
 
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Professional documentation for this application is coming soon.",
-    zh: "此应用程序的专业文档即将推出。",
+  docSubtitle: {
+    en: "Automated digital inheritance with inactivity-triggered transfers",
+    zh: "基于不活跃触发的自动数字遗产转移",
   },
-  step1: { en: "Open the application.", zh: "打开应用程序。" },
-  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
-  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
-  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
-  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
-  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  docDescription: {
+    en: "Heritage Trust enables secure digital asset inheritance on Neo. Create trusts that automatically transfer assets to beneficiaries after a configurable inactivity period, ensuring your digital wealth passes to loved ones.",
+    zh: "Heritage Trust 在 Neo 上实现安全的数字资产继承。创建信托，在可配置的不活跃期后自动将资产转移给受益人，确保您的数字财富传承给亲人。",
+  },
+  step1: {
+    en: "Connect your Neo wallet and deposit assets into a new trust",
+    zh: "连接您的 Neo 钱包并将资产存入新信托",
+  },
+  step2: {
+    en: "Set the beneficiary address and configure the inactivity period (default 90 days)",
+    zh: "设置受益人地址并配置不活跃期（默认 90 天）",
+  },
+  step3: {
+    en: "The smart contract monitors your wallet activity automatically",
+    zh: "智能合约自动监控您的钱包活动",
+  },
+  step4: {
+    en: "If inactivity threshold is reached, assets transfer to beneficiary automatically",
+    zh: "如果达到不活跃阈值，资产将自动转移给受益人",
+  },
+  feature1Name: { en: "Inactivity Trigger", zh: "不活跃触发" },
+  feature1Desc: {
+    en: "Automated monitoring detects wallet inactivity and triggers inheritance transfer.",
+    zh: "自动监控检测钱包不活跃状态并触发遗产转移。",
+  },
+  feature2Name: { en: "Secure Beneficiary", zh: "安全受益人" },
+  feature2Desc: {
+    en: "Beneficiary addresses are locked on-chain and cannot be changed without owner signature.",
+    zh: "受益人地址锁定在链上，未经所有者签名无法更改。",
+  },
 };
 
 const t = createT(translations);
@@ -239,12 +263,12 @@ const navTabs = [
 
 const activeTab = ref("main");
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
-const APP_ID = "miniapp-heritagetrust";
+const APP_ID = "miniapp-heritage-trust";
 const { address, connect } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
 
@@ -341,55 +365,37 @@ onMounted(() => {
 @import "@/shared/styles/variables.scss";
 
 .tab-content {
-  padding: 12px;
+  padding: $space-4;
   flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
+  gap: $space-4;
   overflow-y: auto;
-  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
 
-.status-msg {
-  text-align: center;
-  padding: $space-3;
-  margin-bottom: $space-3;
-  flex-shrink: 0;
-  border: $border-width-md solid var(--border-color);
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-
-  &.success {
-    background: var(--status-success);
-    color: $neo-black;
-    box-shadow: $shadow-sm;
-  }
-  &.error {
-    background: var(--status-error);
-    color: $neo-white;
-    box-shadow: $shadow-sm;
-  }
-}
-
-// Trust Document Styling
 .trust-document {
-  background: var(--bg-elevated);
-  border: $border-width-lg solid var(--border-color);
-  box-shadow: $shadow-lg;
-  margin-bottom: $space-5;
-  padding: $space-5;
+  background: white;
+  border: 4px solid black;
+  box-shadow: 10px 10px 0 black;
+  margin-bottom: $space-8;
+  padding: $space-6;
   position: relative;
-
   &::before {
-    content: "";
+    content: "OFFICIAL TRUST";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--neo-purple), var(--brutal-yellow));
+    height: 24px;
+    background: black;
+    color: var(--brutal-yellow);
+    font-size: 10px;
+    font-weight: $font-weight-black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 2px;
   }
 }
 
@@ -397,400 +403,84 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: $space-4;
+  margin: $space-6 0 $space-4;
+  border-bottom: 3px solid black;
   padding-bottom: $space-3;
-  border-bottom: $border-width-sm dashed var(--border-color);
 }
-
 .document-seal {
+  background: black;
+  color: white;
+  padding: 4px 12px;
+  border: 2px solid black;
   display: flex;
   align-items: center;
   gap: $space-2;
-  padding: $space-2 $space-3;
-  background: var(--neo-purple);
-  border: $border-width-sm solid var(--border-color);
-  box-shadow: $shadow-sm;
+  box-shadow: 3px 3px 0 var(--brutal-red);
 }
-
-.seal-icon {
-  font-size: $font-size-xl;
-}
-
-.seal-text {
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  color: $neo-white;
-  letter-spacing: 1px;
-}
+.seal-icon { font-size: 18px; }
+.seal-text { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; letter-spacing: 2px; }
 
 .document-status {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  padding: $space-2 $space-3;
-  border: $border-width-sm solid var(--border-color);
-  box-shadow: $shadow-sm;
-
-  &.active {
-    background: var(--neo-green);
-    color: $neo-black;
-  }
-
-  &.pending {
-    background: var(--brutal-yellow);
-    color: $neo-black;
-  }
-
-  &.triggered {
-    background: var(--status-error);
-    color: $neo-white;
-  }
-}
-
-.status-dot {
-  font-size: $font-size-sm;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.status-text {
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  letter-spacing: 1px;
+  padding: 4px 12px;
+  border: 3px solid black;
+  font-weight: $font-weight-black;
+  font-size: 10px;
+  text-transform: uppercase;
+  box-shadow: 3px 3px 0 black;
+  &.active { background: var(--neo-green); }
+  &.pending { background: var(--brutal-yellow); }
+  &.triggered { background: var(--brutal-red); color: white; }
 }
 
 .document-title {
   text-align: center;
-  margin-bottom: $space-5;
+  margin: $space-6 0;
   padding: $space-4;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
+  background: #eee;
+  border: 3px solid black;
+  box-shadow: inset 4px 4px 0 rgba(0,0,0,0.1);
 }
+.title-text { font-size: 24px; font-weight: $font-weight-black; display: block; text-transform: uppercase; border-bottom: 2px solid black; }
+.title-subtitle { font-size: 10px; font-weight: $font-weight-black; opacity: 1; text-transform: uppercase; margin-top: 4px; display: block; }
 
-.title-text {
-  display: block;
-  font-size: $font-size-2xl;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: $space-2;
-}
+.asset-section { margin-bottom: $space-6; }
+.asset-header { display: flex; justify-content: space-between; margin-bottom: $space-3; }
+.asset-label { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; background: black; color: white; padding: 2px 8px; }
+.asset-value { font-size: 18px; font-weight: $font-weight-black; font-family: $font-mono; }
+.asset-bar { height: 20px; background: white; border: 3px solid black; padding: 2px; }
+.asset-fill { height: 100%; background: var(--brutal-yellow); border-right: 2px solid black; }
 
-.title-subtitle {
-  display: block;
-  font-size: $font-size-sm;
-  color: var(--text-secondary);
-  font-weight: $font-weight-medium;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
+.beneficiary-card { background: white; border: 3px solid black; padding: $space-4; margin-bottom: $space-6; box-shadow: 5px 5px 0 black; }
+.beneficiary-header { display: flex; align-items: center; gap: $space-2; margin-bottom: 8px; }
+.beneficiary-label { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; border-bottom: 2px solid black; }
+.beneficiary-address { font-family: $font-mono; font-size: 12px; font-weight: $font-weight-black; background: #eee; padding: $space-3; border: 2px solid black; display: block; margin: $space-2 0; word-break: break-all; }
+.beneficiary-allocation { display: flex; justify-content: space-between; font-weight: $font-weight-black; font-size: 12px; margin-top: 8px; border-top: 2px solid black; padding-top: 4px; }
 
-// Asset Allocation Section
-.asset-section {
-  margin-bottom: $space-5;
-  padding: $space-4;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-}
+.trigger-section { background: black; color: white; padding: $space-5; border: 3px solid black; margin-bottom: $space-6; }
+.trigger-header { display: flex; align-items: center; gap: $space-2; margin-bottom: $space-4; }
+.trigger-label { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; color: var(--brutal-yellow); }
+.trigger-timeline { display: flex; flex-direction: column; gap: $space-4; }
+.timeline-item { display: flex; align-items: center; gap: $space-4; }
+.timeline-dot { width: 12px; height: 12px; border: 2px solid white; background: transparent; &.active { background: var(--brutal-green); border-color: var(--brutal-green); } }
+.timeline-line { width: 2px; height: 20px; background: #444; margin-left: 5px; }
+.timeline-title { font-size: 12px; font-weight: $font-weight-black; text-transform: uppercase; }
+.timeline-date { font-size: 10px; color: var(--brutal-yellow); font-weight: $font-weight-black; }
 
-.asset-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: $space-3;
-}
+.document-footer { display: flex; justify-content: space-between; font-size: 10px; font-weight: $font-weight-black; border-top: 3px solid black; padding-top: $space-3; margin-top: $space-4; }
+.footer-signature { background: #eee; padding: 2px 8px; border: 1px solid black; }
 
-.asset-label {
-  font-size: $font-size-sm;
-  color: var(--text-secondary);
-  font-weight: $font-weight-medium;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
+.form-section { margin-bottom: $space-4; }
+.form-label { display: flex; align-items: center; gap: $space-2; margin-bottom: 6px; }
+.label-text { font-size: 12px; font-weight: $font-weight-black; text-transform: uppercase; border-bottom: 2px solid black; }
 
-.asset-value {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-bold;
-  color: var(--brutal-yellow);
-}
+.info-banner { background: var(--brutal-yellow); border: 3px solid black; padding: $space-4; display: flex; gap: $space-4; margin-bottom: $space-6; box-shadow: 6px 6px 0 black; }
+.info-title { font-weight: $font-weight-black; font-size: 12px; text-transform: uppercase; display: block; margin-bottom: 4px; border-bottom: 2px solid black; }
+.info-text { font-size: 10px; font-weight: $font-weight-black; line-height: 1.5; }
 
-.asset-bar {
-  height: 8px;
-  background: var(--bg-elevated);
-  border: $border-width-sm solid var(--border-color);
-  position: relative;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-}
+.stats-grid-neo { display: flex; flex-direction: column; gap: $space-4; }
+.stat-item-neo { display: flex; justify-content: space-between; align-items: center; padding: $space-4; background: white; border: 3px solid black; box-shadow: 4px 4px 0 black; }
+.stat-label { font-size: 12px; font-weight: $font-weight-black; text-transform: uppercase; }
+.stat-value { font-size: 18px; font-weight: $font-weight-black; font-family: $font-mono; background: black; color: white; padding: 2px 10px; }
 
-.asset-fill {
-  flex: 1;
-  min-height: 0;
-  background: linear-gradient(90deg, var(--brutal-yellow), var(--neo-green));
-  transition: width $transition-normal;
-}
-
-// Beneficiary Card
-.beneficiary-card {
-  margin-bottom: $space-5;
-  padding: $space-4;
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-sm;
-}
-
-.beneficiary-header {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  margin-bottom: $space-3;
-}
-
-.beneficiary-icon {
-  font-size: $font-size-xl;
-}
-
-.beneficiary-label {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.beneficiary-address {
-  display: block;
-  font-size: $font-size-base;
-  font-weight: $font-weight-medium;
-  color: var(--text-primary);
-  margin-bottom: $space-3;
-  padding: $space-3;
-  background: var(--bg-elevated);
-  border: $border-width-sm solid var(--border-color);
-  font-family: monospace;
-}
-
-.beneficiary-allocation {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: $space-3;
-  border-top: $border-width-sm solid var(--border-color);
-}
-
-.allocation-label {
-  font-size: $font-size-sm;
-  color: var(--text-secondary);
-  font-weight: $font-weight-medium;
-}
-
-.allocation-value {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  color: var(--neo-green);
-}
-
-.stat-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: $space-4 0;
-  border-bottom: $border-width-sm solid var(--border-color);
-
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-.stat-label {
-  color: var(--text-secondary);
-  font-size: $font-size-base;
-  font-weight: $font-weight-medium;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.stat-value {
-  font-weight: $font-weight-bold;
-  color: var(--neo-green);
-  font-size: $font-size-xl;
-}
-
-// Trigger Conditions Section
-.trigger-section {
-  margin-bottom: $space-5;
-  padding: $space-4;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-}
-
-.trigger-header {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  margin-bottom: $space-4;
-}
-
-.trigger-icon {
-  font-size: $font-size-xl;
-}
-
-.trigger-label {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.trigger-timeline {
-  position: relative;
-}
-
-.timeline-item {
-  display: flex;
-  gap: $space-3;
-  position: relative;
-}
-
-.timeline-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--bg-elevated);
-  border: $border-width-md solid var(--border-color);
-  flex-shrink: 0;
-  margin-top: 4px;
-
-  &.active {
-    background: var(--neo-green);
-    border-color: var(--neo-green);
-    box-shadow: 0 0 8px var(--neo-green);
-  }
-}
-
-.timeline-line {
-  width: 2px;
-  height: 24px;
-  background: var(--border-color);
-  margin-left: 5px;
-}
-
-.timeline-content {
-  flex: 1;
-  margin-bottom: $space-3;
-}
-
-.timeline-title {
-  display: block;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-  margin-bottom: $space-1;
-}
-
-.timeline-date {
-  display: block;
-  font-size: $font-size-xs;
-  color: var(--text-secondary);
-  font-weight: $font-weight-medium;
-}
-
-// Document Footer
-.document-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: $space-4;
-  border-top: $border-width-sm dashed var(--border-color);
-  margin-top: $space-4;
-}
-
-.footer-text {
-  font-size: $font-size-xs;
-  color: var(--text-secondary);
-  font-weight: $font-weight-medium;
-  font-family: monospace;
-}
-
-.footer-signature {
-  font-size: $font-size-xs;
-  color: var(--text-secondary);
-  font-weight: $font-weight-medium;
-}
-
-// Form Sections
-.form-section {
-  margin-bottom: $space-4;
-}
-
-.form-label {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  margin-bottom: $space-2;
-  padding: $space-2 $space-3;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-}
-
-.label-icon {
-  font-size: $font-size-lg;
-}
-
-.label-text {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.info-banner {
-  display: flex;
-  gap: $space-3;
-  padding: $space-4;
-  background: var(--bg-elevated);
-  border: $border-width-md solid var(--border-color);
-  margin-bottom: $space-4;
-  box-shadow: $shadow-sm;
-}
-
-.info-icon {
-  font-size: $font-size-2xl;
-  flex-shrink: 0;
-}
-
-.info-content {
-  flex: 1;
-}
-
-.info-title {
-  display: block;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: $space-2;
-}
-
-.info-text {
-  display: block;
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  line-height: 1.5;
-}
+.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 </style>

@@ -4,10 +4,12 @@ import { useRouter } from "expo-router";
 import { useMiniApps } from "@/hooks/useMiniApps";
 import { MiniAppCard } from "@/components/MiniAppCard";
 import { SearchBar } from "@/components/SearchBar";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function AppsScreen() {
   const router = useRouter();
-  const { apps, categories, selectedCategory, setCategory, searchQuery, setSearchQuery, clearSearch, isLoading } =
+  const { t } = useTranslation();
+  const { apps, categories, selectedCategory, setCategory, searchQuery, setSearchQuery, clearSearch, isLoading, getCategoryDisplay } =
     useMiniApps();
 
   const handleAppPress = (appId: string) => {
@@ -18,11 +20,16 @@ export default function AppsScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>MiniApps</Text>
-        <Text style={styles.subtitle}>{apps.length} apps available</Text>
+        <Text style={styles.subtitle}>{apps.length} {t("wallet.apps_available") || "apps available"}</Text>
       </View>
 
       {/* Search Bar */}
-      <SearchBar value={searchQuery} onChangeText={setSearchQuery} onClear={clearSearch} />
+      <SearchBar
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        onClear={clearSearch}
+        placeholder={t("wallet.search_miniapps") || "Search MiniApps..."}
+      />
 
       {/* Categories */}
       <FlatList
@@ -31,12 +38,15 @@ export default function AppsScreen() {
         keyExtractor={(item) => item}
         showsHorizontalScrollIndicator={false}
         style={styles.categories}
+        contentContainerStyle={{ paddingHorizontal: 16 }}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={[styles.categoryChip, selectedCategory === item && styles.categoryActive]}
             onPress={() => setCategory(item)}
           >
-            <Text style={[styles.categoryText, selectedCategory === item && styles.categoryTextActive]}>{item}</Text>
+            <Text style={[styles.categoryText, selectedCategory === item && styles.categoryTextActive]}>
+              {getCategoryDisplay(item)}
+            </Text>
           </TouchableOpacity>
         )}
       />
@@ -58,7 +68,7 @@ export default function AppsScreen() {
         ListEmptyComponent={
           !isLoading ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No apps found</Text>
+              <Text style={styles.emptyText}>{t("wallet.no_apps_found") || "No apps found"}</Text>
             </View>
           ) : null
         }
@@ -68,23 +78,28 @@ export default function AppsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0a0a0a" },
-  header: { padding: 20 },
-  title: { fontSize: 28, fontWeight: "bold", color: "#fff" },
-  subtitle: { fontSize: 14, color: "#888", marginTop: 4 },
-  categories: { paddingHorizontal: 16, maxHeight: 50 },
+  container: { flex: 1, backgroundColor: "#fff" },
+  header: { padding: 24 },
+  title: { fontSize: 40, fontWeight: "900", color: "#000", textTransform: "uppercase", fontStyle: "italic", letterSpacing: -1 },
+  subtitle: { fontSize: 13, color: "#000", marginTop: 4, fontWeight: "800", textTransform: "uppercase", backgroundColor: "#00E599", alignSelf: "flex-start", paddingHorizontal: 8, paddingVertical: 2, borderWidth: 2, borderColor: "#000" },
+  categories: { maxHeight: 60, marginBottom: 20 },
   categoryChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: "#1a1a1a",
-    borderRadius: 20,
-    marginRight: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: "#fff",
+    borderWidth: 3,
+    borderColor: "#000",
+    marginRight: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
-  categoryActive: { backgroundColor: "#00d4aa" },
-  categoryText: { color: "#888", fontSize: 14 },
-  categoryTextActive: { color: "#fff" },
-  grid: { padding: 12 },
-  loadingContainer: { padding: 16, alignItems: "center" },
-  emptyContainer: { padding: 40, alignItems: "center" },
-  emptyText: { color: "#888", fontSize: 16 },
+  categoryActive: { backgroundColor: "#ffde59", shadowOffset: { width: 0, height: 0 }, transform: [{ translateX: 2 }, { translateY: 2 }] },
+  categoryText: { color: "#000", fontSize: 14, fontWeight: "900", textTransform: "uppercase" },
+  categoryTextActive: { color: "#000" },
+  grid: { padding: 12, paddingBottom: 40 },
+  loadingContainer: { padding: 20, alignItems: "center" },
+  emptyContainer: { padding: 60, alignItems: "center" },
+  emptyText: { color: "#000", fontSize: 20, fontWeight: "900", textTransform: "uppercase", fontStyle: "italic", textAlign: "center" },
 });

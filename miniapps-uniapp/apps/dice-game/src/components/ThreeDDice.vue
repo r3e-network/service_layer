@@ -63,7 +63,7 @@ const cubeStyle = computed(() => {
 
   if (props.rolling) {
     return {
-      transform: `rotateX(${720 + Math.random() * 360}deg) rotateY(${720 + Math.random() * 360}deg)`,
+      transform: "rotateX(720deg) rotateY(720deg)",
       transition: "transform 0.5s linear",
     };
   }

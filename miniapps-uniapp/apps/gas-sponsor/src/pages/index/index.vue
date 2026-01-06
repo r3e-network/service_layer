@@ -1,9 +1,13 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view class="app-container">
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <NeoCard
+        v-if="status"
+        :variant="status.type === 'error' ? 'danger' : status.type === 'loading' ? 'warning' : 'success'"
+        class="mb-4 text-center"
+      >
+        <text class="font-bold">{{ status.msg }}</text>
+      </NeoCard>
 
       <!-- Sponsor Tab -->
       <view v-if="activeTab === 'sponsor'" class="tab-content">
@@ -169,26 +173,26 @@
         <!-- Usage Statistics -->
         <NeoCard :title="t('statistics')" variant="accent">
           <view class="stat-grid">
-            <view class="stat-item">
+            <NeoCard variant="default" class="flex-1 text-center">
               <text class="stat-icon">⛽</text>
               <text class="stat-value">{{ formatBalance(usedQuota) }}</text>
               <text class="stat-label">{{ t("usedToday") }}</text>
-            </view>
-            <view class="stat-item">
+            </NeoCard>
+            <NeoCard variant="default" class="flex-1 text-center">
               <text class="stat-icon">🎯</text>
               <text class="stat-value">{{ formatBalance(remainingQuota) }}</text>
               <text class="stat-label">{{ t("available") }}</text>
-            </view>
-            <view class="stat-item">
+            </NeoCard>
+            <NeoCard variant="default" class="flex-1 text-center">
               <text class="stat-icon">📊</text>
               <text class="stat-value">{{ formatBalance(dailyLimit) }}</text>
               <text class="stat-label">{{ t("dailyLimit") }}</text>
-            </view>
-            <view class="stat-item">
+            </NeoCard>
+            <NeoCard variant="default" class="flex-1 text-center">
               <text class="stat-icon">⏰</text>
               <text class="stat-value">{{ resetTime }}</text>
               <text class="stat-label">{{ t("nextReset") }}</text>
-            </view>
+            </NeoCard>
           </view>
         </NeoCard>
 
@@ -228,11 +232,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useWallet, useGasSponsor } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoButton from "@/shared/components/NeoButton.vue";
-import NeoCard from "@/shared/components/NeoCard.vue";
-import NeoInput from "@/shared/components/NeoInput.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
+import { AppLayout, NeoButton, NeoCard, NeoInput, NeoDoc } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
 const translations = {
@@ -282,15 +282,24 @@ const translations = {
   quotaCheck: { en: "Quota Available", zh: "配额可用" },
   walletCheck: { en: "Wallet Connected", zh: "钱包已连接" },
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Professional documentation for this application is coming soon.",
-    zh: "此应用程序的专业文档即将推出。",
+  docSubtitle: {
+    en: "Free GAS for new users to start transacting",
+    zh: "为新用户提供免费 GAS 开始交易",
   },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
-  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
-  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
-  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  docDescription: {
+    en: "Gas Sponsor provides free GAS to new Neo users with low balances. Request up to 0.1 GAS daily to cover transaction fees and get started on the Neo network.",
+    zh: "Gas Sponsor 为低余额的 Neo 新用户提供免费 GAS。每天可请求最多 0.1 GAS 来支付交易费用，开始使用 Neo 网络。",
+  },
+  feature1Name: { en: "Daily Quota", zh: "每日配额" },
+  feature1Desc: {
+    en: "Request up to 0.1 GAS per day when your balance is low.",
+    zh: "当余额较低时，每天可请求最多 0.1 GAS。",
+  },
+  feature2Name: { en: "Auto-Reset", zh: "自动重置" },
+  feature2Desc: {
+    en: "Quota resets daily at midnight UTC for continued access.",
+    zh: "配额每天 UTC 午夜自动重置，持续可用。",
+  },
 };
 
 const t = createT(translations);
@@ -388,7 +397,7 @@ onMounted(() => {
   loadUserData();
 });
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
@@ -400,79 +409,36 @@ const docFeatures = computed(() => [
 @import "@/shared/styles/variables.scss";
 
 .app-container {
+  padding: $space-4;
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: $space-4;
 }
 
 .tab-content {
-  flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+  gap: $space-4;
 }
 
-.status-msg {
-  text-align: center;
-  padding: $space-4;
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-sm;
-  margin-bottom: $space-4;
-  font-weight: $font-weight-bold;
-
-  &.success {
-    background: var(--status-success);
-    color: $neo-black;
-    border-color: var(--status-success);
-  }
-  &.error {
-    background: var(--status-error);
-    color: $neo-white;
-    border-color: var(--status-error);
-  }
-  &.loading {
-    background: var(--status-warning);
-    color: $neo-black;
-    border-color: var(--status-warning);
-  }
-}
-
-// Gas Tank Visualization
 .gas-tank-card {
   margin-bottom: $space-4;
 }
-
 .gas-tank-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: $space-6 $space-4;
+  gap: $space-4;
 }
 
 .gas-tank {
   position: relative;
-  display: flex;
-  align-items: flex-end;
-  gap: $space-2;
-  margin-bottom: $space-4;
-}
-
-.tank-body {
-  position: relative;
-  width: 120px;
-  height: 180px;
+  width: 100px;
+  height: 140px;
   background: var(--bg-secondary);
-  border: $border-width-lg solid var(--border-color);
-  box-shadow: $shadow-md;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+  border: $border-width-md solid var(--border-color);
+  box-shadow: 8px 8px 0 black;
 }
 
 .fuel-level {
@@ -480,30 +446,9 @@ const docFeatures = computed(() => [
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(180deg, var(--neo-green) 0%, var(--brutal-lime) 100%);
-  transition: height $transition-slow;
-  border-top: $border-width-sm solid var(--border-color);
-}
-
-.fuel-wave {
-  position: absolute;
-  top: -4px;
-  left: 0;
-  right: 0;
-  height: 8px;
   background: var(--neo-green);
-  opacity: 0.6;
-  animation: wave 2s ease-in-out infinite;
-}
-
-@keyframes wave {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  50% {
-    transform: translateX(4px);
-  }
+  transition: height $transition-slow;
+  border-top: 1px solid black;
 }
 
 .tank-gauge {
@@ -514,438 +459,191 @@ const docFeatures = computed(() => [
   text-align: center;
   z-index: 1;
 }
-
 .gauge-label {
-  display: block;
-  font-size: $font-size-xs;
+  font-size: 8px;
   font-weight: $font-weight-black;
-  color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  color: black;
+  opacity: 0.6;
 }
-
 .gauge-value {
-  display: block;
-  font-size: $font-size-xl;
+  font-size: 16px;
   font-weight: $font-weight-black;
-  color: var(--text-primary);
   font-family: $font-mono;
-}
-
-.tank-nozzle {
-  width: 40px;
-  height: 60px;
-  background: var(--brutal-orange);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-sm;
-  position: relative;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 20px;
-    height: 8px;
-    background: var(--brutal-orange);
-    border: $border-width-sm solid var(--border-color);
-    border-bottom: none;
-  }
-}
-
-.tank-status {
-  width: 100%;
-  max-width: 200px;
 }
 
 .status-indicator {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: $space-2;
-  padding: $space-3;
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-sm;
-
+  padding: $space-2 $space-4;
+  border: 1px solid black;
+  box-shadow: 4px 4px 0 black;
   &.eligible {
     background: var(--brutal-yellow);
-    color: $neo-black;
   }
-
   &.full {
     background: var(--neo-green);
-    color: $neo-black;
   }
 }
-
-.status-icon {
-  font-size: $font-size-xl;
-}
-
 .status-text {
-  font-weight: $font-weight-bold;
-  font-size: $font-size-sm;
+  font-size: 10px;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-// User Balance & Info Rows
-.loading {
-  text-align: center;
-  padding: $space-5;
-  color: var(--text-secondary);
 }
 
 .info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: $space-3 0;
-  border-bottom: $border-width-sm solid var(--border-color);
-  &:last-child {
-    border-bottom: none;
-  }
+  padding: $space-2 0;
+  border-bottom: 1px dashed var(--border-color);
 }
-
 .info-label {
-  color: var(--text-secondary);
-  font-weight: $font-weight-medium;
+  font-size: 8px;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
-  font-size: $font-size-sm;
-  letter-spacing: 0.5px;
+  opacity: 0.6;
 }
-
 .info-value {
-  color: var(--text-primary);
-  font-weight: $font-weight-bold;
-
+  font-size: 10px;
+  font-weight: $font-weight-black;
   &.mono {
     font-family: $font-mono;
-    font-size: $font-size-sm;
   }
-
   &.highlight {
     color: var(--neo-green);
   }
-
-  &.badge {
-    padding: $space-1 $space-2;
-    border: $border-width-sm solid var(--border-color);
-    font-size: $font-size-xs;
-  }
-
-  &.eligible {
-    background: var(--status-success);
-    color: $neo-black;
-  }
-
-  &.not-eligible {
-    background: var(--status-error);
-    color: $neo-white;
-  }
 }
 
-// Request Form
-.request-card {
-  margin-bottom: $space-4;
-}
-
-.not-eligible-msg {
-  text-align: center;
-  padding: $space-5;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: $space-2;
-}
-
-.warning-icon {
-  font-size: $font-size-4xl;
-  margin-bottom: $space-2;
-}
-
-.warning-title {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-black;
-  color: var(--text-primary);
-  text-transform: uppercase;
-}
-
-.warning-desc {
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
-}
-
-.request-form {
-  display: flex;
-  flex-direction: column;
-  gap: $space-4;
-}
-
-// Fuel Pump Display
 .fuel-pump-display {
   background: var(--brutal-orange);
-  border: $border-width-lg solid var(--border-color);
-  box-shadow: $shadow-md;
+  border: 2px solid black;
   padding: $space-4;
-  margin-bottom: $space-2;
+  box-shadow: 8px 8px 0 black;
+  margin-bottom: $space-4;
 }
-
 .pump-screen {
-  background: $neo-black;
-  border: $border-width-sm solid var(--border-color);
+  background: black;
   padding: $space-4;
   text-align: center;
-  margin-bottom: $space-3;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
-
 .pump-label {
-  display: block;
-  font-size: $font-size-xs;
-  color: var(--neo-green);
-  font-weight: $font-weight-bold;
+  font-size: 8px;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: $space-2;
-}
-
-.pump-amount {
-  display: block;
-  font-size: $font-size-4xl;
   color: var(--neo-green);
+  opacity: 0.8;
+}
+.pump-amount {
+  font-size: 32px;
   font-weight: $font-weight-black;
   font-family: $font-mono;
-  line-height: $line-height-tight;
-}
-
-.pump-unit {
+  color: var(--neo-green);
   display: block;
-  font-size: $font-size-sm;
+}
+.pump-unit {
+  font-size: 10px;
+  font-weight: $font-weight-black;
   color: var(--brutal-yellow);
-  font-weight: $font-weight-bold;
-  margin-top: $space-1;
 }
 
-.pump-limits {
-  display: flex;
-  justify-content: space-between;
-  gap: $space-2;
-}
-
-.limit-text {
-  font-size: $font-size-xs;
-  color: $neo-black;
-  font-weight: $font-weight-bold;
-  background: var(--brutal-yellow);
-  padding: $space-1 $space-2;
-  border: $border-width-sm solid var(--border-color);
-}
-
-// Quick Amount Buttons
 .quick-amounts {
   display: flex;
   gap: $space-2;
-  flex-wrap: wrap;
+  margin: $space-4 0;
 }
-
 .quick-btn {
   flex: 1;
-  min-width: 60px;
-  padding: $space-2 $space-3;
+  padding: $space-2;
   background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-sm;
+  border: 1px solid black;
   text-align: center;
   cursor: pointer;
   transition: all $transition-fast;
-
+  box-shadow: 4px 4px 0 black;
   &:active {
     transform: translate(2px, 2px);
-    box-shadow: 1px 1px 0 var(--shadow-color);
+    box-shadow: 2px 2px 0 black;
   }
-
   text {
-    font-weight: $font-weight-bold;
-    color: var(--text-primary);
-    font-size: $font-size-sm;
+    font-size: 10px;
+    font-weight: $font-weight-black;
   }
 }
 
-// How It Works
 .help-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: $space-3;
-  padding: $space-3 0;
+  padding: $space-2 0;
 }
-
 .help-num {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   background: var(--neo-green);
-  color: $neo-black;
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-sm;
+  border: 1px solid black;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: $font-size-base;
+  font-size: 10px;
   font-weight: $font-weight-black;
-  flex-shrink: 0;
 }
-
 .help-text {
-  color: var(--text-secondary);
-  font-size: $font-size-base;
-  line-height: $line-height-normal;
-  font-weight: $font-weight-medium;
-  flex: 1;
-}
-
-// Quota Display
-.quota-display {
-  margin-bottom: $space-4;
-}
-
-.quota-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: $space-3;
-}
-
-.quota-title {
-  font-size: $font-size-lg;
+  font-size: 10px;
   font-weight: $font-weight-bold;
-  color: var(--text-primary);
-  text-transform: uppercase;
-}
-
-.quota-percent {
-  font-size: $font-size-2xl;
-  font-weight: $font-weight-black;
-  color: var(--neo-green);
-  font-family: $font-mono;
+  opacity: 0.8;
 }
 
 .quota-bar-container {
-  margin-bottom: $space-2;
-}
-
-.quota-bar {
-  height: 24px;
+  height: 12px;
   background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-sm;
-  overflow: hidden;
+  border: 1px solid black;
+  margin: $space-2 0;
   position: relative;
 }
-
 .quota-fill {
-  flex: 1;
-  min-height: 0;
-  background: linear-gradient(90deg, var(--neo-green) 0%, var(--brutal-lime) 100%);
-  transition: width $transition-slow;
-  border-right: $border-width-sm solid var(--border-color);
+  height: 100%;
+  background: var(--neo-purple);
+  transition: width 0.3s ease;
 }
 
-.quota-markers {
-  display: flex;
-  justify-content: space-between;
-  margin-top: $space-1;
-}
-
-.marker {
-  font-size: $font-size-xs;
-  color: var(--text-muted);
-  font-weight: $font-weight-medium;
-  font-family: $font-mono;
-}
-
-.quota-text {
-  font-size: $font-size-base;
-  color: var(--text-secondary);
-  text-align: center;
-  display: block;
-  font-weight: $font-weight-bold;
-  font-family: $font-mono;
-}
-
-// Statistics Grid
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: $space-4;
+  gap: $space-2;
 }
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: $space-4;
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-sm;
-  text-align: center;
-}
-
-.stat-icon {
-  font-size: $font-size-3xl;
-  margin-bottom: $space-2;
-}
-
 .stat-value {
-  font-size: $font-size-xl;
+  font-size: 14px;
   font-weight: $font-weight-black;
-  color: var(--text-primary);
   font-family: $font-mono;
-  margin-bottom: $space-1;
+  display: block;
 }
-
 .stat-label {
-  font-size: $font-size-xs;
-  color: var(--text-secondary);
-  font-weight: $font-weight-bold;
+  font-size: 8px;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  opacity: 0.6;
 }
 
-// Eligibility Check
 .eligibility-check {
   display: flex;
   flex-direction: column;
-  gap: $space-3;
+  gap: $space-2;
 }
-
 .check-item {
   display: flex;
   align-items: center;
-  gap: $space-3;
-  padding: $space-3;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
+  gap: $space-2;
+  font-size: 10px;
+  font-weight: $font-weight-bold;
 }
-
 .check-icon {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: $font-size-xl;
   font-weight: $font-weight-black;
-  flex-shrink: 0;
+  color: var(--neo-green);
 }
 
-.check-text {
-  flex: 1;
-  font-size: $font-size-sm;
-  color: var(--text-secondary);
-  font-weight: $font-weight-medium;
-}
-
-// Scrollable content
 .scrollable {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;

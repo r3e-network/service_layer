@@ -1,9 +1,13 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab === 'game'" class="tab-content">
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <NeoCard
+        v-if="status"
+        :variant="status.type === 'error' ? 'danger' : status.type === 'loading' ? 'accent' : 'success'"
+        class="mb-4 text-center"
+      >
+        <text class="font-bold">{{ status.msg }}</text>
+      </NeoCard>
 
       <!-- Crash Game Graph Area -->
       <view class="crash-graph-container">
@@ -11,7 +15,7 @@
 
         <!-- Rocket/Ship Element -->
         <view :class="['rocket', gameState]" :style="rocketStyle">
-          <text class="rocket-icon">🚀</text>
+          <view class="rocket-icon"><AppIcon name="rocket" :size="48" /></view>
         </view>
 
         <!-- Explosion Particles -->
@@ -105,21 +109,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from "vue";
-import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
-import NeoButton from "@/shared/components/NeoButton.vue";
-import NeoInput from "@/shared/components/NeoInput.vue";
-import NeoCard from "@/shared/components/NeoCard.vue";
+import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
+import { AppLayout, AppIcon, NeoDoc, NeoButton, NeoInput, NeoCard } from "@/shared/components";
 
 const translations = {
   title: { en: "Neo Crash", zh: "Neo崩盘" },
   subtitle: { en: "Multiplier crash game", zh: "倍数崩盘游戏" },
   waiting: { en: "Waiting for next round...", zh: "等待下一轮..." },
-  inProgress: { en: "Game in progress!", zh: "游戏进行中！" },
+  inProgress: { en: "Round running", zh: "回合进行中" },
   crashed: { en: "CRASHED!", zh: "崩盘了！" },
   placeBet: { en: "Place Bet", zh: "下注" },
   cashOut: { en: "Cash Out", zh: "兑现" },
@@ -135,24 +136,42 @@ const translations = {
   errorPlacingBet: { en: "Error placing bet", zh: "下注错误" },
   cashedOut: { en: "Cashed out at", zh: "兑现于" },
   crashedBetterLuck: { en: "Crashed! Better luck next time.", zh: "崩盘了！下次好运。" },
+  roundClosed: { en: "Betting is closed", zh: "下注已关闭" },
+  roundNotRunning: { en: "Round not running", zh: "回合未开始" },
+  invalidBet: { en: "Minimum bet is 0.05 GAS", zh: "最低下注 0.05 GAS" },
+  invalidCashout: { en: "Auto cashout must be at least 1.00x", zh: "自动兑现至少 1.00x" },
+  connectWallet: { en: "Connect wallet", zh: "请连接钱包" },
+  contractUnavailable: { en: "Contract unavailable", zh: "合约不可用" },
+  receiptMissing: { en: "Payment receipt missing", zh: "支付凭证缺失" },
+  betPending: { en: "Bet confirmation pending", zh: "下注确认中" },
+  cashoutPending: { en: "Cashout pending", zh: "兑现确认中" },
   game: { en: "Game", zh: "游戏" },
   stats: { en: "Stats", zh: "统计" },
   statistics: { en: "Statistics", zh: "统计数据" },
   totalGames: { en: "Total Games", zh: "总游戏数" },
-
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Professional documentation for this application is coming soon.",
-    zh: "此应用程序的专业文档即将推出。",
+  docSubtitle: {
+    en: "Multiplier crash game with VRF-powered randomness",
+    zh: "使用 VRF 随机数的倍数崩盘游戏",
   },
-  step1: { en: "Open the application.", zh: "打开应用程序。" },
-  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
-  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
-  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
-  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
-  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  docDescription: {
+    en: "Neo Crash is an exciting multiplier game where you bet GAS and watch the multiplier climb. Cash out before it crashes to win! Crash points are determined by verifiable random functions for provably fair gameplay.",
+    zh: "Neo Crash 是一款刺激的倍数游戏，您下注 GAS 并观察倍数攀升。在崩盘前兑现即可获胜！崩盘点由可验证随机函数决定，确保可证明的公平游戏。",
+  },
+  step1: { en: "Place your bet with GAS before the round starts.", zh: "在回合开始前使用 GAS 下注。" },
+  step2: { en: "Set an auto-cashout multiplier or watch manually.", zh: "设置自动兑现倍数或手动观察。" },
+  step3: { en: "Cash out before the crash to lock in your winnings.", zh: "在崩盘前兑现以锁定您的奖金。" },
+  step4: { en: "Review crash history to inform your strategy.", zh: "查看崩盘历史以制定您的策略。" },
+  feature1Name: { en: "VRF Randomness", zh: "VRF 随机性" },
+  feature1Desc: {
+    en: "Crash points are generated using verifiable random functions.",
+    zh: "崩盘点使用可验证随机函数生成。",
+  },
+  feature2Name: { en: "Real-Time Graph", zh: "实时图表" },
+  feature2Desc: {
+    en: "Watch the multiplier climb with animated rocket visualization.",
+    zh: "通过动画火箭可视化观看倍数攀升。",
+  },
 };
 
 const t = createT(translations);
@@ -164,31 +183,40 @@ const navTabs = [
 ];
 const activeTab = ref("game");
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
+
 const APP_ID = "miniapp-neo-crash";
-const { address, connect } = useWallet();
+const { address, connect, invokeContract, invokeRead, getContractHash } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
-const { requestRandom } = useRNG(APP_ID);
+const { list: listEvents } = useEvents();
 
 const betAmount = ref("1.0");
 const autoCashout = ref("2.0");
 const currentMultiplier = ref(1.0);
-const gameState = ref<"waiting" | "running" | "crashed">("waiting");
 const currentBet = ref(0);
 const status = ref<{ msg: string; type: string } | null>(null);
 const history = ref<Array<{ multiplier: number }>>([]);
-const dataLoading = ref(true);
-const crashPoint = ref(0); // VRF-determined crash point
+const contractHash = ref<string | null>(null);
+const roundState = ref(0);
+const currentRound = ref(1);
+const crashFlash = ref(false);
+const lastCrashEventId = ref<string | null>(null);
+const lastMultiplier = ref(1.0);
 
 // Canvas and animation state
 const canvasContext = ref<any>(null);
 const graphPoints = ref<Array<{ x: number; y: number }>>([]);
 const showExplosion = ref(false);
 const explosionParticles = ref<Array<{ style: string }>>([]);
+
+const gameState = computed<"waiting" | "running" | "crashed">(() => {
+  if (crashFlash.value) return "crashed";
+  return roundState.value === 1 ? "running" : "waiting";
+});
 
 // Rocket position based on multiplier
 const rocketStyle = computed(() => {
@@ -220,9 +248,165 @@ const potentialWin = computed(() => currentBet.value * currentMultiplier.value);
 
 const formatNum = (n: number, d = 2) => formatNumber(n, d);
 
+const toFixed8 = (value: string) => {
+  const num = Number.parseFloat(value);
+  if (!Number.isFinite(num)) return "0";
+  return Math.floor(num * 1e8).toString();
+};
+
 const adjustBet = (delta: number) => {
-  const val = Math.max(0.1, parseFloat(betAmount.value) + delta);
-  betAmount.value = val.toFixed(1);
+  const val = Math.max(0.05, parseFloat(betAmount.value) + delta);
+  betAmount.value = val.toFixed(2);
+};
+
+const ensureContractHash = async () => {
+  if (!contractHash.value) {
+    contractHash.value = await getContractHash();
+  }
+  if (!contractHash.value) throw new Error(t("contractUnavailable"));
+  return contractHash.value;
+};
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const waitForEvent = async (txid: string, eventName: string) => {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const res = await listEvents({ app_id: APP_ID, event_name: eventName, limit: 25 });
+    const match = res.events.find((evt) => evt.tx_hash === txid);
+    if (match) return match;
+    await sleep(1500);
+  }
+  return null;
+};
+
+const parseBetData = (data: any) => {
+  if (!data) return null;
+  if (Array.isArray(data)) {
+    return {
+      player: String(data[0] ?? ""),
+      amount: Number(data[1] ?? 0),
+      autoCashout: Number(data[2] ?? 0),
+      cashedOut: Boolean(data[3]),
+      cashoutMultiplier: Number(data[4] ?? 0),
+    };
+  }
+  if (typeof data === "object") {
+    return {
+      player: String(data.player ?? ""),
+      amount: Number(data.amount ?? 0),
+      autoCashout: Number(data.autoCashout ?? 0),
+      cashedOut: Boolean(data.cashedOut ?? false),
+      cashoutMultiplier: Number(data.cashoutMultiplier ?? 0),
+    };
+  }
+  return null;
+};
+
+const updateGraphPoint = (multiplier: number) => {
+  if (!canvasContext.value) return;
+  const { width, height } = canvasContext.value;
+  const progress = Math.min(1, (multiplier - 1) / 9);
+  const x = progress * width;
+  const y = height - (Math.log(multiplier) / Math.log(10)) * height * 0.8;
+  graphPoints.value.push({ x, y });
+  drawGraph();
+};
+
+const refreshRoundState = async () => {
+  try {
+    if (!contractHash.value) {
+      contractHash.value = await getContractHash();
+    }
+    if (!contractHash.value) return;
+    const [roundRes, stateRes, multRes] = await Promise.all([
+      invokeRead({ contractHash: contractHash.value, operation: "CurrentRound" }),
+      invokeRead({ contractHash: contractHash.value, operation: "RoundState" }),
+      invokeRead({ contractHash: contractHash.value, operation: "GetCurrentMultiplier" }),
+    ]);
+    currentRound.value = Number(parseInvokeResult(roundRes) || 1);
+    roundState.value = Number(parseInvokeResult(stateRes) || 0);
+    const rawMultiplier = Number(parseInvokeResult(multRes) || 0);
+    const nextMultiplier = rawMultiplier > 0 ? rawMultiplier / 100 : 1;
+
+    if (roundState.value !== 1) {
+      graphPoints.value = [];
+      lastMultiplier.value = 1;
+      currentMultiplier.value = 1;
+      drawGraph();
+      return;
+    }
+
+    if (nextMultiplier > lastMultiplier.value) {
+      lastMultiplier.value = nextMultiplier;
+      currentMultiplier.value = nextMultiplier;
+      updateGraphPoint(nextMultiplier);
+    }
+  } catch (e) {
+    console.warn("[NeoCrash] Failed to refresh round state:", e);
+  }
+};
+
+const refreshCurrentBet = async () => {
+  if (!address.value || !contractHash.value) {
+    currentBet.value = 0;
+    return;
+  }
+  try {
+    const betRes = await invokeRead({
+      contractHash: contractHash.value,
+      operation: "GetBet",
+      args: [
+        { type: "Integer", value: String(currentRound.value) },
+        { type: "Hash160", value: address.value },
+      ],
+    });
+    const parsed = parseBetData(parseInvokeResult(betRes));
+    if (!parsed || !parsed.player) {
+      currentBet.value = 0;
+      return;
+    }
+    if (parsed.cashedOut) {
+      currentBet.value = 0;
+      return;
+    }
+    currentBet.value = parsed.amount ? parsed.amount / 1e8 : 0;
+  } catch (e) {
+    console.warn("[NeoCrash] Failed to refresh bet:", e);
+  }
+};
+
+const refreshHistory = async () => {
+  try {
+    const res = await listEvents({ app_id: APP_ID, event_name: "CrashRoundEnded", limit: 10 });
+    history.value = res.events.map((evt) => {
+      const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
+      const crashPoint = Number(values[0] ?? 0) / 100;
+      return { multiplier: Number(crashPoint.toFixed(2)) };
+    });
+  } catch (e) {
+    console.warn("[NeoCrash] Failed to load history:", e);
+  }
+};
+
+const refreshLatestCrash = async () => {
+  try {
+    const res = await listEvents({ app_id: APP_ID, event_name: "CrashRoundEnded", limit: 1 });
+    const latest = res.events[0];
+    if (!latest || latest.id === lastCrashEventId.value) return;
+    lastCrashEventId.value = latest.id;
+    const values = Array.isArray((latest as any)?.state) ? (latest as any).state.map(parseStackItem) : [];
+    const crashPoint = Number(values[0] ?? 0) / 100;
+    history.value.unshift({ multiplier: Number(crashPoint.toFixed(2)) });
+    history.value = history.value.slice(0, 10);
+
+    crashFlash.value = true;
+    triggerExplosion();
+    setTimeout(() => {
+      crashFlash.value = false;
+    }, 1500);
+  } catch (e) {
+    console.warn("[NeoCrash] Failed to fetch latest crash:", e);
+  }
 };
 
 const handleAction = async () => {
@@ -231,28 +415,83 @@ const handleAction = async () => {
   if (gameState.value === "waiting") {
     await placeBet();
   } else if (gameState.value === "running" && currentBet.value > 0) {
-    cashOut();
+    await cashOut();
   }
 };
 
 const placeBet = async () => {
   try {
     status.value = { msg: t("placingBet"), type: "loading" };
-    await payGAS(betAmount.value, `crash:bet:${Date.now()}`);
-    currentBet.value = parseFloat(betAmount.value);
+    if (!address.value) await connect();
+    if (!address.value) throw new Error(t("connectWallet"));
+    const contract = await ensureContractHash();
+
+    if (roundState.value !== 0) throw new Error(t("roundClosed"));
+    const betValue = Number(betAmount.value);
+    if (!Number.isFinite(betValue) || betValue < 0.05) throw new Error(t("invalidBet"));
+    const autoValue = Number(autoCashout.value);
+    if (!Number.isFinite(autoValue) || autoValue < 1) throw new Error(t("invalidCashout"));
+    const autoScaled = Math.round(autoValue * 100);
+
+    const payment = await payGAS(betAmount.value, `crash:bet:${currentRound.value}`);
+    const receiptId = payment.receipt_id;
+    if (!receiptId) throw new Error(t("receiptMissing"));
+
+    const tx = await invokeContract({
+      scriptHash: contract,
+      operation: "PlaceBet",
+      args: [
+        { type: "Hash160", value: address.value },
+        { type: "Integer", value: toFixed8(betAmount.value) },
+        { type: "Integer", value: String(autoScaled) },
+        { type: "Integer", value: receiptId },
+      ],
+    });
+
+    const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
+    const placedEvt = txid ? await waitForEvent(txid, "CrashBetPlaced") : null;
+    if (!placedEvt) throw new Error(t("betPending"));
+
+    currentBet.value = betValue;
     status.value = { msg: t("betPlaced"), type: "success" };
   } catch (e: any) {
-    status.value = { msg: e.message || t("errorPlacingBet"), type: "error" };
+    status.value = { msg: e?.message || t("errorPlacingBet"), type: "error" };
   }
 };
 
-const cashOut = () => {
-  const winAmount = potentialWin.value;
-  status.value = {
-    msg: `${t("cashedOut")} ${currentMultiplier.value}x! Won ${formatNum(winAmount)} GAS`,
-    type: "success",
-  };
-  currentBet.value = 0;
+const cashOut = async () => {
+  try {
+    status.value = { msg: t("processing"), type: "loading" };
+    if (!address.value) await connect();
+    if (!address.value) throw new Error(t("connectWallet"));
+    const contract = await ensureContractHash();
+    if (roundState.value !== 1) throw new Error(t("roundNotRunning"));
+
+    const multiplierScaled = Math.round(currentMultiplier.value * 100);
+    const tx = await invokeContract({
+      scriptHash: contract,
+      operation: "CashOut",
+      args: [
+        { type: "Hash160", value: address.value },
+        { type: "Integer", value: String(multiplierScaled) },
+      ],
+    });
+
+    const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
+    const cashEvt = txid ? await waitForEvent(txid, "CrashCashedOut") : null;
+    if (!cashEvt) throw new Error(t("cashoutPending"));
+
+    const values = Array.isArray((cashEvt as any)?.state) ? (cashEvt as any).state.map(parseStackItem) : [];
+    const payout = Number(values[1] ?? 0) / 1e8;
+    const multiplier = Number(values[2] ?? multiplierScaled) / 100;
+    status.value = {
+      msg: `${t("cashedOut")} ${multiplier.toFixed(2)}x! Won ${formatNum(payout)} GAS`,
+      type: "success",
+    };
+    currentBet.value = 0;
+  } catch (e: any) {
+    status.value = { msg: e?.message || t("roundNotRunning"), type: "error" };
+  }
 };
 
 // Initialize canvas
@@ -260,7 +499,7 @@ const initCanvas = () => {
   const query = uni.createSelectorQuery();
   query
     .select("#crashGraph")
-    .fields({ node: true, size: true })
+    .fields({ node: true, size: true }, () => {})
     .exec((res) => {
       if (res[0]) {
         const canvas = res[0].node;
@@ -317,7 +556,7 @@ const triggerExplosion = () => {
   const particles = [];
   for (let i = 0; i < 20; i++) {
     const angle = (Math.PI * 2 * i) / 20;
-    const velocity = 50 + Math.random() * 50;
+    const velocity = 60 + i * 2;
     const x = Math.cos(angle) * velocity;
     const y = Math.sin(angle) * velocity;
     particles.push({
@@ -325,7 +564,7 @@ const triggerExplosion = () => {
         left: 50%;
         top: 50%;
         transform: translate(${x}px, ${y}px);
-        animation-delay: ${Math.random() * 0.2}s;
+        animation-delay: ${((i % 5) * 0.05).toFixed(2)}s;
       `,
     });
   }
@@ -340,99 +579,31 @@ const handleCanvasTouch = () => {
   // Optional: handle touch interactions
 };
 
-// Fetch VRF crash point for next round
-const fetchCrashPoint = async () => {
-  try {
-    const randomHex = await requestRandom(`crash:${Date.now()}`);
-    if (randomHex) {
-      // Convert hex to crash multiplier (1.0 - 10.0 range)
-      const randomValue = parseInt(randomHex.slice(0, 8), 16) / 0xffffffff;
-      crashPoint.value = 1.0 + randomValue * 9.0;
-    } else {
-      crashPoint.value = 1.5 + Math.random() * 3; // Fallback
-    }
-  } catch (e) {
-    console.warn("[NeoCrash] VRF failed, using fallback:", e);
-    crashPoint.value = 1.5 + Math.random() * 3;
-  }
-};
-
-let gameTimer: number;
-onMounted(() => {
-  // Initialize canvas
+let pollTimer: number;
+onMounted(async () => {
   setTimeout(() => {
     initCanvas();
   }, 300);
 
-  gameTimer = setInterval(() => {
-    if (gameState.value === "waiting") {
-      graphPoints.value = [];
-      // Fetch VRF crash point before starting
-      fetchCrashPoint();
-      setTimeout(() => {
-        gameState.value = "running";
-        currentMultiplier.value = 1.0;
-      }, 3000);
-    } else if (gameState.value === "running") {
-      currentMultiplier.value += 0.05;
+  await refreshRoundState();
+  await refreshHistory();
+  await refreshLatestCrash();
+  await refreshCurrentBet();
 
-      // Update graph points
-      if (canvasContext.value) {
-        const { width, height } = canvasContext.value;
-        const progress = Math.min(1, (currentMultiplier.value - 1) / 9);
-        const x = progress * width;
-        const y = height - (Math.log(currentMultiplier.value) / Math.log(10)) * height * 0.8;
-        graphPoints.value.push({ x, y });
-        drawGraph();
-      }
-
-      if (autoCashout.value && currentBet.value > 0 && currentMultiplier.value >= parseFloat(autoCashout.value)) {
-        cashOut();
-      }
-
-      // Use VRF-determined crash point instead of Math.random()
-      if (currentMultiplier.value >= crashPoint.value) {
-        gameState.value = "crashed";
-        triggerExplosion();
-        drawGraph();
-        history.value.unshift({ multiplier: parseFloat(currentMultiplier.value.toFixed(2)) });
-        history.value = history.value.slice(0, 10);
-        if (currentBet.value > 0) {
-          status.value = { msg: t("crashedBetterLuck"), type: "error" };
-          currentBet.value = 0;
-        }
-        setTimeout(() => {
-          gameState.value = "waiting";
-          currentMultiplier.value = 1.0;
-        }, 2000);
-      }
+  pollTimer = setInterval(async () => {
+    await refreshRoundState();
+    await refreshLatestCrash();
+    if (address.value) {
+      await refreshCurrentBet();
     }
-  }, 100);
+  }, 2000) as unknown as number;
 });
 
-onUnmounted(() => clearInterval(gameTimer));
+onUnmounted(() => clearInterval(pollTimer));
 
-// Fetch game history from contract
-const fetchData = async () => {
-  try {
-    dataLoading.value = true;
-    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
-    if (!sdk?.invoke) return;
-
-    const data = (await sdk.invoke("neoCrash.getHistory", { appId: APP_ID, limit: 10 })) as Array<{
-      multiplier: number;
-    }> | null;
-    if (data) {
-      history.value = data;
-    }
-  } catch (e) {
-    console.warn("[NeoCrash] Failed to fetch data:", e);
-  } finally {
-    dataLoading.value = false;
-  }
-};
-
-fetchData();
+watch(address, async () => {
+  await refreshCurrentBet();
+});
 </script>
 
 <style lang="scss" scoped>
@@ -442,12 +613,10 @@ fetchData();
 .tab-content {
   padding: $space-4;
   flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: $space-4;
   overflow-y: auto;
-  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -456,19 +625,16 @@ fetchData();
   position: relative;
   width: 100%;
   height: 300px;
-  background: var(--bg-card);
-  border: $border-width-lg solid var(--border-color);
-  box-shadow: $shadow-lg;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  margin-bottom: $space-4;
+  background: white;
+  border: 4px solid black;
+  box-shadow: 10px 10px 0 black;
+  margin-bottom: $space-6;
+  overflow: hidden;
 }
 
 .crash-canvas {
   width: 100%;
-  flex: 1;
-  min-height: 0;
+  height: 100%;
   display: block;
 }
 
@@ -483,24 +649,23 @@ fetchData();
 }
 
 .multiplier-huge {
-  font-size: 4rem;
+  font-size: 80px;
   font-weight: $font-weight-black;
   display: block;
-  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.8);
   line-height: 1;
   margin-bottom: $space-2;
   transition: all $transition-fast;
+  color: black;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5);
 
   &.waiting {
-    color: var(--text-secondary);
-    font-size: 2rem;
+    color: #888;
+    font-size: 40px;
   }
-
   &.running {
-    color: var(--neo-green);
+    color: black;
     animation: pulse-scale 0.5s ease-in-out infinite;
   }
-
   &.crashed {
     color: var(--brutal-red);
     animation: shake 0.3s ease-in-out;
@@ -508,67 +673,124 @@ fetchData();
 }
 
 .game-status-overlay {
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
-  display: block;
+  color: white;
+  background: black;
+  font-size: 10px;
+  display: inline-block;
+  padding: 2px 8px;
   text-transform: uppercase;
-  font-weight: $font-weight-bold;
-  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8);
+  font-weight: $font-weight-black;
+  border: 1px solid black;
 }
 
 // === ROCKET ANIMATION ===
 .rocket {
   position: absolute;
-  font-size: 2rem;
+  width: 50px;
+  height: 50px;
   transition: all 0.1s linear;
   z-index: 20;
-  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--neo-green) 80%, transparent));
+  color: black;
+  filter: drop-shadow(2px 2px 0 black);
 
   &.running {
     animation: rocket-fly 0.3s ease-in-out infinite;
-  }
-
-  &.crashed {
-    animation: rocket-explode 0.3s ease-out forwards;
   }
 }
 
 .rocket-icon {
   display: block;
   transform: rotate(-45deg);
-}
-
-// === EXPLOSION EFFECT ===
-.explosion-container {
-  position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
-  flex: 1;
-  min-height: 0;
-  pointer-events: none;
-  z-index: 30;
+  height: 100%;
 }
 
-.particle {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background: var(--brutal-red);
-  border-radius: 50%;
-  animation: particle-fade 1s ease-out forwards;
-  box-shadow: 0 0 10px var(--brutal-yellow);
+// === PULSE BUTTON ===
+.pulse-button {
+  box-shadow: 6px 6px 0 black;
 }
 
-@keyframes particle-fade {
-  0% {
-    opacity: 1;
-    transform: translate(0, 0) scale(1);
+// === HISTORY LIST ===
+.history-list {
+  display: flex;
+  gap: $space-2;
+  flex-wrap: wrap;
+}
+
+.history-item {
+  padding: $space-2 $space-4;
+  border: 2px solid black;
+  font-weight: $font-weight-black;
+  font-family: $font-mono;
+  font-size: 14px;
+  box-shadow: 2px 2px 0 black;
+
+  &.high {
+    background: var(--neo-green);
+    color: black;
   }
-  100% {
-    opacity: 0;
-    transform: translate(var(--x), var(--y)) scale(0);
+  &.low {
+    background: var(--brutal-red);
+    color: white;
   }
+}
+
+// === STATS SECTION ===
+.stats-card {
+  background: white;
+  border: 4px solid black;
+  box-shadow: 8px 8px 0 black;
+  padding: $space-6;
+  margin-bottom: $space-4;
+}
+
+.stats-title {
+  font-size: 20px;
+  font-weight: $font-weight-black;
+  color: black;
+  margin-bottom: $space-4;
+  display: block;
+  text-transform: uppercase;
+  border-bottom: 3px solid black;
+  padding-bottom: $space-1;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: $space-3 0;
+  border-bottom: 2px solid black;
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.stat-label {
+  font-size: 12px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+.stat-value {
+  font-weight: $font-weight-black;
+  font-family: $font-mono;
+  font-size: 16px;
+  color: black;
+}
+.stat-value.success {
+  background: var(--neo-green);
+  padding: 2px 8px;
+  border: 1px solid black;
+}
+
+// === BET ROW ===
+.bet-row {
+  margin-bottom: $space-4;
+}
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
 }
 
 @keyframes pulse-scale {
@@ -577,7 +799,7 @@ fetchData();
     transform: scale(1);
   }
   50% {
-    transform: scale(1.1);
+    transform: scale(1.05);
   }
 }
 
@@ -600,167 +822,7 @@ fetchData();
     transform: translateY(0) rotate(-45deg);
   }
   50% {
-    transform: translateY(-5px) rotate(-45deg);
-  }
-}
-
-@keyframes rocket-explode {
-  0% {
-    transform: scale(1) rotate(-45deg);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(3) rotate(-45deg);
-    opacity: 0;
-  }
-}
-
-// === PULSE BUTTON ===
-.pulse-button {
-  animation: button-pulse 1s ease-in-out infinite;
-  box-shadow: 0 0 0 0 var(--brutal-red);
-}
-
-@keyframes button-pulse {
-  0% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--brutal-red) 70%, transparent);
-  }
-  50% {
-    box-shadow: 0 0 0 10px color-mix(in srgb, var(--brutal-red) 0%, transparent);
-  }
-  100% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--brutal-red) 0%, transparent);
-  }
-}
-
-// === STATUS MESSAGE ===
-.status-msg {
-  text-align: center;
-  padding: $space-4;
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  animation: slide-down 0.3s ease-out;
-
-  &.success {
-    background: var(--status-success);
-    color: var(--neo-black);
-    border-color: var(--border-color);
-  }
-
-  &.error {
-    background: var(--status-error);
-    color: var(--neo-white);
-    border-color: var(--border-color);
-  }
-
-  &.loading {
-    background: var(--neo-green);
-    color: var(--neo-black);
-    border-color: var(--border-color);
-  }
-}
-
-@keyframes slide-down {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.bet-row {
-  margin-bottom: $space-4;
-}
-
-// === INPUT AND BUTTON STYLES ===
-.input-group {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-}
-
-.bet-input,
-.cashout-input {
-  flex: 1;
-}
-
-// === HISTORY LIST ===
-.history-list {
-  display: flex;
-  gap: $space-2;
-  flex-wrap: wrap;
-}
-
-.history-item {
-  padding: $space-2 $space-3;
-  border: $border-width-sm solid var(--border-color);
-  box-shadow: $shadow-sm;
-  font-weight: $font-weight-bold;
-  transition: transform $transition-fast;
-
-  &:hover {
-    transform: translateY(-2px);
-  }
-
-  &.high {
-    background: var(--status-success);
-    color: var(--neo-black);
-  }
-
-  &.low {
-    background: var(--status-error);
-    color: var(--neo-white);
-  }
-}
-
-.history-multiplier {
-  font-weight: $font-weight-bold;
-}
-
-// === STATS SECTION ===
-.stats-card {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  padding: $space-4;
-  margin-bottom: $space-3;
-}
-
-.stats-title {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  color: var(--neo-green);
-  margin-bottom: $space-3;
-  display: block;
-  text-transform: uppercase;
-}
-
-.stat-row {
-  display: flex;
-  justify-content: space-between;
-  padding: $space-2 0;
-  border-bottom: $border-width-sm solid var(--border-color);
-
-  &:last-child {
-    border-bottom: 0;
-  }
-}
-
-.stat-label {
-  color: var(--text-secondary);
-}
-
-.stat-value {
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-
-  &.success {
-    color: var(--status-success);
+    transform: translateY(-3px) rotate(-45deg);
   }
 }
 </style>

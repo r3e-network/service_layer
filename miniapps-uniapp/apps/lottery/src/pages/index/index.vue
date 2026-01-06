@@ -3,11 +3,15 @@
     <view v-if="activeTab === 'game'" class="game-layout">
       <!-- Fixed Hero Section: Countdown + Prize Pool (non-scrollable) -->
       <view class="hero-fixed">
-        <view v-if="status" :class="['status-msg', status.type]">
-          <text>{{ status.msg }}</text>
-        </view>
+        <NeoCard
+          v-if="status"
+          :variant="status.type === 'error' ? 'danger' : status.type === 'loading' ? 'accent' : 'success'"
+          class="mb-4"
+        >
+          <text class="text-center font-bold">{{ status.msg }}</text>
+        </NeoCard>
 
-        <view class="hero-card">
+        <NeoCard class="hero-card">
           <view class="countdown-container">
             <view class="countdown-circle">
               <svg class="countdown-ring" viewBox="0 0 220 220">
@@ -21,8 +25,8 @@
                 />
               </svg>
               <view class="countdown-text">
-                <text class="countdown-time">{{ countdown }}</text>
-                <text class="countdown-label">{{ t("timeLeft") }}</text>
+                <text class="countdown-time">{{ countdownLabel }}</text>
+                <text class="countdown-label">{{ t("status") }}</text>
               </view>
             </view>
           </view>
@@ -47,22 +51,22 @@
               <text class="prize-currency">GAS</text>
             </view>
           </view>
-        </view>
+        </NeoCard>
 
         <!-- Stats Grid -->
         <view class="stats-grid">
           <view class="stat-box">
-            <text class="stat-icon">🎯</text>
+            <AppIcon name="target" :size="32" class="mb-2" />
             <text class="stat-value">#{{ round }}</text>
             <text class="stat-label">{{ t("round") }}</text>
           </view>
           <view class="stat-box">
-            <text class="stat-icon">🎫</text>
+            <AppIcon name="ticket" :size="32" class="mb-2" />
             <text class="stat-value">{{ totalTickets }}</text>
             <text class="stat-label">{{ t("total") }}</text>
           </view>
           <view class="stat-box highlight">
-            <text class="stat-icon">✨</text>
+            <AppIcon name="sparkle" :size="32" class="mb-2" />
             <text class="stat-value">{{ userTickets }}</text>
             <text class="stat-label">{{ t("yours") }}</text>
           </view>
@@ -71,14 +75,10 @@
 
       <!-- Scrollable Buy Section -->
       <view class="buy-section">
-        <view class="card ticket-purchase-card">
-          <text class="card-title">{{ t("buyTickets") }}</text>
-
+        <NeoCard :title="t('buyTickets')" variant="accent" class="ticket-purchase-card">
           <!-- Ticket Selector -->
           <view class="ticket-selector">
-            <view class="ticket-btn" @click="adjustTickets(-1)">
-              <text>−</text>
-            </view>
+            <NeoButton variant="secondary" @click="adjustTickets(-1)">−</NeoButton>
             <view class="ticket-display">
               <view class="ticket-visual">
                 <view
@@ -87,36 +87,35 @@
                   class="mini-ticket"
                   :style="{ transform: `translateX(${(n - 1) * -8}px) rotate(${(n - 1) * 5}deg)` }"
                 >
-                  <text class="mini-ticket-text">🎫</text>
+                  <AppIcon name="ticket" :size="40" />
                 </view>
                 <text v-if="tickets > 5" class="ticket-overflow">+{{ tickets - 5 }}</text>
               </view>
               <text class="ticket-count">{{ tickets }} {{ t("ticketsLabel") }}</text>
             </view>
-            <view class="ticket-btn" @click="adjustTickets(1)">
-              <text>+</text>
-            </view>
+            <NeoButton variant="secondary" @click="adjustTickets(1)">+</NeoButton>
           </view>
 
           <!-- Total Cost -->
-          <view class="total-row">
-            <text class="total-label">{{ t("totalCost") }}</text>
-            <text class="total-value">{{ formatNum(totalCost, 1) }} GAS</text>
+          <view class="total-row mb-4 flex justify-between items-center">
+            <text class="total-label text-secondary font-medium">{{ t("totalCost") }}</text>
+            <text class="total-value font-bold text-lg">{{ formatNum(totalCost, 1) }} GAS</text>
           </view>
 
           <!-- Buy Button -->
-          <view class="buy-btn" @click="buyTickets" :style="{ opacity: isLoading ? 0.6 : 1 }">
-            <text class="buy-btn-text">{{ isLoading ? t("processing") : t("buyNow") }}</text>
-            <text class="buy-btn-icon">💰</text>
-          </view>
-        </view>
+          <NeoButton variant="primary" size="lg" block :loading="isLoading" @click="buyTickets">
+            <view class="flex items-center justify-center gap-2">
+              <text>{{ isLoading ? t("processing") : t("buyNow") }}</text>
+              <AppIcon name="money" :size="20" />
+            </view>
+          </NeoButton>
+        </NeoCard>
       </view>
     </view>
 
     <!-- Winners Tab -->
     <view v-if="activeTab === 'winners'" class="tab-content scrollable">
-      <view class="card winners-card">
-        <text class="card-title">🏆 {{ t("recentWinners") }}</text>
+      <NeoCard :title="t('recentWinners')" icon="trophy">
         <view class="winners-list">
           <text v-if="winners.length === 0" class="empty">{{ t("noWinners") }}</text>
           <view v-for="(w, i) in winners" :key="i" class="winner-item">
@@ -130,26 +129,12 @@
             <text class="winner-prize">{{ formatNum(w.prize) }} GAS</text>
           </view>
         </view>
-      </view>
+      </NeoCard>
     </view>
 
     <!-- Stats Tab -->
     <view v-if="activeTab === 'stats'" class="tab-content scrollable">
-      <view class="stats-card">
-        <text class="stats-title">📊 {{ t("statistics") }}</text>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("totalGames") }}</text>
-          <text class="stat-value">{{ gamesPlayed }}</text>
-        </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("totalTickets") }}</text>
-          <text class="stat-value">{{ userTickets }}</text>
-        </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("prizePool") }}</text>
-          <text class="stat-value">{{ formatNum(prizePool) }} GAS</text>
-        </view>
-      </view>
+      <NeoStats :title="t('statistics')" :stats="statsItems" />
     </view>
 
     <!-- Docs Tab -->
@@ -167,11 +152,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
-import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
-import { formatNumber, hexToBytes, randomIntFromBytes } from "@/shared/utils/format";
+import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
+import { formatNumber } from "@/shared/utils/format";
+import { addressToScriptHash, normalizeScriptHash, parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
+import { AppLayout, NeoDoc, AppIcon, NeoButton, NeoCard, NeoStats, type StatItem } from "@/shared/components";
 
 const translations = {
   title: { en: "Neo Lottery", zh: "Neo彩票" },
@@ -198,20 +183,53 @@ const translations = {
   tickets: { en: "ticket(s)!", zh: "张彩票！" },
   error: { en: "Error", zh: "错误" },
   timeLeft: { en: "Time Left", zh: "剩余时间" },
+  status: { en: "Status", zh: "状态" },
+  open: { en: "Open", zh: "进行中" },
+  drawing: { en: "Drawing", zh: "开奖中" },
+  connectWallet: { en: "Connect wallet", zh: "请连接钱包" },
+  receiptMissing: { en: "Payment receipt missing", zh: "支付凭证缺失" },
+  contractUnavailable: { en: "Contract unavailable", zh: "合约不可用" },
 
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Professional documentation for this application is coming soon.",
-    zh: "此应用程序的专业文档即将推出。",
+  docSubtitle: {
+    en: "Provably fair lottery powered by VRF randomness",
+    zh: "由 VRF 随机数驱动的可证明公平彩票",
   },
-  step1: { en: "Open the application.", zh: "打开应用程序。" },
-  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
-  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
-  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
-  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
-  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  docDescription: {
+    en: "Neo Lottery is a decentralized lottery system that uses Verifiable Random Function (VRF) to ensure completely fair and transparent draws. Every ticket purchase and winner selection is recorded on-chain, making the entire process auditable and trustless.",
+    zh: "Neo 彩票是一个去中心化彩票系统，使用可验证随机函数 (VRF) 确保完全公平透明的抽奖。每次购票和中奖者选择都记录在链上，使整个过程可审计且无需信任。",
+  },
+  step1: {
+    en: "Connect your Neo wallet (NeoLine, O3, or OneGate)",
+    zh: "连接您的 Neo 钱包（NeoLine、O3 或 OneGate）",
+  },
+  step2: {
+    en: "Select the number of tickets to purchase (each ticket costs 1 GAS)",
+    zh: "选择要购买的彩票数量（每张彩票 1 GAS）",
+  },
+  step3: {
+    en: "Confirm the transaction and wait for the draw",
+    zh: "确认交易并等待开奖",
+  },
+  step4: {
+    en: "Winners are selected automatically using VRF - prizes sent directly to wallets",
+    zh: "使用 VRF 自动选出中奖者 - 奖金直接发送到钱包",
+  },
+  feature1Name: { en: "VRF Randomness", zh: "VRF 随机数" },
+  feature1Desc: {
+    en: "Cryptographically secure random number generation ensures no one can predict or manipulate the draw results.",
+    zh: "加密安全的随机数生成确保没有人可以预测或操纵抽奖结果。",
+  },
+  feature2Name: { en: "Automatic Payouts", zh: "自动支付" },
+  feature2Desc: {
+    en: "Smart contract automatically distributes prizes to winners - no manual intervention required.",
+    zh: "智能合约自动向中奖者分配奖金 - 无需人工干预。",
+  },
+  feature3Name: { en: "On-Chain Transparency", zh: "链上透明" },
+  feature3Desc: {
+    en: "All ticket purchases, draws, and payouts are recorded on Neo N3 blockchain for full auditability.",
+    zh: "所有购票、抽奖和支付都记录在 Neo N3 区块链上，完全可审计。",
+  },
 };
 
 const t = createT(translations);
@@ -225,16 +243,17 @@ const navTabs = [
 const activeTab = ref("game");
 const gamesPlayed = ref(0);
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
+  { name: t("feature3Name"), desc: t("feature3Desc") },
 ]);
 
 const APP_ID = "miniapp-lottery";
-const { address, connect } = useWallet();
+const { address, connect, invokeRead, invokeContract, getContractHash } = useWallet();
+const { list: listEvents } = useEvents();
 const TICKET_PRICE = 0.1;
-const ROUND_DURATION = 60000;
 
 interface Winner {
   round: number;
@@ -243,19 +262,17 @@ interface Winner {
 }
 
 const { payGAS, isLoading } = usePayments(APP_ID);
-const { requestRandom } = useRNG(APP_ID);
 
 const tickets = ref(1);
-const countdown = ref("01:00");
 const round = ref(0);
 const prizePool = ref(0);
 const totalTickets = ref(0);
 const userTickets = ref(0);
 const winners = ref<Winner[]>([]);
 const status = ref<{ msg: string; type: string } | null>(null);
-const roundStart = ref(Date.now());
-const remainingMs = ref(ROUND_DURATION);
-const dataLoading = ref(true);
+const drawPending = ref(false);
+const countdownLabel = computed(() => (drawPending.value ? t("drawing") : t("open")));
+const contractHash = ref<string | null>(null);
 
 // Lottery balls for visual display
 const lotteryBalls = computed(() => {
@@ -266,13 +283,29 @@ const lotteryBalls = computed(() => {
 // Countdown progress for circular ring
 const countdownProgress = computed(() => {
   const circumference = 2 * Math.PI * 99;
-  const progress = remainingMs.value / ROUND_DURATION;
-  return circumference * (1 - progress);
+  return drawPending.value ? circumference : 0;
 });
 
 const totalCost = computed(() => tickets.value * TICKET_PRICE);
 
+const statsItems = computed<StatItem[]>(() => [
+  { label: t("totalGames"), value: gamesPlayed.value },
+  { label: t("totalTickets"), value: userTickets.value },
+  { label: t("prizePool"), value: `${formatNum(prizePool.value)} GAS`, variant: "success" },
+]);
+
 const formatNum = (n: number, d = 2) => formatNumber(n, d);
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const waitForEvent = async (txid: string, eventName: string) => {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const res = await listEvents({ app_id: APP_ID, event_name: eventName, limit: 25 });
+    const match = res.events.find((evt) => evt.tx_hash === txid);
+    if (match) return match;
+    await sleep(1500);
+  }
+  return null;
+};
 
 const adjustTickets = (delta: number) => {
   tickets.value = Math.max(1, Math.min(100, tickets.value + delta));
@@ -282,11 +315,41 @@ const buyTickets = async () => {
   if (isLoading.value) return;
   try {
     status.value = { msg: t("purchasing"), type: "loading" };
-    await payGAS(String(totalCost.value), `lottery:${round.value}:${tickets.value}`);
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) {
+      throw new Error(t("connectWallet"));
+    }
+    if (!contractHash.value) {
+      contractHash.value = (await getContractHash()) as string;
+    }
+    if (!contractHash.value) {
+      throw new Error(t("contractUnavailable"));
+    }
+
+    const payment = await payGAS(String(totalCost.value), `lottery:${round.value}:${tickets.value}`);
+    const receiptId = payment.receipt_id;
+    if (!receiptId) {
+      throw new Error(t("receiptMissing"));
+    }
+
+    const tx = await invokeContract({
+      scriptHash: contractHash.value as string,
+      operation: "BuyTickets",
+      args: [
+        { type: "Hash160", value: address.value as string },
+        { type: "Integer", value: String(tickets.value) },
+        { type: "Integer", value: Number(receiptId) },
+      ],
+    });
+
+    const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
+    if (txid) {
+      await waitForEvent(txid, "TicketPurchased");
+    }
+    await fetchLotteryData();
     status.value = { msg: `${t("bought")} ${tickets.value} ${t("tickets")}`, type: "success" };
-    totalTickets.value += tickets.value;
-    userTickets.value += tickets.value;
-    prizePool.value += totalCost.value;
   } catch (e: any) {
     status.value = { msg: e.message || t("error"), type: "error" };
   }
@@ -295,92 +358,78 @@ const buyTickets = async () => {
 // Fetch lottery data from contract
 const fetchLotteryData = async () => {
   try {
-    dataLoading.value = true;
-    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
-    if (!sdk?.invoke) return;
-
-    // Fetch current round info
-    const roundInfo = (await sdk.invoke("lottery.getRoundInfo", { appId: APP_ID })) as {
-      round: number;
-      prizePool: number;
-      totalTickets: number;
-      endTime: number;
-    } | null;
-
-    if (roundInfo) {
-      round.value = roundInfo.round;
-      prizePool.value = roundInfo.prizePool;
-      totalTickets.value = roundInfo.totalTickets;
-      roundStart.value = roundInfo.endTime - ROUND_DURATION;
+    if (!contractHash.value) {
+      contractHash.value = (await getContractHash()) as string;
+    }
+    if (!contractHash.value) {
+      return;
     }
 
-    // Fetch user tickets
-    const userInfo = (await sdk.invoke("lottery.getUserTickets", { appId: APP_ID })) as {
-      tickets: number;
-    } | null;
-    if (userInfo) {
-      userTickets.value = userInfo.tickets;
-    }
+    const [roundRes, poolRes, ticketsRes, pendingRes] = await Promise.all([
+      invokeRead({ contractHash: contractHash.value, operation: "CurrentRound" }),
+      invokeRead({ contractHash: contractHash.value, operation: "PrizePool" }),
+      invokeRead({ contractHash: contractHash.value, operation: "TotalTickets" }),
+      invokeRead({ contractHash: contractHash.value, operation: "IsDrawPending" }),
+    ]);
 
-    // Fetch recent winners
-    const winnersData = (await sdk.invoke("lottery.getWinners", { appId: APP_ID, limit: 10 })) as Winner[] | null;
-    if (winnersData) {
-      winners.value = winnersData;
+    const roundValue = Number(parseInvokeResult(roundRes) || 0);
+    const poolValue = Number(parseInvokeResult(poolRes) || 0);
+    const totalValue = Number(parseInvokeResult(ticketsRes) || 0);
+    const pendingValue = Boolean(parseInvokeResult(pendingRes));
+
+    round.value = roundValue;
+    gamesPlayed.value = Math.max(roundValue - 1, 0);
+    prizePool.value = poolValue / 1e8;
+    totalTickets.value = totalValue;
+    drawPending.value = pendingValue;
+
+    const winnersRes = await listEvents({ app_id: APP_ID, event_name: "WinnerDrawn", limit: 10 });
+    winners.value = winnersRes.events.map((evt) => {
+      const values = Array.isArray((evt as any).state) ? (evt as any).state.map(parseStackItem) : [];
+      const winnerRaw = values[0];
+      const prizeRaw = values[1];
+      const roundRaw = values[2];
+      const winnerHash = normalizeScriptHash(String(winnerRaw || ""));
+      return {
+        round: Number(roundRaw || 0),
+        address: winnerHash ? `0x${winnerHash}` : String(winnerRaw || ""),
+        prize: Number(prizeRaw || 0) / 1e8,
+      };
+    });
+
+    if (!address.value) {
+      userTickets.value = 0;
+      return;
     }
+    const userHash = addressToScriptHash(address.value);
+    if (!userHash) {
+      userTickets.value = 0;
+      return;
+    }
+    const purchases = await listEvents({ app_id: APP_ID, event_name: "TicketPurchased", limit: 200 });
+    let userCount = 0;
+    purchases.events.forEach((evt) => {
+      const values = Array.isArray((evt as any).state) ? (evt as any).state.map(parseStackItem) : [];
+      const playerRaw = normalizeScriptHash(String(values[0] || ""));
+      const countRaw = Number(values[1] || 0);
+      const roundRaw = Number(values[2] || 0);
+      if (roundRaw === round.value && playerRaw === userHash) {
+        userCount += countRaw;
+      }
+    });
+    userTickets.value = userCount;
   } catch (e) {
     console.warn("[Lottery] Failed to fetch data:", e);
-  } finally {
-    dataLoading.value = false;
-  }
-};
-
-// Check if round ended and trigger draw
-const checkAndTriggerDraw = async () => {
-  if (remainingMs.value <= 0 && totalTickets.value > 0) {
-    try {
-      // Use Edge Function automation API
-      await fetch("/api/automation/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          appId: APP_ID,
-          taskName: "draw",
-          taskType: "scheduled",
-          payload: {
-            action: "custom",
-            handler: "lottery:draw",
-            data: { round: round.value },
-          },
-        }),
-      });
-
-      // Refresh data after draw
-      setTimeout(() => fetchLotteryData(), 2000);
-    } catch (e) {
-      console.warn("[Lottery] Draw trigger failed:", e);
-    }
   }
 };
 
 let timer: number;
-let lastRemaining = ROUND_DURATION;
 
 onMounted(() => {
-  fetchLotteryData();
+  connect().finally(() => fetchLotteryData());
   timer = setInterval(() => {
-    const elapsed = Date.now() - roundStart.value;
-    const remaining = Math.max(0, ROUND_DURATION - (elapsed % ROUND_DURATION));
-    remainingMs.value = remaining;
-    const mins = Math.floor(remaining / 60000);
-    const secs = Math.floor((remaining % 60000) / 1000);
-    countdown.value = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-
-    // Detect round end transition
-    if (lastRemaining > 0 && remaining === 0) {
-      checkAndTriggerDraw();
-    }
-    lastRemaining = remaining;
-  }, 100);
+    fetchLotteryData();
+  }, 10000) as unknown as number;
 });
 
 onUnmounted(() => clearInterval(timer));
@@ -391,633 +440,75 @@ onUnmounted(() => clearInterval(timer));
 @import "@/shared/styles/variables.scss";
 
 .tab-content {
-  padding: $space-4;
+  padding: $space-6;
   flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: $space-6;
   overflow-y: auto;
-  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-}
-
-// Game layout with fixed hero and scrollable buy section
-.game-layout {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
 }
 
 .hero-fixed {
-  flex-shrink: 0;
-  padding: $space-3;
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
-}
-
-.buy-section {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0 $space-3 $space-3;
-  -webkit-overflow-scrolling: touch;
-}
-
-.status-msg {
-  text-align: center;
-  padding: $space-4;
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  animation: slideDown 0.3s ease-out;
-
-  &.success {
-    background: var(--status-success);
-    color: var(--neo-black);
-    border-color: var(--neo-black);
-  }
-
-  &.error {
-    background: var(--status-error);
-    color: var(--neo-white);
-    border-color: var(--neo-black);
-  }
-
-  &.loading {
-    background: var(--brutal-blue);
-    color: var(--neo-black);
-    border-color: var(--neo-black);
-  }
-}
-
-// Hero Card with Countdown and Prize Pool
-.hero-card {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-lg;
-  padding: $space-6;
-  margin-bottom: $space-4;
+  background: white; 
+  padding: $space-8; 
+  border: 4px solid black; 
+  box-shadow: 12px 12px 0 black; 
+  margin-bottom: $space-8;
   position: relative;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
 }
 
-// Countdown Circle
-.countdown-container {
-  display: flex;
-  justify-content: center;
-  margin-bottom: $space-5;
-}
-
+.countdown-container { display: flex; justify-content: center; margin-bottom: $space-8; }
 .countdown-circle {
-  position: relative;
-  width: 220px;
-  height: 220px;
+  width: 160px; height: 160px; background: #ffde59; border: 6px solid black;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;
+  box-shadow: 8px 8px 0 black;
 }
+.countdown-time { font-family: $font-mono; font-weight: $font-weight-black; font-size: 40px; color: black; border-bottom: 4px solid black; font-style: italic; }
+.countdown-label { font-size: 12px; font-weight: $font-weight-black; text-transform: uppercase; color: black; margin-top: 6px; letter-spacing: 1px; }
 
-.countdown-ring {
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-  transform: rotate(-90deg);
-}
-
-.countdown-ring-bg {
-  fill: none;
-  stroke: var(--bg-secondary);
-  stroke-width: 8;
-}
-
-.countdown-ring-progress {
-  fill: none;
-  stroke: var(--neo-green);
-  stroke-width: 8;
-  stroke-linecap: round;
-  stroke-dasharray: 622.035;
-  transition: stroke-dashoffset 0.1s linear;
-  filter: drop-shadow(0 0 8px var(--neo-green));
-}
-
-.countdown-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-}
-
-.countdown-time {
-  display: block;
-  font-size: $font-size-3xl;
-  font-weight: $font-weight-black;
-  color: var(--neo-green);
-  font-family: $font-mono;
-  text-shadow: 0 0 10px var(--neo-green);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.countdown-label {
-  display: block;
-  font-size: $font-size-xs;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-top: $space-1;
-}
-
-// Lottery Balls
-.lottery-balls {
-  display: flex;
-  justify-content: center;
-  gap: $space-3;
-  margin-bottom: $space-5;
-  flex-wrap: wrap;
-}
-
+.lottery-balls { display: flex; justify-content: center; gap: $space-4; margin-bottom: $space-8; }
 .lottery-ball {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--brutal-yellow) 0%, var(--brutal-orange) 100%);
-  border: $border-width-md solid var(--neo-black);
-  box-shadow:
-    $shadow-md,
-    0 0 20px rgba(var(--brutal-yellow-rgb), 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: ballBounce 2s ease-in-out infinite;
+  width: 50px; height: 50px; background: white; border: 4px solid black;
+  display: flex; align-items: center; justify-content: center; font-family: $font-mono; font-weight: $font-weight-black; font-size: 20px;
+  box-shadow: 4px 4px 0 black;
+  &.active { background: #00E599; }
 }
 
-.ball-number {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-black;
-  color: var(--neo-black);
-  font-family: $font-mono;
+.prize-pool-display { 
+  text-align: center; 
+  background: black; 
+  padding: $space-6; 
+  border: 4px solid black; 
+  box-shadow: 8px 8px 0 #ffde59; 
 }
+.prize-label { font-size: 12px; font-weight: $font-weight-black; text-transform: uppercase; color: #ffde59; letter-spacing: 2px; font-style: italic; }
+.prize-amount { font-family: $font-mono; font-weight: $font-weight-black; font-size: 44px; color: #00E599; text-shadow: 3px 3px 0 rgba(255,255,255,0.1); }
+.prize-currency { font-size: 18px; font-weight: $font-weight-black; color: white; margin-left: 8px; }
 
-// Prize Pool Display
-.prize-pool-display {
-  text-align: center;
-  position: relative;
-  padding: $space-4;
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-}
-
-.prize-label {
-  display: block;
-  font-size: $font-size-sm;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: $space-2;
-}
-
-.prize-amount-container {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: $space-2;
-}
-
-.prize-amount {
-  font-size: $font-size-4xl;
-  font-weight: $font-weight-black;
-  color: #d4af37;
-  font-family: $font-mono;
-  animation: glow 2s ease-in-out infinite;
-}
-
-.prize-currency {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-bold;
-  color: var(--neo-green);
-}
-
-.prize-glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle, rgba(var(--brutal-yellow-rgb), 0.2) 0%, transparent 70%);
-  pointer-events: none;
-  animation: glowPulse 3s ease-in-out infinite;
-}
-
-// Stats Grid
-.stats-grid {
-  display: flex;
-  gap: $space-3;
-  margin-bottom: $space-4;
-}
-
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: $space-4; margin-top: $space-4; }
 .stat-box {
-  flex: 1;
-  text-align: center;
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-sm;
-  padding: $space-4;
-  transition:
-    transform $transition-fast,
-    box-shadow $transition-fast;
-
-  &.highlight {
-    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-elevated) 100%);
-    border-color: var(--neo-green);
-  }
-
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: none;
-  }
+  padding: $space-4; background: white; border: 4px solid black; text-align: center; box-shadow: 6px 6px 0 black;
+  &.highlight { background: #ffde59; }
 }
+.stat-value { font-weight: $font-weight-black; font-family: $font-mono; font-size: 20px; border-bottom: 3px solid black; display: block; margin-bottom: 6px; font-style: italic; }
+.stat-label { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; color: black; }
 
-.stat-icon {
-  display: block;
-  font-size: $font-size-2xl;
-  margin-bottom: $space-2;
-}
+.ticket-selector { display: flex; align-items: center; justify-content: center; gap: $space-8; margin: $space-8 0; background: #fff; padding: $space-6; border: 4px solid black; box-shadow: 8px 8px 0 #00E599; }
+.ticket-display { display: flex; flex-direction: column; align-items: center; }
+.ticket-count { font-size: 48px; font-weight: $font-weight-black; font-family: $font-mono; color: black; font-style: italic; }
 
-.stat-value {
-  color: var(--neo-green);
-  font-size: $font-size-xl;
-  font-weight: $font-weight-bold;
-  display: block;
-  margin-bottom: $space-1;
-}
-
-.stat-label {
-  color: var(--text-secondary);
-  font-size: $font-size-xs;
-  font-weight: $font-weight-medium;
-  text-transform: uppercase;
-  display: block;
-}
-
-// Card Base
-.card {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  padding: $space-5;
-  margin-bottom: $space-4;
-}
-
-.card-title {
-  color: var(--neo-green);
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  display: block;
-  margin-bottom: $space-4;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-// Ticket Purchase Card
-.ticket-purchase-card {
-  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-elevated) 100%);
-}
-
-.ticket-selector {
-  display: flex;
-  align-items: center;
-  gap: $space-4;
-  margin-bottom: $space-4;
-}
-
-.ticket-btn {
-  width: 50px;
-  height: 50px;
-  background: var(--neo-green);
-  border: $border-width-md solid var(--neo-black);
-  box-shadow: $shadow-sm;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--neo-black);
-  font-size: $font-size-2xl;
-  font-weight: $font-weight-bold;
-  cursor: pointer;
-  transition:
-    transform $transition-fast,
-    box-shadow $transition-fast;
-
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: none;
-  }
-}
-
-.ticket-display {
-  flex: 1;
-  text-align: center;
-}
-
-.ticket-visual {
-  position: relative;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: $space-2;
-}
-
-.mini-ticket {
-  position: absolute;
-  font-size: 40px;
-  transition: transform $transition-normal;
-  animation: ticketFloat 3s ease-in-out infinite;
-}
-
-.mini-ticket-text {
-  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
-}
-
-.ticket-overflow {
-  position: absolute;
-  right: -10px;
-  top: 0;
-  background: var(--brutal-orange);
-  color: var(--neo-black);
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  padding: $space-1 $space-2;
-  border-radius: 12px;
-  border: 2px solid var(--neo-black);
-}
-
-.ticket-count {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-}
-
-.total-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: $space-3;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-  margin-bottom: $space-4;
-}
-
-.total-label {
-  color: var(--text-secondary);
-  font-weight: $font-weight-medium;
-  text-transform: uppercase;
-  font-size: $font-size-sm;
-}
-
-.total-value {
-  color: var(--neo-green);
-  font-weight: $font-weight-black;
-  font-size: $font-size-xl;
-  font-family: $font-mono;
-}
-
-.buy-btn {
-  background: linear-gradient(135deg, var(--brutal-yellow) 0%, var(--brutal-orange) 100%);
-  color: var(--neo-black);
-  padding: $space-4;
-  border: $border-width-md solid var(--neo-black);
-  box-shadow: $shadow-lg;
-  text-align: center;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition:
-    transform $transition-fast,
-    box-shadow $transition-fast;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: $space-2;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transform: rotate(45deg);
-    animation: shine 3s infinite;
-  }
-
-  &:active {
-    transform: translate(3px, 3px);
-    box-shadow: none;
-  }
-}
-
-.buy-btn-text {
-  font-size: $font-size-lg;
-  position: relative;
-  z-index: 1;
-}
-
-.buy-btn-icon {
-  font-size: $font-size-xl;
-  position: relative;
-  z-index: 1;
-}
-
-// Winners Card
-.winners-card {
-  background: var(--bg-card);
-}
-
-.winners-list {
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
-}
-
-.empty {
-  color: var(--text-secondary);
-  text-align: center;
-  font-weight: $font-weight-medium;
-  padding: $space-4;
-}
-
+.winners-list { display: flex; flex-direction: column; gap: $space-4; }
 .winner-item {
-  display: flex;
-  align-items: center;
-  gap: $space-3;
-  padding: $space-3;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-  box-shadow: $shadow-sm;
-  transition: transform $transition-fast;
-
-  &:active {
-    transform: translateX(2px);
-  }
+  display: flex; justify-content: space-between; align-items: center; padding: $space-6; background: white; border: 4px solid black; box-shadow: 8px 8px 0 black;
+  transition: transform 0.2s;
+  &:hover { transform: translate(-3px, -3px); box-shadow: 11px 11px 0 black; }
 }
+.winner-medal { font-size: 32px; background: #f0f0f0; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border: 3px solid black; }
+.winner-info { display: flex; flex-direction: column; flex: 1; margin-left: $space-6; }
+.winner-round { font-size: 12px; font-weight: $font-weight-black; text-transform: uppercase; border-bottom: 2px solid black; display: inline-block; width: fit-content; font-style: italic; }
+.winner-addr { font-family: $font-mono; font-size: 14px; font-weight: $font-weight-black; margin-top: 6px; color: black; }
+.winner-prize { font-weight: $font-weight-black; font-family: $font-mono; color: black; background: #00E599; padding: 4px 14px; font-size: 18px; border: 3px solid black; box-shadow: 4px 4px 0 black; }
 
-.winner-medal {
-  font-size: $font-size-2xl;
-  min-width: 40px;
-  text-align: center;
-}
-
-.winner-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: $space-1;
-}
-
-.winner-round {
-  color: var(--neo-green);
-  font-weight: $font-weight-bold;
-  font-size: $font-size-sm;
-}
-
-.winner-addr {
-  color: var(--text-primary);
-  font-family: $font-mono;
-  font-size: $font-size-xs;
-}
-
-.winner-prize {
-  color: var(--brutal-yellow);
-  font-weight: $font-weight-black;
-  font-size: $font-size-lg;
-  font-family: $font-mono;
-  text-shadow: 0 0 10px rgba(var(--brutal-yellow-rgb), 0.3);
-}
-
-// Stats Tab
-.stats-card {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  padding: $space-5;
-  margin-bottom: $space-3;
-}
-
-.stats-title {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-bold;
-  color: var(--neo-green);
-  margin-bottom: $space-4;
-  display: block;
-  text-transform: uppercase;
-}
-
-.stat-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: $space-3 0;
-  border-bottom: $border-width-sm solid var(--border-color);
-
-  &:last-child {
-    border-bottom: none;
-  }
-
-  .stat-label {
-    color: var(--text-secondary);
-    font-size: $font-size-base;
-  }
-
-  .stat-value {
-    font-weight: $font-weight-bold;
-    color: var(--neo-green);
-    font-size: $font-size-lg;
-  }
-}
-
-// Animations
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.05);
-    opacity: 0.9;
-  }
-}
-
-@keyframes ballBounce {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes glow {
-  0%,
-  100% {
-    text-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
-  }
-  50% {
-    text-shadow: 0 0 12px rgba(212, 175, 55, 0.6);
-  }
-}
-
-@keyframes glowPulse {
-  0%,
-  100% {
-    opacity: 0.3;
-    transform: translate(-50%, -50%) scale(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: translate(-50%, -50%) scale(1.2);
-  }
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes ticketFloat {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
-}
-
-@keyframes shine {
-  0% {
-    left: -50%;
-  }
-  100% {
-    left: 150%;
-  }
-}
+.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 </style>

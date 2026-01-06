@@ -1,12 +1,13 @@
 /**
  * Price Charts
  * Handles real-time prices, historical data, and price alerts
+ * Basic prices from global API, chart data from CoinGecko
  */
 
 import * as SecureStore from "expo-secure-store";
+import { API_BASE_URL } from "./config";
 
 const PRICE_ALERTS_KEY = "price_alerts";
-const PRICE_CACHE_KEY = "price_cache";
 
 export type Asset = "NEO" | "GAS";
 export type TimeRange = "1H" | "1D" | "1W" | "1M" | "1Y";
@@ -41,39 +42,46 @@ const COINGECKO_IDS: Record<Asset, string> = {
   GAS: "gas",
 };
 
-const API_BASE = "https://api.coingecko.com/api/v3";
+// CoinGecko API for chart data only
+const COINGECKO_API = "https://api.coingecko.com/api/v3";
 
 let priceCache: Record<Asset, PriceData> | null = null;
 let lastFetch = 0;
 const CACHE_TTL = 60000; // 1 minute
 
 /**
- * Fetch prices from CoinGecko API
+ * Fetch prices from global price API
  */
 async function fetchPrices(): Promise<Record<Asset, PriceData>> {
-  const ids = Object.values(COINGECKO_IDS).join(",");
-  const url = `${API_BASE}/coins/markets?vs_currency=usd&ids=${ids}&sparkline=false`;
-
+  const url = `${API_BASE_URL}/price`;
   const response = await fetch(url);
-  if (!response.ok) throw new Error(`API error: ${response.status}`);
+  if (!response.ok) throw new Error(`Price API error: ${response.status}`);
 
   const data = await response.json();
-  const result: Record<Asset, PriceData> = {} as Record<Asset, PriceData>;
+  const now = Date.now();
 
-  for (const coin of data) {
-    const asset = coin.id === "neo" ? "NEO" : "GAS";
-    result[asset] = {
-      asset,
-      price: coin.current_price,
-      change24h: coin.price_change_percentage_24h || 0,
-      high24h: coin.high_24h,
-      low24h: coin.low_24h,
-      volume24h: coin.total_volume,
-      marketCap: coin.market_cap,
-      lastUpdated: Date.now(),
-    };
-  }
-  return result;
+  return {
+    NEO: {
+      asset: "NEO",
+      price: data.neo?.usd || 0,
+      change24h: data.neo?.usd_24h_change || 0,
+      high24h: 0, // Not available from basic API
+      low24h: 0,
+      volume24h: 0,
+      marketCap: 0,
+      lastUpdated: now,
+    },
+    GAS: {
+      asset: "GAS",
+      price: data.gas?.usd || 0,
+      change24h: data.gas?.usd_24h_change || 0,
+      high24h: 0,
+      low24h: 0,
+      volume24h: 0,
+      marketCap: 0,
+      lastUpdated: now,
+    },
+  };
 }
 
 /**
@@ -103,7 +111,7 @@ export async function getAllPrices(): Promise<PriceData[]> {
 export async function getChartData(asset: Asset, range: TimeRange): Promise<ChartPoint[]> {
   const coinId = COINGECKO_IDS[asset];
   const days = { "1H": 1, "1D": 1, "1W": 7, "1M": 30, "1Y": 365 }[range];
-  const url = `${API_BASE}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`;
+  const url = `${COINGECKO_API}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`;
 
   const response = await fetch(url);
   if (!response.ok) throw new Error(`API error: ${response.status}`);

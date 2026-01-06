@@ -27,7 +27,7 @@ describe("Unbreakable-Vault MiniApp", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    const payments = usePayments("miniapp-unbreakable-vault");
+    const payments = usePayments("miniapp-unbreakablevault");
     payGAS = payments.payGAS as any;
     isLoading = payments.isLoading;
   });

@@ -10,13 +10,14 @@ interface TransactionItemProps {
 export function TransactionItem({ tx, onPress }: TransactionItemProps) {
   const isReceive = tx.type === "receive";
   const icon = isReceive ? "arrow-down" : "arrow-up";
-  const color = isReceive ? "#22c55e" : "#ef4444";
+  // Neo Green (#00E599) or Brutal Red (#EF4444)
+  const color = isReceive ? "#00E599" : "#EF4444";
   const sign = isReceive ? "+" : "-";
 
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
-      <View style={[styles.iconBox, { backgroundColor: color + "20" }]}>
-        <Ionicons name={icon} size={20} color={color} />
+      <View style={[styles.iconBox, { backgroundColor: color }]}>
+        <Ionicons name={icon} size={24} color="#000" />
       </View>
       <View style={styles.info}>
         <Text style={styles.type}>{isReceive ? "Received" : "Sent"}</Text>
@@ -25,10 +26,12 @@ export function TransactionItem({ tx, onPress }: TransactionItemProps) {
         </Text>
       </View>
       <View style={styles.amount}>
-        <Text style={[styles.value, { color }]}>
-          {sign}
-          {tx.amount} {tx.asset}
-        </Text>
+        <View style={[styles.badge, { backgroundColor: color }]}>
+          <Text style={styles.value}>
+            {sign}
+            {tx.amount} {tx.asset}
+          </Text>
+        </View>
         <Text style={styles.time}>{formatTime(tx.time)}</Text>
       </View>
     </TouchableOpacity>
@@ -40,10 +43,10 @@ function formatTime(timestamp: number): string {
   const now = new Date();
   const diff = now.getTime() - date.getTime();
 
-  if (diff < 60000) return "Just now";
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-  return date.toLocaleDateString();
+  if (diff < 60000) return "JUST NOW";
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}M AGO`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}H AGO`;
+  return date.toLocaleDateString().toUpperCase();
 }
 
 const styles = StyleSheet.create({
@@ -51,21 +54,45 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
-    backgroundColor: "#1a1a1a",
-    borderRadius: 12,
-    marginBottom: 8,
+    backgroundColor: "#ffffff",
+    borderWidth: 3,
+    borderColor: "#000",
+    borderRadius: 0,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
   },
   iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderWidth: 2,
+    borderColor: "#000",
     justifyContent: "center",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
-  info: { flex: 1, marginLeft: 12 },
-  type: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  hash: { color: "#888", fontSize: 12, marginTop: 2 },
+  info: { flex: 1, marginLeft: 16 },
+  type: { color: "#000", fontSize: 16, fontWeight: "900", textTransform: "uppercase" },
+  hash: { color: "#000", fontSize: 12, marginTop: 2, fontWeight: "700", fontFamily: "monospace" },
   amount: { alignItems: "flex-end" },
-  value: { fontSize: 16, fontWeight: "600" },
-  time: { color: "#888", fontSize: 12, marginTop: 2 },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderWidth: 2,
+    borderColor: "#000",
+    shadowColor: "#000",
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    marginBottom: 4,
+    backgroundColor: "#fff",
+  },
+  value: { color: "#000", fontSize: 14, fontWeight: "900", textTransform: "uppercase" },
+  time: { color: "#666", fontSize: 10, fontWeight: "900", textTransform: "uppercase" },
 });

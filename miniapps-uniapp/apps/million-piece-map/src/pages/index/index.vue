@@ -1,9 +1,9 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab === 'map'" class="tab-content">
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
+        <text class="font-bold">{{ status.msg }}</text>
+      </NeoCard>
 
       <!-- Pixel Art Territory Map -->
       <NeoCard :title="t('territoryMap')" variant="default">
@@ -96,18 +96,18 @@
       <!-- Territory Stats -->
       <NeoCard :title="t('territoryStats')" variant="success">
         <view class="stats-grid">
-          <view class="stat-card">
+          <NeoCard flat variant="default" class="flex flex-col items-center p-3 border-none!">
             <text class="stat-value">{{ ownedTiles }}</text>
             <text class="stat-label">{{ t("tilesOwned") }}</text>
-          </view>
-          <view class="stat-card">
+          </NeoCard>
+          <NeoCard flat variant="default" class="flex flex-col items-center p-3 border-none!">
             <text class="stat-value">{{ coverage }}%</text>
             <text class="stat-label">{{ t("mapControl") }}</text>
-          </view>
-          <view class="stat-card">
+          </NeoCard>
+          <NeoCard flat variant="default" class="flex flex-col items-center p-3 border-none!">
             <text class="stat-value">{{ formatNum(totalSpent) }}</text>
             <text class="stat-label">{{ t("gasSpent") }}</text>
-          </view>
+          </NeoCard>
         </view>
       </NeoCard>
     </view>
@@ -133,16 +133,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { ref, computed, onMounted, watch } from "vue";
+import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoButton from "@/shared/components/NeoButton.vue";
-import NeoCard from "@/shared/components/NeoCard.vue";
-import NeoStats from "@/shared/components/NeoStats.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
-import type { StatItem } from "@/shared/components/NeoStats.vue";
+import { addressToScriptHash, normalizeScriptHash, parseInvokeResult } from "@/shared/utils/neo";
+import { AppLayout, NeoButton, NeoCard, NeoStats, NeoDoc, type StatItem } from "@/shared/components";
 
 const translations = {
   title: { en: "Million Piece Map", zh: "百万像素地图" },
@@ -171,22 +167,36 @@ const translations = {
   coverage: { en: "Coverage", zh: "覆盖率" },
   tileAlreadyOwned: { en: "Territory already claimed!", zh: "领土已被占领！" },
   tilePurchased: { en: "Territory claimed successfully!", zh: "领土占领成功！" },
+  connectWallet: { en: "Connect wallet", zh: "请连接钱包" },
+  contractUnavailable: { en: "Contract unavailable", zh: "合约不可用" },
+  receiptMissing: { en: "Payment receipt missing", zh: "支付凭证缺失" },
+  claimPending: { en: "Claim pending", zh: "占领确认中" },
   error: { en: "Error", zh: "错误" },
   map: { en: "Map", zh: "地图" },
   stats: { en: "Stats", zh: "统计" },
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Claim pixels on the blockchain and build your territory empire.",
-    zh: "在区块链上占领像素，建立你的领土帝国。",
+  docSubtitle: {
+    en: "Claim and own pixels on a blockchain-powered territory map",
+    zh: "在区块链驱动的领土地图上占领和拥有像素",
   },
-  step1: { en: "Select a pixel on the map.", zh: "在地图上选择一个像素。" },
-  step2: { en: "Claim it with GAS tokens.", zh: "使用 GAS 代币占领它。" },
-  step3: { en: "Build your pixel empire!", zh: "建立你的像素帝国！" },
-  feature1Name: { en: "Pixel Ownership", zh: "像素所有权" },
-  feature1Desc: { en: "True on-chain ownership.", zh: "真正的链上所有权。" },
-  feature2Name: { en: "Territory Control", zh: "领土控制" },
-  feature2Desc: { en: "Expand your digital empire.", zh: "扩展你的数字帝国。" },
+  docDescription: {
+    en: "Million Piece Map lets you claim pixels on an 8x8 grid territory map. Each pixel is a unique on-chain asset. Build your digital empire by purchasing tiles with GAS and watch your territory grow!",
+    zh: "百万像素地图让您在 8x8 网格领土地图上占领像素。每个像素都是独特的链上资产。使用 GAS 购买地块建立您的数字帝国，观察您的领土增长！",
+  },
+  step1: { en: "Connect your Neo wallet and explore the territory map.", zh: "连接 Neo 钱包并探索领土地图。" },
+  step2: { en: "Select an available pixel tile on the grid.", zh: "在网格上选择一个可用的像素地块。" },
+  step3: { en: "Pay 0.1 GAS to claim ownership of the tile.", zh: "支付 0.1 GAS 占领该地块的所有权。" },
+  step4: { en: "Track your territory stats and expand your empire.", zh: "跟踪您的领土统计并扩展您的帝国。" },
+  feature1Name: { en: "True Ownership", zh: "真正所有权" },
+  feature1Desc: {
+    en: "Each pixel is recorded on-chain as your permanent property.",
+    zh: "每个像素都作为您的永久财产记录在链上。",
+  },
+  feature2Name: { en: "Territory Visualization", zh: "领土可视化" },
+  feature2Desc: {
+    en: "Color-coded map shows your tiles vs others at a glance.",
+    zh: "颜色编码的地图一目了然地显示您的地块与他人的地块。",
+  },
 };
 
 const t = createT(translations);
@@ -198,41 +208,55 @@ const navTabs = [
 ];
 const activeTab = ref("map");
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 
 const APP_ID = "miniapp-millionpiecemap";
-const { address, connect } = useWallet();
+const { address, connect, invokeContract, invokeRead, getContractHash } = useWallet();
 const { payGAS } = usePayments(APP_ID);
+const { list: listEvents } = useEvents();
 
 const GRID_SIZE = 64;
 const GRID_WIDTH = 8;
+const TILE_PRICE = 0.1;
 
 // Territory color palette
 const TERRITORY_COLORS = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A", "#98D8C8", "#F7DC6F", "#BB8FCE", "#85C1E2"];
 
-const tiles = ref(
+type Tile = {
+  owned: boolean;
+  owner: string;
+  isYours: boolean;
+  selected: boolean;
+  x: number;
+  y: number;
+};
+
+const tiles = ref<Tile[]>(
   Array.from({ length: GRID_SIZE }, (_, i) => ({
-    owned: i % 7 === 0,
-    owner: i % 7 === 0 ? Math.floor(Math.random() * TERRITORY_COLORS.length) : -1,
-    isYours: i % 13 === 0,
+    owned: false,
+    owner: "",
+    isYours: false,
     selected: false,
+    x: i % GRID_WIDTH,
+    y: Math.floor(i / GRID_WIDTH),
   })),
 );
 
 const selectedTile = ref(0);
-const tilePrice = ref(0.5);
-const ownedTiles = ref(5);
-const totalSpent = ref(2.5);
+const tilePrice = ref(TILE_PRICE);
 const isPurchasing = ref(false);
 const status = ref<{ msg: string; type: string } | null>(null);
 const zoomLevel = ref(1);
+const contractHash = ref<string | null>(null);
 
 const selectedX = computed(() => selectedTile.value % GRID_WIDTH);
 const selectedY = computed(() => Math.floor(selectedTile.value / GRID_WIDTH));
+const ownedTiles = computed(() => tiles.value.filter((tile) => tile.isYours).length);
+const totalSpent = computed(() => ownedTiles.value * tilePrice.value);
 const coverage = computed(() => Math.round((ownedTiles.value / GRID_SIZE) * 100));
 const formatNum = (n: number) => formatNumber(n, 2);
 
@@ -242,10 +266,64 @@ const statsData = computed<StatItem[]>(() => [
   { label: t("coverage"), value: `${coverage.value}%`, variant: "success" },
 ]);
 
+const ensureContractHash = async () => {
+  if (!contractHash.value) {
+    contractHash.value = (await getContractHash()) as string;
+  }
+  if (!contractHash.value) {
+    throw new Error(t("contractUnavailable"));
+  }
+  return contractHash.value as string;
+};
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const waitForEvent = async (txid: string, eventName: string) => {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const res = await listEvents({ app_id: APP_ID, event_name: eventName, limit: 25 });
+    const match = res.events.find((evt) => evt.tx_hash === txid);
+    if (match) return match;
+    await sleep(1500);
+  }
+  return null;
+};
+
+const parsePiece = (data: any) => {
+  if (!data) return null;
+  if (Array.isArray(data)) {
+    return {
+      owner: String(data[0] ?? ""),
+      x: Number(data[1] ?? 0),
+      y: Number(data[2] ?? 0),
+      purchaseTime: Number(data[3] ?? 0),
+      price: Number(data[4] ?? 0),
+    };
+  }
+  if (typeof data === "object") {
+    return {
+      owner: String(data.owner ?? ""),
+      x: Number(data.x ?? 0),
+      y: Number(data.y ?? 0),
+      purchaseTime: Number(data.purchaseTime ?? 0),
+      price: Number(data.price ?? 0),
+    };
+  }
+  return null;
+};
+
+const getOwnerColorIndex = (owner: string) => {
+  if (!owner) return 0;
+  let hash = 0;
+  for (let i = 0; i < owner.length; i += 1) {
+    hash = (hash + owner.charCodeAt(i)) % TERRITORY_COLORS.length;
+  }
+  return hash;
+};
+
 const getTileColor = (tile: any) => {
   if (tile.selected) return "var(--neo-purple)";
   if (tile.isYours) return "var(--neo-green)";
-  if (tile.owned) return TERRITORY_COLORS[tile.owner] || "var(--neo-orange)";
+  if (tile.owned) return TERRITORY_COLORS[getOwnerColorIndex(tile.owner)] || "var(--neo-orange)";
   return "var(--bg-card)";
 };
 
@@ -262,6 +340,38 @@ const zoomOut = () => {
   if (zoomLevel.value > 0.5) zoomLevel.value -= 0.25;
 };
 
+const loadTiles = async () => {
+  try {
+    const contract = await ensureContractHash();
+    const userHash = address.value ? normalizeScriptHash(addressToScriptHash(address.value)) : "";
+    const updates = await Promise.all(
+      tiles.value.map(async (tile) => {
+        const res = await invokeRead({
+          contractHash: contract,
+          operation: "GetPiece",
+          args: [
+            { type: "Integer", value: String(tile.x) },
+            { type: "Integer", value: String(tile.y) },
+          ],
+        });
+        const parsed = parsePiece(parseInvokeResult(res));
+        const ownerHash = normalizeScriptHash(parsed?.owner || "");
+        const owned = Boolean(ownerHash);
+        const isYours = Boolean(userHash && ownerHash && ownerHash === userHash);
+        return {
+          ...tile,
+          owned,
+          owner: parsed?.owner || "",
+          isYours,
+        };
+      }),
+    );
+    tiles.value = updates;
+  } catch (e: any) {
+    status.value = { msg: e?.message || t("error"), type: "error" };
+  }
+};
+
 const purchaseTile = async () => {
   if (isPurchasing.value) return;
   if (tiles.value[selectedTile.value].owned) {
@@ -271,12 +381,35 @@ const purchaseTile = async () => {
 
   isPurchasing.value = true;
   try {
-    await payGAS(tilePrice.value.toString(), `map:tile:${selectedTile.value}`);
-    tiles.value[selectedTile.value].owned = true;
-    tiles.value[selectedTile.value].isYours = true;
-    tiles.value[selectedTile.value].owner = -1;
-    ownedTiles.value++;
-    totalSpent.value += tilePrice.value;
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) {
+      throw new Error(t("connectWallet"));
+    }
+    const contract = await ensureContractHash();
+    const tile = tiles.value[selectedTile.value];
+    const payment = await payGAS(tilePrice.value.toString(), `map:claim:${tile.x}:${tile.y}`);
+    const receiptId = payment.receipt_id;
+    if (!receiptId) {
+      throw new Error(t("receiptMissing"));
+    }
+    const tx = await invokeContract({
+      scriptHash: contract,
+      operation: "ClaimPiece",
+      args: [
+        { type: "Hash160", value: address.value as string },
+        { type: "Integer", value: String(tile.x) },
+        { type: "Integer", value: String(tile.y) },
+        { type: "Integer", value: Number(receiptId) },
+      ],
+    });
+    const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
+    const evt = txid ? await waitForEvent(txid, "PieceClaimed") : null;
+    if (!evt) {
+      throw new Error(t("claimPending"));
+    }
+    await loadTiles();
     status.value = { msg: t("tilePurchased"), type: "success" };
   } catch (e: any) {
     status.value = { msg: e.message || t("error"), type: "error" };
@@ -284,6 +417,14 @@ const purchaseTile = async () => {
     isPurchasing.value = false;
   }
 };
+
+onMounted(async () => {
+  await loadTiles();
+});
+
+watch(address, async () => {
+  await loadTiles();
+});
 </script>
 
 <style lang="scss" scoped>
@@ -291,198 +432,73 @@ const purchaseTile = async () => {
 @import "@/shared/styles/variables.scss";
 
 .tab-content {
-  padding: $space-3;
+  padding: $space-4;
   flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: $space-3;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+  gap: $space-4;
 }
 
-.status-msg {
-  text-align: center;
-  padding: $space-3;
-  border: $border-width-md solid var(--border-color);
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-family: $font-mono;
-
-  &.success {
-    background: var(--status-success);
-    color: var(--text-inverse);
-    box-shadow: $shadow-md;
-  }
-
-  &.error {
-    background: var(--status-error);
-    color: var(--text-inverse);
-    box-shadow: $shadow-md;
-  }
-}
-
-// Map Container
 .map-container {
   display: flex;
   flex-direction: column;
-  gap: $space-3;
+  gap: $space-4;
 }
 
-// Coordinate Display
-.coordinate-display {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: $space-3;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-  font-family: $font-mono;
-
-  .coord-label {
-    color: var(--text-secondary);
-    font-size: $font-size-sm;
-    font-weight: $font-weight-bold;
-  }
-
-  .coord-value {
-    color: var(--neo-green);
-    font-size: $font-size-base;
-    font-weight: $font-weight-bold;
-  }
-}
-
-// Zoom Controls
-.zoom-controls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: $space-3;
-  padding: $space-2;
-
-  .zoom-btn {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-card);
-    border: $border-width-md solid var(--border-color);
-    font-size: $font-size-xl;
-    font-weight: $font-weight-bold;
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: all $transition-fast;
-
-    &:active {
-      background: var(--neo-purple);
-      color: var(--text-inverse);
-      transform: scale(0.95);
-    }
-  }
-
-  .zoom-level {
-    min-width: 48px;
-    text-align: center;
-    font-family: $font-mono;
-    font-weight: $font-weight-bold;
-    color: var(--text-primary);
-    font-size: $font-size-base;
-  }
-}
-
-// Pixel Map
 .pixel-map-wrapper {
-  overflow: auto;
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  padding: $space-3;
+  background: white;
+  border: 4px solid black;
+  padding: $space-8;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 320px;
+  overflow: auto;
+  box-shadow: inset 5px 5px 0 rgba(0, 0, 0, 0.05);
 }
 
 .pixel-map {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
-  gap: 2px;
-  transform-origin: center;
-  transition: transform $transition-normal;
+  gap: 4px;
 }
 
 .pixel {
   width: 32px;
   height: 32px;
-  border: 1px solid var(--border-color);
+  border: 2px solid black;
   cursor: pointer;
-  transition: all $transition-fast;
-  position: relative;
-  image-rendering: pixelated;
-  image-rendering: -moz-crisp-edges;
-  image-rendering: crisp-edges;
-
-  &:hover {
-    filter: brightness(1.2);
-    border-color: var(--neo-purple);
-  }
-
-  &.pixel-owned {
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
-  }
-
-  &.pixel-yours {
-    box-shadow:
-      inset 0 0 0 2px var(--neo-green),
-      0 0 8px color-mix(in srgb, var(--neo-green) 30%, transparent);
-  }
-
-  &.pixel-selected {
-    border: 2px solid var(--neo-purple);
-    box-shadow:
-      0 0 0 2px var(--bg-secondary),
-      0 0 0 4px var(--neo-purple),
-      0 0 12px color-mix(in srgb, var(--neo-purple) 50%, transparent);
+  background: white;
+  transition: all 0.2s;
+  &.has-selection {
     z-index: 10;
+  }
+  &.pixel-selected {
+    border-width: 4px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
     transform: scale(1.1);
   }
 }
 
-.pixel-cursor {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 8px;
-  height: 8px;
-  background: var(--text-inverse);
-  border: 1px solid var(--text-primary);
-  animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-  50% {
-    opacity: 0.5;
-    transform: translate(-50%, -50%) scale(0.8);
-  }
-}
-
-// Map Legend
-.map-legend {
+.coordinate-display {
   display: flex;
-  justify-content: space-around;
-  padding: $space-3;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
+  justify-content: space-between;
+  padding: $space-3 $space-4;
+  background: black;
+  color: white;
+  border: 2px solid black;
+  font-family: $font-mono;
+  font-size: 12px;
+  font-weight: $font-weight-black;
+  box-shadow: 4px 4px 0 var(--brutal-yellow);
+}
+
+.map-legend {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: $space-2;
-  flex-wrap: wrap;
+  padding: $space-3;
+  background: #f0f0f0;
+  border: 2px solid black;
 }
 
 .legend-item {
@@ -490,116 +506,76 @@ const purchaseTile = async () => {
   align-items: center;
   gap: $space-2;
 }
-
 .legend-color {
-  width: 20px;
-  height: 20px;
-  border: $border-width-sm solid var(--border-color);
-
-  &.legend-available {
-    background: var(--bg-card);
-  }
-
-  &.legend-yours {
-    background: var(--neo-green);
-  }
-
-  &.legend-others {
-    background: linear-gradient(
-      135deg,
-      var(--brutal-red) 0%,
-      var(--neo-cyan) 25%,
-      var(--neo-purple) 50%,
-      var(--brutal-orange) 75%,
-      var(--neo-green) 100%
-    );
-  }
+  width: 16px;
+  height: 16px;
+  border: 2px solid black;
 }
-
+.legend-available {
+  background: white;
+}
+.legend-yours {
+  background: var(--neo-green);
+}
+.legend-others {
+  background: var(--brutal-orange);
+}
 .legend-text {
-  font-size: $font-size-xs;
-  color: var(--text-secondary);
-  font-weight: $font-weight-medium;
+  font-size: 8px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
 }
 
-// Territory Info
 .territory-info {
-  padding: $space-4;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-  margin-bottom: $space-4;
   display: flex;
   flex-direction: column;
   gap: $space-3;
+  margin-bottom: $space-4;
+  background: white;
+  padding: $space-4;
+  border: 2px solid black;
 }
 
 .info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-
-  &.price-row {
-    padding-top: $space-2;
-    border-top: $border-width-sm solid var(--border-color);
-  }
 }
 
 .info-label {
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
+  font-size: 10px;
+  font-weight: $font-weight-black;
+  opacity: 0.6;
+  text-transform: uppercase;
 }
-
 .info-value {
-  color: var(--text-primary);
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
+  font-weight: $font-weight-black;
   font-family: $font-mono;
-
-  &.status-owned {
-    color: var(--neo-orange);
-  }
-
-  &.status-free {
-    color: var(--neo-green);
-  }
-
-  &.price-value {
-    color: var(--neo-purple);
-    font-size: $font-size-lg;
-  }
+  font-size: 14px;
+}
+.price-value {
+  color: var(--neo-green);
+  font-size: 20px;
+  text-shadow: 1px 1px 0 black;
 }
 
-// Stats Grid
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: $space-3;
-  padding: $space-2;
+.stat-value {
+  font-size: 24px;
+  font-weight: $font-weight-black;
+  font-family: $font-mono;
+  color: black;
+  line-height: 1;
+}
+.stat-label {
+  font-size: 8px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  opacity: 1;
+  margin-top: 4px;
 }
 
-.stat-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: $space-3;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-
-  .stat-value {
-    font-size: $font-size-2xl;
-    font-weight: $font-weight-bold;
-    color: var(--neo-green);
-    font-family: $font-mono;
-    margin-bottom: $space-2;
-  }
-
-  .stat-label {
-    font-size: $font-size-xs;
-    color: var(--text-secondary);
-    text-align: center;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

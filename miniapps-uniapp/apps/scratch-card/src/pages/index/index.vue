@@ -1,33 +1,39 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab === 'game'" class="tab-content">
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <NeoCard
+        v-if="status"
+        :variant="status.type === 'error' ? 'danger' : status.type === 'loading' ? 'accent' : 'success'"
+        class="mb-4"
+      >
+        <text class="text-center font-bold">{{ status.msg }}</text>
+      </NeoCard>
 
       <!-- Main Scratch Card -->
       <view class="scratch-card-container">
-        <view class="prize-tiers">
-          <view class="tier-item">
-            <text class="tier-symbol">⭐</text>
-            <text class="tier-label">10 GAS</text>
+        <NeoCard class="prize-tiers-card">
+          <view class="prize-tiers flex justify-around">
+            <view class="tier-item">
+              <AppIcon name="trophy" :size="32" class="mb-1" />
+              <text class="tier-label">10 GAS</text>
+            </view>
+            <view class="tier-item">
+              <AppIcon name="gem" :size="32" class="mb-1" />
+              <text class="tier-label">2 GAS</text>
+            </view>
+            <view class="tier-item">
+              <AppIcon name="coin" :size="32" class="mb-1" />
+              <text class="tier-label">1 GAS</text>
+            </view>
           </view>
-          <view class="tier-item">
-            <text class="tier-symbol">💎</text>
-            <text class="tier-label">2 GAS</text>
-          </view>
-          <view class="tier-item">
-            <text class="tier-symbol">🪙</text>
-            <text class="tier-label">1 GAS</text>
-          </view>
-        </view>
+        </NeoCard>
 
         <view :class="['scratch-card', { revealed: revealed, scratching: isScratching }]">
           <!-- Scratch Layer (Top) -->
           <view v-if="!revealed" class="scratch-layer" @click="scratch">
             <view class="metallic-overlay"></view>
             <view class="scratch-instruction">
-              <text class="scratch-icon">🎫</text>
+              <AppIcon name="ticket" :size="48" class="mb-2 scratch-icon" />
               <text class="scratch-text">{{ t("tapToScratch") }}</text>
             </view>
           </view>
@@ -36,16 +42,16 @@
           <view :class="['prize-layer', { win: prize > 0, 'no-win': revealed && prize === 0 }]">
             <view v-if="revealed" class="prize-content">
               <view v-if="prize > 0" class="win-display">
-                <text class="prize-symbol">{{ getPrizeSymbol(prize) }}</text>
+                <AppIcon :name="getPrizeSymbol(prize)" :size="80" class="prize-symbol" />
                 <text class="prize-amount">{{ prize }} GAS</text>
                 <view class="sparkles">
-                  <text class="sparkle">✨</text>
-                  <text class="sparkle">✨</text>
-                  <text class="sparkle">✨</text>
+                  <AppIcon name="sparkle" :size="24" class="sparkle" />
+                  <AppIcon name="sparkle" :size="24" class="sparkle" />
+                  <AppIcon name="sparkle" :size="24" class="sparkle" />
                 </view>
               </view>
               <view v-else class="no-win-display">
-                <text class="no-win-icon">😢</text>
+                <AppIcon name="x" :size="60" class="no-win-icon" />
                 <text class="no-win-text">{{ t("noWin") }}</text>
               </view>
             </view>
@@ -55,29 +61,25 @@
           </view>
         </view>
 
-        <view class="buy-btn" @click="buyCard" v-if="revealed || !hasCard">
-          <text class="btn-text">{{ isLoading ? t("buying") : t("buyCard") }}</text>
-          <text class="btn-icon">🎟️</text>
-        </view>
+        <NeoButton
+          v-if="revealed || !hasCard"
+          variant="primary"
+          size="lg"
+          block
+          :loading="isLoading"
+          @click="buyCard"
+          class="mt-4"
+        >
+          <view class="flex items-center justify-center gap-2">
+            <text>{{ isLoading ? t("buying") : t("buyCard") }}</text>
+            <AppIcon name="ticket" :size="20" />
+          </view>
+        </NeoButton>
       </view>
     </view>
 
     <view v-if="activeTab === 'stats'" class="tab-content scrollable">
-      <view class="stats-card">
-        <text class="stats-title">{{ t("statistics") }}</text>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("totalGames") }}</text>
-          <text class="stat-value">{{ cardsScratched }}</text>
-        </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("wonGas") }}</text>
-          <text class="stat-value">{{ totalWon }} GAS</text>
-        </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("lastPrize") }}</text>
-          <text class="stat-value">{{ revealed ? `${prize} GAS` : "-" }}</text>
-        </view>
-      </view>
+      <NeoStats :title="t('statistics')" :stats="statsItems" />
     </view>
 
     <!-- Docs Tab -->
@@ -97,9 +99,9 @@
         <text class="celebration-title">🎉 {{ t("congratulations") }} 🎉</text>
         <text class="celebration-prize">{{ prize }} GAS</text>
         <view class="celebration-sparkles">
-          <text class="big-sparkle">✨</text>
-          <text class="big-sparkle">⭐</text>
-          <text class="big-sparkle">✨</text>
+          <AppIcon name="sparkle" :size="40" class="big-sparkle" />
+          <AppIcon name="trophy" :size="48" class="big-sparkle" />
+          <AppIcon name="sparkle" :size="40" class="big-sparkle" />
         </view>
       </view>
     </view>
@@ -108,10 +110,10 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
+import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
+import { parseStackItem } from "@/shared/utils/neo";
+import { AppLayout, NeoDoc, AppIcon, NeoButton, NeoCard, NeoStats, type StatItem } from "@/shared/components";
 
 const translations = {
   title: { en: "Scratch Card", zh: "刮刮卡" },
@@ -125,6 +127,10 @@ const translations = {
   scratched: { en: "Scratched", zh: "已刮开" },
   wonGas: { en: "Won (GAS)", zh: "赢得 (GAS)" },
   cardPurchased: { en: "Card purchased!", zh: "卡片已购买！" },
+  waitingReveal: { en: "Waiting for RNG...", zh: "等待随机数..." },
+  connectWallet: { en: "Connect wallet", zh: "请连接钱包" },
+  contractUnavailable: { en: "Contract unavailable", zh: "合约不可用" },
+  receiptMissing: { en: "Payment receipt missing", zh: "支付凭证缺失" },
   error: { en: "Error", zh: "错误" },
   game: { en: "Game", zh: "游戏" },
   stats: { en: "Stats", zh: "统计" },
@@ -134,18 +140,40 @@ const translations = {
   congratulations: { en: "CONGRATULATIONS!", zh: "恭喜中奖！" },
 
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Professional documentation for this application is coming soon.",
-    zh: "此应用程序的专业文档即将推出。",
+  docSubtitle: {
+    en: "Instant win scratch cards with on-chain randomness",
+    zh: "使用链上随机数的即时中奖刮刮卡",
   },
-  step1: { en: "Open the application.", zh: "打开应用程序。" },
-  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
-  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
-  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
-  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
-  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  docDescription: {
+    en: "Scratch Card offers instant-win gaming with provably fair results. Purchase cards, scratch to reveal prizes, and win GAS instantly. All randomness is generated on-chain for transparency.",
+    zh: "刮刮卡提供可证明公平结果的即时中奖游戏。购买卡片，刮开揭示奖品，即时赢取 GAS。所有随机数都在链上生成以确保透明。",
+  },
+  step1: {
+    en: "Connect your Neo wallet and purchase a scratch card for 1 GAS",
+    zh: "连接您的 Neo 钱包并以 1 GAS 购买刮刮卡",
+  },
+  step2: {
+    en: "Tap the card to scratch and reveal your prize",
+    zh: "点击卡片刮开并揭示您的奖品",
+  },
+  step3: {
+    en: "Win prizes ranging from 0.1 to 100 GAS instantly",
+    zh: "即时赢取 0.1 到 100 GAS 的奖品",
+  },
+  step4: {
+    en: "Winnings are automatically sent to your wallet",
+    zh: "奖金自动发送到您的钱包",
+  },
+  feature1Name: { en: "Instant Prizes", zh: "即时奖品" },
+  feature1Desc: {
+    en: "No waiting - prizes are revealed and paid out immediately.",
+    zh: "无需等待 - 奖品立即揭晓并支付。",
+  },
+  feature2Name: { en: "Provably Fair", zh: "可证明公平" },
+  feature2Desc: {
+    en: "On-chain randomness ensures every scratch is verifiably fair.",
+    zh: "链上随机数确保每次刮开都可验证公平。",
+  },
 };
 const t = createT(translations);
 
@@ -156,37 +184,122 @@ const navTabs = [
 ];
 const activeTab = ref("game");
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 
 const APP_ID = "miniapp-scratchcard";
-const { address, connect } = useWallet();
+const { address, connect, invokeContract, getContractHash } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
-const { requestRandom } = useRNG(APP_ID);
+const { list: listEvents } = useEvents();
 
 const hasCard = ref(false);
 const revealed = ref(false);
 const prize = ref(0);
+const pendingPrize = ref<number | null>(null);
 const cardsScratched = ref(0);
 const totalWon = ref(0);
 const status = ref<{ msg: string; type: string } | null>(null);
 const isScratching = ref(false);
 const showCelebration = ref(false);
+const contractHash = ref<string | null>(null);
+
+const statsItems = computed<StatItem[]>(() => [
+  { label: t("totalGames"), value: cardsScratched.value },
+  { label: t("wonGas"), value: `${totalWon.value} GAS`, variant: "success" },
+  { label: t("lastPrize"), value: revealed.value ? `${prize.value} GAS` : "-" },
+]);
 
 const getPrizeSymbol = (prizeAmount: number): string => {
-  if (prizeAmount >= 10) return "⭐";
-  if (prizeAmount >= 2) return "💎";
-  if (prizeAmount >= 1) return "🪙";
-  return "";
+  if (prizeAmount >= 10) return "trophy";
+  if (prizeAmount >= 2) return "gem";
+  if (prizeAmount >= 1) return "coin";
+  return "ticket";
+};
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const toFixed8 = (value: string | number) => {
+  const num = Number.parseFloat(String(value));
+  if (!Number.isFinite(num)) return "0";
+  return Math.floor(num * 1e8).toString();
+};
+
+const waitForEvent = async (txid: string, eventName: string) => {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const res = await listEvents({ app_id: APP_ID, event_name: eventName, limit: 25 });
+    const match = res.events.find((evt) => evt.tx_hash === txid);
+    if (match) return match;
+    await sleep(1500);
+  }
+  return null;
+};
+
+const waitForReveal = async (cardId: string) => {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const res = await listEvents({ app_id: APP_ID, event_name: "CardRevealed", limit: 25 });
+    const match = res.events.find((evt) => {
+      const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
+      return String(values[3] ?? "") === String(cardId);
+    });
+    if (match) return match;
+    await sleep(1500);
+  }
+  return null;
 };
 
 const buyCard = async () => {
   if (isLoading.value) return;
   try {
-    await payGAS("1", "scratchcard:buy");
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) {
+      throw new Error(t("connectWallet"));
+    }
+    if (!contractHash.value) {
+      contractHash.value = (await getContractHash()) as string;
+    }
+    if (!contractHash.value) {
+      throw new Error(t("contractUnavailable"));
+    }
+
+    const payment = await payGAS("1", "scratchcard:buy");
+    const receiptId = payment.receipt_id;
+    if (!receiptId) {
+      throw new Error(t("receiptMissing"));
+    }
+    const tx = await invokeContract({
+      scriptHash: contractHash.value as string,
+      operation: "BuyCard",
+      args: [
+        { type: "Hash160", value: address.value as string },
+        { type: "Integer", value: "1" },
+        { type: "Integer", value: toFixed8("1") },
+        { type: "Integer", value: Number(receiptId) },
+      ],
+    });
+
+    const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
+    pendingPrize.value = null;
+    if (txid) {
+      const purchaseEvt = await waitForEvent(txid, "CardPurchased");
+      const purchaseValues = Array.isArray((purchaseEvt as any)?.state)
+        ? (purchaseEvt as any).state.map(parseStackItem)
+        : [];
+      const cardId = String(purchaseValues[3] ?? "");
+      if (cardId) {
+        const revealEvt = await waitForReveal(cardId);
+        const revealValues = Array.isArray((revealEvt as any)?.state)
+          ? (revealEvt as any).state.map(parseStackItem)
+          : [];
+        const prizeRaw = revealValues[2];
+        pendingPrize.value = Number(prizeRaw || 0) / 1e8;
+      }
+    }
+
     hasCard.value = true;
     revealed.value = false;
     prize.value = 0;
@@ -200,15 +313,17 @@ const buyCard = async () => {
 const scratch = async () => {
   if (!hasCard.value || revealed.value || isScratching.value) return;
 
+  if (pendingPrize.value === null) {
+    status.value = { msg: t("waitingReveal"), type: "loading" };
+    return;
+  }
+
   isScratching.value = true;
 
   try {
-    const rng = await requestRandom();
-    const val = parseInt(rng.randomness.slice(0, 4), 16) % 100;
-    prize.value = val < 5 ? 10 : val < 20 ? 2 : val < 40 ? 1 : 0;
-
     // Delay reveal for animation
     setTimeout(() => {
+      prize.value = pendingPrize.value || 0;
       revealed.value = true;
       cardsScratched.value++;
       if (prize.value > 0) {
@@ -219,6 +334,7 @@ const scratch = async () => {
       }
       hasCard.value = false;
       isScratching.value = false;
+      pendingPrize.value = null;
     }, 600);
   } catch (e: any) {
     status.value = { msg: e.message || "Error", type: "error" };
@@ -232,39 +348,12 @@ const scratch = async () => {
 @import "@/shared/styles/variables.scss";
 
 .tab-content {
-  padding: $space-3;
+  padding: $space-4;
   flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+  gap: $space-4;
 }
-
-.status-msg {
-  text-align: center;
-  padding: $space-3;
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  margin-bottom: $space-4;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-
-  &.success {
-    background: var(--status-success);
-    color: $neo-black;
-    border-color: $neo-black;
-  }
-
-  &.error {
-    background: var(--status-error);
-    color: $neo-white;
-    border-color: $neo-black;
-  }
-}
-
-// === SCRATCH CARD CONTAINER ===
 
 .scratch-card-container {
   display: flex;
@@ -275,459 +364,136 @@ const scratch = async () => {
 .prize-tiers {
   display: flex;
   justify-content: space-around;
-  gap: $space-2;
-  padding: $space-3;
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-}
-
-.tier-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: $space-1;
-}
-
-.tier-symbol {
-  font-size: $font-size-2xl;
-  line-height: 1;
+  padding: $space-2;
+  background: var(--bg-secondary);
+  border: $border-width-sm solid var(--border-color);
 }
 
 .tier-label {
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
 }
-
-// === SCRATCH CARD ===
 
 .scratch-card {
   position: relative;
   width: 100%;
   aspect-ratio: 1.6;
-  border: $border-width-lg solid var(--border-color);
-  box-shadow: $shadow-lg;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  background: var(--bg-card);
-
+  background: var(--bg-secondary);
+  border: $border-width-md solid var(--border-color);
+  overflow: hidden;
   &.scratching {
-    animation: shake 0.3s ease-in-out;
-  }
-
-  &.revealed {
-    .scratch-layer {
-      animation: scratchOff 0.6s ease-out forwards;
-    }
+    animation: shake-card 0.3s infinite;
   }
 }
-
-@keyframes shake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-4px) rotate(-1deg);
-  }
-  75% {
-    transform: translateX(4px) rotate(1deg);
-  }
-}
-
-@keyframes scratchOff {
-  0% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.5;
-    transform: scale(1.05);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.1);
-    pointer-events: none;
-  }
-}
-
-// === SCRATCH LAYER (Top) ===
 
 .scratch-layer {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  flex: 1;
-  min-height: 0;
-  z-index: 2;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(
-    135deg,
-    var(--text-secondary) 0%,
-    var(--bg-elevated) 25%,
-    var(--text-secondary) 50%,
-    var(--bg-elevated) 75%,
-    var(--text-secondary) 100%
-  );
-  transition: transform $transition-fast;
-
-  &:active {
-    transform: scale(0.98);
-  }
-}
-
-.metallic-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 10px,
-    rgba(255, 255, 255, 0.1) 10px,
-    rgba(255, 255, 255, 0.1) 20px
-  );
-  pointer-events: none;
-}
-
-.scratch-instruction {
+  height: 100%;
+  background: var(--brutal-blue);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: $space-2;
-  z-index: 1;
-}
-
-.scratch-icon {
-  font-size: $font-size-4xl;
-  animation: bounce 2s ease-in-out infinite;
-}
-
-@keyframes bounce {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+  justify-content: center;
+  z-index: 2;
+  cursor: pointer;
 }
 
 .scratch-text {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  color: $neo-black;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
-  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
+  color: white;
 }
-
-// === PRIZE LAYER (Bottom) ===
 
 .prize-layer {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  flex: 1;
-  min-height: 0;
-  z-index: 1;
+  height: 100%;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--bg-secondary);
-
+  background: var(--bg-card);
   &.win {
-    background: linear-gradient(135deg, var(--brutal-yellow) 0%, var(--brutal-orange) 100%);
-  }
-
-  &.no-win {
-    background: var(--bg-elevated);
-  }
-}
-
-.prize-placeholder {
-  font-size: $font-size-4xl;
-  font-weight: $font-weight-black;
-  color: var(--text-muted);
-  opacity: 0.3;
-}
-
-.prize-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  animation: revealPrize 0.5s ease-out;
-}
-
-@keyframes revealPrize {
-  0% {
-    opacity: 0;
-    transform: scale(0.5);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-// === WIN DISPLAY ===
-
-.win-display {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: $space-2;
-}
-
-.prize-symbol {
-  font-size: 80px;
-  line-height: 1;
-  animation: pulse 1s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
+    background: var(--brutal-yellow);
   }
 }
 
 .prize-amount {
-  font-size: $font-size-3xl;
+  font-family: $font-mono;
   font-weight: $font-weight-black;
-  color: $neo-black;
-  text-transform: uppercase;
-  text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.5);
-}
-
-.sparkles {
-  display: flex;
-  gap: $space-3;
-  margin-top: $space-2;
-}
-
-.sparkle {
-  font-size: $font-size-xl;
-  animation: sparkle 1s ease-in-out infinite;
-
-  &:nth-child(2) {
-    animation-delay: 0.2s;
-  }
-
-  &:nth-child(3) {
-    animation-delay: 0.4s;
-  }
-}
-
-@keyframes sparkle {
-  0%,
-  100% {
-    opacity: 0.3;
-    transform: scale(0.8) rotate(0deg);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.2) rotate(180deg);
-  }
-}
-
-// === NO WIN DISPLAY ===
-
-.no-win-display {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: $space-2;
-}
-
-.no-win-icon {
-  font-size: 60px;
-  line-height: 1;
-  opacity: 0.6;
-}
-
-.no-win-text {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-bold;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-}
-
-// === BUY BUTTON ===
-
-.buy-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: $space-2;
-  background: var(--neo-green);
-  color: $neo-black;
-  padding: $space-4;
-  border: $border-width-md solid $neo-black;
-  box-shadow: $shadow-md;
-  font-weight: $font-weight-bold;
-  cursor: pointer;
-  transition: transform $transition-fast;
-
-  &:active {
-    transform: translate(3px, 3px);
-    box-shadow: none;
-  }
-}
-
-.btn-text {
-  font-size: $font-size-lg;
-  text-transform: uppercase;
-}
-
-.btn-icon {
-  font-size: $font-size-xl;
-}
-
-// === STATS CARD ===
-
-.stats-card {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  padding: $space-4;
-  margin-bottom: $space-3;
-}
-
-.stats-title {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
+  font-size: $font-size-3xl;
   color: var(--neo-green);
-  margin-bottom: $space-3;
-  display: block;
-  text-transform: uppercase;
 }
-
-.stat-row {
-  display: flex;
-  justify-content: space-between;
-  padding: $space-2 0;
-  border-bottom: $border-width-sm solid var(--border-color);
-
-  &:last-child {
-    border-bottom: 0;
-  }
-}
-
-.stat-label {
-  color: var(--text-secondary);
-}
-
-.stat-value {
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-}
-
-// === CELEBRATION MODAL ===
 
 .celebration-modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  flex: 1;
-  min-height: 0;
-  z-index: $z-modal;
+  height: 100%;
   background: rgba(0, 0, 0, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  z-index: 100;
 }
 
 .celebration-content {
-  background: linear-gradient(135deg, var(--brutal-yellow) 0%, var(--brutal-orange) 100%);
-  border: $border-width-lg solid $neo-black;
-  box-shadow: $shadow-xl;
+  background: var(--brutal-yellow);
   padding: $space-8;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: $space-4;
-  animation: celebrationPop 0.5s ease-out;
-}
-
-@keyframes celebrationPop {
-  0% {
-    transform: scale(0.5) rotate(-10deg);
-    opacity: 0;
-  }
-  50% {
-    transform: scale(1.1) rotate(5deg);
-  }
-  100% {
-    transform: scale(1) rotate(0deg);
-    opacity: 1;
-  }
+  border: $border-width-lg solid var(--neo-purple);
+  text-align: center;
+  box-shadow: 10px 10px 0 var(--neo-purple);
 }
 
 .celebration-title {
-  font-size: $font-size-2xl;
   font-weight: $font-weight-black;
-  color: $neo-black;
-  text-transform: uppercase;
-  text-align: center;
+  font-size: $font-size-2xl;
+  display: block;
+  margin-bottom: $space-4;
+}
+.celebration-prize {
+  font-family: $font-mono;
+  font-weight: $font-weight-black;
+  font-size: $font-size-4xl;
 }
 
-.celebration-prize {
-  font-size: $font-size-4xl;
-  font-weight: $font-weight-black;
-  color: $neo-black;
-  text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.5);
+@keyframes shake-card {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
 }
 
 .celebration-sparkles {
   display: flex;
   gap: $space-4;
+  margin-top: $space-4;
 }
 
 .big-sparkle {
-  font-size: 40px;
-  animation: bigSparkle 1s ease-in-out infinite;
-
-  &:nth-child(2) {
-    animation-delay: 0.3s;
-  }
-
-  &:nth-child(3) {
-    animation-delay: 0.6s;
-  }
+  animation: pulse-celeb 1s infinite;
 }
 
-@keyframes bigSparkle {
+@keyframes pulse-celeb {
   0%,
   100% {
-    transform: scale(1) rotate(0deg);
+    transform: scale(1);
   }
   50% {
-    transform: scale(1.5) rotate(360deg);
+    transform: scale(1.2);
   }
 }
 </style>

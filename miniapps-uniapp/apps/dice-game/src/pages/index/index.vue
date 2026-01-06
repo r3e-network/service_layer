@@ -23,7 +23,6 @@
         <!-- Dice Container -->
         <view class="dice-container">
           <ThreeDDice :value="d1" :rolling="isRolling" />
-          <ThreeDDice :value="d2" :rolling="isRolling" />
         </view>
 
         <!-- Total Display with Enhanced Effects -->
@@ -44,34 +43,16 @@
       </view>
 
       <!-- Prediction Controls -->
-      <view class="controls-card">
-        <text class="section-title">{{ t("predictOverUnder") }}</text>
-
-        <view class="target-control">
-          <view class="target-display">
-            <text class="target-label">{{ t("target") }}</text>
-            <text class="target-value">{{ target }}</text>
-          </view>
-          <slider
-            :value="target"
-            :min="3"
-            :max="11"
-            @change="target = $event.detail.value"
-            activeColor="#00E599"
-            backgroundColor="#334155"
-            block-color="#fff"
-            block-size="24"
-          />
-        </view>
-
+      <NeoCard :title="t('pickNumber')">
         <view class="prediction-row">
-          <view :class="['prediction-btn', prediction === 'under' && 'active']" @click="prediction = 'under'">
-            <text class="pred-label">{{ t("under") }} {{ target }}</text>
-            <text class="pred-sub">{{ t("payout") }} {{ calculateMultiplier("under") }}x</text>
-          </view>
-          <view :class="['prediction-btn', prediction === 'over' && 'active']" @click="prediction = 'over'">
-            <text class="pred-label">{{ t("over") }} {{ target }}</text>
-            <text class="pred-sub">{{ t("payout") }} {{ calculateMultiplier("over") }}x</text>
+          <view
+            v-for="n in 6"
+            :key="n"
+            :class="['prediction-btn', chosenNumber === n && 'active']"
+            @click="chosenNumber = n"
+          >
+            <text class="pred-label">{{ n }}</text>
+            <text class="pred-sub">{{ t("payout") }} {{ payoutMultiplier }}x</text>
           </view>
         </view>
 
@@ -90,7 +71,7 @@
         >
           {{ isRolling ? t("rolling") : t("rollDice") }}
         </NeoButton>
-      </view>
+      </NeoCard>
 
       <!-- Win Modal -->
       <NeoModal
@@ -101,7 +82,7 @@
         @close="showWinOverlay = false"
       >
         <view class="win-content">
-          <text class="win-emoji">🎉</text>
+          <view class="win-icon"><AppIcon name="trophy" :size="64" class="text-yellow" /></view>
           <text class="win-amount">+{{ winAmount }} GAS</text>
         </view>
       </NeoModal>
@@ -111,8 +92,7 @@
     <view v-if="activeTab === 'stats'" class="tab-content scrollable">
       <NeoStats :stats="gameStats" />
 
-      <view class="history-list">
-        <text class="list-title">{{ t("recentRolls") }}</text>
+      <NeoCard :title="t('recentRolls')">
         <view
           v-for="(roll, idx) in recentRolls"
           :key="idx"
@@ -120,25 +100,21 @@
           :class="{ 'item-win': roll.won, 'item-loss': !roll.won }"
         >
           <view class="roll-result">
-            <!-- Visual Dice Faces -->
             <view class="mini-dice-pair">
-              <view class="mini-dice" :data-value="roll.dice1">
-                <view v-for="dot in getDiceDots(roll.dice1)" :key="dot" class="mini-dot" :class="`dot-${dot}`"></view>
-              </view>
-              <view class="mini-dice" :data-value="roll.dice2">
-                <view v-for="dot in getDiceDots(roll.dice2)" :key="dot" class="mini-dot" :class="`dot-${dot}`"></view>
+              <view class="mini-dice" :data-value="roll.rolled">
+                <view v-for="dot in getDiceDots(roll.rolled)" :key="dot" class="mini-dot" :class="`dot-${dot}`"></view>
               </view>
             </view>
             <view class="roll-info">
-              <text class="roll-total">{{ roll.result }}</text>
-              <text class="roll-target">{{ roll.prediction === "over" ? ">" : "<" }}{{ roll.target }}</text>
+              <text class="roll-total">{{ roll.rolled }}</text>
+              <text class="roll-target">#{{ roll.chosen }}</text>
             </view>
           </view>
           <text :class="['roll-outcome', roll.won ? 'win' : 'loss']">
             {{ roll.won ? `+${roll.payout}` : `-${roll.bet}` }} GAS
           </text>
         </view>
-      </view>
+      </NeoCard>
     </view>
 
     <!-- Docs Tab -->
@@ -156,18 +132,26 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { usePayments, useRNG } from "@neo/uniapp-sdk";
+import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import { NeoButton, NeoInput, NeoModal, NeoStats, NeoDoc, type StatItem } from "@/shared/components";
+import { parseStackItem } from "@/shared/utils/neo";
+import {
+  AppLayout,
+  NeoButton,
+  NeoInput,
+  NeoModal,
+  NeoStats,
+  NeoDoc,
+  AppIcon,
+  NeoCard,
+  type StatItem,
+} from "@/shared/components";
 import ThreeDDice from "@/components/ThreeDDice.vue";
 
 const translations = {
   title: { en: "Dice Game", zh: "骰子游戏" },
-  predictOverUnder: { en: "Predict Result", zh: "预测结果" },
-  target: { en: "Target", zh: "目标" },
-  over: { en: "Over", zh: "大于" },
-  under: { en: "Under", zh: "小于" },
+  pickNumber: { en: "Pick a Number", zh: "选择点数" },
+  chosenNumber: { en: "Chosen Number", zh: "选择点数" },
   payout: { en: "Payout", zh: "赔率" },
   betGAS: { en: "Bet Amount", zh: "下注数量" },
   rolling: { en: "Rolling...", zh: "掷骰中..." },
@@ -185,30 +169,34 @@ const translations = {
   losses: { en: "Losses", zh: "负" },
   winRate: { en: "Win Rate", zh: "胜率" },
   recentRolls: { en: "Recent History", zh: "最近记录" },
-  docSubtitle: { en: "Predictive dice rolling with custom targets.", zh: "带有自定义目标预测的掷骰子游戏。" },
+  connectWallet: { en: "Connect wallet", zh: "请连接钱包" },
+  contractUnavailable: { en: "Contract unavailable", zh: "合约不可用" },
+  receiptMissing: { en: "Payment receipt missing", zh: "支付凭证缺失" },
+  betPending: { en: "Bet confirmation pending", zh: "下注确认中" },
+  resultPending: { en: "Result pending", zh: "结果等待中" },
+  docSubtitle: { en: "Single-die roll with provable randomness.", zh: "单骰随机数验证的掷骰子游戏。" },
   docDescription: {
-    en: "Dice Game lets you customize your risk and reward. Set a target number and predict if the sum of two dice will be over or under that target. Powered by NeoHub's TEE-verified randomness.",
-    zh: "骰子游戏让你自定义风险和奖励。设置一个目标数字，并预测两个骰子的总和将大于还是小于该目标。由 NeoHub 的 TEE 验证随机数驱动。",
+    en: "Pick a number from 1-6 and roll a single die. Outcomes are determined on-chain with VRF-backed randomness.",
+    zh: "选择 1-6 的点数并掷单骰，结果由链上 VRF 随机数决定。",
   },
-  step1: { en: "Adjust the slider to set your target sum (3-11).", zh: "调整滑块设置你的目标总和（3-11）。" },
-  step2: {
-    en: "Choose 'Over' or 'Under' and see the calculated payout.",
-    zh: "选择“大于”或“小于”，查看计算出的赔率。",
-  },
-  step3: { en: "Enter your GAS bet and roll the dice!", zh: "输入你的 GAS 赌注并掷骰子！" },
-  feature1Name: { en: "Dynamic Odds", zh: "动态赔率" },
-  feature1Desc: { en: "Multipliers are calculated based on mathematical probability.", zh: "根据数学概率计算赔率。" },
-  feature2Name: { en: "Dual Dice RNG", zh: "双骰子随机数" },
+  step1: { en: "Choose a number from 1 to 6.", zh: "选择 1 到 6 的点数。" },
+  step2: { en: "Enter your GAS bet amount.", zh: "输入下注的 GAS 数量。" },
+  step3: { en: "Roll the dice and wait for the on-chain result.", zh: "掷骰子并等待链上结果。" },
+  step4: { en: "Check your stats and recent rolls in the Stats tab.", zh: "在统计标签页查看您的统计和最近记录。" },
+  feature1Name: { en: "Provable RNG", zh: "可验证随机数" },
+  feature1Desc: { en: "Dice outcomes come from TEE-backed VRF.", zh: "结果来自 TEE 支持的 VRF。" },
+  feature2Name: { en: "Fixed Odds", zh: "固定赔率" },
   feature2Desc: {
-    en: "Uses 2 bytes of TEE entropy to ensure independent dice outcomes.",
-    zh: "使用 2 字节的 TEE 熵确保独立的骰子结果。",
+    en: "Payout multiplier is fixed by on-chain rules.",
+    zh: "赔率由链上规则固定。",
   },
 };
 
 const t = createT(translations);
 const APP_ID = "miniapp-dicegame";
 const { payGAS } = usePayments(APP_ID);
-const { requestRandom } = useRNG(APP_ID);
+const { address, connect, invokeContract, getContractHash } = useWallet();
+const { list: listEvents } = useEvents();
 
 // Navigation
 const navTabs = [
@@ -218,7 +206,7 @@ const navTabs = [
 ];
 const activeTab = ref("game");
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
@@ -226,15 +214,14 @@ const docFeatures = computed(() => [
 
 // Game State
 const d1 = ref(1);
-const d2 = ref(1);
 const betAmount = ref("1.0");
-const target = ref(7);
-const prediction = ref<"over" | "under">("over");
+const chosenNumber = ref(1);
 const isRolling = ref(false);
 const lastRoll = ref<number | null>(null);
 const lastResult = ref<"win" | "loss" | null>(null);
 const showWinOverlay = ref(false);
 const winAmount = ref("0");
+const contractHash = ref<string | null>(null);
 
 // Stats State
 const stats = ref({ totalGames: 0, wins: 0, losses: 0 });
@@ -255,8 +242,10 @@ const gameStats = computed<StatItem[]>(() => [
 
 const canBet = computed(() => {
   const amt = parseFloat(betAmount.value);
-  return amt > 0 && !isNaN(amt);
+  return amt >= 0.05 && !Number.isNaN(amt);
 });
+
+const payoutMultiplier = computed(() => (6 * 0.95).toFixed(2));
 
 // Helper: Get dice dot positions for visual display
 function getDiceDots(value: number): number[] {
@@ -271,27 +260,42 @@ function getDiceDots(value: number): number[] {
   return dotPatterns[value] || [];
 }
 
-// Logic
-function calculateMultiplier(pred: "over" | "under"): string {
-  // Simple probability calc: (36 / combinations) * house_edge (0.98)
-  // Over 7: 8,9,10,11,12 -> 5+4+3+2+1 = 15 combos. P = 15/36 = 0.416. Mult = 0.98/0.416 = 2.35
-  const ways = {
-    under: [0, 0, 0, 1, 3, 6, 10, 15, 21, 26, 30, 33, 35], // Cumulative ways < N (approx)
-    // Actually let's just do dynamic
-  };
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  let winningCombos = 0;
-  for (let i = 1; i <= 6; i++) {
-    for (let j = 1; j <= 6; j++) {
-      const sum = i + j;
-      if (pred === "over" && sum > target.value) winningCombos++;
-      if (pred === "under" && sum < target.value) winningCombos++;
-    }
+const toFixed8 = (value: string) => {
+  const num = Number.parseFloat(value);
+  if (!Number.isFinite(num)) return "0";
+  return Math.floor(num * 1e8).toString();
+};
+
+const waitForEvent = async (txid: string, eventName: string) => {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const res = await listEvents({ app_id: APP_ID, event_name: eventName, limit: 25 });
+    const match = res.events.find((evt) => evt.tx_hash === txid);
+    if (match) return match;
+    await sleep(1500);
   }
+  return null;
+};
 
-  if (winningCombos === 0) return "0.00";
-  return ((36 / winningCombos) * 0.98).toFixed(2);
-}
+const waitForRoll = async (betId: string) => {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const res = await listEvents({ app_id: APP_ID, event_name: "DiceRolled", limit: 25 });
+    const match = res.events.find((evt) => {
+      const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
+      return String(values[4] ?? "") === String(betId);
+    });
+    if (match) return match;
+    await sleep(1500);
+  }
+  return null;
+};
+
+const notifyError = (message: string) => {
+  if (typeof uni !== "undefined" && typeof uni.showToast === "function") {
+    uni.showToast({ title: message, icon: "none" });
+  }
+};
 
 const roll = async () => {
   if (isRolling.value || !canBet.value) return;
@@ -301,51 +305,82 @@ const roll = async () => {
   showWinOverlay.value = false;
 
   try {
-    // 1. Payment
-    await payGAS(betAmount.value, `dice:${prediction.value}:${target.value}`);
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) {
+      throw new Error(t("connectWallet"));
+    }
+    if (!contractHash.value) {
+      contractHash.value = (await getContractHash()) as string;
+    }
+    if (!contractHash.value) {
+      throw new Error(t("contractUnavailable"));
+    }
 
-    // 2. RNG
-    const rng = await requestRandom();
+    const payment = await payGAS(betAmount.value, `dice:${chosenNumber.value}`);
+    const receiptId = payment.receipt_id;
+    if (!receiptId) {
+      throw new Error(t("receiptMissing"));
+    }
 
-    // 3. Resolve
-    const r1 = (parseInt(rng.randomness.slice(0, 2), 16) % 6) + 1;
-    const r2 = (parseInt(rng.randomness.slice(2, 4), 16) % 6) + 1;
+    const tx = await invokeContract({
+      scriptHash: contractHash.value as string,
+      operation: "PlaceBet",
+      args: [
+        { type: "Hash160", value: address.value as string },
+        { type: "Integer", value: String(chosenNumber.value) },
+        { type: "Integer", value: toFixed8(betAmount.value) },
+        { type: "Integer", value: Number(receiptId) },
+      ],
+    });
 
-    // Animate outcome
-    d1.value = r1;
-    d2.value = r2;
-    lastRoll.value = r1 + r2;
+    const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
+    const placedEvt = txid ? await waitForEvent(txid, "BetPlaced") : null;
+    if (!placedEvt) {
+      throw new Error(t("betPending"));
+    }
+    const placedValues = Array.isArray((placedEvt as any)?.state) ? (placedEvt as any).state.map(parseStackItem) : [];
+    const betId = String(placedValues[3] ?? "");
+    if (!betId) {
+      throw new Error("Bet id missing");
+    }
 
-    // Check win
-    const won = prediction.value === "over" ? lastRoll.value > target.value : lastRoll.value < target.value;
+    const rolledEvt = await waitForRoll(betId);
+    if (!rolledEvt) {
+      throw new Error(t("resultPending"));
+    }
+    const values = Array.isArray((rolledEvt as any)?.state) ? (rolledEvt as any).state.map(parseStackItem) : [];
+    const chosen = Number(values[1] ?? chosenNumber.value);
+    const rolled = Number(values[2] ?? 0);
+    const payout = Number(values[3] ?? 0) / 1e8;
+    const won = rolled === chosen;
 
-    // Update stats
+    d1.value = rolled || 1;
+    lastRoll.value = rolled || 0;
+
     stats.value.totalGames++;
     if (won) {
       stats.value.wins++;
       lastResult.value = "win";
-      const mult = parseFloat(calculateMultiplier(prediction.value));
-      const payout = (parseFloat(betAmount.value) * mult).toFixed(2);
-      winAmount.value = payout;
-      setTimeout(() => (showWinOverlay.value = true), 500); // Delay for roll animation finish
+      winAmount.value = payout.toFixed(2);
+      setTimeout(() => (showWinOverlay.value = true), 500);
     } else {
       stats.value.losses++;
       lastResult.value = "loss";
     }
 
     recentRolls.value.unshift({
-      result: lastRoll.value,
-      dice1: r1,
-      dice2: r2,
-      prediction: prediction.value,
-      target: target.value,
+      rolled,
+      chosen,
       won,
       bet: betAmount.value,
-      payout: won ? (parseFloat(betAmount.value) * parseFloat(calculateMultiplier(prediction.value))).toFixed(2) : 0,
+      payout: won ? payout.toFixed(2) : 0,
     });
     if (recentRolls.value.length > 20) recentRolls.value.pop();
   } catch (e: any) {
     console.error(e);
+    notifyError(e?.message || t("contractUnavailable"));
     // uni.showToast not imported but available globally
   } finally {
     setTimeout(() => {
@@ -359,331 +394,118 @@ const roll = async () => {
 @import "@/shared/styles/tokens.scss";
 @import "@/shared/styles/variables.scss";
 
-// Layout
 .tab-content {
+  padding: $space-4;
   flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
-  background: var(--bg-primary);
-  padding: $space-4;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+  gap: $space-4;
 }
 
-// Dice Arena - Casino Style
 .dice-arena {
-  position: relative;
-  height: 280px;
-  background: var(--bg-secondary);
+  height: 220px;
+  background: black;
+  border: 4px solid black;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  perspective: 1000px;
-  margin-top: $space-5;
-  border-bottom: $border-width-lg solid var(--border-color);
+  position: relative;
   overflow: hidden;
-  transition: background $transition-normal;
-
-  // Casino felt texture
-  .casino-felt {
-    position: absolute;
-    inset: 0;
-    background:
-      repeating-linear-gradient(
-        45deg,
-        transparent,
-        transparent 10px,
-        color-mix(in srgb, var(--neo-green) 3%, transparent) 10px,
-        color-mix(in srgb, var(--neo-green) 3%, transparent) 20px
-      ),
-      radial-gradient(circle at 30% 50%, color-mix(in srgb, var(--neo-green) 15%, transparent) 0%, transparent 50%),
-      radial-gradient(circle at 70% 50%, color-mix(in srgb, var(--brutal-yellow) 8%, transparent) 0%, transparent 50%);
-    pointer-events: none;
-  }
-
-  // Arena states
-  &.arena-rolling .casino-felt {
-    animation: felt-pulse 0.5s ease-in-out infinite;
-  }
-
+  box-shadow: 10px 10px 0 black;
   &.arena-win {
-    background: radial-gradient(
-      circle at center,
-      color-mix(in srgb, var(--neo-green) 20%, transparent) 0%,
-      var(--bg-secondary) 70%
-    );
-
-    .casino-felt {
-      background: radial-gradient(
-        circle at center,
-        color-mix(in srgb, var(--neo-green) 25%, transparent) 0%,
-        transparent 60%
-      );
-    }
+    border-color: var(--neo-green);
+    outline: 4px solid var(--neo-green);
+    outline-offset: -8px;
   }
-
   &.arena-loss {
-    background: radial-gradient(
-      circle at center,
-      color-mix(in srgb, var(--brutal-red) 15%, transparent) 0%,
-      var(--bg-secondary) 70%
-    );
+    border-color: var(--brutal-red);
+    outline: 4px solid var(--brutal-red);
+    outline-offset: -8px;
   }
 }
 
-// Celebration Particles
-.particles {
+.casino-felt {
   position: absolute;
   inset: 0;
-  pointer-events: none;
-  z-index: 10;
+  opacity: 0.1;
+  background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0);
+  background-size: 20px 20px;
 }
 
-.particle {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 8px;
-  height: 8px;
-  background: var(--neo-green);
-  border-radius: 50%;
-  animation: particle-burst 1s ease-out forwards;
-  animation-delay: var(--delay);
-  opacity: 0;
-  box-shadow: 0 0 8px var(--neo-green);
-}
-
-.dice-container {
-  display: flex;
-  gap: $space-10;
-  z-index: 2;
-}
-
-// Total Display
 .total-display-wrapper {
-  margin-top: $space-6;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: $space-2;
-  z-index: 2;
+  text-align: center;
+  margin-top: $space-4;
+  z-index: 5;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4px 20px;
+  border: 2px solid black;
+  box-shadow: 4px 4px 0 black;
 }
-
 .total-display {
-  font-size: $font-size-3xl;
-  font-weight: $font-weight-black;
-  color: var(--text-primary);
-  text-shadow: 3px 3px 0 var(--shadow-color);
-  transition:
-    transform $transition-normal,
-    color $transition-normal,
-    text-shadow $transition-normal;
   font-family: $font-mono;
-  letter-spacing: 2px;
-
-  &.rolling-pulse {
-    animation: pulse-scale 0.6s ease-in-out infinite;
-  }
-
-  &.win-glow {
-    color: var(--neo-green);
-    text-shadow:
-      0 0 20px color-mix(in srgb, var(--neo-green) 80%, transparent),
-      0 0 40px color-mix(in srgb, var(--neo-green) 40%, transparent),
-      3px 3px 0 var(--shadow-color);
-    transform: scale(1.2);
-    animation: win-bounce 0.6s ease-out;
-  }
-
-  &.loss-shake {
-    color: var(--brutal-red);
-    animation: shake 0.5s ease-in-out;
-  }
+  font-size: 56px;
+  font-weight: $font-weight-black;
+  display: block;
+  color: black;
+  line-height: 1;
 }
-
 .result-label {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
+  font-size: 12px;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  animation: fade-in-up 0.4s ease-out;
-
-  &.win-label {
-    color: var(--neo-green);
-    text-shadow: 0 0 10px color-mix(in srgb, var(--neo-green) 50%, transparent);
-  }
-
-  &.loss-label {
-    color: var(--brutal-red);
-  }
+  margin-top: 4px;
+  display: block;
 }
-
-// Controls
-.controls-card {
-  background: var(--bg-card);
-  border-top: $border-width-lg solid var(--neo-green);
-  padding: $space-6;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: $space-5;
+.win-label {
+  color: var(--neo-green);
 }
-
-.section-title {
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  font-weight: $font-weight-bold;
-}
-
-.target-control {
-  background: var(--bg-secondary);
-  padding: $space-4;
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-sm;
-}
-
-.target-display {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: $space-2;
-
-  .target-label {
-    color: var(--text-secondary);
-    font-weight: $font-weight-semibold;
-  }
-
-  .target-value {
-    color: var(--neo-green);
-    font-weight: $font-weight-black;
-    font-size: $font-size-lg;
-    font-family: $font-mono;
-  }
+.loss-label {
+  color: var(--brutal-red);
 }
 
 .prediction-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: $space-3;
+  margin-bottom: $space-4;
 }
 
 .prediction-btn {
-  flex: 1;
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  padding: $space-4;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  padding: $space-3;
+  background: white;
+  border: 2px solid black;
+  text-align: center;
   cursor: pointer;
-  box-shadow: $shadow-sm;
-  transition:
-    transform $transition-fast,
-    box-shadow $transition-fast,
-    border-color $transition-fast;
-
   &.active {
-    background: var(--bg-elevated);
-    border-color: var(--neo-green);
-    box-shadow: 5px 5px 0 var(--neo-green);
-
-    .pred-label {
-      color: var(--neo-green);
-    }
+    background: var(--brutal-yellow);
+    box-shadow: 6px 6px 0 black;
+    transform: translate(-2px, -2px);
   }
-
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: none;
-  }
+  transition: all $transition-fast;
 }
 
 .pred-label {
-  font-weight: $font-weight-bold;
-  font-size: $font-size-base;
-  color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.pred-sub {
-  font-size: $font-size-xs;
-  color: var(--text-muted);
-  margin-top: $space-1;
-}
-
-.roll-button {
-  margin-top: auto;
-}
-
-.win-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.win-emoji {
-  font-size: 64px;
-  margin-bottom: $space-4;
-  animation: bounce 1s infinite;
-}
-
-.win-amount {
-  color: var(--neo-green);
-  font-size: $font-size-3xl;
   font-weight: $font-weight-black;
-  font-family: $font-mono;
-}
-
-.history-list {
-  margin-top: $space-6;
-}
-
-.list-title {
+  font-size: 24px;
   display: block;
-  margin-bottom: $space-3;
-  color: var(--text-secondary);
-  font-weight: $font-weight-bold;
+}
+.pred-sub {
+  font-size: 8px;
+  font-weight: $font-weight-black;
+  opacity: 0.6;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  font-size: $font-size-sm;
 }
 
 .history-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: $space-3 $space-4;
-  border-bottom: $border-width-sm solid var(--border-color);
-  transition: background $transition-fast;
-
-  &:last-child {
-    border: none;
-  }
-
-  &.item-win {
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      color-mix(in srgb, var(--neo-green) 5%, transparent) 50%,
-      transparent 100%
-    );
-    border-left: 3px solid var(--neo-green);
-  }
-
-  &.item-loss {
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      color-mix(in srgb, var(--brutal-red) 3%, transparent) 50%,
-      transparent 100%
-    );
-    border-left: 3px solid var(--brutal-red);
-  }
+  padding: $space-3;
+  background: white;
+  border: 2px solid black;
+  margin-bottom: $space-2;
+  box-shadow: 4px 4px 0 black;
 }
 
 .roll-result {
@@ -691,184 +513,52 @@ const roll = async () => {
   align-items: center;
   gap: $space-3;
 }
-
-// Mini Dice Visualization
-.mini-dice-pair {
-  display: flex;
-  gap: $space-2;
-}
-
-.mini-dice {
-  width: 32px;
-  height: 32px;
-  background: var(--bg-elevated);
-  border: 2px solid var(--border-color);
-  border-radius: $radius-sm;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  padding: 2px;
-  box-shadow: $shadow-sm;
-}
-
-.mini-dot {
-  width: 4px;
-  height: 4px;
-  background: var(--text-primary);
-  border-radius: 50%;
-
-  &.dot-1 {
-    grid-area: 1 / 1;
-  }
-  &.dot-2 {
-    grid-area: 1 / 2;
-  }
-  &.dot-3 {
-    grid-area: 1 / 3;
-  }
-  &.dot-4 {
-    grid-area: 2 / 1;
-  }
-  &.dot-5 {
-    grid-area: 2 / 2;
-  }
-  &.dot-6 {
-    grid-area: 2 / 3;
-  }
-  &.dot-7 {
-    grid-area: 3 / 1;
-  }
-  &.dot-8 {
-    grid-area: 3 / 2;
-  }
-  &.dot-9 {
-    grid-area: 3 / 3;
-  }
-}
-
 .roll-info {
   display: flex;
-  flex-direction: column;
-  gap: $space-1;
+  align-items: center;
+  gap: 8px;
 }
-
 .roll-total {
-  color: var(--text-primary);
-  font-weight: $font-weight-bold;
-  font-size: $font-size-lg;
   font-family: $font-mono;
+  font-weight: $font-weight-black;
+  font-size: 20px;
 }
-
 .roll-target {
-  color: var(--text-muted);
-  font-size: $font-size-xs;
-  font-family: $font-mono;
+  font-size: 12px;
+  opacity: 0.6;
+  font-weight: $font-weight-black;
+  background: #eee;
+  padding: 2px 6px;
 }
-
 .roll-outcome {
-  font-weight: $font-weight-bold;
   font-family: $font-mono;
-  font-size: $font-size-sm;
-  white-space: nowrap;
-
-  &.win {
-    color: var(--neo-green);
-  }
-  &.loss {
-    color: var(--brutal-red);
-  }
+  font-weight: $font-weight-black;
+  font-size: 14px;
+}
+.roll-outcome.win {
+  color: var(--neo-green);
+  text-shadow: 1px 1px 0 black;
+}
+.roll-outcome.loss {
+  color: var(--brutal-red);
 }
 
-// Animations
-@keyframes bounce {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+.win-content {
+  text-align: center;
+  padding: $space-6;
+}
+.win-amount {
+  font-family: $font-mono;
+  font-size: 40px;
+  font-weight: $font-weight-black;
+  color: var(--neo-green);
+  display: block;
+  margin-top: $space-4;
+  text-shadow: 2px 2px 0 black;
 }
 
-@keyframes felt-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
-@keyframes particle-burst {
-  0% {
-    transform: translate(0, 0) scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(calc(cos(var(--angle)) * 150px), calc(sin(var(--angle)) * 150px)) scale(0);
-    opacity: 0;
-  }
-}
-
-@keyframes pulse-scale {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.8;
-  }
-}
-
-@keyframes win-bounce {
-  0% {
-    transform: scale(1);
-  }
-  30% {
-    transform: scale(1.3);
-  }
-  50% {
-    transform: scale(1.15);
-  }
-  70% {
-    transform: scale(1.25);
-  }
-  100% {
-    transform: scale(1.2);
-  }
-}
-
-@keyframes shake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  10%,
-  30%,
-  50%,
-  70%,
-  90% {
-    transform: translateX(-5px);
-  }
-  20%,
-  40%,
-  60%,
-  80% {
-    transform: translateX(5px);
-  }
-}
-
-@keyframes fade-in-up {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

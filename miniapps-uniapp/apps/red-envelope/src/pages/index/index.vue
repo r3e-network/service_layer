@@ -1,25 +1,35 @@
 <template>
   <AppLayout :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab === 'create' || activeTab === 'claim'" class="app-container">
-      <view class="header">
-        <text class="title">{{ t("title") }}</text>
-        <text class="subtitle">{{ t("subtitle") }}</text>
-        <view class="decorations">
-          <text class="decoration">🎊</text>
-          <text class="decoration">✨</text>
-          <text class="decoration">🎊</text>
+      <view class="header-brutal">
+        <text class="title-brutal">{{ t("title") }}</text>
+        <view class="subtitle-wrap">
+          <text class="subtitle-brutal">{{ t("subtitle") }}</text>
+        </view>
+        <view class="decorations-brutal">
+          <view class="decoration-item rotate-[-15deg]"><AppIcon name="sparkle" :size="32" class="text-yellow" /></view>
+          <view class="decoration-item rotate-[10deg]"><AppIcon name="gift" :size="32" class="text-white" /></view>
+          <view class="decoration-item rotate-[-5deg]"><AppIcon name="sparkle" :size="32" class="text-yellow" /></view>
         </view>
       </view>
 
       <!-- Lucky Message Display -->
-      <view v-if="luckyMessage" class="lucky-message-overlay" @click="luckyMessage = null">
-        <view class="lucky-message-card">
-          <text class="lucky-title">🎉 {{ t("congratulations") }} 🎉</text>
-          <text class="lucky-amount">{{ luckyMessage.amount }} GAS</text>
-          <text class="lucky-from">{{ t("from").replace("{0}", luckyMessage.from) }}</text>
-          <view class="coins-container">
-            <text v-for="i in 8" :key="i" class="coin" :style="{ animationDelay: `${i * 0.1}s` }">💰</text>
+      <view v-if="luckyMessage" class="lucky-overlay-brutal" @click="luckyMessage = null">
+        <view class="lucky-card-brutal">
+          <text class="lucky-header-brutal">🎉 {{ t("congratulations") }} 🎉</text>
+          <view class="lucky-amount-box">
+            <text class="lucky-amount-brutal">{{ luckyMessage.amount }}</text>
+            <text class="lucky-currency-brutal">GAS</text>
           </view>
+          <text class="lucky-from-brutal">{{ t("from").replace("{0}", luckyMessage.from) }}</text>
+          <view class="coins-rain">
+            <view v-for="i in 12" :key="i" class="coin-brutal" :style="{ animationDelay: `${i * 0.15}s`, left: `${Math.random() * 100}%` }">
+              <AppIcon name="money" :size="24" class="text-yellow" />
+            </view>
+          </view>
+          <NeoButton variant="primary" size="lg" block class="mt-8 border-4 border-black shadow-brutal-sm">
+            <text class="font-black italic uppercase">{{ t("confirm") || "OK" }}</text>
+          </NeoButton>
         </view>
       </view>
 
@@ -32,35 +42,57 @@
           <view class="input-group">
             <NeoInput v-model="amount" type="number" :placeholder="t('totalGasPlaceholder')" suffix="GAS" />
             <NeoInput v-model="count" type="number" :placeholder="t('packetsPlaceholder')" />
+            <NeoInput v-model="expiryHours" type="number" :placeholder="t('expiryPlaceholder')" suffix="h" />
           </view>
           <NeoButton variant="primary" size="lg" block :loading="isLoading" @click="create" class="send-button">
-            <text class="button-text">🧧 {{ t("sendRedEnvelope") }}</text>
+            <view class="btn-content">
+              <AppIcon name="envelope" :size="24" />
+              <text class="button-text">{{ t("sendRedEnvelope") }}</text>
+            </view>
           </NeoButton>
         </NeoCard>
       </view>
 
       <view v-if="activeTab === 'claim'" class="tab-content">
         <NeoCard :title="t('availableEnvelopes')" variant="default">
-          <view class="envelope-list">
-            <view v-for="env in envelopes" :key="env.id" class="hongbao-wrapper" @click="claim(env)">
+          <view v-if="loadingEnvelopes" class="empty-state">{{ t("loadingEnvelopes") }}</view>
+          <view v-else-if="!envelopes.length" class="empty-state">{{ t("noEnvelopes") }}</view>
+          <view v-else class="envelope-list">
+            <view
+              v-for="env in envelopes"
+              :key="env.id"
+              class="hongbao-wrapper"
+              :class="{ disabled: !env.canClaim }"
+              @click="claim(env)"
+            >
               <view class="hongbao-card" :class="{ 'hongbao-opening': openingId === env.id }">
                 <view class="hongbao-front">
                   <view class="hongbao-top">
                     <text class="hongbao-pattern">福</text>
                   </view>
                   <view class="hongbao-seal">
-                    <text class="seal-text">💰</text>
+                    <AppIcon name="money" :size="20" class="text-yellow" />
                   </view>
                   <view class="hongbao-info">
                     <text class="hongbao-from">{{ env.from }}</text>
                     <text class="hongbao-remaining">
                       {{ t("remaining").replace("{0}", String(env.remaining)).replace("{1}", String(env.total)) }}
                     </text>
+                    <text
+                      class="hongbao-status"
+                      :class="{
+                        'status-ready': env.canClaim,
+                        'status-pending': !env.ready && !env.expired,
+                        'status-expired': env.expired,
+                      }"
+                    >
+                      {{ env.expired ? t("expired") : env.ready ? t("ready") : t("notReady") }}
+                    </text>
                   </view>
                   <view class="sparkles">
-                    <text class="sparkle">✨</text>
-                    <text class="sparkle">✨</text>
-                    <text class="sparkle">✨</text>
+                    <view class="sparkle"><AppIcon name="sparkle" :size="16" /></view>
+                    <view class="sparkle"><AppIcon name="sparkle" :size="16" /></view>
+                    <view class="sparkle"><AppIcon name="sparkle" :size="16" /></view>
                   </view>
                 </view>
               </view>
@@ -84,18 +116,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
+import { ref, computed, onMounted, watch } from "vue";
+import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
-import { AppLayout, NeoButton, NeoInput, NeoCard, NeoDoc } from "@/shared/components";
-import type { NavTab } from "@/shared/components/NavBar.vue";
+import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
+import { AppLayout, NeoButton, NeoInput, NeoCard, NeoDoc, AppIcon } from "@/shared/components";
 
 const translations = {
   title: { en: "Red Envelope", zh: "红包" },
   subtitle: { en: "Lucky red packets", zh: "幸运红包" },
+  createTab: { en: "Create", zh: "创建" },
+  claimTab: { en: "Claim", zh: "领取" },
   createEnvelope: { en: "Create Envelope", zh: "创建红包" },
   totalGasPlaceholder: { en: "Total GAS", zh: "总 GAS" },
   packetsPlaceholder: { en: "Number of packets", zh: "红包数量" },
+  expiryPlaceholder: { en: "Expiry (hours)", zh: "过期时长 (小时)" },
   creating: { en: "Creating...", zh: "创建中..." },
   sendRedEnvelope: { en: "Send Red Envelope", zh: "发送红包" },
   availableEnvelopes: { en: "Available Envelopes", zh: "可用红包" },
@@ -106,6 +141,25 @@ const translations = {
   congratulations: { en: "Congratulations", zh: "恭喜发财" },
   error: { en: "Error", zh: "错误" },
   docs: { en: "Docs", zh: "文档" },
+  connectWallet: { en: "Connect wallet", zh: "请连接钱包" },
+  contractUnavailable: { en: "Contract unavailable", zh: "合约不可用" },
+  receiptMissing: { en: "Payment receipt missing", zh: "支付凭证缺失" },
+  envelopePending: { en: "Envelope pending on-chain", zh: "红包创建确认中" },
+  claimPending: { en: "Claim pending", zh: "领取确认中" },
+  envelopeNotReady: { en: "Envelope not ready yet", zh: "红包尚未准备好" },
+  envelopeExpired: { en: "Envelope expired", zh: "红包已过期" },
+  envelopeEmpty: { en: "Envelope is empty", zh: "红包已领完" },
+  alreadyClaimed: { en: "You already claimed this envelope", zh: "你已领取过该红包" },
+  invalidAmount: { en: "Enter at least 0.1 GAS", zh: "至少 0.1 GAS" },
+  invalidPackets: { en: "Enter 1-100 packets", zh: "请输入 1-100 个红包" },
+  invalidPerPacket: { en: "Each packet must be at least 0.01 GAS", zh: "每个红包至少 0.01 GAS" },
+  invalidExpiry: { en: "Enter a valid expiry in hours", zh: "请输入有效的过期小时数" },
+  ready: { en: "Ready", zh: "可领取" },
+  notReady: { en: "Preparing", zh: "准备中" },
+  expired: { en: "Expired", zh: "已过期" },
+  confirm: { en: "Confirm", zh: "确认" },
+  loadingEnvelopes: { en: "Loading envelopes...", zh: "加载红包中..." },
+  noEnvelopes: { en: "No envelopes available yet", zh: "暂无可领取红包" },
   docSubtitle: { en: "Social lucky packets on Neo N3.", zh: "Neo N3 上的社交幸运红包。" },
   docDescription: {
     en: "Red Envelope is a social MiniApp that lets you send and claim GAS in lucky packets. It uses NeoHub's secure RNG to fairly distribute GAS across recipients.",
@@ -117,6 +171,7 @@ const translations = {
     en: "Recipients can claim their portion randomly until empty!",
     zh: "接收者可以随机领取他们的份额，直到领完为止！",
   },
+  step4: { en: "Share the envelope ID with friends to let them claim.", zh: "与朋友分享红包 ID 让他们领取。" },
   feature1Name: { en: "Secure Distribution", zh: "安全分配" },
   feature1Desc: {
     en: "Random amounts are calculated on-chain/TEE for fairness.",
@@ -128,18 +183,18 @@ const translations = {
 const t = createT(translations);
 
 const APP_ID = "miniapp-redenvelope";
-const { address, connect } = useWallet();
+const { address, connect, invokeContract, invokeRead, getContractHash } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
-const { requestRandom } = useRNG(APP_ID);
+const { list: listEvents } = useEvents();
 
 const activeTab = ref<string>("create");
-const navTabs: NavTab[] = [
-  { id: "create", label: "Create", icon: "🧧" },
-  { id: "claim", label: "Claim", icon: "🎁" },
+const navTabs = [
+  { id: "create", label: t("createTab"), icon: "envelope" },
+  { id: "claim", label: t("claimTab"), icon: "gift" },
   { id: "docs", label: t("docs"), icon: "book" },
 ];
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
@@ -147,54 +202,282 @@ const docFeatures = computed(() => [
 
 const amount = ref("");
 const count = ref("");
-const status = ref<{ msg: string; type: string } | null>(null);
+const expiryHours = ref("24");
+const status = ref<{ msg: string; type: "success" | "error" } | null>(null);
 const luckyMessage = ref<{ amount: number; from: string } | null>(null);
 const openingId = ref<string | null>(null);
+const contractHash = ref<string | null>(null);
+const loadingEnvelopes = ref(false);
 
-const envelopes = ref([
-  { id: "1", from: "NX8...abc", remaining: 3, total: 5, amount: 10 },
-  { id: "2", from: "NY2...def", remaining: 1, total: 3, amount: 5 },
-]);
+type EnvelopeItem = {
+  id: string;
+  creator: string;
+  from: string;
+  total: number;
+  remaining: number;
+  totalAmount: number;
+  ready: boolean;
+  expired: boolean;
+  canClaim: boolean;
+};
+
+const envelopes = ref<EnvelopeItem[]>([]);
+
+const toFixed8 = (value: string) => {
+  const num = Number.parseFloat(value);
+  if (!Number.isFinite(num)) return "0";
+  return Math.floor(num * 1e8).toString();
+};
+
+const fromFixed8 = (value: string | number) => {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return 0;
+  return num / 1e8;
+};
+
+const formatHash = (value: string) => {
+  const clean = String(value || "").trim();
+  if (!clean) return "";
+  if (clean.length <= 10) return clean;
+  return `${clean.slice(0, 6)}...${clean.slice(-4)}`;
+};
+
+const parseEnvelopeData = (data: any) => {
+  if (!data) return null;
+  if (Array.isArray(data)) {
+    return {
+      creator: String(data[0] ?? ""),
+      totalAmount: Number(data[1] ?? 0),
+      packetCount: Number(data[2] ?? 0),
+      claimedCount: Number(data[3] ?? 0),
+      remainingAmount: Number(data[4] ?? 0),
+      bestLuckAddress: String(data[5] ?? ""),
+      bestLuckAmount: Number(data[6] ?? 0),
+      ready: Boolean(data[7]),
+      expiryTime: Number(data[8] ?? 0),
+    };
+  }
+  if (typeof data === "object") {
+    return {
+      creator: String(data.creator ?? ""),
+      totalAmount: Number(data.totalAmount ?? 0),
+      packetCount: Number(data.packetCount ?? 0),
+      claimedCount: Number(data.claimedCount ?? 0),
+      remainingAmount: Number(data.remainingAmount ?? 0),
+      bestLuckAddress: String(data.bestLuckAddress ?? ""),
+      bestLuckAmount: Number(data.bestLuckAmount ?? 0),
+      ready: Boolean(data.ready ?? false),
+      expiryTime: Number(data.expiryTime ?? 0),
+    };
+  }
+  return null;
+};
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const waitForEvent = async (txid: string, eventName: string) => {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const res = await listEvents({ app_id: APP_ID, event_name: eventName, limit: 25 });
+    const match = res.events.find((evt) => evt.tx_hash === txid);
+    if (match) return match;
+    await sleep(1500);
+  }
+  return null;
+};
+
+const ensureContractHash = async () => {
+  if (!contractHash.value) {
+    contractHash.value = await getContractHash();
+  }
+  if (!contractHash.value) {
+    throw new Error(t("contractUnavailable"));
+  }
+  return contractHash.value;
+};
+
+const loadEnvelopes = async () => {
+  if (!contractHash.value) {
+    contractHash.value = await getContractHash();
+  }
+  if (!contractHash.value) return;
+  loadingEnvelopes.value = true;
+  try {
+    const res = await listEvents({ app_id: APP_ID, event_name: "EnvelopeCreated", limit: 25 });
+    const seen = new Set<string>();
+    const list = await Promise.all(
+      res.events.map(async (evt) => {
+        const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
+        const envelopeId = String(values[0] ?? "");
+        if (!envelopeId || seen.has(envelopeId)) return null;
+        seen.add(envelopeId);
+
+        const creator = String(values[1] ?? "");
+        const eventTotal = Number(values[2] ?? 0);
+        const eventPackets = Number(values[3] ?? 0);
+
+        const envRes = await invokeRead({
+          contractHash: contractHash.value!,
+          operation: "GetEnvelope",
+          args: [{ type: "Integer", value: envelopeId }],
+        });
+        const parsed = parseEnvelopeData(parseInvokeResult(envRes));
+        const packetCount = Number(parsed?.packetCount ?? eventPackets ?? 0);
+        const claimedCount = Number(parsed?.claimedCount ?? 0);
+        const remainingPackets = Math.max(0, packetCount - claimedCount);
+        const ready = Boolean(parsed?.ready);
+        const expiryTime = Number(parsed?.expiryTime ?? 0);
+        const expired = expiryTime > 0 && Date.now() > expiryTime * 1000;
+        const totalAmount = fromFixed8(parsed?.totalAmount ?? eventTotal);
+        const canClaim = ready && !expired && remainingPackets > 0;
+
+        return {
+          id: envelopeId,
+          creator,
+          from: formatHash(creator),
+          total: packetCount,
+          remaining: remainingPackets,
+          totalAmount,
+          ready,
+          expired,
+          canClaim,
+        } as EnvelopeItem;
+      }),
+    );
+    envelopes.value = list.filter(Boolean).sort((a, b) => Number(b!.id) - Number(a!.id)) as EnvelopeItem[];
+  } catch (e: any) {
+    status.value = { msg: e?.message || t("error"), type: "error" };
+  } finally {
+    loadingEnvelopes.value = false;
+  }
+};
 
 const create = async () => {
   if (isLoading.value) return;
   try {
-    await payGAS(amount.value, `redenvelope:${count.value}`);
+    status.value = null;
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) {
+      throw new Error(t("connectWallet"));
+    }
+    const contract = await ensureContractHash();
+
+    const totalValue = Number(amount.value);
+    const packetCount = Number(count.value);
+    if (!Number.isFinite(totalValue) || totalValue < 0.1) throw new Error(t("invalidAmount"));
+    if (!Number.isFinite(packetCount) || packetCount < 1 || packetCount > 100) throw new Error(t("invalidPackets"));
+    if (totalValue < packetCount * 0.01) throw new Error(t("invalidPerPacket"));
+
+    const expiryValue = Number(expiryHours.value);
+    if (!Number.isFinite(expiryValue) || expiryValue <= 0) throw new Error(t("invalidExpiry"));
+    const expirySeconds = Math.round(expiryValue * 3600);
+
+    const payment = await payGAS(amount.value, `redenvelope:${count.value}`);
+    const receiptId = payment.receipt_id;
+    if (!receiptId) {
+      throw new Error(t("receiptMissing"));
+    }
+
+    const tx = await invokeContract({
+      scriptHash: contract,
+      operation: "CreateEnvelope",
+      args: [
+        { type: "Hash160", value: address.value },
+        { type: "Integer", value: toFixed8(amount.value) },
+        { type: "Integer", value: String(packetCount) },
+        { type: "Integer", value: String(expirySeconds) },
+        { type: "Integer", value: receiptId },
+      ],
+    });
+
+    const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
+    const createdEvt = txid ? await waitForEvent(txid, "EnvelopeCreated") : null;
+    if (!createdEvt) {
+      throw new Error(t("envelopePending"));
+    }
+
     status.value = { msg: t("envelopeSent"), type: "success" };
+    amount.value = "";
+    count.value = "";
+    await loadEnvelopes();
   } catch (e: any) {
-    status.value = { msg: e.message || t("error"), type: "error" };
+    status.value = { msg: e?.message || t("error"), type: "error" };
   }
 };
 
-const claim = async (env: any) => {
+const claim = async (env: EnvelopeItem) => {
   if (openingId.value) return;
-
-  openingId.value = env.id;
-
   try {
-    // Use VRF for fair random amount distribution
-    const randomHex = await requestRandom(`envelope:${env.id}:${Date.now()}`);
-    let randomValue = 0.5;
-    if (randomHex) {
-      randomValue = parseInt(randomHex.slice(0, 8), 16) / 0xffffffff;
+    status.value = null;
+    if (!address.value) {
+      await connect();
     }
-    const claimedAmount = (randomValue * 2 + 0.5).toFixed(2);
+    if (!address.value) {
+      throw new Error(t("connectWallet"));
+    }
+    const contract = await ensureContractHash();
+
+    if (env.expired) throw new Error(t("envelopeExpired"));
+    if (!env.ready) throw new Error(t("envelopeNotReady"));
+    if (env.remaining <= 0) throw new Error(t("envelopeEmpty"));
+
+    const hasClaimedRes = await invokeRead({
+      contractHash: contract,
+      operation: "HasClaimed",
+      args: [
+        { type: "Integer", value: env.id },
+        { type: "Hash160", value: address.value },
+      ],
+    });
+    if (Boolean(parseInvokeResult(hasClaimedRes))) {
+      throw new Error(t("alreadyClaimed"));
+    }
+
+    openingId.value = env.id;
+    const tx = await invokeContract({
+      scriptHash: contract,
+      operation: "Claim",
+      args: [
+        { type: "Integer", value: env.id },
+        { type: "Hash160", value: address.value },
+      ],
+    });
+
+    const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
+    const claimedEvt = txid ? await waitForEvent(txid, "EnvelopeClaimed") : null;
+    if (!claimedEvt) {
+      throw new Error(t("claimPending"));
+    }
+    const values = Array.isArray((claimedEvt as any)?.state) ? (claimedEvt as any).state.map(parseStackItem) : [];
+    const claimedAmount = fromFixed8(Number(values[2] ?? 0));
+    const remaining = Number(values[3] ?? env.remaining);
 
     luckyMessage.value = {
-      amount: parseFloat(claimedAmount),
+      amount: Number(claimedAmount.toFixed(2)),
       from: env.from,
     };
 
-    env.remaining--;
-    openingId.value = null;
+    env.remaining = Math.max(0, remaining);
+    env.canClaim = env.remaining > 0 && env.ready && !env.expired;
 
     status.value = { msg: t("claimedFrom").replace("{0}", env.from), type: "success" };
-  } catch (e) {
-    console.warn("[RedEnvelope] VRF claim failed:", e);
+  } catch (e: any) {
+    status.value = { msg: e?.message || t("error"), type: "error" };
+  } finally {
     openingId.value = null;
-    status.value = { msg: t("error"), type: "error" };
   }
 };
+
+onMounted(async () => {
+  await loadEnvelopes();
+});
+
+watch(activeTab, async (tab) => {
+  if (tab === "claim") {
+    await loadEnvelopes();
+  }
+});
 </script>
 
 <style lang="scss" scoped>
@@ -202,483 +485,255 @@ const claim = async (env: any) => {
 @import "@/shared/styles/variables.scss";
 
 .app-container {
-  display: flex;
-  flex-direction: column;
-  padding: $space-4;
-  gap: $space-4;
-  height: 100%;
-}
-
-// ============================================
-// HEADER SECTION
-// ============================================
-
-.header {
-  text-align: center;
-  margin-bottom: $space-4;
-  position: relative;
-}
-
-.title {
-  font-size: $font-size-3xl;
-  font-weight: $font-weight-black;
-  color: var(--brutal-red);
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  text-shadow: 3px 3px 0 var(--brutal-yellow);
-  display: block;
-}
-
-.subtitle {
-  color: var(--text-secondary);
-  font-size: $font-size-lg;
-  margin-top: $space-2;
-  font-weight: $font-weight-medium;
-  display: block;
-}
-
-.decorations {
-  display: flex;
-  justify-content: center;
-  gap: $space-6;
-  margin-top: $space-3;
-}
-
-.decoration {
-  font-size: $font-size-2xl;
-  animation: float 3s ease-in-out infinite;
-  display: inline-block;
-}
-
-.decoration:nth-child(1) {
-  animation-delay: 0s;
-}
-
-.decoration:nth-child(2) {
-  animation-delay: 0.5s;
-}
-
-.decoration:nth-child(3) {
-  animation-delay: 1s;
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-// ============================================
-// LUCKY MESSAGE OVERLAY
-// ============================================
-
-.lucky-message-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.85);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: $z-modal;
-  animation: fadeIn 0.3s ease;
-}
-
-.lucky-message-card {
-  background: linear-gradient(135deg, var(--brutal-red) 0%, color-mix(in srgb, var(--brutal-red) 85%, black) 100%);
-  border: $border-width-lg solid var(--brutal-yellow);
-  border-radius: $radius-lg;
-  padding: $space-8;
-  text-align: center;
-  box-shadow: 0 0 40px color-mix(in srgb, var(--brutal-yellow) 50%, transparent);
-  animation: scaleIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  position: relative;
-  overflow: hidden;
-  max-width: 320px;
-  margin: $space-4;
-}
-
-.lucky-title {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-bold;
-  color: var(--brutal-yellow);
-  display: block;
-  margin-bottom: $space-4;
-  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
-}
-
-.lucky-amount {
-  font-size: $font-size-4xl;
-  font-weight: $font-weight-black;
-  color: var(--neo-white);
-  display: block;
-  margin: $space-4 0;
-  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.3);
-  animation: pulse 1s ease infinite;
-}
-
-.lucky-from {
-  font-size: $font-size-base;
-  color: var(--brutal-yellow);
-  display: block;
-  margin-top: $space-2;
-  font-weight: $font-weight-medium;
-}
-
-.coins-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.coin {
-  position: absolute;
-  font-size: $font-size-3xl;
-  animation: coinFall 2s ease-out forwards;
-  opacity: 0;
-}
-
-.coin:nth-child(1) {
-  left: 10%;
-}
-.coin:nth-child(2) {
-  left: 20%;
-}
-.coin:nth-child(3) {
-  left: 30%;
-}
-.coin:nth-child(4) {
-  left: 40%;
-}
-.coin:nth-child(5) {
-  left: 50%;
-}
-.coin:nth-child(6) {
-  left: 60%;
-}
-.coin:nth-child(7) {
-  left: 70%;
-}
-.coin:nth-child(8) {
-  left: 80%;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes scaleIn {
-  0% {
-    transform: scale(0.5) rotate(-10deg);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1) rotate(0deg);
-    opacity: 1;
-  }
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-}
-
-@keyframes coinFall {
-  0% {
-    top: -50px;
-    opacity: 1;
-    transform: rotate(0deg);
-  }
-  100% {
-    top: 120%;
-    opacity: 0;
-    transform: rotate(720deg);
-  }
-}
-
-// ============================================
-// STATUS CARD
-// ============================================
-
-.status-card {
-  margin-bottom: $space-4;
-}
-
-.status-text {
-  text-align: center;
-  font-weight: $font-weight-bold;
-  font-size: $font-size-base;
-  display: block;
-}
-
-// ============================================
-// TAB CONTENT
-// ============================================
-
-.tab-content {
+  padding: $space-6;
   flex: 1;
   display: flex;
   flex-direction: column;
+  gap: $space-6;
+  background-color: white;
 }
 
-.scrollable {
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+.header-brutal {
+  text-align: center;
+  margin-bottom: $space-8;
+  background: var(--brutal-red);
+  border: 6px solid black;
+  padding: $space-10 $space-6;
+  box-shadow: 12px 12px 0 black;
+  position: relative;
+  overflow: hidden;
+  rotate: -1deg;
 }
 
-// ============================================
-// CREATE TAB
-// ============================================
+.title-brutal {
+  font-size: 48px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: white;
+  line-height: 0.85;
+  margin-bottom: $space-4;
+  display: block;
+  font-style: italic;
+  letter-spacing: -2px;
+}
+
+.subtitle-wrap {
+  display: inline-block;
+  background: var(--brutal-yellow);
+  padding: 4px 12px;
+  border: 4px solid black;
+  rotate: 2deg;
+}
+
+.subtitle-brutal {
+  font-size: 14px;
+  font-weight: 900;
+  color: black;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.decorations-brutal {
+  display: flex;
+  justify-content: center;
+  gap: $space-8;
+  margin-top: $space-6;
+}
+
+.lucky-overlay-brutal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.lucky-card-brutal {
+  background: var(--brutal-red);
+  border: 8px solid black;
+  padding: $space-12 $space-8;
+  text-align: center;
+  box-shadow: 18px 18px 0 var(--brutal-yellow);
+  width: 85%;
+  max-width: 360px;
+  position: relative;
+  rotate: 1deg;
+}
+
+.lucky-header-brutal {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--brutal-yellow);
+  display: block;
+  text-transform: uppercase;
+  margin-bottom: $space-6;
+  background: black;
+  padding: 8px;
+  border: 3px solid black;
+}
+
+.lucky-amount-box {
+  margin: $space-8 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.lucky-amount-brutal {
+  font-size: 80px;
+  font-weight: 900;
+  color: white;
+  font-family: $font-mono;
+  line-height: 0.8;
+  font-style: italic;
+}
+
+.lucky-currency-brutal {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--brutal-yellow);
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+.lucky-from-brutal {
+  font-size: 14px;
+  font-weight: 900;
+  color: white;
+  background: black;
+  padding: 6px 12px;
+  border: 2px solid black;
+  display: inline-block;
+}
 
 .create-card {
-  animation: slideInUp 0.4s ease;
+  border: 6px solid black;
+  box-shadow: 12px 12px 0 black;
+  background: white;
+  padding: $space-6;
 }
 
 .input-group {
   display: flex;
   flex-direction: column;
-  gap: $space-4;
-  margin-bottom: $space-5;
+  gap: $space-6;
+  margin-bottom: $space-8;
 }
-
-.send-button {
-  position: relative;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  transition: transform $transition-fast;
-}
-
-.send-button:active {
-  transform: scale(0.98);
-}
-
-.button-text {
-  font-weight: $font-weight-bold;
-  font-size: $font-size-lg;
-}
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-// ============================================
-// CLAIM TAB - HONGBAO CARDS
-// ============================================
 
 .envelope-list {
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: $space-6;
 }
 
 .hongbao-wrapper {
+  background: white;
+  border: 4px solid black;
+  padding: $space-6;
   cursor: pointer;
-  transition: transform $transition-normal;
-}
-
-.hongbao-wrapper:active {
-  transform: scale(0.98);
+  box-shadow: 8px 8px 0 black;
+  transition: all $transition-fast;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: 4px 4px 0 black;
+  }
+  &.disabled {
+    opacity: 0.5;
+    filter: grayscale(1);
+    box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
+  }
 }
 
 .hongbao-card {
-  background: linear-gradient(135deg, var(--brutal-red) 0%, color-mix(in srgb, var(--brutal-red) 85%, black) 100%);
-  border: $border-width-lg solid var(--brutal-yellow);
-  border-radius: $radius-lg;
-  padding: $space-6;
-  position: relative;
-  overflow: hidden;
-  box-shadow:
-    5px 5px 0 var(--brutal-yellow),
-    0 0 20px color-mix(in srgb, var(--brutal-red) 30%, transparent);
-  transition: all $transition-normal;
-  animation: hongbaoAppear 0.5s ease backwards;
-}
-
-.hongbao-card:hover {
-  transform: translateY(-4px);
-  box-shadow:
-    8px 8px 0 var(--brutal-yellow),
-    0 0 30px color-mix(in srgb, var(--brutal-red) 50%, transparent);
-  animation: shake 0.5s ease;
-}
-
-.hongbao-card::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
-  animation: shimmer 3s infinite;
-}
-
-@keyframes hongbaoAppear {
-  from {
-    opacity: 0;
-    transform: scale(0.8) rotate(-5deg);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) rotate(0deg);
-  }
-}
-
-@keyframes shake {
-  0%,
-  100% {
-    transform: translateX(0) translateY(-4px);
-  }
-  25% {
-    transform: translateX(-5px) translateY(-4px) rotate(-2deg);
-  }
-  75% {
-    transform: translateX(5px) translateY(-4px) rotate(2deg);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%) translateY(-100%);
-  }
-  100% {
-    transform: translateX(100%) translateY(100%);
-  }
-}
-
-// Hongbao Opening Animation
-.hongbao-opening {
-  animation: openEnvelope 0.8s ease forwards;
-}
-
-@keyframes openEnvelope {
-  0% {
-    transform: scale(1) rotate(0deg);
-  }
-  50% {
-    transform: scale(1.1) rotate(5deg);
-  }
-  100% {
-    transform: scale(0.95) rotate(-5deg);
-    opacity: 0.5;
-  }
-}
-
-// Hongbao Front Content
-.hongbao-front {
-  position: relative;
-  z-index: 1;
-}
-
-.hongbao-top {
-  text-align: center;
-  margin-bottom: $space-4;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: $space-4;
 }
 
 .hongbao-pattern {
-  font-size: $font-size-4xl;
-  font-weight: $font-weight-black;
-  color: var(--brutal-yellow);
-  text-shadow:
-    2px 2px 0 rgba(0, 0, 0, 0.3),
-    0 0 10px color-mix(in srgb, var(--brutal-yellow) 50%, transparent);
-  display: block;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-// Hongbao Seal
-.hongbao-seal {
-  width: 60px;
-  height: 60px;
-  background: var(--brutal-yellow);
-  border: $border-width-md solid var(--neo-white);
-  border-radius: 50%;
+  font-size: 36px;
+  font-weight: 900;
+  color: white;
+  border: 3px solid black;
+  width: 64px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto $space-4;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  animation: pulse 2s ease-in-out infinite;
+  background: var(--brutal-red);
+  flex-shrink: 0;
+  box-shadow: 4px 4px 0 black;
+  rotate: -3deg;
 }
 
-.seal-text {
-  font-size: $font-size-2xl;
-  line-height: 1;
-}
-
-// Hongbao Info
 .hongbao-info {
-  text-align: center;
-  margin-bottom: $space-3;
+  flex: 1;
+  padding: 0 $space-4;
 }
-
 .hongbao-from {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  color: var(--neo-white);
+  font-weight: $font-weight-black;
+  font-family: $font-mono;
+  font-size: 12px;
   display: block;
-  margin-bottom: $space-2;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  border-left: 4px solid black;
+  padding-left: 8px;
+  margin-bottom: 4px;
 }
-
 .hongbao-remaining {
-  font-size: $font-size-sm;
-  color: var(--brutal-yellow);
-  display: block;
-  font-weight: $font-weight-medium;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  font-size: 12px;
+  font-weight: $font-weight-black;
+  background: #eee;
+  padding: 2px 6px;
 }
 
-// Sparkles Decoration
-.sparkles {
-  display: flex;
-  justify-content: space-around;
-  margin-top: $space-2;
+.hongbao-status {
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  border: 2px solid black;
+  box-shadow: 3px 3px 0 black;
+  &.status-ready {
+    background: var(--brutal-green);
+  }
+  &.status-pending {
+    background: var(--brutal-yellow);
+  }
+  &.status-expired {
+    background: var(--brutal-red);
+    color: white;
+  }
 }
 
-.sparkle {
-  font-size: $font-size-lg;
-  animation: pulse 1.5s ease-in-out infinite;
-  display: inline-block;
+.status-card {
+  text-align: center;
+  border: 4px solid black;
+  box-shadow: 8px 8px 0 black;
+}
+.status-text {
+  font-weight: $font-weight-black;
+  font-size: 12px;
+  text-transform: uppercase;
 }
 
-.sparkle:nth-child(1) {
-  animation-delay: 0s;
+.empty-state {
+  text-align: center;
+  padding: $space-10;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  opacity: 0.5;
+  border: 2px dashed black;
 }
 
-.sparkle:nth-child(2) {
-  animation-delay: 0.5s;
-}
-
-.sparkle:nth-child(3) {
-  animation-delay: 1s;
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

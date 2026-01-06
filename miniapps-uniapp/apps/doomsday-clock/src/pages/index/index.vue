@@ -1,9 +1,9 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab === 'game'" class="tab-content">
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
+        <text class="font-bold">{{ status.msg }}</text>
+      </NeoCard>
 
       <!-- Dramatic Countdown Display -->
       <NeoCard variant="accent" :class="['doomsday-clock-card', dangerLevel]">
@@ -40,57 +40,60 @@
       <!-- Stats Grid -->
       <NeoCard>
         <view class="stats-grid">
-          <view class="stat-box">
-            <text class="stat-value">{{ formatNum(totalStaked) }}</text>
-            <text class="stat-label">{{ t("totalStaked") }}</text>
+          <NeoCard class="flex-1 text-center">
+            <text class="stat-value">{{ formatNum(totalPot) }}</text>
+            <text class="stat-label">{{ t("totalPot") }}</text>
+          </NeoCard>
+          <NeoCard class="flex-1 text-center">
+            <text class="stat-value">{{ userKeys }}</text>
+            <text class="stat-label">{{ t("yourKeys") }}</text>
+          </NeoCard>
+          <NeoCard class="flex-1 text-center">
+            <text class="stat-value">#{{ roundId }}</text>
+            <text class="stat-label">{{ t("round") }}</text>
+          </NeoCard>
+        </view>
+        <view class="stats-subgrid">
+          <view class="stat-row">
+            <text class="stat-row-label">{{ t("lastBuyer") }}</text>
+            <text class="stat-row-value">{{ lastBuyerLabel }}</text>
           </view>
-          <view class="stat-box">
-            <text class="stat-value">{{ formatNum(userStake) }}</text>
-            <text class="stat-label">{{ t("yourStake") }}</text>
-          </view>
-          <view class="stat-box">
-            <text class="stat-value">{{ participants }}</text>
-            <text class="stat-label">{{ t("players") }}</text>
+          <view class="stat-row">
+            <text class="stat-row-label">{{ t("roundStatus") }}</text>
+            <text class="stat-row-value" :class="{ active: isRoundActive }">
+              {{ isRoundActive ? t("activeRound") : t("inactiveRound") }}
+            </text>
           </view>
         </view>
       </NeoCard>
 
-      <!-- Stake Section -->
+      <!-- Buy Keys Section -->
       <NeoCard>
-        <text class="card-title">{{ t("stakeOnOutcome") }}</text>
-        <NeoInput v-model="stakeAmount" type="number" :placeholder="t('amountToStake')" suffix="GAS" />
-        <view class="outcomes-list">
-          <NeoButton
-            v-for="(outcome, i) in outcomes"
-            :key="i"
-            :variant="selectedOutcome === i ? 'primary' : 'ghost'"
-            block
-            @click="selectedOutcome = i"
-            class="outcome-btn"
-          >
-            <view class="outcome-content">
-              <text class="outcome-name">{{ outcome.name }}</text>
-              <text class="outcome-odds">{{ outcome.odds }}x</text>
-            </view>
-          </NeoButton>
+        <text class="card-title">{{ t("buyKeys") }}</text>
+        <NeoInput v-model="keyCount" type="number" :placeholder="t('keyCountPlaceholder')" suffix="Keys" />
+        <view class="cost-row">
+          <text class="cost-label">{{ t("estimatedCost") }}</text>
+          <text class="cost-value">{{ estimatedCost }} GAS</text>
         </view>
-        <NeoButton variant="primary" size="lg" block @click="placeStake" :disabled="isLoading">
-          {{ isLoading ? t("staking") : t("placeStake") }}
+        <text class="hint-text">{{ t("keyPrice") }}</text>
+        <NeoButton variant="primary" size="lg" block @click="buyKeys" :disabled="isPaying">
+          {{ isPaying ? t("buying") : t("buyKeys") }}
         </NeoButton>
       </NeoCard>
     </view>
 
     <view v-if="activeTab === 'history'" class="tab-content scrollable">
       <NeoCard :title="t('eventHistory')">
+        <view v-if="history.length === 0" class="empty-state">
+          <text>{{ t("noHistory") }}</text>
+        </view>
         <view class="history-list">
-          <view v-for="(event, i) in history" :key="i" class="history-item">
+          <view v-for="event in history" :key="event.id" class="history-item">
             <view class="history-header">
+              <text class="history-title">{{ event.title }}</text>
               <text class="history-date">{{ event.date }}</text>
-              <text :class="['history-result', event.result === t('passed') ? 'passed' : 'failed']">
-                {{ event.result }}
-              </text>
             </view>
-            <text class="history-desc">{{ event.description }}</text>
+            <text class="history-desc">{{ event.details }}</text>
           </view>
         </view>
       </NeoCard>
@@ -110,20 +113,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from "vue";
-import { useWallet, usePayments } from "@neo/uniapp-sdk";
-import { formatNumber } from "@/shared/utils/format";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
+import { formatNumber, formatAddress } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoButton from "@/shared/components/NeoButton.vue";
-import NeoCard from "@/shared/components/NeoCard.vue";
-import NeoInput from "@/shared/components/NeoInput.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
+import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
+import { AppLayout, NeoButton, NeoCard, NeoInput, NeoDoc } from "@/shared/components";
 
 const translations = {
   title: { en: "Doomsday Clock", zh: "末日时钟" },
   subtitle: { en: "Time-locked governance events", zh: "时间锁定治理事件" },
   timeUntilEvent: { en: "Time Until Event", zh: "距离事件" },
+  totalPot: { en: "Total Pot", zh: "奖池总额" },
+  yourKeys: { en: "Your Keys", zh: "你的钥匙" },
+  round: { en: "Round", zh: "轮次" },
+  lastBuyer: { en: "Last Buyer", zh: "最后购买者" },
+  roundStatus: { en: "Round Status", zh: "轮次状态" },
+  activeRound: { en: "Active", zh: "进行中" },
+  inactiveRound: { en: "Inactive", zh: "未开始" },
+  buyKeys: { en: "Buy Keys", zh: "购买钥匙" },
+  buying: { en: "Buying...", zh: "购买中..." },
+  keyCountPlaceholder: { en: "1", zh: "1" },
+  estimatedCost: { en: "Estimated Cost", zh: "预估花费" },
+  keyPrice: { en: "Key price: 1 GAS each", zh: "单价：1 GAS/钥匙" },
   totalStaked: { en: "Total Staked", zh: "总质押" },
   yourStake: { en: "Your Stake", zh: "您的质押" },
   players: { en: "Players", zh: "参与者" },
@@ -132,11 +144,17 @@ const translations = {
   staking: { en: "Staking...", zh: "质押中..." },
   placeStake: { en: "Place Stake", zh: "下注" },
   eventHistory: { en: "Event History", zh: "事件历史" },
+  noHistory: { en: "No events yet", zh: "暂无事件记录" },
   selectOutcome: { en: "Select an outcome", zh: "请选择一个结果" },
   minStake: { en: "Min stake: 1 GAS", zh: "最小质押：1 GAS" },
   placingStake: { en: "Placing stake...", zh: "正在质押..." },
   stakePlaced: { en: "Stake placed!", zh: "质押成功！" },
   error: { en: "Error", zh: "错误" },
+  failedToLoad: { en: "Failed to load data", zh: "加载数据失败" },
+  missingContract: { en: "Contract not configured", zh: "合约未配置" },
+  keysPurchased: { en: "Keys purchased", zh: "钥匙购买成功" },
+  roundStarted: { en: "Round started", zh: "新一轮开始" },
+  winnerDeclared: { en: "Winner declared", zh: "赢家已揭晓" },
   protocolUpgrade: { en: "Protocol Upgrade", zh: "协议升级" },
   treasuryRelease: { en: "Treasury Release", zh: "国库释放" },
   governanceVote: { en: "Governance Vote", zh: "治理投票" },
@@ -147,18 +165,28 @@ const translations = {
   game: { en: "Game", zh: "游戏" },
   history: { en: "History", zh: "历史" },
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Professional documentation for this application is coming soon.",
-    zh: "此应用程序的专业文档即将推出。",
+  docSubtitle: {
+    en: "Last-buyer-wins countdown game with growing prize pool",
+    zh: "最后购买者获胜的倒计时游戏，奖池持续增长",
   },
-  step1: { en: "Open the application.", zh: "打开应用程序。" },
-  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
-  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
-  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
-  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
-  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  docDescription: {
+    en: "Doomsday Clock is a thrilling countdown game where buying keys extends the timer and adds to the prize pool. When the clock hits zero, the last person to buy a key wins the entire pot. Watch the danger meter rise as time runs out!",
+    zh: "末日时钟是一款刺激的倒计时游戏，购买钥匙可延长计时器并增加奖池。当时钟归零时，最后购买钥匙的人赢得全部奖池。随着时间流逝，观察危险指数上升！",
+  },
+  step1: { en: "Connect your Neo wallet and check the current round status.", zh: "连接 Neo 钱包并查看当前轮次状态。" },
+  step2: { en: "Buy keys with GAS to extend the countdown timer.", zh: "使用 GAS 购买钥匙延长倒计时。" },
+  step3: { en: "Monitor the danger level as time decreases.", zh: "随着时间减少监控危险等级。" },
+  step4: { en: "Be the last buyer when time expires to win the pot.", zh: "在时间结束时成为最后购买者赢得奖池。" },
+  feature1Name: { en: "Dynamic Prize Pool", zh: "动态奖池" },
+  feature1Desc: {
+    en: "Every key purchase adds to the pot and extends the timer.",
+    zh: "每次购买钥匙都会增加奖池并延长计时器。",
+  },
+  feature2Name: { en: "Real-Time Danger Meter", zh: "实时危险指数" },
+  feature2Desc: {
+    en: "Visual indicator shows urgency as countdown approaches zero.",
+    zh: "可视化指标显示倒计时接近零时的紧迫程度。",
+  },
   safe: { en: "SAFE", zh: "安全" },
   critical: { en: "CRITICAL", zh: "危急" },
   nextEvent: { en: "NEXT EVENT", zh: "下一事件" },
@@ -177,67 +205,62 @@ const navTabs = [
 ];
 const activeTab = ref("game");
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 
 const APP_ID = "miniapp-doomsday-clock";
-const { address, connect } = useWallet();
+const KEY_PRICE_GAS = 1;
+const MAX_DURATION_SECONDS = 86400;
 
-interface Outcome {
-  name: string;
-  odds: number;
-}
+const { address, connect, invokeRead, invokeContract, getContractHash } = useWallet();
+const { payGAS, isLoading: isPaying } = usePayments(APP_ID);
+const { list: listEvents } = useEvents();
 
 interface HistoryEvent {
+  id: number;
+  title: string;
+  details: string;
   date: string;
-  description: string;
-  result: string;
 }
 
-const { payGAS, isLoading } = usePayments(APP_ID);
-
-const stakeAmount = ref("5");
-const totalStaked = ref(25000);
-const userStake = ref(50);
-const participants = ref(142);
-const countdown = ref("05:23:45");
-const progress = ref(65);
-const selectedOutcome = ref<number | null>(null);
+const contractHash = ref<string | null>(null);
+const roundId = ref(0);
+const totalPot = ref(0);
+const endTime = ref(0);
+const isRoundActive = ref(false);
+const lastBuyer = ref<string | null>(null);
+const userKeys = ref(0);
+const keyCount = ref("1");
 const status = ref<{ msg: string; type: string } | null>(null);
+const history = ref<HistoryEvent[]>([]);
+const now = ref(Date.now());
+const loading = ref(false);
 
-const outcomes = ref<Outcome[]>([
-  { name: t("protocolUpgrade"), odds: 2.5 },
-  { name: t("treasuryRelease"), odds: 3.0 },
-  { name: t("governanceVote"), odds: 1.8 },
-]);
+const formatNum = (value: number) => formatNumber(value, 2);
+const toGas = (value: any) => Number(value || 0) / 1e8;
 
-const history = ref<HistoryEvent[]>([
-  { date: "2025-12-20", description: t("emergencyProposal"), result: t("passed") },
-  { date: "2025-12-15", description: t("feeAdjustment"), result: t("failed") },
-]);
-
-const currentEventDescription = computed(() => {
-  return outcomes.value[0]?.name || t("protocolUpgrade");
+const timeRemainingSeconds = computed(() => {
+  if (!endTime.value) return 0;
+  return Math.max(0, Math.floor((endTime.value * 1000 - now.value) / 1000));
 });
 
-// Calculate danger level based on remaining time
-const totalSeconds = computed(() => {
-  const parts = countdown.value.split(":");
-  const hours = parseInt(parts[0]);
-  const mins = parseInt(parts[1]);
-  const secs = parseInt(parts[2]);
-  return hours * 3600 + mins * 60 + secs;
+const countdown = computed(() => {
+  const total = timeRemainingSeconds.value;
+  const hours = String(Math.floor(total / 3600)).padStart(2, "0");
+  const mins = String(Math.floor((total % 3600) / 60)).padStart(2, "0");
+  const secs = String(total % 60).padStart(2, "0");
+  return `${hours}:${mins}:${secs}`;
 });
 
 const dangerLevel = computed(() => {
-  const seconds = totalSeconds.value;
-  if (seconds > 7200) return "low"; // > 2 hours
-  if (seconds > 3600) return "medium"; // > 1 hour
-  if (seconds > 600) return "high"; // > 10 minutes
-  return "critical"; // <= 10 minutes
+  const seconds = timeRemainingSeconds.value;
+  if (seconds > 7200) return "low";
+  if (seconds > 3600) return "medium";
+  if (seconds > 600) return "high";
+  return "critical";
 });
 
 const dangerLevelText = computed(() => {
@@ -256,126 +279,196 @@ const dangerLevelText = computed(() => {
 });
 
 const dangerProgress = computed(() => {
-  const seconds = totalSeconds.value;
-  const maxSeconds = 21600; // 6 hours
-  return Math.min(100, Math.max(0, 100 - (seconds / maxSeconds) * 100));
+  if (!timeRemainingSeconds.value) return 0;
+  return Math.min(100, (timeRemainingSeconds.value / MAX_DURATION_SECONDS) * 100);
 });
 
-const shouldPulse = computed(() => {
-  return dangerLevel.value === "critical" || dangerLevel.value === "high";
+const shouldPulse = computed(() => timeRemainingSeconds.value <= 600);
+
+const estimatedCost = computed(() => {
+  const count = Math.max(0, Math.floor(Number(keyCount.value) || 0));
+  return (count * KEY_PRICE_GAS).toFixed(0);
 });
 
-const formatNum = (n: number) => formatNumber(n, 0);
+const lastBuyerLabel = computed(() => (lastBuyer.value ? formatAddress(lastBuyer.value) : "--"));
 
-// Fetch data and check automation status
-const fetchData = async () => {
-  try {
-    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
-    if (!sdk?.invoke) return;
+const currentEventDescription = computed(() => {
+  if (!isRoundActive.value) return t("inactiveRound");
+  return lastBuyer.value ? `${formatAddress(lastBuyer.value)} ${t("winnerDeclared")}` : t("roundStarted");
+});
 
-    const data = (await sdk.invoke("doomsdayClock.getData", { appId: APP_ID })) as {
-      countdown: string;
-      totalStaked: number;
-      userStake: number;
-      participants: number;
-      outcomes: typeof outcomes.value;
-      history: typeof history.value;
-    } | null;
+const showStatus = (msg: string, type: string) => {
+  status.value = { msg, type };
+  setTimeout(() => (status.value = null), 4000);
+};
 
-    if (data) {
-      countdown.value = data.countdown || countdown.value;
-      totalStaked.value = data.totalStaked || 0;
-      userStake.value = data.userStake || 0;
-      participants.value = data.participants || 0;
-      if (data.outcomes) outcomes.value = data.outcomes;
-      if (data.history) history.value = data.history;
-    }
-  } catch (e) {
-    console.warn("[DoomsdayClock] Failed to fetch data:", e);
+const ensureContractHash = async () => {
+  if (!contractHash.value) {
+    contractHash.value = await getContractHash();
+  }
+  if (!contractHash.value) {
+    throw new Error(t("missingContract"));
   }
 };
 
-// Trigger event settlement when countdown reaches zero via Edge Function
-const triggerEventSettlement = async () => {
-  try {
-    await fetch("/api/automation/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        appId: APP_ID,
-        taskName: "settlement",
-        taskType: "scheduled",
-        payload: {
-          action: "custom",
-          handler: "doomsday:settlement",
-          data: { event: "settlement" },
-        },
-      }),
+const loadRoundData = async () => {
+  await ensureContractHash();
+  const [roundRes, potRes, endRes, activeRes, buyerRes] = await Promise.all([
+    invokeRead({ contractHash: contractHash.value as string, operation: "CurrentRound" }),
+    invokeRead({ contractHash: contractHash.value as string, operation: "CurrentPot" }),
+    invokeRead({ contractHash: contractHash.value as string, operation: "EndTime" }),
+    invokeRead({ contractHash: contractHash.value as string, operation: "IsRoundActive" }),
+    invokeRead({ contractHash: contractHash.value as string, operation: "LastBuyer" }),
+  ]);
+  roundId.value = Number(parseInvokeResult(roundRes) || 0);
+  totalPot.value = toGas(parseInvokeResult(potRes));
+  endTime.value = Number(parseInvokeResult(endRes) || 0);
+  isRoundActive.value = Boolean(parseInvokeResult(activeRes));
+  lastBuyer.value = String(parseInvokeResult(buyerRes) || "");
+};
+
+const loadUserKeys = async () => {
+  if (!address.value || !roundId.value || !contractHash.value) {
+    userKeys.value = 0;
+    return;
+  }
+  const res = await invokeRead({
+    contractHash: contractHash.value as string,
+    operation: "GetPlayerKeys",
+    args: [
+      { type: "Hash160", value: address.value as string },
+      { type: "Integer", value: roundId.value },
+    ],
+  });
+  userKeys.value = Number(parseInvokeResult(res) || 0);
+};
+
+const parseEventDate = (raw: any) => {
+  const date = raw ? new Date(raw) : new Date();
+  if (Number.isNaN(date.getTime())) return new Date().toLocaleString();
+  return date.toLocaleString();
+};
+
+const loadHistory = async () => {
+  const [keysRes, winnerRes, roundRes] = await Promise.all([
+    listEvents({ app_id: APP_ID, event_name: "KeysPurchased", limit: 20 }),
+    listEvents({ app_id: APP_ID, event_name: "DoomsdayWinner", limit: 10 }),
+    listEvents({ app_id: APP_ID, event_name: "RoundStarted", limit: 10 }),
+  ]);
+
+  const items: HistoryEvent[] = [];
+
+  keysRes.events.forEach((evt: any) => {
+    const values = Array.isArray(evt?.state) ? evt.state.map(parseStackItem) : [];
+    const player = String(values[0] || "");
+    const keys = Number(values[1] || 0);
+    const potContribution = toGas(values[2]);
+    items.push({
+      id: evt.id,
+      title: t("keysPurchased"),
+      details: `${formatAddress(player)} • ${keys} keys • +${potContribution.toFixed(2)} GAS`,
+      date: parseEventDate(evt.created_at),
     });
+  });
 
-    // Refresh data after settlement
-    setTimeout(() => fetchData(), 2000);
-  } catch (e) {
-    console.warn("[DoomsdayClock] Event settlement failed:", e);
+  winnerRes.events.forEach((evt: any) => {
+    const values = Array.isArray(evt?.state) ? evt.state.map(parseStackItem) : [];
+    const winner = String(values[0] || "");
+    const prize = toGas(values[1]);
+    const round = Number(values[2] || 0);
+    items.push({
+      id: evt.id,
+      title: t("winnerDeclared"),
+      details: `${formatAddress(winner)} • ${prize.toFixed(2)} GAS • #${round}`,
+      date: parseEventDate(evt.created_at),
+    });
+  });
+
+  roundRes.events.forEach((evt: any) => {
+    const values = Array.isArray(evt?.state) ? evt.state.map(parseStackItem) : [];
+    const round = Number(values[0] || 0);
+    const end = Number(values[1] || 0) * 1000;
+    const endText = end ? new Date(end).toLocaleString() : "--";
+    items.push({
+      id: evt.id,
+      title: t("roundStarted"),
+      details: `#${round} • ${endText}`,
+      date: parseEventDate(evt.created_at),
+    });
+  });
+
+  history.value = items.sort((a, b) => b.id - a.id);
+};
+
+const refreshData = async () => {
+  try {
+    loading.value = true;
+    await loadRoundData();
+    await loadUserKeys();
+    await loadHistory();
+  } catch (e: any) {
+    showStatus(e.message || t("failedToLoad"), "error");
+  } finally {
+    loading.value = false;
   }
 };
 
-const placeStake = async () => {
-  if (isLoading.value || selectedOutcome.value === null) {
-    status.value = { msg: t("selectOutcome"), type: "error" };
-    return;
-  }
-  const amount = parseFloat(stakeAmount.value);
-  if (amount < 1) {
-    status.value = { msg: t("minStake"), type: "error" };
+const buyKeys = async () => {
+  if (isPaying.value) return;
+  const count = Math.max(0, Math.floor(Number(keyCount.value) || 0));
+  if (count <= 0) {
+    showStatus(t("error"), "error");
     return;
   }
   try {
-    status.value = { msg: t("placingStake"), type: "loading" };
-    await payGAS(stakeAmount.value, `stake:${selectedOutcome.value}`);
-    userStake.value += amount;
-    totalStaked.value += amount;
-    status.value = { msg: t("stakePlaced"), type: "success" };
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) {
+      throw new Error(t("error"));
+    }
+    await ensureContractHash();
+    const cost = count * KEY_PRICE_GAS;
+    const payment = await payGAS(cost.toString(), `keys:${roundId.value}:${count}`);
+    const receiptId = payment.receipt_id;
+    if (!receiptId) {
+      throw new Error("Missing payment receipt");
+    }
+    await invokeContract({
+      scriptHash: contractHash.value as string,
+      operation: "BuyKeys",
+      args: [
+        { type: "Hash160", value: address.value as string },
+        { type: "Integer", value: count },
+        { type: "Integer", value: Number(receiptId) },
+      ],
+    });
+    keyCount.value = "1";
+    showStatus(t("keysPurchased"), "success");
+    await refreshData();
   } catch (e: any) {
-    status.value = { msg: e.message || t("error"), type: "error" };
+    showStatus(e.message || t("error"), "error");
   }
 };
 
-let timer: number;
-let lastSeconds = 0;
+const interval = ref<number | null>(null);
 
-onMounted(() => {
-  fetchData();
-
-  timer = setInterval(() => {
-    const parts = countdown.value.split(":");
-    let hours = parseInt(parts[0]);
-    let mins = parseInt(parts[1]);
-    let secs = parseInt(parts[2]);
-
-    if (secs > 0) secs--;
-    else if (mins > 0) {
-      mins--;
-      secs = 59;
-    } else if (hours > 0) {
-      hours--;
-      mins = 59;
-      secs = 59;
-    }
-
-    const currentSeconds = hours * 3600 + mins * 60 + secs;
-
-    // Trigger settlement when countdown reaches zero
-    if (lastSeconds > 0 && currentSeconds === 0) {
-      triggerEventSettlement();
-    }
-    lastSeconds = currentSeconds;
-
-    countdown.value = `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+onMounted(async () => {
+  await refreshData();
+  interval.value = window.setInterval(() => {
+    now.value = Date.now();
   }, 1000);
 });
 
-onUnmounted(() => clearInterval(timer));
+watch(address, async () => {
+  await loadUserKeys();
+});
+
+onUnmounted(() => {
+  if (interval.value) {
+    clearInterval(interval.value);
+  }
+});
 </script>
 
 <style lang="scss" scoped>
@@ -383,426 +476,83 @@ onUnmounted(() => clearInterval(timer));
 @import "@/shared/styles/variables.scss";
 
 .tab-content {
-  padding: 12px;
+  padding: $space-4;
   flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: $space-4;
   overflow-y: auto;
-  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
 
-.status-msg {
-  text-align: center;
-  padding: $space-4;
-  border: $border-width-md solid var(--border-color);
-  background: var(--bg-card);
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-
-  &.success {
-    border-color: var(--status-success);
-    box-shadow: 4px 4px 0 var(--status-success);
-    color: var(--status-success);
-  }
-  &.error {
-    border-color: var(--status-error);
-    box-shadow: 4px 4px 0 var(--status-error);
-    color: var(--status-error);
-  }
-  &.loading {
-    border-color: var(--neo-green);
-    box-shadow: 4px 4px 0 var(--neo-green);
-    color: var(--neo-green);
-  }
-}
-
-// Doomsday Clock Card
 .doomsday-clock-card {
   position: relative;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-
-  &.critical {
-    border-color: var(--brutal-red);
-    animation: borderPulse 1s ease-in-out infinite;
-  }
-
-  &.high {
-    border-color: var(--brutal-orange);
-  }
-
-  &.medium {
-    border-color: var(--brutal-yellow);
-  }
+  overflow: hidden;
+  border-width: 4px!important;
+  box-shadow: 12px 12px 0 black!important;
+  &.critical { border-color: var(--brutal-red)!important; box-shadow: 12px 12px 0 var(--brutal-red)!important; }
 }
 
 .clock-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: $space-4;
+  margin-bottom: $space-6;
 }
-
-.clock-label {
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-}
+.clock-label { font-size: 12px; font-weight: $font-weight-black; text-transform: uppercase; border: 2px solid black; padding: 2px 8px; background: white; }
 
 .danger-badge {
-  padding: $space-2 $space-3;
-  border: $border-width-sm solid var(--border-color);
-  font-size: $font-size-xs;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-
-  &.low {
-    background: var(--brutal-yellow);
-    border-color: var(--brutal-yellow);
-    color: var(--neo-black);
-  }
-
-  &.medium {
-    background: var(--brutal-orange);
-    border-color: var(--brutal-orange);
-    color: var(--neo-black);
-  }
-
-  &.high {
-    background: var(--brutal-red);
-    border-color: var(--brutal-red);
-    color: var(--neo-white);
-  }
-
-  &.critical {
-    background: var(--brutal-red);
-    border-color: var(--brutal-red);
-    color: var(--neo-white);
-    animation: badgePulse 0.5s ease-in-out infinite;
-  }
+  padding: 4px 12px; border: 3px solid black; font-size: 12px; font-weight: $font-weight-black; text-transform: uppercase;
+  &.low { background: var(--neo-green); }
+  &.medium { background: var(--brutal-yellow); }
+  &.high { background: var(--brutal-orange); color: white; }
+  &.critical { background: var(--brutal-red); color: white; animation: pulse-red 0.5s infinite; }
 }
 
-.danger-text {
-  display: block;
-}
+@keyframes pulse-red { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 
-.clock-display {
-  text-align: center;
-  margin: $space-6 0;
-}
-
+.clock-display { text-align: center; margin: $space-8 0; background: black; padding: $space-6; border: 3px solid black; box-shadow: inset 8px 8px 0 rgba(255,255,255,0.1); }
 .clock-time {
-  font-size: 64px;
-  font-weight: $font-weight-black;
-  display: block;
-  font-family: $font-mono;
-  line-height: 1;
-  text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
-
-  &.low {
-    color: var(--brutal-yellow);
-  }
-
-  &.medium {
-    color: var(--brutal-orange);
-  }
-
-  &.high {
-    color: var(--brutal-red);
-  }
-
-  &.critical {
-    color: var(--brutal-red);
-  }
-
-  &.pulse {
-    animation: timePulse 1s ease-in-out infinite;
-  }
+  font-size: 56px; font-weight: $font-weight-black; font-family: $font-mono; line-height: 1; color: var(--brutal-green);
+  &.critical { color: var(--brutal-red); }
+  &.pulse { animation: time-pulse 0.5s infinite; }
 }
 
-// Danger Meter
-.danger-meter {
-  margin-top: $space-6;
-}
+@keyframes time-pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
 
-.meter-labels {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: $space-2;
-}
+.danger-meter { margin-top: $space-6; }
+.meter-labels { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.meter-label { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; }
 
-.meter-label {
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--text-secondary);
-}
-
-.meter-bar {
-  height: 24px;
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  position: relative;
-  overflow: hidden;
-}
-
+.meter-bar { height: 20px; background: #eee; border: 3px solid black; position: relative; overflow: hidden; padding: 2px; }
 .meter-fill {
-  flex: 1;
-  min-height: 0;
-  transition: width 0.3s ease-out;
-  position: relative;
-
-  &.low {
-    background: var(--brutal-yellow);
-  }
-
-  &.medium {
-    background: var(--brutal-orange);
-  }
-
-  &.high {
-    background: var(--brutal-red);
-  }
-
-  &.critical {
-    background: var(--brutal-red);
-    animation: meterPulse 0.5s ease-in-out infinite;
-  }
-
-  &::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 10px,
-      rgba(0, 0, 0, 0.1) 10px,
-      rgba(0, 0, 0, 0.1) 20px
-    );
-  }
+  height: 100%; transition: width 0.3s ease; background: black;
+  &.critical { background: var(--brutal-red); }
+  &.high { background: var(--brutal-orange); }
 }
 
-.meter-indicator {
-  position: absolute;
-  top: -4px;
-  bottom: -4px;
-  width: 4px;
-  background: var(--neo-black);
-  border: 2px solid var(--neo-white);
-  transform: translateX(-50%);
-  transition: left 0.3s ease-out;
-  z-index: 2;
-}
+.event-description { margin-top: $space-6; padding: $space-4; background: var(--brutal-yellow); border: 2px solid black; box-shadow: 4px 4px 0 black; }
+.event-title { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; border-bottom: 2px solid black; margin-bottom: 4px; display: inline-block; }
+.event-text { font-size: 14px; font-weight: $font-weight-black; display: block; text-transform: uppercase; }
 
-// Event Description
-.event-description {
-  margin-top: $space-6;
-  padding: $space-4;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-}
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: $space-4; }
+.stat-value { font-size: 18px; font-weight: $font-weight-black; font-family: $font-mono; display: block; border-bottom: 3px solid black; margin-bottom: 4px; }
+.stat-label { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; opacity: 0.6; }
 
-.event-title {
-  display: block;
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--text-secondary);
-  margin-bottom: $space-2;
-}
+.stats-subgrid { margin-top: $space-6; display: flex; flex-direction: column; gap: $space-3; }
+.stat-row { display: flex; justify-content: space-between; padding: $space-3; background: white; border: 2px solid black; box-shadow: 4px 4px 0 black; }
+.stat-row-label { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; }
+.stat-row-value { font-size: 12px; font-weight: $font-weight-black; font-family: $font-mono; &.active { color: var(--neo-green); } }
 
-.event-text {
-  display: block;
-  font-size: $font-size-base;
-  font-weight: $font-weight-semibold;
-  color: var(--text-primary);
-}
+.cost-row { display: flex; justify-content: space-between; margin: $space-4 0; padding: $space-3; background: #eee; border: 2px solid black; }
+.cost-label { font-size: 12px; font-weight: $font-weight-black; text-transform: uppercase; }
+.cost-value { font-size: 18px; font-weight: $font-weight-black; font-family: $font-mono; }
 
-// Stats Grid
-.stats-grid {
-  display: flex;
-  gap: $space-3;
-}
+.history-list { display: flex; flex-direction: column; gap: $space-4; }
+.history-item { padding: $space-4; background: white; border: 3px solid black; box-shadow: 6px 6px 0 black; margin-bottom: $space-2; }
+.history-title { font-weight: $font-weight-black; text-transform: uppercase; font-size: 14px; border-bottom: 2px solid black; margin-bottom: 4px; display: inline-block; }
+.history-date { font-size: 10px; opacity: 0.6; font-weight: $font-weight-black; display: block; margin-bottom: 8px; }
+.history-desc { font-size: 12px; font-family: $font-mono; background: #f0f0f0; padding: 4px 8px; border: 1px solid black; }
 
-.stat-box {
-  flex: 1;
-  text-align: center;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-  box-shadow: $shadow-sm;
-  padding: $space-4;
-}
-
-.stat-value {
-  color: var(--neo-green);
-  font-size: $font-size-xl;
-  font-weight: $font-weight-black;
-  display: block;
-  font-family: $font-mono;
-}
-
-.stat-label {
-  color: var(--text-secondary);
-  font-size: $font-size-xs;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: $font-weight-bold;
-}
-
-// Card Title
-.card-title {
-  color: var(--neo-green);
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  display: block;
-  margin-bottom: $space-4;
-}
-
-// Outcomes List
-.outcomes-list {
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
-  margin: $space-4 0;
-}
-
-.outcome-btn {
-  .outcome-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  }
-
-  .outcome-name {
-    color: currentColor;
-    font-weight: $font-weight-semibold;
-  }
-
-  .outcome-odds {
-    color: currentColor;
-    font-weight: $font-weight-black;
-    font-family: $font-mono;
-  }
-}
-
-// History List
-.history-list {
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
-}
-
-.history-item {
-  padding: $space-4;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-  box-shadow: $shadow-sm;
-  transition:
-    transform $transition-fast,
-    box-shadow $transition-fast;
-
-  &:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: $shadow-md;
-  }
-}
-
-.history-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: $space-2;
-}
-
-.history-date {
-  color: var(--text-secondary);
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.history-desc {
-  color: var(--text-primary);
-  font-weight: $font-weight-medium;
-  display: block;
-}
-
-.history-result {
-  font-weight: $font-weight-black;
-  font-size: $font-size-sm;
-  font-family: $font-mono;
-  padding: $space-1 $space-2;
-  border: $border-width-sm solid var(--border-color);
-
-  &.passed {
-    color: var(--status-success);
-    border-color: var(--status-success);
-  }
-
-  &.failed {
-    color: var(--status-error);
-    border-color: var(--status-error);
-  }
-}
-
-// Animations
-@keyframes timePulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.05);
-    opacity: 0.9;
-  }
-}
-
-@keyframes borderPulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 var(--brutal-red);
-  }
-  50% {
-    box-shadow: 0 0 20px 4px var(--brutal-red);
-  }
-}
-
-@keyframes badgePulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
-@keyframes meterPulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.8;
-  }
-}
+.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 </style>

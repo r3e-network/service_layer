@@ -1,108 +1,71 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <!-- Garden Tab -->
-    <view v-if="activeTab === 'garden'" class="tab-content scrollable">
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
-      <view class="card garden-card">
-        <text class="card-title">{{ t("yourGarden") }}</text>
-        <view class="garden-container">
-          <view class="garden-grid">
+    <view v-if="activeTab === 'garden'" class="tab-content">
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
+        <text class="status-text font-bold uppercase">{{ status.msg }}</text>
+      </NeoCard>
+
+      <NeoCard :title="t('yourGarden')" variant="success" class="garden-card-brutal">
+        <view class="garden-container-brutal">
+          <view class="garden-grid-brutal">
             <view
               v-for="plot in plots"
               :key="plot.id"
-              class="plot"
-              :class="[
-                { empty: !plot.plant },
-                { watering: plot.isWatering },
-                plot.plant ? getGrowthStage(plot.plant.growth) : '',
-              ]"
+              class="plot-brutal"
+              :class="[{ empty: !plot.plant }, plot.plant ? getGrowthStage(plot.plant.growth) : '']"
               @click="selectPlot(plot)"
             >
-              <view class="plot-soil">
-                <view class="soil-texture"></view>
-              </view>
-              <view v-if="plot.plant" class="plant-container">
-                <text class="plant-icon" :class="{ ready: plot.plant.growth >= 100 }">
+              <view v-if="plot.plant" class="plant-box-brutal">
+                <text class="plant-icon-brutal" :class="{ ready: plot.plant.growth >= 100 }">
                   {{ plot.plant.icon }}
                 </text>
-                <view v-if="plot.plant.growth >= 100" class="sparkle-effect">✨</view>
+                <view v-if="plot.plant.growth >= 100" class="ready-sticker">READY</view>
               </view>
-              <text v-else class="empty-icon">🌱</text>
-
-              <view v-if="plot.plant" class="growth-info">
-                <view class="growth-bar">
-                  <view class="growth-fill" :style="{ width: plot.plant.growth + '%' }"></view>
-                </view>
-                <text class="growth-percent">{{ Math.floor(plot.plant.growth) }}%</text>
-              </view>
-
-              <view v-if="plot.isWatering" class="water-drops">
-                <text class="drop">💧</text>
-                <text class="drop">💧</text>
-                <text class="drop">💧</text>
+              <text v-else class="empty-icon-brutal">🕳️</text>
+              <view v-if="plot.plant" class="growth-label-brutal">
+                <text class="growth-text-brutal">{{ Math.floor(plot.plant.growth) }}%</text>
               </view>
             </view>
           </view>
         </view>
-      </view>
-      <view class="card seeds-card">
-        <text class="card-title">{{ t("availableSeeds") }}</text>
+      </NeoCard>
+
+      <NeoCard :title="t('availableSeeds')" class="mb-4">
         <view class="seeds-list">
-          <view v-for="seed in seeds" :key="seed.id" class="seed-item" @click="plantSeed(seed)">
+          <view v-for="seed in seeds" :key="seed.id" class="seed-item-neo" @click="plantSeed(seed)">
             <view class="seed-icon-wrapper">
               <text class="seed-icon">{{ seed.icon }}</text>
-              <view class="seed-packet"></view>
             </view>
             <view class="seed-info">
-              <text class="seed-name">{{ seed.name }}</text>
-              <view class="seed-details">
-                <text class="seed-time">⏱ {{ seed.growTime }}{{ t("hoursToGrow") }}</text>
-              </view>
+              <text class="seed-name font-bold">{{ seed.name }}</text>
+              <text class="seed-time text-xs opacity-60">⏱ {{ seed.growTime }}{{ t("hoursToGrow") }}</text>
             </view>
-            <view class="seed-price-tag">
-              <text class="seed-price">{{ seed.price }}</text>
-              <text class="seed-currency">GAS</text>
+            <view class="seed-price-tag-neo">
+              <text class="seed-price font-black">{{ seed.price }}</text>
+              <text class="seed-currency text-xs">GAS</text>
             </view>
           </view>
         </view>
-      </view>
-      <view class="card actions-card">
-        <text class="card-title">{{ t("actions") }}</text>
-        <view class="action-btns">
-          <NeoButton variant="primary" size="md" block :loading="isLoading" @click="waterGarden">
-            <text>💧 {{ isLoading ? t("watering") : t("waterAll") }}</text>
+      </NeoCard>
+
+      <NeoCard :title="t('actions')" class="mb-4">
+        <view class="action-btns-neo flex gap-3">
+          <NeoButton variant="primary" size="md" block :loading="isBusy" @click="refreshGarden">
+            🔄 {{ isBusy ? t("refreshing") : t("refreshStatus") }}
           </NeoButton>
-          <NeoButton variant="secondary" size="md" block @click="harvestAll">
-            <text>🌾 {{ t("harvestReady") }}</text>
+          <NeoButton variant="secondary" size="md" block :disabled="isBusy" @click="harvestAll">
+            🌾 {{ isHarvesting ? t("harvesting") : t("harvestReady") }}
           </NeoButton>
         </view>
-      </view>
+      </NeoCard>
     </view>
 
     <!-- Stats Tab -->
-    <view v-if="activeTab === 'stats'" class="tab-content scrollable">
-      <view class="card stats-card">
-        <text class="card-title">{{ t("gardenStats") }}</text>
-        <view class="stats-grid">
-          <view class="stat-item stat-plants">
-            <text class="stat-icon">🌿</text>
-            <text class="stat-value">{{ totalPlants }}</text>
-            <text class="stat-label">{{ t("plants") }}</text>
-          </view>
-          <view class="stat-item stat-ready">
-            <text class="stat-icon">✨</text>
-            <text class="stat-value">{{ readyToHarvest }}</text>
-            <text class="stat-label">{{ t("ready") }}</text>
-          </view>
-          <view class="stat-item stat-harvested">
-            <text class="stat-icon">🌾</text>
-            <text class="stat-value">{{ totalHarvested }}</text>
-            <text class="stat-label">{{ t("harvested") }}</text>
-          </view>
-        </view>
-      </view>
+    <view v-if="activeTab === 'stats'" class="tab-content">
+      <NeoCard :title="t('gardenStats')">
+        <NeoStats :stats="statsData" />
+      </NeoCard>
     </view>
 
     <!-- Docs Tab -->
@@ -119,12 +82,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
-import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { ref, computed, onMounted, watch } from "vue";
+import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
-import NeoButton from "@/shared/components/NeoButton.vue";
+import { addressToScriptHash, normalizeScriptHash, parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
+import { AppLayout, NeoDoc, NeoButton, NeoCard, NeoStats } from "@/shared/components";
+import type { StatItem } from "@/shared/components/NeoStats.vue";
 
 const translations = {
   title: { en: "Garden of Neo", zh: "Neo花园" },
@@ -133,10 +96,12 @@ const translations = {
   stats: { en: "Stats", zh: "统计" },
   yourGarden: { en: "Your Garden", zh: "你的花园" },
   availableSeeds: { en: "Available Seeds", zh: "可用种子" },
-  hoursToGrow: { en: "h to grow", zh: "小时生长" },
+  hoursToGrow: { en: "blocks to mature", zh: "区块成熟" },
   actions: { en: "Actions", zh: "操作" },
-  watering: { en: "Watering...", zh: "浇水中..." },
-  waterAll: { en: "Water All (2 GAS)", zh: "全部浇水 (2 GAS)" },
+  refreshStatus: { en: "Refresh Status", zh: "刷新状态" },
+  refreshing: { en: "Refreshing...", zh: "刷新中..." },
+  harvesting: { en: "Harvesting...", zh: "收获中..." },
+  plantFee: { en: "Plant fee: 0.1 GAS", zh: "种植费用：0.1 GAS" },
   harvestReady: { en: "Harvest Ready Plants", zh: "收获成熟植物" },
   gardenStats: { en: "Garden Stats", zh: "花园统计" },
   plants: { en: "Plants", zh: "植物" },
@@ -145,26 +110,44 @@ const translations = {
   noEmptyPlots: { en: "No empty plots available", zh: "没有空闲地块" },
   plantingSeed: { en: "Planting seed...", zh: "种植中..." },
   planted: { en: "planted!", zh: "已种植！" },
-  wateringGarden: { en: "Watering garden...", zh: "浇水中..." },
-  gardenWatered: { en: "Garden watered!", zh: "花园已浇水！" },
   harvested2: { en: "Harvested", zh: "已收获" },
   harvestedPlants: { en: "plants!", zh: "株植物！" },
   noReady: { en: "No plants ready to harvest", zh: "没有可收获的植物" },
   error: { en: "Error", zh: "错误" },
+  connectWallet: { en: "Connect wallet", zh: "连接钱包" },
+  missingContract: { en: "Contract not configured", zh: "合约未配置" },
+  failedToLoad: { en: "Failed to load garden", zh: "加载花园失败" },
+  harvestSuccess: { en: "Plant harvested", zh: "植物已收获" },
+  plantSuccess: { en: "Seed planted", zh: "种子已种植" },
+  seedFire: { en: "Fire Seed", zh: "火种" },
+  seedIce: { en: "Ice Seed", zh: "冰种" },
+  seedEarth: { en: "Earth Seed", zh: "土种" },
+  seedWind: { en: "Wind Seed", zh: "风种" },
+  seedLight: { en: "Light Seed", zh: "光种" },
 
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Professional documentation for this application is coming soon.",
-    zh: "此应用程序的专业文档即将推出。",
+  docSubtitle: {
+    en: "Virtual garden where plants grow with blockchain activity",
+    zh: "植物随区块链活动生长的虚拟花园",
   },
-  step1: { en: "Open the application.", zh: "打开应用程序。" },
-  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
-  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
-  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
-  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
-  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  docDescription: {
+    en: "Garden of Neo is a blockchain-powered virtual garden. Plant elemental seeds, watch them grow as blocks are mined, and harvest mature plants for rewards.",
+    zh: "Neo 花园是一个区块链驱动的虚拟花园。种植元素种子，随着区块挖掘观察它们生长，收获成熟植物获得奖励。",
+  },
+  step1: { en: "Connect your wallet.", zh: "连接钱包。" },
+  step2: { en: "Plant seeds and wait for maturity.", zh: "种植并等待成熟。" },
+  step3: { en: "Harvest mature plants.", zh: "收获成熟植物。" },
+  step4: { en: "Collect rewards and replant for more.", zh: "收集奖励并重新种植获取更多。" },
+  feature1Name: { en: "Block-Based Growth", zh: "基于区块的生长" },
+  feature1Desc: {
+    en: "Plant growth is tied to Neo blockchain activity.",
+    zh: "植物生长与 Neo 区块链活动相关联。",
+  },
+  feature2Name: { en: "Elemental Seeds", zh: "元素种子" },
+  feature2Desc: {
+    en: "Choose from Fire, Ice, Earth, Wind, and Light seeds.",
+    zh: "从火、冰、土、风、光种子中选择。",
+  },
 };
 
 const t = createT(translations);
@@ -177,38 +160,70 @@ const navTabs = [
 
 const activeTab = ref("garden");
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
-const APP_ID = "miniapp-gardenofneo";
-const { address, connect } = useWallet();
+const APP_ID = "miniapp-garden-of-neo";
+const PLANT_FEE = "0.1";
+const GROWTH_BLOCKS = 100;
+const MAX_PLOTS = 9;
+
+const { address, connect, invokeRead, invokeContract, getContractHash } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
+const { list: listEvents } = useEvents();
 
 interface Plant {
+  id: number;
+  seedType: number;
   icon: string;
   name: string;
   growth: number;
+  color: number;
+  isMature: boolean;
+  harvested: boolean;
 }
 
 interface Plot {
-  id: string;
+  id: number;
   plant: Plant | null;
-  isWatering?: boolean;
 }
 
-const plots = ref<Plot[]>([]);
+const createEmptyPlots = (): Plot[] =>
+  Array.from({ length: MAX_PLOTS }, (_, idx) => ({
+    id: idx + 1,
+    plant: null,
+  }));
 
-const seeds = ref<Array<{ id: string; name: string; icon: string; price: string; growTime: number }>>([]);
+const plots = ref<Plot[]>(createEmptyPlots());
+
+const seeds = computed(() => [
+  { id: 1, name: t("seedFire"), icon: "🔥", price: PLANT_FEE, growTime: GROWTH_BLOCKS },
+  { id: 2, name: t("seedIce"), icon: "❄️", price: PLANT_FEE, growTime: GROWTH_BLOCKS },
+  { id: 3, name: t("seedEarth"), icon: "🌱", price: PLANT_FEE, growTime: GROWTH_BLOCKS },
+  { id: 4, name: t("seedWind"), icon: "🌬️", price: PLANT_FEE, growTime: GROWTH_BLOCKS },
+  { id: 5, name: t("seedLight"), icon: "✨", price: PLANT_FEE, growTime: GROWTH_BLOCKS },
+]);
 
 const status = ref<{ msg: string; type: string } | null>(null);
 const totalHarvested = ref(0);
 const selectedPlot = ref<Plot | null>(null);
-const dataLoading = ref(true);
+const dataLoading = ref(false);
+const contractHash = ref<string | null>(null);
+const isHarvesting = ref(false);
+
+const statsData = computed<StatItem[]>(() => [
+  { label: t("plants"), value: totalPlants.value, variant: "default" },
+  { label: t("ready"), value: readyToHarvest.value, variant: "accent" },
+  { label: t("harvested"), value: totalHarvested.value, variant: "success" },
+]);
 
 const totalPlants = computed(() => plots.value.filter((p) => p.plant).length);
-const readyToHarvest = computed(() => plots.value.filter((p) => p.plant && p.plant.growth >= 100).length);
+const readyToHarvest = computed(
+  () => plots.value.filter((p) => p.plant && p.plant.isMature && !p.plant.harvested).length,
+);
+const isBusy = computed(() => isLoading.value || dataLoading.value || isHarvesting.value);
 
 const getGrowthStage = (growth: number): string => {
   if (growth >= 100) return "stage-mature";
@@ -218,132 +233,214 @@ const getGrowthStage = (growth: number): string => {
   return "stage-seedling";
 };
 
-const selectPlot = (plot: Plot) => {
-  selectedPlot.value = plot;
-  if (plot.plant && plot.plant.growth >= 100) {
-    harvest(plot);
+const showStatus = (msg: string, type: string) => {
+  status.value = { msg, type };
+  setTimeout(() => {
+    status.value = null;
+  }, 3000);
+};
+
+const ensureContractHash = async () => {
+  if (!contractHash.value) {
+    contractHash.value = (await getContractHash()) || null;
+  }
+  if (!contractHash.value) {
+    throw new Error(t("missingContract"));
   }
 };
 
-const plantSeed = async (seed: any) => {
-  const emptyPlot = plots.value.find((p) => !p.plant);
-  if (!emptyPlot) {
-    status.value = { msg: t("noEmptyPlots"), type: "error" };
+const ownerMatches = (value: unknown) => {
+  if (!address.value) return false;
+  const val = String(value || "");
+  if (val === address.value) return true;
+  const normalized = normalizeScriptHash(val);
+  const addrHash = addressToScriptHash(address.value);
+  return Boolean(normalized && addrHash && normalized === addrHash);
+};
+
+const seedByType = (seedType: number) => seeds.value.find((seed) => seed.id === seedType);
+
+const buildPlant = async (plantId: number, seedType: number): Promise<Plant> => {
+  const statusRes = await invokeRead({
+    contractHash: contractHash.value as string,
+    operation: "GetPlantStatus",
+    args: [{ type: "Integer", value: plantId }],
+  });
+  const status = parseInvokeResult(statusRes) || [];
+  const size = Number(status[0] || 0);
+  const color = Number(status[1] || 0);
+  const isMature = Boolean(status[2]);
+  const harvestedRes = await invokeRead({
+    contractHash: contractHash.value as string,
+    operation: "IsHarvested",
+    args: [{ type: "Integer", value: plantId }],
+  });
+  const harvested = Boolean(parseInvokeResult(harvestedRes));
+  const seed = seedByType(seedType);
+  return {
+    id: plantId,
+    seedType,
+    icon: seed?.icon || "🌱",
+    name: seed?.name || `Seed #${seedType}`,
+    growth: size,
+    color,
+    isMature,
+    harvested,
+  };
+};
+
+const loadGarden = async () => {
+  await ensureContractHash();
+  const seedEvents = await listEvents({ app_id: APP_ID, event_name: "PlantSeeded", limit: 100 });
+  const harvestEvents = await listEvents({ app_id: APP_ID, event_name: "PlantHarvested", limit: 100 });
+  const harvestedIds = new Set<number>();
+  harvestEvents.events.forEach((evt: any) => {
+    const values = Array.isArray(evt?.state) ? evt.state.map(parseStackItem) : [];
+    if (!ownerMatches(values[0])) return;
+    const plantId = Number(values[1] || 0);
+    if (plantId > 0) harvestedIds.add(plantId);
+  });
+  totalHarvested.value = harvestedIds.size;
+
+  if (!address.value) {
+    plots.value = createEmptyPlots();
     return;
   }
-  if (isLoading.value) return;
-  try {
-    status.value = { msg: t("plantingSeed"), type: "loading" };
-    await payGAS(seed.price, `plant:${seed.id}`);
-    emptyPlot.plant = { icon: seed.icon, name: seed.name, growth: 0 };
-    status.value = { msg: `${seed.name} ${t("planted")}`, type: "success" };
-  } catch (e: any) {
-    status.value = { msg: e.message || t("error"), type: "error" };
+
+  const userPlants = seedEvents.events
+    .map((evt: any) => {
+      const values = Array.isArray(evt?.state) ? evt.state.map(parseStackItem) : [];
+      return {
+        owner: values[0],
+        plantId: Number(values[1] || 0),
+        seedType: Number(values[2] || 0),
+      };
+    })
+    .filter((entry) => entry.plantId > 0 && ownerMatches(entry.owner))
+    .sort((a, b) => b.plantId - a.plantId);
+
+  const plants: Plant[] = [];
+  for (const plant of userPlants) {
+    plants.push(await buildPlant(plant.plantId, plant.seedType));
   }
-};
 
-const waterGarden = async () => {
-  if (isLoading.value) return;
-  try {
-    status.value = { msg: t("wateringGarden"), type: "loading" };
-
-    // Show watering animation
-    plots.value.forEach((plot) => {
-      if (plot.plant && plot.plant.growth < 100) {
-        plot.isWatering = true;
-      }
-    });
-
-    await payGAS("2", `water:${Date.now()}`);
-
-    // Update growth after payment
-    plots.value.forEach((plot) => {
-      if (plot.plant && plot.plant.growth < 100) {
-        plot.plant.growth = Math.min(100, plot.plant.growth + 20);
-      }
-    });
-
-    // Remove watering animation after delay
-    setTimeout(() => {
-      plots.value.forEach((plot) => {
-        plot.isWatering = false;
-      });
-    }, 1500);
-
-    status.value = { msg: t("gardenWatered"), type: "success" };
-  } catch (e: any) {
-    plots.value.forEach((plot) => {
-      plot.isWatering = false;
-    });
-    status.value = { msg: e.message || t("error"), type: "error" };
-  }
-};
-
-const harvest = (plot: Plot) => {
-  if (!plot.plant || plot.plant.growth < 100) return;
-  status.value = { msg: `${t("harvested2")} ${plot.plant.name}!`, type: "success" };
-  plot.plant = null;
-  totalHarvested.value++;
-};
-
-const harvestAll = () => {
-  let count = 0;
-  plots.value.forEach((plot) => {
-    if (plot.plant && plot.plant.growth >= 100) {
-      plot.plant = null;
-      count++;
-    }
+  const slots = createEmptyPlots();
+  plants.slice(0, slots.length).forEach((plant, idx) => {
+    slots[idx].plant = plant;
   });
-  if (count > 0) {
-    totalHarvested.value += count;
-    status.value = { msg: `${t("harvested2")} ${count} ${t("harvestedPlants")}`, type: "success" };
-  } else {
-    status.value = { msg: t("noReady"), type: "error" };
-  }
+  plots.value = slots;
 };
 
-// Fetch garden data from contract
-const fetchData = async () => {
+const refreshGarden = async () => {
+  if (dataLoading.value) return;
   try {
     dataLoading.value = true;
-    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
-    if (!sdk?.invoke) return;
-
-    const data = (await sdk.invoke("garden.getData", { appId: APP_ID })) as {
-      plots: Plot[];
-      seeds: typeof seeds.value;
-      totalHarvested: number;
-    } | null;
-
-    if (data) {
-      plots.value = data.plots || [];
-      seeds.value = data.seeds || [];
-      totalHarvested.value = data.totalHarvested || 0;
-    }
-
-    // Register for plant growth automation via Edge Function
-    await fetch("/api/automation/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        appId: APP_ID,
-        taskName: "plantGrowth",
-        taskType: "scheduled",
-        payload: {
-          action: "custom",
-          handler: "garden:plantGrowth",
-        },
-        schedule: { intervalSeconds: 60 * 60 }, // 1 hour
-      }),
-    });
-  } catch (e) {
-    console.warn("[Garden] Failed to fetch:", e);
+    await loadGarden();
+  } catch (e: any) {
+    showStatus(e.message || t("failedToLoad"), "error");
   } finally {
     dataLoading.value = false;
   }
 };
 
-onMounted(() => fetchData());
+const selectPlot = (plot: Plot) => {
+  selectedPlot.value = plot;
+  if (plot.plant && plot.plant.isMature && !plot.plant.harvested) {
+    harvestPlant(plot.plant);
+  }
+};
+
+const plantSeed = async (seed: { id: number; name: string; icon: string; price: string }) => {
+  const emptyPlot = plots.value.find((p) => !p.plant);
+  if (!emptyPlot) {
+    showStatus(t("noEmptyPlots"), "error");
+    return;
+  }
+  if (isLoading.value) return;
+  try {
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) {
+      throw new Error(t("connectWallet"));
+    }
+    await ensureContractHash();
+    showStatus(t("plantingSeed"), "loading");
+    const payment = await payGAS(seed.price, `plant:${seed.id}`);
+    const receiptId = payment.receipt_id;
+    if (!receiptId) {
+      throw new Error("Missing payment receipt");
+    }
+    await invokeContract({
+      scriptHash: contractHash.value as string,
+      operation: "Plant",
+      args: [
+        { type: "Hash160", value: address.value },
+        { type: "Integer", value: seed.id },
+        { type: "Integer", value: receiptId },
+      ],
+    });
+    showStatus(t("plantSuccess"), "success");
+    await refreshGarden();
+  } catch (e: any) {
+    showStatus(e.message || t("error"), "error");
+  }
+};
+
+const harvestPlant = async (plant: Plant, skipRefresh = false) => {
+  if (isHarvesting.value) return;
+  try {
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) {
+      throw new Error(t("connectWallet"));
+    }
+    await ensureContractHash();
+    isHarvesting.value = true;
+    await invokeContract({
+      scriptHash: contractHash.value as string,
+      operation: "Harvest",
+      args: [
+        { type: "Hash160", value: address.value },
+        { type: "Integer", value: plant.id },
+      ],
+    });
+    showStatus(t("harvestSuccess"), "success");
+    if (!skipRefresh) {
+      await refreshGarden();
+    }
+  } catch (e: any) {
+    showStatus(e.message || t("error"), "error");
+  } finally {
+    isHarvesting.value = false;
+  }
+};
+
+const harvestAll = async () => {
+  const harvestTargets = plots.value
+    .map((plot) => plot.plant)
+    .filter((plant): plant is Plant => Boolean(plant && plant.isMature && !plant.harvested));
+  if (!harvestTargets.length) {
+    showStatus(t("noReady"), "error");
+    return;
+  }
+  for (const plant of harvestTargets) {
+    await harvestPlant(plant, true);
+  }
+  await refreshGarden();
+};
+
+onMounted(async () => {
+  if (!address.value) {
+    await connect();
+  }
+  await refreshGarden();
+});
+
+watch(address, async () => {
+  await refreshGarden();
+});
 </script>
 
 <style lang="scss" scoped>
@@ -351,469 +448,152 @@ onMounted(() => fetchData());
 @import "@/shared/styles/variables.scss";
 
 .tab-content {
-  padding: 12px;
+  padding: $space-6;
   flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-}
-.status-msg {
-  text-align: center;
-  padding: $space-3;
-  border: $border-width-md solid $neo-black;
-  border-radius: $radius-sm;
-  margin-bottom: $space-4;
-  font-weight: $font-weight-bold;
-
-  &.success {
-    background: $status-success;
-    color: $neo-black;
-    box-shadow: $shadow-sm;
-  }
-  &.error {
-    background: $status-error;
-    color: $neo-white;
-    box-shadow: $shadow-sm;
-  }
-  &.loading {
-    background: $brutal-yellow;
-    color: $neo-black;
-    box-shadow: $shadow-sm;
-  }
-}
-.card {
-  background: var(--bg-card);
-  border: $border-width-lg solid var(--neo-black);
-  border-radius: $radius-sm;
-  padding: $space-5;
-  margin-bottom: $space-4;
-  box-shadow: $shadow-md;
+  gap: $space-6;
+  background-color: white;
 }
 
-.garden-card {
-  background: linear-gradient(135deg, var(--brutal-lime) 0%, var(--neo-green) 100%);
+.garden-card-brutal {
+  border: 6px solid black;
+  box-shadow: 12px 12px 0 black;
+  rotate: -0.5deg;
+  margin-bottom: $space-6;
 }
 
-.garden-container {
-  position: relative;
-}
-.card-title {
-  color: $neo-green;
-  font-size: $font-size-xl;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  display: block;
-  margin-bottom: $space-4;
-}
-.garden-grid {
+.garden-grid-brutal {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: $space-3;
-  margin-bottom: $space-4;
+  gap: $space-4;
+  padding: $space-2;
 }
-.plot {
-  position: relative;
+
+.plot-brutal {
   aspect-ratio: 1;
-  background: var(--brutal-lime);
-  border: $border-width-lg solid var(--neo-black);
-  border-radius: $radius-sm;
-  box-shadow: $shadow-sm;
+  background: white;
+  border: 4px solid black;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  transition: all $transition-fast;
-
-  &:active {
-    transform: translate(3px, 3px);
-    box-shadow: none;
-  }
-
-  &.empty {
-    background: var(--bg-secondary);
-    border-style: dashed;
-    opacity: 0.6;
-  }
-
-  // Growth stages with different visual effects
-  &.stage-seedling {
-    background: linear-gradient(180deg, var(--brutal-lime) 0%, rgba(var(--text-muted-rgb, 139, 115, 85), 1) 100%);
-  }
-
-  &.stage-sprouting {
-    background: linear-gradient(
-      180deg,
-      var(--brutal-lime) 0%,
-      color-mix(in srgb, var(--neo-green) 40%, transparent) 100%
-    );
-  }
-
-  &.stage-growing {
-    background: linear-gradient(
-      180deg,
-      var(--neo-green) 0%,
-      color-mix(in srgb, var(--neo-green) 50%, transparent) 100%
-    );
-  }
-
-  &.stage-blooming {
-    background: linear-gradient(180deg, var(--neo-green) 0%, var(--brutal-yellow) 100%);
-  }
-
-  &.stage-mature {
-    background: linear-gradient(180deg, var(--brutal-yellow) 0%, var(--neo-green) 100%);
-    animation: glow 2s ease-in-out infinite;
-  }
-
-  &.watering {
-    animation: shake 0.5s ease-in-out;
-  }
-}
-.plot-soil {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 30%;
-  background: rgba(var(--text-muted-rgb, 139, 115, 85), 1);
-  border-top: 2px solid var(--neo-black);
-  z-index: 0;
-}
-
-.soil-texture {
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.1) 2px,
-    rgba(0, 0, 0, 0.1) 4px
-  );
-}
-
-.plant-container {
   position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  transition: all $transition-fast;
+  box-shadow: 6px 6px 0 black;
+  
+  &.empty {
+    border-style: solid;
+    background: #f0f0f0;
+    box-shadow: 2px 2px 0 black;
+    opacity: 0.8;
+  }
+  
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 black;
+  }
+
+  &.stage-seedling { background: #e0fcf2; }
+  &.stage-sprouting { background: #c1f9e5; }
+  &.stage-growing { background: var(--brutal-yellow); }
+  &.stage-blooming { background: #ff7eb3; }
+  &.stage-mature { background: var(--neo-green); }
 }
 
-.plant-icon {
-  font-size: 2.5em;
-  transition: transform $transition-normal;
-  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
-
+.plant-icon-brutal {
+  font-size: 48px;
   &.ready {
-    animation: bounce 1s ease-in-out infinite;
+    animation: brutal-bounce 0.5s infinite;
   }
 }
-.empty-icon {
-  font-size: 2em;
-  opacity: 0.4;
-  z-index: 1;
+
+@keyframes brutal-bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-10px) scale(1.1); }
 }
 
-.sparkle-effect {
+.ready-sticker {
   position: absolute;
   top: -10px;
   right: -10px;
-  font-size: 1.2em;
-  animation: sparkle 1.5s ease-in-out infinite;
-}
-
-.growth-info {
-  position: absolute;
-  bottom: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 85%;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-.growth-bar {
-  width: 100%;
-  height: 8px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 2px solid var(--neo-black);
-  border-radius: $radius-sm;
-  overflow: hidden;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.growth-fill {
-  flex: 1;
-  min-height: 0;
-  background: linear-gradient(90deg, var(--neo-green) 0%, var(--brutal-yellow) 100%);
-  transition: width $transition-normal;
-  box-shadow: 0 0 8px color-mix(in srgb, var(--neo-green) 50%, transparent);
-}
-
-.growth-percent {
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  color: var(--neo-black);
-  background: rgba(255, 255, 255, 0.9);
+  background: black;
+  color: var(--neo-green);
+  font-size: 10px;
+  font-weight: 900;
   padding: 2px 6px;
-  border-radius: $radius-sm;
-  border: 1px solid var(--neo-black);
+  border: 2px solid black;
+  rotate: 15deg;
+  box-shadow: 2px 2px 0 var(--neo-green);
 }
-.water-drops {
+
+.growth-label-brutal {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-start;
-  padding-top: 10px;
-  pointer-events: none;
-  z-index: 3;
-
-  .drop {
-    font-size: 1.2em;
-    animation: fall 1s ease-in infinite;
-    opacity: 0.8;
-
-    &:nth-child(1) {
-      animation-delay: 0s;
-    }
-    &:nth-child(2) {
-      animation-delay: 0.3s;
-    }
-    &:nth-child(3) {
-      animation-delay: 0.6s;
-    }
-  }
+  bottom: 4px;
+  left: 4px;
+  background: black;
+  padding: 1px 4px;
+}
+.growth-text-brutal {
+  color: white;
+  font-size: 10px;
+  font-weight: 900;
+  font-family: $font-mono;
 }
 
 .seeds-list {
   display: flex;
   flex-direction: column;
-  gap: $space-3;
+  gap: $space-6;
 }
-.seed-item {
+
+.seed-item-neo {
   display: flex;
   align-items: center;
-  padding: $space-3;
-  background: linear-gradient(135deg, var(--brutal-yellow) 0%, var(--brutal-yellow) 100%);
-  border: $border-width-md solid var(--neo-black);
-  border-radius: $radius-sm;
-  box-shadow: $shadow-sm;
+  gap: $space-6;
+  padding: $space-4;
+  background: white;
+  border: 4px solid black;
   cursor: pointer;
   transition: all $transition-fast;
-
+  box-shadow: 8px 8px 0 black;
   &:active {
     transform: translate(3px, 3px);
-    box-shadow: none;
-  }
-
-  &:hover {
-    box-shadow: $shadow-md;
+    box-shadow: 3px 3px 0 black;
   }
 }
 
 .seed-icon-wrapper {
-  position: relative;
-  margin-right: $space-3;
-}
-
-.seed-icon {
-  font-size: 2em;
-  filter: drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.2));
-}
-
-.seed-packet {
-  position: absolute;
-  bottom: -4px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 20px;
-  height: 8px;
-  background: var(--neo-black);
-  border-radius: 2px;
-  opacity: 0.3;
-}
-.seed-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: $space-1;
-}
-
-.seed-name {
-  display: block;
-  font-weight: $font-weight-bold;
-  color: var(--neo-black);
-  font-size: $font-size-lg;
-}
-
-.seed-details {
+  width: 64px;
+  height: 64px;
+  background: #f0f0f0;
+  border: 3px solid black;
   display: flex;
   align-items: center;
-  gap: $space-2;
+  justify-content: center;
+  rotate: -5deg;
 }
 
-.seed-time {
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-}
+.seed-icon { font-size: 32px; }
+.seed-info { flex: 1; }
+.seed-name { font-size: 18px; font-weight: 900; text-transform: uppercase; font-style: italic; }
+.seed-time { font-size: 12px; font-weight: 800; text-transform: uppercase; margin-top: 4px; display: block; background: black; color: white; padding: 2px 6px; align-self: flex-start; }
 
-.seed-price-tag {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: $space-2 $space-3;
-  background: var(--neo-black);
-  border-radius: $radius-sm;
-  min-width: 60px;
-}
-
-.seed-price {
-  color: var(--brutal-yellow);
-  font-weight: $font-weight-black;
-  font-size: $font-size-xl;
-  line-height: 1;
-}
-
-.seed-currency {
-  color: var(--brutal-yellow);
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  margin-top: 2px;
-}
-.action-btns {
-  display: flex;
-  gap: $space-3;
-}
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: $space-3;
-}
-
-.stat-item {
-  text-align: center;
+.seed-price-tag-neo {
+  background: var(--brutal-yellow);
+  color: black;
   padding: $space-4;
-  border: $border-width-md solid var(--neo-black);
-  border-radius: $radius-sm;
-  box-shadow: $shadow-sm;
+  border: 3px solid black;
+  box-shadow: 4px 4px 0 black;
+  rotate: 3deg;
+}
+
+.seed-price { font-size: 20px; font-weight: 900; line-height: 1; }
+.seed-currency { font-size: 12px; font-weight: 900; }
+
+.action-btns-neo {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: $space-2;
-  transition: transform $transition-fast;
-
-  &:active {
-    transform: scale(0.95);
-  }
+  gap: $space-4;
 }
 
-.stat-plants {
-  background: linear-gradient(135deg, var(--neo-green) 0%, var(--brutal-lime) 100%);
-}
-
-.stat-ready {
-  background: linear-gradient(135deg, var(--brutal-yellow) 0%, var(--brutal-yellow) 100%);
-}
-
-.stat-harvested {
-  background: linear-gradient(135deg, var(--brutal-pink) 0%, var(--brutal-pink) 100%);
-}
-
-.stat-icon {
-  font-size: $font-size-3xl;
-  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2));
-}
-
-.stat-value {
-  display: block;
-  font-size: $font-size-3xl;
-  font-weight: $font-weight-black;
-  color: var(--neo-black);
-  line-height: 1;
-}
-
-.stat-label {
-  color: var(--neo-black);
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-// Animations
-@keyframes glow {
-  0%,
-  100% {
-    box-shadow:
-      $shadow-sm,
-      0 0 10px color-mix(in srgb, var(--brutal-yellow) 30%, transparent);
-  }
-  50% {
-    box-shadow:
-      $shadow-md,
-      0 0 20px color-mix(in srgb, var(--brutal-yellow) 60%, transparent);
-  }
-}
-
-@keyframes bounce {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-@keyframes sparkle {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1) rotate(0deg);
-  }
-  50% {
-    opacity: 0.5;
-    transform: scale(1.2) rotate(180deg);
-  }
-}
-
-@keyframes fall {
-  0% {
-    transform: translateY(0);
-    opacity: 0.8;
-  }
-  100% {
-    transform: translateY(60px);
-    opacity: 0;
-  }
-}
-
-@keyframes shake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-3px);
-  }
-  75% {
-    transform: translateX(3px);
-  }
-}
+.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 </style>

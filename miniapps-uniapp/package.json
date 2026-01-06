@@ -12,12 +12,14 @@
     "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
-    "typescript": "^5.4.5",
-    "vitest": "^2.1.0",
+    "@dcloudio/types": "^3.4.28",
     "@vitejs/plugin-vue": "^5.1.0",
+    "@vitest/coverage-v8": "^2.1.0",
     "@vue/test-utils": "^2.4.6",
     "jsdom": "^25.0.0",
-    "@vitest/coverage-v8": "^2.1.0",
+    "miniprogram-api-typings": "^4.1.2",
+    "typescript": "^5.4.5",
+    "vitest": "^2.1.0",
     "vue": "^3.5.0"
   },
   "pnpm": {

@@ -8,6 +8,8 @@ export interface PayGASResponse {
   intent: "payments";
   constraints: { settlement: "GAS_ONLY" };
   invocation: InvocationIntent;
+  txid?: string | null;
+  receipt_id?: string | null;
 }
 
 export interface VoteBNEOResponse {
@@ -16,6 +18,7 @@ export interface VoteBNEOResponse {
   intent: "governance";
   constraints: { governance: "BNEO_ONLY" };
   invocation: InvocationIntent;
+  txid?: string | null;
 }
 
 export interface RNGResponse {
@@ -25,6 +28,8 @@ export interface RNGResponse {
   signature?: string;
   public_key?: string;
   attestation_hash?: string;
+  report_hash?: string;
+  anchored_tx?: unknown;
 }
 
 export interface PriceResponse {
@@ -36,10 +41,67 @@ export interface PriceResponse {
   sources: string[];
 }
 
+export interface EventsListParams {
+  app_id?: string;
+  event_name?: string;
+  contract_hash?: string;
+  limit?: number;
+  after_id?: string;
+}
+
+export interface ContractEvent {
+  id: string;
+  tx_hash: string;
+  block_index: number;
+  contract_hash: string;
+  event_name: string;
+  app_id: string | null;
+  state: unknown;
+  created_at: string;
+}
+
+export interface EventsListResponse {
+  events: ContractEvent[];
+  has_more: boolean;
+  last_id: string | null;
+}
+
+export interface TransactionsListParams {
+  app_id?: string;
+  limit?: number;
+  after_id?: string;
+}
+
+export interface ChainTransaction {
+  id: string;
+  tx_hash: string | null;
+  request_id: string;
+  from_service: string;
+  tx_type: string;
+  contract_address: string;
+  method_name: string;
+  params: Record<string, unknown>;
+  gas_consumed: number | null;
+  status: string;
+  retry_count: number;
+  error_message: string | null;
+  rpc_endpoint: string | null;
+  submitted_at: string;
+  confirmed_at: string | null;
+}
+
+export interface TransactionsListResponse {
+  transactions: ChainTransaction[];
+  has_more: boolean;
+  last_id: string | null;
+}
+
 export interface InvocationIntent {
-  contract: string;
+  contract_hash?: string;
+  contract?: string;
   method: string;
-  args: unknown[];
+  params?: unknown[];
+  args?: unknown[];
 }
 
 export interface MiniAppSDK {
@@ -62,10 +124,17 @@ export interface MiniAppSDK {
   datafeed: {
     getPrice(symbol: string): Promise<PriceResponse>;
   };
+  events?: {
+    list(params?: EventsListParams): Promise<EventsListResponse>;
+  };
+  transactions?: {
+    list(params?: TransactionsListParams): Promise<TransactionsListResponse>;
+  };
 }
 
 export interface NeoSDKConfig {
   appId: string;
+  contractHash?: string | null;
   debug?: boolean;
 }
 

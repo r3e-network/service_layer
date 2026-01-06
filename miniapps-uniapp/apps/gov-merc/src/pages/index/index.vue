@@ -1,42 +1,46 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <!-- Rent Tab -->
-    <view v-if="activeTab === 'rent'" class="tab-content scrollable">
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
-
-      <NeoCard variant="accent">
-        <view class="stats-grid">
-          <view class="stat-box">
-            <text class="stat-value">{{ formatNum(votingPower) }}</text>
-            <text class="stat-label">Your VP</text>
-          </view>
-          <view class="stat-box">
-            <text class="stat-value">{{ formatNum(earned) }}</text>
-            <text class="stat-label">Earned</text>
-          </view>
-          <view class="stat-box">
-            <text class="stat-value">{{ activeRentals }}</text>
-            <text class="stat-label">Rentals</text>
-          </view>
-        </view>
+    <view v-if="activeTab === 'rent'" class="tab-content">
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
+        <text class="status-text font-bold uppercase">{{ status.msg }}</text>
       </NeoCard>
 
-      <NeoCard title="Rent Out Your Votes">
-        <view class="form-group">
-          <NeoInput v-model="rentAmount" type="number" placeholder="Voting power to rent" label="VP Amount" />
-          <NeoInput v-model="rentPrice" type="number" placeholder="Price per vote" suffix="GAS" label="Price" />
-          <view class="duration-row">
-            <view
+      <NeoCard :title="t('yourDelegations')" variant="accent" class="mb-6">
+        <NeoStats :stats="rentStats" />
+      </NeoCard>
+
+      <NeoCard title="Rent Out Your Votes" class="mb-6">
+        <view class="form-group-neo">
+          <NeoInput
+            v-model="rentAmount"
+            type="number"
+            placeholder="Voting power to rent"
+            label="VP Amount"
+            class="mb-2"
+          />
+          <NeoInput
+            v-model="rentPrice"
+            type="number"
+            placeholder="Price per vote"
+            suffix="GAS"
+            label="Price"
+            class="mb-4"
+          />
+
+          <view class="duration-row-neo flex gap-2 mb-6">
+            <NeoButton
               v-for="d in durations"
               :key="d.hours"
-              :class="['duration-btn', rentDuration === d.hours && 'active']"
+              :variant="rentDuration === d.hours ? 'success' : 'secondary'"
+              size="sm"
+              class="flex-1"
               @click="rentDuration = d.hours"
             >
-              <text>{{ d.label }}</text>
-            </view>
+              {{ d.label }}
+            </NeoButton>
           </view>
+
           <NeoButton variant="primary" size="lg" block :loading="isLoading" @click="listVotes">
             {{ isLoading ? "Listing..." : "List for Rent" }}
           </NeoButton>
@@ -45,65 +49,73 @@
     </view>
 
     <!-- Market Tab -->
-    <view v-if="activeTab === 'market'" class="tab-content scrollable">
-      <NeoCard title="Delegate Marketplace">
-        <view class="delegates-list">
-          <text v-if="delegates.length === 0" class="empty">No delegates available</text>
-          <view v-for="(d, i) in delegates" :key="i" :class="['delegate-card', d.tier]">
-            <view class="delegate-header">
-              <view class="delegate-avatar" :class="d.tier">
-                <text class="avatar-text">{{ d.name.substring(0, 2).toUpperCase() }}</text>
-              </view>
-              <view class="delegate-info">
-                <text class="delegate-name">{{ d.name }}</text>
-                <text class="delegate-address">{{ d.address }}</text>
-              </view>
-              <view v-if="d.tier === 'elite'" class="elite-badge">
-                <text class="badge-text">ELITE</text>
-              </view>
-            </view>
+    <view v-if="activeTab === 'market'" class="tab-content">
+      <text class="section-title-neo mb-4 font-bold uppercase">{{ t("availableMercs") }}</text>
+      <view class="delegates-list">
+        <text v-if="delegates.length === 0" class="empty-neo text-center p-8 opacity-60 uppercase font-bold">{{
+          t("noDelegates")
+        }}</text>
+        <NeoCard
+          v-for="(d, i) in delegates"
+          :key="i"
+          :variant="d.tier === 'elite' ? 'warning' : 'default'"
+          class="mb-6"
+        >
+          <template #header-extra v-if="d.tier === 'elite'">
+            <text
+              class="elite-badge-neo bg-black text-warning text-xs font-black px-2 py-1 border border-black shadow-neo"
+              >ELITE</text
+            >
+          </template>
 
-            <view class="delegate-stats">
-              <view class="stat-item">
-                <text class="stat-label">Reputation</text>
-                <text class="stat-value reputation">{{ d.reputation }}%</text>
-              </view>
-              <view class="stat-item">
-                <text class="stat-label">Success Rate</text>
-                <text class="stat-value success">{{ d.successRate }}%</text>
-              </view>
-              <view class="stat-item">
-                <text class="stat-label">Commission</text>
-                <text class="stat-value commission">{{ d.commission }}%</text>
-              </view>
+          <view class="delegate-header-neo flex items-center gap-3 mb-4 pb-4 border-b border-dashed border-black/10">
+            <view
+              class="delegate-avatar-neo w-12 h-12 rounded-full border-2 border-neo-black flex items-center justify-center font-black text-xl"
+              :class="d.tier"
+            >
+              {{ d.name.substring(0, 2).toUpperCase() }}
             </view>
-
-            <view class="delegate-metrics">
-              <view class="metric">
-                <text class="metric-label">Total Delegated</text>
-                <text class="metric-value">{{ formatNum(d.totalDelegated) }} VP</text>
-              </view>
-              <view class="metric">
-                <text class="metric-label">Votes Cast</text>
-                <text class="metric-value">{{ d.votesCast }}</text>
-              </view>
-            </view>
-
-            <view class="delegate-actions">
-              <NeoInput v-model="d.delegateAmount" type="number" placeholder="Amount to delegate" size="sm" />
-              <NeoButton
-                variant="primary"
-                size="md"
-                block
-                :loading="isLoading"
-                @click="delegateToMerc(d.id, d.delegateAmount)"
-              >
-                Delegate Now
-              </NeoButton>
+            <view class="delegate-info-neo">
+              <text class="delegate-name-neo font-black text-lg uppercase block">{{ d.name }}</text>
+              <text class="delegate-address-neo font-mono text-xs opacity-60 block">{{ d.address }}</text>
             </view>
           </view>
-        </view>
-      </NeoCard>
+
+          <view class="delegate-stats-grid mb-4">
+            <NeoStats
+              :stats="[
+                { label: 'Rep', value: d.reputation + '%', variant: 'accent' },
+                { label: 'Success', value: d.successRate + '%', variant: 'success' },
+                { label: 'Comm', value: d.commission + '%', variant: 'warning' },
+              ]"
+            />
+          </view>
+
+          <view class="delegate-metrics-neo bg-black/5 p-3 rounded mb-4 flex gap-4">
+            <view class="metric-neo flex-1">
+              <text class="metric-label-neo text-[10px] uppercase font-bold opacity-60 block">Total Delegated</text>
+              <text class="metric-value-neo font-mono font-bold text-sm">{{ formatNum(d.totalDelegated) }} VP</text>
+            </view>
+            <view class="metric-neo flex-1 text-right">
+              <text class="metric-label-neo text-[10px] uppercase font-bold opacity-60 block">Votes Cast</text>
+              <text class="metric-value-neo font-mono font-bold text-sm">{{ d.votesCast }}</text>
+            </view>
+          </view>
+
+          <view class="delegate-actions-neo pt-4 border-t border-dashed border-black/10">
+            <NeoInput v-model="d.delegateAmount" type="number" placeholder="Amount" size="sm" class="mb-2" />
+            <NeoButton
+              variant="primary"
+              size="md"
+              block
+              :loading="isLoading"
+              @click="delegateToMerc(d.id, d.delegateAmount)"
+            >
+              Delegate Now
+            </NeoButton>
+          </view>
+        </NeoCard>
+      </view>
     </view>
 
     <!-- Docs Tab -->
@@ -124,11 +136,8 @@ import { ref, computed, onMounted } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import { formatNumber } from "@/shared/utils/format";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
-import NeoButton from "@/shared/components/NeoButton.vue";
-import NeoInput from "@/shared/components/NeoInput.vue";
-import NeoCard from "@/shared/components/NeoCard.vue";
+import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard, NeoStats } from "@/shared/components";
+import type { StatItem } from "@/shared/components/NeoStats.vue";
 
 const translations = {
   title: { en: "Gov Merc", zh: "治理雇佣兵" },
@@ -145,21 +154,44 @@ const translations = {
   revoke: { en: "Revoke", zh: "撤销" },
   minDelegate: { en: "Min delegate: 1 vote", zh: "最小委托：1票" },
   delegationSuccess: { en: "Delegation successful!", zh: "委托成功！" },
+  noDelegates: { en: "No delegates available", zh: "没有可用的雇佣兵" },
   error: { en: "Error", zh: "错误" },
 
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Professional documentation for this application is coming soon.",
-    zh: "此应用程序的专业文档即将推出。",
+  docSubtitle: {
+    en: "Governance mercenary - rent out your voting power",
+    zh: "治理雇佣兵 - 出租您的投票权",
   },
-  step1: { en: "Open the application.", zh: "打开应用程序。" },
-  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
-  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
-  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
-  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
-  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  docDescription: {
+    en: "Gov Merc is a marketplace for governance voting power. List your idle votes for rent, or hire voting power for proposals you care about.",
+    zh: "Gov Merc 是治理投票权的市场。出租您闲置的投票权，或为您关心的提案雇用投票权。",
+  },
+  step1: {
+    en: "Connect your Neo wallet",
+    zh: "连接您的 Neo 钱包",
+  },
+  step2: {
+    en: "List your voting power for rent or browse available votes",
+    zh: "出租您的投票权或浏览可用投票",
+  },
+  step3: {
+    en: "Set your price per vote or accept delegation requests",
+    zh: "设置每票价格或接受委托请求",
+  },
+  step4: {
+    en: "Earn GAS from your idle voting power",
+    zh: "从闲置投票权中赚取 GAS",
+  },
+  feature1Name: { en: "Vote Marketplace", zh: "投票市场" },
+  feature1Desc: {
+    en: "Transparent pricing for governance voting power.",
+    zh: "治理投票权的透明定价。",
+  },
+  feature2Name: { en: "Reputation System", zh: "声誉系统" },
+  feature2Desc: {
+    en: "Build reputation for better rates and more requests.",
+    zh: "建立声誉以获得更好的费率和更多请求。",
+  },
 };
 
 const t = createT(translations);
@@ -172,7 +204,7 @@ const navTabs = [
 
 const activeTab = ref("rent");
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
@@ -212,6 +244,12 @@ const durations = [
 ];
 
 const delegates = ref<Delegate[]>([]);
+
+const rentStats = computed<StatItem[]>(() => [
+  { label: "Your VP", value: formatNum(votingPower.value), variant: "default" },
+  { label: "Earned", value: formatNum(earned.value), variant: "success" },
+  { label: "Rentals", value: activeRentals.value, variant: "accent" },
+]);
 
 const formatNum = (n: number) => formatNumber(n, 1);
 
@@ -291,332 +329,40 @@ onMounted(() => fetchData());
 .tab-content {
   padding: $space-4;
   flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
+  gap: $space-4;
   overflow-y: auto;
-  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
 
-.status-msg {
-  text-align: center;
-  padding: $space-4;
-  margin-bottom: $space-5;
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.form-group-neo { display: flex; flex-direction: column; gap: $space-4; }
+.duration-row-neo { display: flex; gap: $space-3; }
 
-  &.success {
-    background: var(--status-success);
-    color: $neo-black;
-    border-color: $neo-black;
-  }
-  &.error {
-    background: var(--status-error);
-    color: $neo-white;
-    border-color: $neo-black;
-  }
-  &.loading {
-    background: var(--brutal-yellow);
-    color: $neo-black;
-    border-color: $neo-black;
-  }
+.section-title-neo { font-size: 12px; font-weight: $font-weight-black; text-transform: uppercase; margin-bottom: 8px; background: black; color: white; padding: 2px 10px; display: inline-block; }
+
+.delegate-avatar-neo {
+  background: white; border: 3px solid black; box-shadow: 4px 4px 0 black;
+  &.elite { background: var(--brutal-yellow); }
 }
 
-// Form layout
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: $space-5;
+.delegate-name-neo { font-weight: $font-weight-black; font-size: 20px; border-bottom: 2px solid black; }
+.delegate-address-neo { font-family: $font-mono; font-size: 10px; opacity: 1; font-weight: $font-weight-black; margin-top: 4px; }
+
+.elite-badge-neo {
+  background: black; color: var(--brutal-yellow); font-size: 10px; font-weight: $font-weight-black;
+  padding: 4px 10px; border: 2px solid black; box-shadow: 4px 4px 0 var(--brutal-yellow);
 }
 
-// Stats grid
-.stats-grid {
-  display: flex;
-  gap: $space-3;
+.delegate-metrics-neo {
+  background: #eee; padding: $space-4; border: 2px solid black;
+  display: flex; gap: $space-4; box-shadow: inset 4px 4px 0 rgba(0,0,0,0.05);
 }
+.metric-label-neo { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; color: #666; }
+.metric-value-neo { font-family: $font-mono; font-weight: $font-weight-black; font-size: 14px; color: black; }
 
-.stat-box {
-  flex: 1;
-  text-align: center;
-  background: var(--bg-elevated);
-  border: $border-width-md solid var(--neo-green);
-  box-shadow: 3px 3px 0 var(--neo-green);
-  padding: $space-4;
-  transition: transform $transition-fast;
+.empty-neo { font-family: $font-mono; font-size: 14px; font-weight: $font-weight-black; background: #eee; border: 2px dashed black; }
+.status-text { font-family: $font-mono; font-size: 12px; font-weight: $font-weight-black; }
 
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: 1px 1px 0 var(--neo-green);
-  }
-}
-
-.stat-value {
-  color: var(--neo-green);
-  font-size: $font-size-2xl;
-  font-weight: $font-weight-black;
-  display: block;
-  line-height: $line-height-tight;
-}
-
-.stat-label {
-  color: var(--text-secondary);
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-top: $space-1;
-}
-
-// Duration selector
-.duration-row {
-  display: flex;
-  gap: $space-2;
-}
-
-.duration-btn {
-  flex: 1;
-  padding: $space-3;
-  text-align: center;
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-sm;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  font-size: $font-size-sm;
-  cursor: pointer;
-  transition: all $transition-fast;
-
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: none;
-  }
-
-  &.active {
-    background: var(--neo-green);
-    color: $neo-black;
-    border-color: $neo-black;
-    box-shadow: 3px 3px 0 $neo-black;
-  }
-}
-
-// Delegates list
-.delegates-list {
-  display: flex;
-  flex-direction: column;
-  gap: $space-5;
-}
-
-.empty {
-  color: var(--text-muted);
-  text-align: center;
-  padding: $space-8;
-  font-weight: $font-weight-medium;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-// Delegate card
-.delegate-card {
-  padding: $space-5;
-  background: var(--bg-elevated);
-  border: $border-width-md solid var(--neo-purple);
-  box-shadow: 4px 4px 0 var(--neo-purple);
-  transition: all $transition-fast;
-
-  &.elite {
-    border-color: var(--brutal-yellow);
-    box-shadow: 4px 4px 0 var(--brutal-yellow);
-  }
-
-  &:active {
-    transform: translate(3px, 3px);
-    box-shadow: 1px 1px 0 var(--neo-purple);
-
-    &.elite {
-      box-shadow: 1px 1px 0 var(--brutal-yellow);
-    }
-  }
-}
-
-// Delegate header
-.delegate-header {
-  display: flex;
-  align-items: center;
-  gap: $space-3;
-  margin-bottom: $space-4;
-  padding-bottom: $space-4;
-  border-bottom: $border-width-sm solid var(--border-color);
-  position: relative;
-}
-
-.delegate-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--neo-purple);
-  border: $border-width-md solid $neo-black;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-
-  &.elite {
-    background: var(--brutal-yellow);
-    box-shadow: 0 0 12px var(--brutal-yellow);
-  }
-}
-
-.avatar-text {
-  color: $neo-black;
-  font-weight: $font-weight-black;
-  font-size: $font-size-lg;
-}
-
-.delegate-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: $space-1;
-}
-
-.delegate-name {
-  color: var(--text-primary);
-  font-weight: $font-weight-black;
-  font-size: $font-size-lg;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.delegate-address {
-  color: var(--text-muted);
-  font-family: $font-mono;
-  font-size: $font-size-xs;
-}
-
-.elite-badge {
-  position: absolute;
-  top: 0;
-  right: 0;
-  background: var(--brutal-yellow);
-  color: $neo-black;
-  padding: $space-1 $space-3;
-  border: $border-width-sm solid $neo-black;
-  box-shadow: 2px 2px 0 $neo-black;
-}
-
-.badge-text {
-  font-weight: $font-weight-black;
-  font-size: $font-size-xs;
-  letter-spacing: 1px;
-}
-
-// Delegate stats
-.delegate-stats {
-  display: flex;
-  gap: $space-3;
-  margin-bottom: $space-4;
-}
-
-.stat-item {
-  flex: 1;
-  text-align: center;
-  padding: $space-3;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-}
-
-.stat-item .stat-label {
-  display: block;
-  color: var(--text-secondary);
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: $space-1;
-}
-
-.stat-item .stat-value {
-  display: block;
-  font-weight: $font-weight-black;
-  font-size: $font-size-lg;
-  font-family: $font-mono;
-
-  &.reputation {
-    color: var(--neo-purple);
-  }
-
-  &.success {
-    color: var(--neo-green);
-  }
-
-  &.commission {
-    color: var(--brutal-yellow);
-  }
-}
-
-// Delegate metrics
-.delegate-metrics {
-  display: flex;
-  gap: $space-4;
-  margin-bottom: $space-4;
-  padding: $space-3;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-}
-
-.metric {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: $space-1;
-}
-
-.metric-label {
-  color: var(--text-secondary);
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.metric-value {
-  color: var(--text-primary);
-  font-weight: $font-weight-black;
-  font-size: $font-size-md;
-  font-family: $font-mono;
-}
-
-// Delegate actions
-.delegate-actions {
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
-  margin-top: $space-4;
-  padding-top: $space-4;
-  border-top: $border-width-sm solid var(--border-color);
-}
-
-// Animations
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.02);
-  }
-}
+.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 </style>

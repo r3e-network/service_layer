@@ -8,9 +8,9 @@
         <text class="demo-note">{{ t("demoNote") }}</text>
       </view>
 
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
+        <text class="font-bold">{{ status.msg }}</text>
+      </NeoCard>
 
       <!-- Capsule Visualization -->
       <NeoCard :title="t('vaultStats')" variant="accent" class="vault-card">
@@ -181,11 +181,7 @@ import { ref, computed, onMounted } from "vue";
 import { useWallet } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
-import NeoButton from "@/shared/components/NeoButton.vue";
-import NeoInput from "@/shared/components/NeoInput.vue";
-import NeoCard from "@/shared/components/NeoCard.vue";
+import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard } from "@/shared/components";
 
 // Simulation mode - no real payments
 const isLoading = ref(false);
@@ -212,6 +208,7 @@ const translations = {
   exampleRates: { en: "Example rates for educational purposes", zh: "仅供教育目的的示例利率" },
   enterValidAmount: { en: "Enter a valid amount", zh: "请输入有效金额" },
   depositedAmount: { en: "Simulation: {amount} GAS deposited scenario", zh: "模拟：{amount} GAS 存款场景" },
+  mockDepositFee: { en: "Simulation deposit fee: {fee} GAS", zh: "模拟存款费用：{fee} GAS" },
   simulationError: { en: "Simulation error", zh: "模拟错误" },
   main: { en: "Simulate", zh: "模拟" },
   stats: { en: "Stats", zh: "统计" },
@@ -228,18 +225,40 @@ const translations = {
   noHistory: { en: "No history yet", zh: "暂无记录" },
 
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Professional documentation for this application is coming soon.",
-    zh: "此应用程序的专业文档即将推出。",
+  docSubtitle: {
+    en: "Auto-compounding yield optimizer for Neo assets",
+    zh: "Neo 资产自动复利收益优化器",
   },
-  step1: { en: "Open the application.", zh: "打开应用程序。" },
-  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
-  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
-  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
-  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
-  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  docDescription: {
+    en: "Compound Capsule automatically reinvests your staking rewards to maximize yield through the power of compound interest. Set it and forget it - your assets grow automatically.",
+    zh: "Compound Capsule 自动将您的质押奖励再投资，通过复利的力量最大化收益。设置后即可忘记 - 您的资产自动增长。",
+  },
+  step1: {
+    en: "Connect your Neo wallet and select assets to deposit",
+    zh: "连接您的 Neo 钱包并选择要存入的资产",
+  },
+  step2: {
+    en: "Choose your compounding frequency (daily, weekly, etc.)",
+    zh: "选择复利频率（每日、每周等）",
+  },
+  step3: {
+    en: "Confirm deposit and let the smart contract handle compounding",
+    zh: "确认存款，让智能合约处理复利",
+  },
+  step4: {
+    en: "Withdraw anytime with accumulated compound interest",
+    zh: "随时提取累积的复利收益",
+  },
+  feature1Name: { en: "Auto-Compounding", zh: "自动复利" },
+  feature1Desc: {
+    en: "Smart contract automatically reinvests rewards at optimal intervals.",
+    zh: "智能合约在最佳间隔自动再投资奖励。",
+  },
+  feature2Name: { en: "Gas Optimized", zh: "Gas 优化" },
+  feature2Desc: {
+    en: "Batched transactions minimize gas costs for maximum efficiency.",
+    zh: "批量交易最小化 gas 成本以获得最大效率。",
+  },
 };
 const t = createT(translations);
 
@@ -256,7 +275,7 @@ type Status = { msg: string; type: StatusType };
 type Vault = { apy: number; tvl: number; compoundFreq: string };
 type Position = { deposited: number; earned: number; est30d: number };
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
@@ -408,563 +427,54 @@ const deposit = async (): Promise<void> => {
 .tab-content {
   padding: $space-4;
   flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: $space-4;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
 }
 
-// DEMO Banner
 .demo-banner {
-  background: linear-gradient(135deg, var(--neo-green) 0%, var(--brutal-yellow) 100%);
-  border: $border-width-md solid var(--neo-black);
-  padding: $space-3 $space-4;
-  text-align: center;
-  box-shadow: $shadow-md;
+  background: var(--brutal-yellow); border: 2px solid black; padding: $space-2; text-align: center; box-shadow: 4px 4px 0 black;
 }
 
-.demo-badge {
-  display: block;
-  font-size: $font-size-lg;
-  font-weight: $font-weight-black;
-  color: var(--neo-black);
-  text-transform: uppercase;
-  letter-spacing: 2px;
+.demo-badge { font-weight: $font-weight-black; text-transform: uppercase; font-size: 10px; display: block; }
+.demo-note { font-size: 8px; font-weight: $font-weight-black; opacity: 0.6; }
+
+.capsule-container { display: flex; align-items: center; gap: $space-4; }
+.capsule-body {
+  width: 40px; height: 80px; background: white; border: 3px solid black; border-radius: 20px; position: relative; overflow: hidden;
 }
 
-.demo-note {
-  display: block;
-  font-size: $font-size-sm;
-  color: var(--neo-black);
-  margin-top: $space-1;
-  opacity: 0.8;
+.capsule-fill { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--neo-green); border-top: 2px solid black; }
+.capsule-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+.capsule-apy { font-weight: $font-weight-black; font-size: 10px; color: black; -webkit-text-stroke: 0.5px white; }
+.capsule-apy-label { font-size: 6px; font-weight: $font-weight-black; }
+
+.vault-stats-grid { flex: 1; display: flex; flex-direction: column; gap: $space-2; }
+.stat-item { padding: $space-2; background: white; border: 2px solid black; box-shadow: 4px 4px 0 black; }
+.stat-label { font-size: 8px; font-weight: $font-weight-black; text-transform: uppercase; opacity: 0.6; }
+.stat-value { font-weight: $font-weight-black; font-family: $font-mono; font-size: 14px; }
+
+.growth-chart { height: 100px; display: flex; align-items: flex-end; gap: $space-3; margin-bottom: $space-4; background: black; padding: $space-3; border: 2px solid black; box-shadow: 6px 6px 0 black; }
+.chart-bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+.bar-fill { width: 100%; background: var(--neo-purple); border: 2px solid white; }
+.bar-label { font-size: 8px; font-weight: $font-weight-black; color: white; }
+
+.period-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: $space-2; margin: $space-2 0; }
+.period-option {
+  padding: $space-2; background: white; border: 2px solid black; text-align: center; cursor: pointer;
+  &.active { background: var(--brutal-yellow); box-shadow: 4px 4px 0 black; transform: translate(-2px, -2px); }
+  transition: all $transition-fast;
 }
 
-.status-msg {
-  text-align: center;
-  padding: $space-4;
-  border: $border-width-md solid var(--border-color);
-  margin-bottom: $space-4;
-  flex-shrink: 0;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.period-days { font-weight: $font-weight-black; font-size: 12px; display: block; }
+.period-bonus { font-size: 8px; color: var(--neo-green); font-weight: $font-weight-black; }
 
-  &.success {
-    background: var(--status-success);
-    color: var(--neo-black);
-    box-shadow: $shadow-md;
-  }
-  &.error {
-    background: var(--status-error);
-    color: var(--neo-white);
-    box-shadow: $shadow-md;
-  }
-}
+.capsule-item { padding: $space-3; background: white; border: 2px solid black; margin-bottom: $space-3; border-left: 8px solid var(--neo-green); box-shadow: 4px 4px 0 black; }
+.progress-bar { height: 12px; background: #eee; margin: 8px 0; border: 2px solid black; }
+.progress-fill { height: 100%; background: var(--neo-green); border-right: 2px solid black; }
 
-/* Capsule Visualization */
-.vault-card {
-  .capsule-container {
-    display: flex;
-    gap: $space-4;
-    align-items: center;
-  }
+.stat-row { display: flex; justify-content: space-between; padding: $space-3 0; border-bottom: 2px dashed black; }
+.activity-history { font-size: 10px; font-weight: $font-weight-black; border-left: 3px solid black; padding-left: $space-2; margin-bottom: $space-2; }
 
-  .capsule-visual {
-    flex-shrink: 0;
-    width: 120px;
-    height: 200px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .capsule-body {
-    position: relative;
-    width: 80px;
-    height: 180px;
-    background: var(--bg-secondary);
-    border: $border-width-lg solid var(--border-color);
-    border-radius: 40px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
-  }
-
-  .capsule-fill {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(180deg, var(--neo-purple) 0%, var(--neo-green) 100%);
-    transition: height 0.6s ease;
-    overflow: hidden;
-  }
-
-  .capsule-shimmer {
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    right: -50%;
-    bottom: -50%;
-    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.2) 50%, transparent 70%);
-    animation: shimmer 3s infinite;
-  }
-
-  @keyframes shimmer {
-    0% {
-      transform: translateX(-100%) translateY(-100%);
-    }
-    100% {
-      transform: translateX(100%) translateY(100%);
-    }
-  }
-
-  .capsule-label {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    z-index: 1;
-  }
-
-  .capsule-apy {
-    display: block;
-    font-size: 24px;
-    font-weight: $font-weight-black;
-    color: var(--brutal-yellow);
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  }
-
-  .capsule-apy-label {
-    display: block;
-    font-size: $font-size-xs;
-    font-weight: $font-weight-bold;
-    color: var(--text-primary);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  .vault-stats-grid {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: $space-3;
-  }
-
-  .stat-item {
-    padding: $space-3;
-    background: var(--bg-secondary);
-    border: $border-width-sm solid var(--border-color);
-    border-left: $border-width-lg solid var(--neo-green);
-  }
-
-  .stat-label {
-    display: block;
-    font-size: $font-size-xs;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: $space-1;
-  }
-
-  .stat-value {
-    display: block;
-    font-size: $font-size-xl;
-    font-weight: $font-weight-black;
-    color: var(--text-primary);
-
-    &.tvl {
-      color: var(--neo-green);
-    }
-
-    &.freq {
-      font-size: $font-size-lg;
-      color: var(--neo-purple);
-    }
-  }
-
-  .stat-unit {
-    display: inline;
-    font-size: $font-size-sm;
-    color: var(--text-secondary);
-    margin-left: $space-1;
-  }
-}
-
-/* Growth Chart */
-.position-card {
-  .growth-chart {
-    padding: $space-4;
-    background: var(--bg-secondary);
-    border: $border-width-sm solid var(--border-color);
-    margin-bottom: $space-4;
-  }
-
-  .chart-bars {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-around;
-    height: 120px;
-    gap: $space-2;
-  }
-
-  .chart-bar {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: $space-2;
-  }
-
-  .bar-fill {
-    width: 100%;
-    background: linear-gradient(180deg, var(--neo-green) 0%, var(--neo-purple) 100%);
-    border: $border-width-sm solid var(--border-color);
-    transition: height 0.4s ease;
-    min-height: 20px;
-    box-shadow: 0 -2px 8px color-mix(in srgb, var(--neo-green) 30%, transparent);
-  }
-
-  .bar-label {
-    font-size: $font-size-xs;
-    font-weight: $font-weight-bold;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-  }
-
-  .position-stats {
-    display: flex;
-    flex-direction: column;
-    gap: $space-2;
-  }
-
-  .position-row {
-    display: flex;
-    justify-content: space-between;
-    padding: $space-3;
-    background: var(--bg-secondary);
-    border: $border-width-sm solid var(--border-color);
-
-    &.primary {
-      border-left: $border-width-lg solid var(--neo-purple);
-    }
-
-    &.earned {
-      border-left: $border-width-lg solid var(--neo-green);
-    }
-
-    &.projection {
-      border-left: $border-width-lg solid var(--brutal-yellow);
-    }
-
-    .label {
-      font-size: $font-size-sm;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .value {
-      font-size: $font-size-lg;
-      font-weight: $font-weight-bold;
-      color: var(--text-primary);
-
-      &.growth {
-        color: var(--neo-green);
-      }
-    }
-  }
-}
-
-/* Lock Period Selector & Deposit */
-.deposit-card {
-  .lock-period-selector {
-    margin-bottom: $space-4;
-  }
-
-  .selector-label {
-    display: block;
-    font-size: $font-size-sm;
-    font-weight: $font-weight-bold;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: $space-3;
-  }
-
-  .period-options {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: $space-2;
-  }
-
-  .period-option {
-    padding: $space-3;
-    background: var(--bg-secondary);
-    border: $border-width-md solid var(--border-color);
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-
-    &:hover {
-      border-color: var(--neo-purple);
-    }
-
-    &.active {
-      background: var(--neo-purple);
-      border-color: var(--neo-purple);
-      box-shadow: 0 0 12px color-mix(in srgb, var(--neo-purple) 50%, transparent);
-
-      .period-days,
-      .period-bonus {
-        color: var(--neo-white);
-      }
-    }
-
-    .period-days {
-      display: block;
-      font-size: $font-size-lg;
-      font-weight: $font-weight-black;
-      color: var(--text-primary);
-      margin-bottom: $space-1;
-    }
-
-    .period-bonus {
-      display: block;
-      font-size: $font-size-xs;
-      font-weight: $font-weight-bold;
-      color: var(--neo-green);
-    }
-  }
-
-  .projected-returns {
-    padding: $space-4;
-    background: var(--bg-secondary);
-    border: $border-width-md solid var(--brutal-yellow);
-    margin-bottom: $space-4;
-    text-align: center;
-  }
-
-  .returns-label {
-    display: block;
-    font-size: $font-size-xs;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: $space-2;
-  }
-
-  .returns-display {
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    gap: $space-2;
-  }
-
-  .returns-value {
-    font-size: 32px;
-    font-weight: $font-weight-black;
-    color: var(--brutal-yellow);
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  }
-
-  .returns-unit {
-    font-size: $font-size-lg;
-    font-weight: $font-weight-bold;
-    color: var(--text-secondary);
-  }
-}
-
-.note {
-  display: block;
-  margin-top: $space-3;
-  padding: $space-2;
-  font-size: $font-size-sm;
-  color: var(--text-secondary);
-  border-left: $border-width-md solid var(--neo-green);
-  padding-left: $space-3;
-}
-
-/* Active Capsules */
-.capsules-card {
-  .capsule-item {
-    padding: $space-4;
-    background: var(--bg-secondary);
-    border: $border-width-md solid var(--border-color);
-    margin-bottom: $space-3;
-    transition: all 0.2s ease;
-
-    &:hover {
-      border-color: var(--neo-purple);
-      box-shadow: 0 4px 12px color-mix(in srgb, var(--neo-purple) 20%, transparent);
-    }
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
-
-  .capsule-header {
-    display: flex;
-    align-items: center;
-    gap: $space-3;
-    margin-bottom: $space-3;
-  }
-
-  .capsule-icon {
-    font-size: 32px;
-    line-height: 1;
-  }
-
-  .capsule-info {
-    flex: 1;
-  }
-
-  .capsule-amount {
-    display: block;
-    font-size: $font-size-lg;
-    font-weight: $font-weight-black;
-    color: var(--text-primary);
-    margin-bottom: $space-1;
-  }
-
-  .capsule-period {
-    display: block;
-    font-size: $font-size-xs;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .capsule-status {
-    padding: $space-2 $space-3;
-    background: var(--neo-purple);
-    border: $border-width-sm solid var(--neo-purple);
-  }
-
-  .status-label {
-    font-size: $font-size-xs;
-    font-weight: $font-weight-bold;
-    color: var(--neo-white);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .capsule-progress {
-    display: flex;
-    align-items: center;
-    gap: $space-3;
-    margin-bottom: $space-3;
-  }
-
-  .progress-bar {
-    flex: 1;
-    height: 12px;
-    background: var(--bg-primary);
-    border: $border-width-sm solid var(--border-color);
-    overflow: hidden;
-  }
-
-  .progress-fill {
-    flex: 1;
-    min-height: 0;
-    background: linear-gradient(90deg, var(--neo-purple) 0%, var(--neo-green) 100%);
-    transition: width 0.4s ease;
-    box-shadow: 0 0 8px color-mix(in srgb, var(--neo-green) 50%, transparent);
-  }
-
-  .progress-text {
-    font-size: $font-size-sm;
-    font-weight: $font-weight-bold;
-    color: var(--text-secondary);
-    min-width: 40px;
-    text-align: right;
-  }
-
-  .capsule-footer {
-    display: flex;
-    justify-content: space-between;
-    padding-top: $space-3;
-    border-top: $border-width-sm solid var(--border-color);
-  }
-
-  .countdown,
-  .rewards {
-    display: flex;
-    flex-direction: column;
-    gap: $space-1;
-  }
-
-  .countdown-label,
-  .rewards-label {
-    font-size: $font-size-xs;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .countdown-value {
-    font-size: $font-size-lg;
-    font-weight: $font-weight-black;
-    color: var(--brutal-yellow);
-  }
-
-  .rewards-value {
-    font-size: $font-size-lg;
-    font-weight: $font-weight-black;
-    color: var(--neo-green);
-  }
-}
-
-/* Statistics */
-.stat-row {
-  display: flex;
-  justify-content: space-between;
-  padding: $space-3 0;
-  border-bottom: $border-width-sm solid var(--border-color);
-
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-.stat-label {
-  color: var(--text-secondary);
-  font-weight: $font-weight-medium;
-  text-transform: uppercase;
-  font-size: $font-size-sm;
-  letter-spacing: 0.5px;
-}
-
-.stat-value {
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-  font-size: $font-size-lg;
-}
-
-/* Activity History */
-.activity-history {
-  padding: $space-3;
-  border: $border-width-sm solid var(--border-color);
-  background: var(--bg-secondary);
-  margin-bottom: $space-2;
-  font-weight: $font-weight-medium;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-}
-
-.empty-text {
-  color: var(--text-muted);
-  text-align: center;
-  padding: $space-6;
-  font-style: italic;
-}
+.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 </style>

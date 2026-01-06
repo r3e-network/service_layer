@@ -10,9 +10,10 @@
       </view>
 
       <!-- Status Message -->
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <!-- Status Message -->
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4">
+        <text class="text-center font-bold">{{ status.msg }}</text>
+      </NeoCard>
 
       <!-- Poker Table -->
       <view class="poker-table">
@@ -23,7 +24,7 @@
               <view v-for="i in Math.min(Math.floor(pot / 0.5), 10)" :key="i" class="chip"></view>
             </view>
             <text class="pot-label">{{ t("pot") }}</text>
-            <text class="pot-amount">{{ pot }} GAS</text>
+            <text class="pot-amount">{{ formatNum(pot) }} GAS</text>
           </view>
 
           <!-- Player Hand -->
@@ -61,28 +62,26 @@
       <!-- Betting Controls -->
       <NeoCard :title="t('actions')" variant="accent">
         <view class="bet-input-wrapper">
-          <NeoInput v-model="betAmount" type="number" :placeholder="t('betAmountPlaceholder')" suffix="GAS" />
-          <view class="quick-bet-chips">
-            <view
-              v-for="amount in [0.5, 1, 5, 10]"
-              :key="amount"
-              class="quick-chip"
-              @click="betAmount = String(amount)"
-            >
-              <text class="chip-value">{{ amount }}</text>
-            </view>
-          </view>
+          <NeoInput v-model="buyIn" type="number" :placeholder="t('buyInPlaceholder')" suffix="GAS" />
+          <NeoInput v-model="tableIdInput" type="number" :placeholder="t('tableIdPlaceholder')" />
         </view>
         <view class="actions-row">
-          <NeoButton variant="ghost" size="md" @click="fold" :disabled="isPlaying">
-            {{ t("fold") }}
+          <NeoButton variant="ghost" size="md" @click="createTable" :disabled="isPlaying">
+            {{ t("createTable") }}
           </NeoButton>
-          <NeoButton variant="primary" size="md" @click="bet" :loading="isPlaying" block>
-            {{ t("bet") }}
+          <NeoButton variant="primary" size="md" @click="joinTable" :loading="isPlaying" block>
+            {{ t("joinTable") }}
           </NeoButton>
-          <NeoButton variant="secondary" size="md" @click="reveal" :disabled="isPlaying">
-            {{ t("reveal") }}
+          <NeoButton variant="secondary" size="md" @click="startHand" :disabled="isPlaying">
+            {{ t("startHand") }}
           </NeoButton>
+        </view>
+        <view v-if="tables.length" class="tables-list">
+          <text class="tables-title">{{ t("recentTables") }}</text>
+          <view v-for="table in tables" :key="table.id" class="table-item" @click="selectTable(table.id)">
+            <text class="table-id">#{{ table.id }}</text>
+            <text class="table-buyin">{{ formatNum(table.buyIn) }} GAS</text>
+          </view>
         </view>
       </NeoCard>
 
@@ -123,12 +122,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { useWallet, usePayments, useRNG } from "@neo/uniapp-sdk";
+import { ref, computed, onMounted } from "vue";
+import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import { NeoButton, NeoInput, NeoCard, NeoStats, type StatItem, NeoDoc } from "@/shared/components";
+import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
+import { AppLayout, NeoButton, NeoInput, NeoCard, NeoStats, NeoDoc, type StatItem } from "@/shared/components";
 
 const translations = {
   title: { en: "Secret Poker", zh: "秘密扑克" },
@@ -136,39 +135,56 @@ const translations = {
   yourHand: { en: "Your Hand", zh: "你的手牌" },
   pot: { en: "Pot:", zh: "底池：" },
   actions: { en: "Actions", zh: "操作" },
-  betAmountPlaceholder: { en: "Bet amount (GAS)", zh: "下注金额 (GAS)" },
-  fold: { en: "Fold", zh: "弃牌" },
-  bet: { en: "Bet", zh: "下注" },
-  playing: { en: "Playing...", zh: "游戏中..." },
-  reveal: { en: "Reveal", zh: "揭示" },
+  buyInPlaceholder: { en: "Buy-in (GAS)", zh: "买入金额 (GAS)" },
+  tableIdPlaceholder: { en: "Table ID", zh: "牌桌 ID" },
+  createTable: { en: "Create Table", zh: "创建牌桌" },
+  joinTable: { en: "Join Table", zh: "加入牌桌" },
+  startHand: { en: "Start Hand", zh: "开始手牌" },
+  recentTables: { en: "Recent Tables", zh: "最近牌桌" },
   gameStats: { en: "Game Stats", zh: "游戏统计" },
   games: { en: "Games", zh: "局数" },
   won: { en: "Won", zh: "胜利" },
   earnings: { en: "Earnings", zh: "收益" },
-  minBet: { en: "Min bet: 0.1 GAS", zh: "最小下注：0.1 GAS" },
-  betPlaced: { en: "Bet {amount} GAS placed", zh: "已下注 {amount} GAS" },
+  minBuyIn: { en: "Min buy-in: 1 GAS", zh: "最小买入：1 GAS" },
+  tableCreated: { en: "Table created", zh: "牌桌已创建" },
+  tableJoined: { en: "Joined table (seat {seat})", zh: "加入牌桌 (座位 {seat})" },
+  handStarted: { en: "Hand started", zh: "手牌已开始" },
+  handPending: { en: "Hand result pending", zh: "等待开奖结果" },
+  handWon: { en: "You won {amount} GAS!", zh: "你赢得了 {amount} GAS！" },
+  handLost: { en: "Hand finished - not winner", zh: "手牌结束 - 未获胜" },
+  missingTable: { en: "Enter a table ID", zh: "请输入牌桌 ID" },
+  connectWallet: { en: "Connect wallet", zh: "请连接钱包" },
+  contractUnavailable: { en: "Contract unavailable", zh: "合约不可用" },
+  receiptMissing: { en: "Payment receipt missing", zh: "支付凭证缺失" },
   error: { en: "Error", zh: "错误" },
-  foldedHand: { en: "Folded hand", zh: "已弃牌" },
-  wonAmount: { en: "Won {amount} GAS!", zh: "赢得 {amount} GAS！" },
-  lostRound: { en: "Lost this round", zh: "本轮失败" },
   game: { en: "Game", zh: "游戏" },
   stats: { en: "Stats", zh: "统计" },
   statistics: { en: "Statistics", zh: "统计数据" },
   totalGames: { en: "Total Games", zh: "总游戏数" },
 
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Professional documentation for this application is coming soon.",
-    zh: "此应用程序的专业文档即将推出。",
+  docSubtitle: {
+    en: "Multiplayer poker with TEE-secured card dealing",
+    zh: "使用 TEE 安全发牌的多人扑克",
   },
-  step1: { en: "Open the application.", zh: "打开应用程序。" },
-  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
-  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
-  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
-  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
-  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  docDescription: {
+    en: "Secret Poker is a multiplayer poker game where hands are dealt and resolved using Trusted Execution Environment (TEE) services. Create or join tables, buy in with GAS, and compete for the pot with provably fair card dealing.",
+    zh: "秘密扑克是一款多人扑克游戏，使用可信执行环境 (TEE) 服务发牌和结算。创建或加入牌桌，使用 GAS 买入，通过可证明公平的发牌竞争奖池。",
+  },
+  step1: {
+    en: "Create a new table or join an existing one with GAS buy-in.",
+    zh: "创建新牌桌或使用 GAS 买入加入现有牌桌。",
+  },
+  step2: { en: "Wait for other players to join the table.", zh: "等待其他玩家加入牌桌。" },
+  step3: { en: "Start a hand and watch the TEE deal your cards.", zh: "开始手牌并观看 TEE 发牌。" },
+  step4: { en: "Win the pot if you have the best hand!", zh: "如果你有最好的牌就赢得奖池！" },
+  feature1Name: { en: "TEE Card Dealing", zh: "TEE 发牌" },
+  feature1Desc: {
+    en: "Cards are dealt in a secure enclave, preventing cheating.",
+    zh: "卡牌在安全飞地中发放，防止作弊。",
+  },
+  feature2Name: { en: "Animated Cards", zh: "动画卡牌" },
+  feature2Desc: { en: "Beautiful card flip animations reveal your hand.", zh: "精美的翻牌动画揭示您的手牌。" },
 };
 
 const t = createT(translations);
@@ -180,17 +196,18 @@ const navTabs = [
 ];
 const activeTab = ref("game");
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 const APP_ID = "miniapp-secretpoker";
-const { address, connect } = useWallet();
-const { payGAS } = usePayments(APP_ID);
-const { requestRandom } = useRNG(APP_ID);
+const { address, connect, invokeContract, invokeRead, getContractHash } = useWallet();
+const { payGAS, isLoading } = usePayments(APP_ID);
+const { list: listEvents } = useEvents();
 
-const betAmount = ref("1");
+const buyIn = ref("1");
+const tableIdInput = ref("");
 const pot = ref(0);
 const gamesPlayed = ref(0);
 const gamesWon = ref(0);
@@ -201,15 +218,23 @@ const status = ref<{ msg: string; type: string } | null>(null);
 const showCelebration = ref(false);
 const celebrationType = ref<"win" | "lose">("win");
 const celebrationText = ref("");
+const contractHash = ref<string | null>(null);
 
-// Card suits and ranks
-const suits = ["♠", "♥", "♦", "♣"];
-const ranks = ["A", "K", "Q", "J", "10", "9", "8", "7"];
+type TableSummary = {
+  id: number;
+  buyIn: number;
+};
+
+const tables = ref<TableSummary[]>([]);
+const currentTableId = ref<number | null>(null);
+const currentBuyIn = ref(0);
+const currentPlayerCount = ref(0);
+const currentHandId = ref(0);
 
 const playerHand = ref([
-  { rank: "A", suit: "♠", revealed: false },
-  { rank: "K", suit: "♥", revealed: false },
-  { rank: "Q", suit: "♦", revealed: false },
+  { rank: "?", suit: "♠", revealed: false },
+  { rank: "?", suit: "♥", revealed: false },
+  { rank: "?", suit: "♦", revealed: false },
 ]);
 
 const formatNum = (n: number) => formatNumber(n, 2);
@@ -220,28 +245,54 @@ const gameStats = computed<StatItem[]>(() => [
   { label: t("earnings"), value: formatNum(totalEarnings.value), variant: "accent" },
 ]);
 
-// Helper function to get suit color
 const getSuitColor = (suit: string) => {
   return suit === "♥" || suit === "♦" ? "red" : "black";
 };
 
-// Helper function to shuffle and deal new cards
-const dealNewHand = () => {
-  const newHand = [];
-  for (let i = 0; i < 3; i++) {
-    const randomSuit = suits[Math.floor(Math.random() * suits.length)];
-    const randomRank = ranks[Math.floor(Math.random() * ranks.length)];
-    newHand.push({ rank: randomRank, suit: randomSuit, revealed: false });
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const toFixed8 = (value: string) => {
+  const num = Number.parseFloat(value);
+  if (!Number.isFinite(num)) return "0";
+  return Math.floor(num * 1e8).toString();
+};
+
+const fromFixed8 = (value: number) => {
+  if (!Number.isFinite(value)) return 0;
+  return value / 1e8;
+};
+
+const ensureContractHash = async () => {
+  if (!contractHash.value) {
+    contractHash.value = await getContractHash();
   }
-  playerHand.value = newHand;
+  if (!contractHash.value) throw new Error(t("contractUnavailable"));
+  return contractHash.value;
 };
 
-// Play card sound effect (placeholder)
-const playCardSound = () => {
-  // Sound effect placeholder - implement with actual audio in production
+const waitForEvent = async (txid: string, eventName: string) => {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const res = await listEvents({ app_id: APP_ID, event_name: eventName, limit: 25 });
+    const match = res.events.find((evt) => evt.tx_hash === txid);
+    if (match) return match;
+    await sleep(1500);
+  }
+  return null;
 };
 
-// Show celebration animation
+const waitForHandResult = async (handId: string) => {
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    const res = await listEvents({ app_id: APP_ID, event_name: "HandResult", limit: 25 });
+    const match = res.events.find((evt) => {
+      const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
+      return String(values[1] ?? "") === String(handId);
+    });
+    if (match) return match;
+    await sleep(1500);
+  }
+  return null;
+};
+
 const triggerCelebration = (type: "win" | "lose", text: string) => {
   celebrationType.value = type;
   celebrationText.value = text;
@@ -251,19 +302,81 @@ const triggerCelebration = (type: "win" | "lose", text: string) => {
   }, 3000);
 };
 
-const bet = async () => {
+const playCardSound = () => {
+  // Optional sound effect hook.
+};
+
+const loadTables = async () => {
+  const res = await listEvents({ app_id: APP_ID, event_name: "TableCreated", limit: 20 });
+  tables.value = res.events.map((evt) => {
+    const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
+    return {
+      id: Number(values[0] ?? 0),
+      buyIn: fromFixed8(Number(values[2] ?? 0)),
+    };
+  });
+};
+
+const refreshTable = async () => {
+  if (!currentTableId.value) return;
+  const contract = await ensureContractHash();
+  const res = await invokeRead({
+    contractHash: contract,
+    operation: "GetTable",
+    args: [{ type: "Integer", value: String(currentTableId.value) }],
+  });
+  const data = parseInvokeResult(res);
+  if (Array.isArray(data)) {
+    currentBuyIn.value = fromFixed8(Number(data[1] ?? 0));
+    currentPlayerCount.value = Number(data[2] ?? 0);
+    currentHandId.value = Number(data[4] ?? 0);
+  } else if (typeof data === "object" && data) {
+    currentBuyIn.value = fromFixed8(Number((data as any).buyIn ?? 0));
+    currentPlayerCount.value = Number((data as any).playerCount ?? 0);
+    currentHandId.value = Number((data as any).currentHand ?? 0);
+  }
+  pot.value = Number((currentBuyIn.value * currentPlayerCount.value).toFixed(2));
+};
+
+const selectTable = async (id: number) => {
+  tableIdInput.value = String(id);
+  currentTableId.value = id;
+  await refreshTable();
+};
+
+const createTable = async () => {
   if (isPlaying.value) return;
-  const amount = parseFloat(betAmount.value);
-  if (amount < 0.1) {
-    status.value = { msg: t("minBet"), type: "error" };
+  const amount = Number(buyIn.value);
+  if (!Number.isFinite(amount) || amount < 1) {
+    status.value = { msg: t("minBuyIn"), type: "error" };
     return;
   }
-
   isPlaying.value = true;
   try {
-    await payGAS(betAmount.value, "poker:bet");
-    pot.value += amount;
-    status.value = { msg: t("betPlaced").replace("{amount}", String(amount)), type: "success" };
+    if (!address.value) await connect();
+    if (!address.value) throw new Error(t("connectWallet"));
+    const contract = await ensureContractHash();
+    const tx = await invokeContract({
+      scriptHash: contract,
+      operation: "CreateTable",
+      args: [
+        { type: "Hash160", value: address.value },
+        { type: "Integer", value: toFixed8(buyIn.value) },
+      ],
+    });
+    const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
+    const evt = txid ? await waitForEvent(txid, "TableCreated") : null;
+    if (evt) {
+      const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
+      const tableId = Number(values[0] ?? 0);
+      currentTableId.value = tableId;
+      tableIdInput.value = String(tableId);
+      status.value = { msg: t("tableCreated"), type: "success" };
+      await loadTables();
+      await refreshTable();
+    } else {
+      status.value = { msg: t("tableCreated"), type: "success" };
+    }
   } catch (e: any) {
     status.value = { msg: e.message || t("error"), type: "error" };
   } finally {
@@ -271,60 +384,113 @@ const bet = async () => {
   }
 };
 
-const fold = () => {
-  if (isPlaying.value) return;
-  pot.value = 0;
-  dealNewHand();
-  status.value = { msg: t("foldedHand"), type: "error" };
-  triggerCelebration("lose", t("foldedHand"));
+const joinTable = async () => {
+  if (isPlaying.value || isLoading.value) return;
+  if (!tableIdInput.value) {
+    status.value = { msg: t("missingTable"), type: "error" };
+    return;
+  }
+  isPlaying.value = true;
+  try {
+    if (!address.value) await connect();
+    if (!address.value) throw new Error(t("connectWallet"));
+    const contract = await ensureContractHash();
+    const tableId = Number(tableIdInput.value);
+    if (!currentBuyIn.value) {
+      currentTableId.value = tableId;
+      await refreshTable();
+    }
+    const payment = await payGAS(String(currentBuyIn.value || buyIn.value), `poker:join:${tableId}`);
+    const receiptId = payment.receipt_id;
+    if (!receiptId) throw new Error(t("receiptMissing"));
+    const tx = await invokeContract({
+      scriptHash: contract,
+      operation: "JoinTable",
+      args: [
+        { type: "Integer", value: String(tableId) },
+        { type: "Hash160", value: address.value },
+        { type: "Integer", value: receiptId },
+      ],
+    });
+    const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
+    const evt = txid ? await waitForEvent(txid, "PlayerJoined") : null;
+    if (evt) {
+      const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
+      const seat = String(values[2] ?? "");
+      status.value = { msg: t("tableJoined").replace("{seat}", seat), type: "success" };
+    } else {
+      status.value = { msg: t("tableJoined").replace("{seat}", "-"), type: "success" };
+    }
+    await refreshTable();
+  } catch (e: any) {
+    status.value = { msg: e.message || t("error"), type: "error" };
+  } finally {
+    isPlaying.value = false;
+  }
 };
 
-const reveal = async () => {
+const startHand = async () => {
   if (isPlaying.value) return;
+  if (!tableIdInput.value) {
+    status.value = { msg: t("missingTable"), type: "error" };
+    return;
+  }
   isPlaying.value = true;
   isAnimating.value = true;
-
+  playerHand.value.forEach((c) => (c.revealed = false));
   try {
-    const rng = await requestRandom();
-    const byte = parseInt(rng.randomness.slice(0, 2), 16);
-    const won = byte % 2 === 0;
+    const contract = await ensureContractHash();
+    const tableId = Number(tableIdInput.value);
+    const tx = await invokeContract({
+      scriptHash: contract,
+      operation: "StartHand",
+      args: [{ type: "Integer", value: String(tableId) }],
+    });
+    const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
+    const startedEvt = txid ? await waitForEvent(txid, "HandStarted") : null;
+    if (!startedEvt) {
+      status.value = { msg: t("handStarted"), type: "success" };
+      return;
+    }
+    const startedValues = Array.isArray((startedEvt as any)?.state)
+      ? (startedEvt as any).state.map(parseStackItem)
+      : [];
+    const handId = String(startedValues[1] ?? "");
+    status.value = { msg: t("handStarted"), type: "success" };
 
-    // Animate card flip
-    setTimeout(() => {
-      playerHand.value.forEach((c) => (c.revealed = true));
-      isAnimating.value = false;
-    }, 600);
+    const resultEvt = await waitForHandResult(handId);
+    if (!resultEvt) {
+      status.value = { msg: t("handPending"), type: "error" };
+      return;
+    }
+    const values = Array.isArray((resultEvt as any)?.state) ? (resultEvt as any).state.map(parseStackItem) : [];
+    const winner = String(values[2] ?? "");
+    const payout = fromFixed8(Number(values[3] ?? 0));
+    pot.value = payout;
+    gamesPlayed.value += 1;
+    playerHand.value.forEach((c) => (c.revealed = true));
 
-    // Wait for animation to complete
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    gamesPlayed.value++;
-
-    if (won) {
-      gamesWon.value++;
-      const winAmount = pot.value * 2;
-      totalEarnings.value += winAmount;
-      const winMsg = t("wonAmount").replace("{amount}", String(winAmount));
+    if (address.value && winner && winner === address.value) {
+      gamesWon.value += 1;
+      totalEarnings.value += payout;
+      const winMsg = t("handWon").replace("{amount}", formatNum(payout));
       status.value = { msg: winMsg, type: "success" };
       triggerCelebration("win", winMsg);
     } else {
-      status.value = { msg: t("lostRound"), type: "error" };
-      triggerCelebration("lose", t("lostRound"));
+      status.value = { msg: t("handLost"), type: "error" };
+      triggerCelebration("lose", t("handLost"));
     }
-
-    pot.value = 0;
-
-    // Deal new hand after a delay
-    setTimeout(() => {
-      dealNewHand();
-    }, 2000);
   } catch (e: any) {
     status.value = { msg: e.message || t("error"), type: "error" };
-    isAnimating.value = false;
   } finally {
     isPlaying.value = false;
+    isAnimating.value = false;
   }
 };
+
+onMounted(async () => {
+  await loadTables();
+});
 </script>
 
 <style lang="scss" scoped>
@@ -334,474 +500,262 @@ const reveal = async () => {
 .tab-content {
   padding: $space-3;
   flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: $space-4;
   overflow-y: auto;
-  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
 
 // === CELEBRATION ANIMATION ===
 .celebration {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: $z-modal;
-  text-align: center;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   animation: celebration-bounce 0.6s ease-out;
-  pointer-events: none;
-
-  &.win {
-    .celebration-text {
-      color: var(--brutal-yellow);
-      text-shadow: 3px 3px 0 var(--neo-black);
-    }
-  }
-
-  &.lose {
-    .celebration-text {
-      color: var(--status-error);
-      text-shadow: 3px 3px 0 var(--neo-black);
-    }
-  }
 }
 
 .celebration-text {
-  font-size: $font-size-3xl;
+  font-size: 40px;
   font-weight: $font-weight-black;
   text-transform: uppercase;
+  background: white;
+  padding: $space-4 $space-8;
+  border: 4px solid black;
+  box-shadow: 10px 10px 0 black;
   margin-bottom: $space-4;
 }
 
-.celebration-coins {
-  display: flex;
-  gap: $space-2;
-  justify-content: center;
-
-  .coin {
-    font-size: $font-size-2xl;
-    animation: coin-fall 1s ease-out forwards;
-    opacity: 0;
-
-    @for $i from 1 through 5 {
-      &:nth-child(#{$i}) {
-        animation-delay: #{$i * 0.1}s;
-      }
-    }
-  }
+.celebration.win .celebration-text {
+  color: var(--brutal-yellow);
+  background: black;
+}
+.celebration.lose .celebration-text {
+  color: var(--brutal-red);
 }
 
 @keyframes celebration-bounce {
   0% {
-    transform: translate(-50%, -50%) scale(0);
+    transform: scale(0);
     opacity: 0;
   }
-  50% {
-    transform: translate(-50%, -50%) scale(1.2);
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes coin-fall {
-  0% {
-    transform: translateY(-100px);
-    opacity: 0;
-  }
-  50% {
+  70% {
+    transform: scale(1.1);
     opacity: 1;
   }
   100% {
-    transform: translateY(0);
-    opacity: 1;
+    transform: scale(1);
   }
 }
 
-// === STATUS MESSAGE ===
-.status-msg {
-  text-align: center;
-  padding: $space-3;
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-sm;
-  margin-bottom: $space-4;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  animation: status-slide-in 0.3s ease-out;
-
-  &.success {
-    background: var(--status-success);
-    color: var(--neo-black);
-    border-color: var(--neo-black);
-  }
-  &.error {
-    background: var(--status-error);
-    color: var(--neo-white);
-    border-color: var(--neo-black);
-  }
-}
-
-@keyframes status-slide-in {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
 // === POKER TABLE ===
 .poker-table {
   margin-bottom: $space-4;
-  border: $border-width-lg solid var(--border-color);
-  border-radius: $radius-lg;
-  box-shadow: $shadow-lg;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+  border: 6px solid black;
+  box-shadow: 12px 12px 0 black;
+  overflow: hidden;
 }
 
 .table-felt {
-  background: linear-gradient(135deg, var(--neo-green) 0%, color-mix(in srgb, var(--neo-green) 85%, black) 100%);
-  padding: $space-6;
+  background: var(--neo-green);
+  padding: $space-8;
   position: relative;
-
-  // Felt texture pattern
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 10px,
-      rgba(0, 0, 0, 0.03) 10px,
-      rgba(0, 0, 0, 0.03) 20px
-    );
-    pointer-events: none;
-  }
+  border: 2px solid rgba(0, 0, 0, 0.1);
 }
 
 // === POT DISPLAY WITH CHIPS ===
 .pot-display {
   text-align: center;
-  margin-bottom: $space-6;
-  position: relative;
-  z-index: 1;
+  margin-bottom: $space-8;
+  background: white;
+  border: 3px solid black;
+  padding: $space-4;
+  box-shadow: 6px 6px 0 black;
 }
 
 .chip-stack {
   display: flex;
   justify-content: center;
-  align-items: flex-end;
-  height: 60px;
-  margin-bottom: $space-3;
-  gap: 2px;
+  gap: 4px;
+  margin-bottom: 8px;
 }
-
 .chip {
-  width: 40px;
-  height: 8px;
-  background: linear-gradient(135deg, var(--brutal-yellow) 0%, var(--brutal-yellow) 100%);
-  border: 2px solid var(--neo-black);
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  position: relative;
-  animation: chip-stack 0.3s ease-out backwards;
-
-  @for $i from 1 through 10 {
-    &:nth-child(#{$i}) {
-      animation-delay: #{$i * 0.05}s;
-      margin-bottom: #{($i - 1) * 6}px;
-    }
-  }
-
-  &::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--neo-black);
-    border-radius: 50%;
-  }
-}
-
-@keyframes chip-stack {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  width: 30px;
+  height: 10px;
+  background: var(--brutal-yellow);
+  border: 2px solid black;
+  border-radius: 4px;
 }
 
 .pot-label {
-  display: block;
-  color: var(--brutal-yellow);
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  text-shadow: 2px 2px 0 var(--neo-black);
-}
-
-.pot-amount {
-  display: block;
-  color: var(--neo-white);
-  font-size: $font-size-3xl;
+  font-size: 12px;
   font-weight: $font-weight-black;
-  text-shadow: 3px 3px 0 var(--neo-black);
-  margin-top: $space-2;
+  text-transform: uppercase;
 }
-// === HAND SECTION ===
-.hand-section {
-  position: relative;
-  z-index: 1;
+.pot-amount {
+  font-size: 32px;
+  font-weight: $font-weight-black;
+  font-family: $font-mono;
+  display: block;
+  line-height: 1;
 }
 
+// === HAND SECTION ===
 .hand-title {
-  display: block;
-  text-align: center;
-  color: var(--neo-white);
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
+  font-size: 14px;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  text-align: center;
   margin-bottom: $space-4;
-  text-shadow: 2px 2px 0 var(--neo-black);
+  background: black;
+  color: white;
+  padding: 2px 12px;
+  display: inline-block;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .cards-row {
   display: flex;
-  gap: $space-3;
+  gap: $space-4;
   justify-content: center;
   perspective: 1000px;
 }
-// === POKER CARD ===
+
 .poker-card {
-  width: 90px;
-  height: 130px;
+  width: 80px;
+  height: 120px;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 0.6s;
-  cursor: pointer;
-
-  &.flip {
-    animation: card-flip 0.6s ease-in-out;
-  }
-
+  transition: all 0.4s;
   &.revealed {
-    .card-back {
-      transform: rotateY(180deg);
-    }
-    .card-front {
-      transform: rotateY(0deg);
-    }
+    transform: rotateY(0deg);
   }
-
   &:not(.revealed) {
-    .card-back {
-      transform: rotateY(0deg);
-    }
-    .card-front {
-      transform: rotateY(-180deg);
-    }
-  }
-
-  &:hover {
-    transform: translateY(-8px);
+    transform: rotateY(180deg);
   }
 }
 
-@keyframes card-flip {
-  0% {
-    transform: rotateY(0deg) scale(1);
-  }
-  50% {
-    transform: rotateY(90deg) scale(1.1);
-  }
-  100% {
-    transform: rotateY(180deg) scale(1);
-  }
-}
-
-// Card Back
+.card-front,
 .card-back {
   position: absolute;
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-  background: linear-gradient(135deg, var(--brutal-red) 0%, var(--brutal-red) 100%);
-  border: $border-width-md solid var(--neo-black);
-  border-radius: $radius-md;
-  box-shadow: $shadow-md;
+  inset: 0;
   backface-visibility: hidden;
-  transition: transform 0.6s;
+  border: 3px solid black;
+  box-shadow: 4px 4px 0 black;
+}
+
+.card-back {
+  background: var(--brutal-red);
+  transform: rotateY(180deg);
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
 .card-pattern {
-  width: 70%;
-  height: 80%;
-  border: 3px solid var(--neo-white);
-  border-radius: $radius-sm;
+  width: 60%;
+  height: 70%;
+  border: 2px solid white;
   background-image: repeating-linear-gradient(
     45deg,
     transparent,
-    transparent 8px,
-    rgba(255, 255, 255, 0.1) 8px,
-    rgba(255, 255, 255, 0.1) 16px
+    transparent 10px,
+    rgba(255, 255, 255, 0.1) 10px,
+    rgba(255, 255, 255, 0.1) 20px
   );
 }
-// Card Front
+
 .card-front {
-  position: absolute;
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-  background: var(--neo-white);
-  border: $border-width-md solid var(--neo-black);
-  border-radius: $radius-md;
-  box-shadow: $shadow-md;
-  backface-visibility: hidden;
-  transition: transform 0.6s;
+  background: white;
   padding: $space-2;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
-
 .card-corner {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-
-  &.top-left {
-    align-self: flex-start;
-  }
-
-  &.bottom-right {
-    align-self: flex-end;
-    transform: rotate(180deg);
-  }
 }
-
 .card-rank {
-  font-size: $font-size-lg;
+  font-size: 20px;
   font-weight: $font-weight-black;
   line-height: 1;
-
-  &.red {
-    color: var(--brutal-red);
-  }
-
-  &.black {
-    color: var(--neo-black);
-  }
 }
-
 .card-suit {
-  font-size: $font-size-base;
-  line-height: 1;
-
-  &.red {
-    color: var(--brutal-red);
-  }
-
-  &.black {
-    color: var(--neo-black);
-  }
+  font-size: 16px;
 }
-
 .card-suit-center {
-  font-size: 48px;
+  font-size: 40px;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  line-height: 1;
-
-  &.red {
-    color: var(--brutal-red);
-  }
-
-  &.black {
-    color: var(--neo-black);
-  }
+  opacity: 0.2;
 }
+.card-corner.bottom-right {
+  transform: rotate(180deg);
+}
+
+.card-rank.red,
+.card-suit.red {
+  color: var(--brutal-red);
+}
+.card-rank.black,
+.card-suit.black {
+  color: black;
+}
+
 // === BETTING CONTROLS ===
 .bet-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
   margin-bottom: $space-4;
 }
-
-.quick-bet-chips {
-  display: flex;
-  gap: $space-2;
-  margin-top: $space-3;
-  justify-content: space-between;
-}
-
-.quick-chip {
-  flex: 1;
-  aspect-ratio: 1;
-  background: linear-gradient(135deg, var(--brutal-yellow) 0%, var(--brutal-yellow) 100%);
-  border: $border-width-md solid var(--neo-black);
-  border-radius: 50%;
-  box-shadow: $shadow-sm;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all $transition-fast;
-  position: relative;
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 8px;
-    border: 2px solid var(--neo-black);
-    border-radius: 50%;
-  }
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: $shadow-md;
-  }
-
-  &:active {
-    transform: translateY(-2px);
-    box-shadow: $shadow-sm;
-  }
-}
-
-.chip-value {
-  font-size: $font-size-base;
-  font-weight: $font-weight-black;
-  color: var(--neo-black);
-  z-index: 1;
-}
-
 .actions-row {
-  display: flex;
-  gap: $space-3;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: $space-2;
   margin-top: $space-4;
+}
+
+.tables-list {
+  border-top: 3px solid black;
+  margin-top: $space-6;
+  padding-top: $space-4;
+}
+.tables-title {
+  font-size: 12px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: block;
+}
+.table-item {
+  display: flex;
+  justify-content: space-between;
+  padding: $space-3;
+  background: white;
+  border: 2px solid black;
+  box-shadow: 4px 4px 0 black;
+  margin-bottom: $space-2;
+}
+.table-id {
+  font-weight: $font-weight-black;
+  font-family: $font-mono;
+}
+.table-buyin {
+  font-weight: $font-weight-black;
+  background: var(--neo-green);
+  padding: 2px 8px;
+  border: 1px solid black;
 }
 
 // === STATISTICS ===
@@ -809,29 +763,29 @@ const reveal = async () => {
   display: flex;
   justify-content: space-between;
   padding: $space-3 0;
-  border-bottom: $border-width-sm solid var(--border-color);
-
+  border-bottom: 2px solid black;
   &:last-child {
-    border-bottom: 0;
+    border-bottom: none;
   }
 }
-
 .stat-label {
-  color: var(--text-secondary);
-  font-size: $font-size-base;
+  font-size: 12px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+.stat-value {
+  font-weight: $font-weight-black;
+  font-family: $font-mono;
+  font-size: 16px;
+  color: black;
+}
+.stat-value.win {
+  color: var(--neo-green);
 }
 
-.stat-value {
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-  font-size: $font-size-base;
-
-  &.win {
-    color: var(--status-success);
-  }
-
-  &.loss {
-    color: var(--status-error);
-  }
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

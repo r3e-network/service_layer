@@ -3,25 +3,23 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, useRouter } from "expo-router";
 import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { getLocale, setLocale, LOCALES, Locale } from "@/lib/i18n";
+import { LOCALES, Locale } from "@/lib/i18n";
+import { useWalletStore } from "@/stores/wallet";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function LanguageScreen() {
   const router = useRouter();
-  const [current, setCurrent] = useState<Locale>("en");
+  const { t } = useTranslation();
+  const { locale: current, setLocale } = useWalletStore();
 
-  useEffect(() => {
-    getLocale().then(setCurrent);
-  }, []);
-
-  const handleSelect = async (locale: Locale) => {
-    await setLocale(locale);
-    setCurrent(locale);
+  const handleSelect = async (l: Locale) => {
+    await setLocale(l);
     router.back();
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: "Language" }} />
+      <Stack.Screen options={{ title: t("settings.language") }} />
       <View style={styles.list}>
         {(Object.keys(LOCALES) as Locale[]).map((locale) => (
           <TouchableOpacity
@@ -30,7 +28,7 @@ export default function LanguageScreen() {
             onPress={() => handleSelect(locale)}
           >
             <Text style={styles.label}>{LOCALES[locale]}</Text>
-            {current === locale && <Ionicons name="checkmark-circle" size={24} color="#00d4aa" />}
+            {current === locale && <Ionicons name="checkmark-circle" size={24} color="#000" />}
           </TouchableOpacity>
         ))}
       </View>
@@ -39,17 +37,22 @@ export default function LanguageScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0a0a0a" },
-  list: { padding: 16 },
+  container: { flex: 1, backgroundColor: "#fff" },
+  list: { padding: 24 },
   item: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#1a1a1a",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 8,
+    backgroundColor: "#fff",
+    padding: 20,
+    borderWidth: 3,
+    borderColor: "#000",
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
-  active: { borderColor: "#00d4aa", borderWidth: 1 },
-  label: { color: "#fff", fontSize: 16 },
+  active: { backgroundColor: "#00E599", shadowOffset: { width: 0, height: 0 }, transform: [{ translateX: 4 }, { translateY: 4 }] },
+  label: { color: "#000", fontSize: 18, fontWeight: "900", textTransform: "uppercase" },
 });

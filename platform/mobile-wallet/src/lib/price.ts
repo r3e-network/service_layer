@@ -1,14 +1,20 @@
 /**
  * Price API Client
- * Fetches NEO/GAS prices from CoinGecko
+ * Fetches NEO/GAS prices from global price API
  */
 
-const COINGECKO_API = "https://api.coingecko.com/api/v3";
+import { API_BASE_URL } from "./config";
 
 export interface TokenPrice {
   symbol: string;
   usd: number;
   usd_24h_change: number;
+}
+
+export interface PriceResponse {
+  neo: { usd: number; usd_24h_change: number };
+  gas: { usd: number; usd_24h_change: number };
+  timestamp: number;
 }
 
 let priceCache: { prices: TokenPrice[]; timestamp: number } | null = null;
@@ -20,9 +26,11 @@ export async function getTokenPrices(): Promise<TokenPrice[]> {
     return priceCache.prices;
   }
 
-  const url = `${COINGECKO_API}/simple/price?ids=neo,gas&vs_currencies=usd&include_24hr_change=true`;
+  const url = `${API_BASE_URL}/price`;
   const res = await fetch(url);
-  const data = await res.json();
+  if (!res.ok) throw new Error(`Price API error: ${res.status}`);
+
+  const data: PriceResponse = await res.json();
 
   const prices: TokenPrice[] = [
     { symbol: "NEO", usd: data.neo?.usd || 0, usd_24h_change: data.neo?.usd_24h_change || 0 },

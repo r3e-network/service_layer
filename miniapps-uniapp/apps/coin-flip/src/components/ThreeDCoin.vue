@@ -26,7 +26,7 @@ const props = defineProps<{
 const coinStyle = computed(() => {
   if (props.flipping) {
     return {
-      transform: `rotateY(${1800 + Math.random() * 360}deg) rotateX(${Math.random() * 30}deg)`,
+      transform: "rotateY(1800deg) rotateX(15deg)",
       transition: "transform 2s ease-in-out",
     };
   }

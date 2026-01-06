@@ -10,40 +10,40 @@
       </view>
 
       <!-- Bet Controls -->
-      <view class="controls-card">
-        <text class="section-title">{{ t("makeChoice") }}</text>
-
+      <NeoCard :title="t('makeChoice')">
         <view class="choice-row">
           <view :class="['choice-btn', choice === 'heads' && 'active']" @click="choice = 'heads'">
-            <text class="choice-icon">🐲</text>
+            <AppIcon name="heads" :size="32" />
             <text class="choice-label">{{ t("heads") }}</text>
           </view>
           <view :class="['choice-btn', choice === 'tails' && 'active']" @click="choice = 'tails'">
-            <text class="choice-icon">🔴</text>
+            <AppIcon name="tails" :size="32" />
             <text class="choice-label">{{ t("tails") }}</text>
           </view>
         </view>
 
-        <NeoInput
-          v-model="betAmount"
-          type="number"
-          :label="t('wager')"
-          :placeholder="t('betAmountPlaceholder')"
-          suffix="GAS"
-          :hint="t('minBet')"
-        />
+        <view class="mt-4 flex flex-col gap-4">
+          <NeoInput
+            v-model="betAmount"
+            type="number"
+            :label="t('wager')"
+            :placeholder="t('betAmountPlaceholder')"
+            suffix="GAS"
+            :hint="t('minBet')"
+          />
 
-        <NeoButton
-          variant="primary"
-          size="lg"
-          block
-          :disabled="isFlipping || !canBet"
-          :loading="isFlipping"
-          @click="flip"
-        >
-          {{ isFlipping ? t("flipping") : t("flipCoin") }}
-        </NeoButton>
-      </view>
+          <NeoButton
+            variant="primary"
+            size="lg"
+            block
+            :disabled="isFlipping || !canBet"
+            :loading="isFlipping"
+            @click="flip"
+          >
+            {{ isFlipping ? t("flipping") : t("flipCoin") }}
+          </NeoButton>
+        </view>
+      </NeoCard>
 
       <!-- Result Modal -->
       <NeoModal
@@ -54,7 +54,9 @@
         @close="showWinOverlay = false"
       >
         <view class="win-content">
-          <text class="win-emoji">🎉</text>
+          <view class="win-icon">
+            <AppIcon name="trophy" :size="64" />
+          </view>
           <text class="win-amount">+{{ winAmount }} GAS</text>
         </view>
       </NeoModal>
@@ -80,11 +82,20 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { usePayments, useRNG } from "@neo/uniapp-sdk";
+import { usePayments, useWallet, useEvents } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
+import { parseStackItem } from "@/shared/utils/neo";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import { NeoButton, NeoInput, NeoModal, NeoStats, NeoDoc, type StatItem } from "@/shared/components";
+import {
+  AppLayout,
+  NeoButton,
+  NeoInput,
+  NeoModal,
+  NeoStats,
+  NeoDoc,
+  AppIcon,
+  type StatItem,
+} from "@/shared/components";
 import ThreeDCoin from "@/components/ThreeDCoin.vue";
 
 const translations = {
@@ -95,14 +106,16 @@ const translations = {
   makeChoice: { en: "Choose Side", zh: "选择面" },
   placeBet: { en: "Place Your Bet", zh: "请下注" },
   wager: { en: "Wager Amount", zh: "下注金额" },
-  betAmountPlaceholder: { en: "0.1", zh: "0.1" },
+  betAmountPlaceholder: { en: "0.05", zh: "0.05" },
   heads: { en: "Heads", zh: "正面" },
   tails: { en: "Tails", zh: "反面" },
   flipping: { en: "Flipping...", zh: "抛掷中..." },
   flipCoin: { en: "Flip Coin", zh: "抛硬币" },
   youWon: { en: "You Won!", zh: "你赢了！" },
   youLost: { en: "You Lost", zh: "你输了" },
-  minBet: { en: "Min bet: 0.1 GAS", zh: "最小下注：0.1 GAS" },
+  minBet: { en: "Min bet: 0.05 GAS", zh: "最小下注：0.05 GAS" },
+  connectWallet: { en: "Connect wallet to continue", zh: "请连接钱包" },
+  error: { en: "Error", zh: "错误" },
   game: { en: "Play", zh: "游戏" },
   stats: { en: "Stats", zh: "统计" },
   docs: { en: "Docs", zh: "文档" },
@@ -118,8 +131,9 @@ const translations = {
   step2: { en: "Enter the amount of GAS you want to wager.", zh: "输入你想下注的 GAS 金额。" },
   step3: {
     en: "Click 'Flip Coin' and wait for the TEE-powered secure RNG.",
-    zh: "点击“抛硬币”，等待 TEE 驱动的安全随机数。",
+    zh: "点击「抛硬币」，等待 TEE 驱动的安全随机数。",
   },
+  step4: { en: "View your win/loss stats in the Stats tab.", zh: "在统计标签页查看您的胜负统计。" },
   feature1Name: { en: "TEE Verification", zh: "TEE 验证" },
   feature1Desc: { en: "Randomness is generated inside an Intel SGX enclave.", zh: "随机数在 Intel SGX 安全区内生成。" },
   feature2Name: { en: "Instant Payout", zh: "即时支付" },
@@ -134,7 +148,7 @@ const navTabs = [
 ];
 const activeTab = ref("game");
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
@@ -142,7 +156,8 @@ const docFeatures = computed(() => [
 
 const APP_ID = "miniapp-coinflip";
 const { payGAS } = usePayments(APP_ID);
-const { requestRandom } = useRNG(APP_ID);
+const { address, connect, invokeContract, getContractHash } = useWallet();
+const { list: listEvents } = useEvents();
 
 const betAmount = ref("1");
 const choice = ref<"heads" | "tails">("heads");
@@ -154,12 +169,43 @@ const result = ref<{ won: boolean; outcome: string } | null>(null);
 const displayOutcome = ref<"heads" | "tails" | null>(null);
 const showWinOverlay = ref(false);
 const winAmount = ref("0");
+const contractHash = ref<string | null>(null);
 
 const formatNum = (n: number) => formatNumber(n, 2);
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const toFixed8 = (value: string) => {
+  const num = Number.parseFloat(value);
+  if (!Number.isFinite(num)) return "0";
+  return Math.floor(num * 1e8).toString();
+};
+
+const waitForEvent = async (txid: string, eventName: string) => {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const res = await listEvents({ app_id: APP_ID, event_name: eventName, limit: 20 });
+    const match = res.events.find((evt) => evt.tx_hash === txid);
+    if (match) return match;
+    await sleep(1500);
+  }
+  return null;
+};
+
+const waitForResolved = async (betId: string) => {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const res = await listEvents({ app_id: APP_ID, event_name: "BetResolved", limit: 25 });
+    const match = res.events.find((evt) => {
+      const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
+      return String(values[3] ?? "") === String(betId);
+    });
+    if (match) return match;
+    await sleep(1500);
+  }
+  return null;
+};
 
 const canBet = computed(() => {
   const n = parseFloat(betAmount.value);
-  return n >= 0.1;
+  return n >= 0.05;
 });
 
 const gameStats = computed<StatItem[]>(() => [
@@ -178,34 +224,73 @@ const flip = async () => {
   showWinOverlay.value = false;
 
   try {
-    await payGAS(betAmount.value, `coinflip:${choice.value}`);
-    const rng = await requestRandom();
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) {
+      throw new Error(t("connectWallet"));
+    }
+    if (!contractHash.value) {
+      contractHash.value = await getContractHash();
+    }
+    if (!contractHash.value) {
+      throw new Error(t("error"));
+    }
 
-    // Simulate slight delay for suspense if RNG was too fast vs animation
-    // The CSS animation is 2s, we want to set the final state around then.
+    const payment = await payGAS(betAmount.value, `coinflip:${choice.value}`);
+    const receiptId = payment.receipt_id;
+    if (!receiptId) {
+      throw new Error("Missing payment receipt");
+    }
 
-    const byte = parseInt(rng.randomness.slice(0, 2), 16);
-    const outcome = byte % 2 === 0 ? "heads" : "tails";
-    const won = outcome === choice.value;
+    const amountInt = toFixed8(betAmount.value);
+    const tx = await invokeContract({
+      scriptHash: contractHash.value as string,
+      operation: "PlaceBet",
+      args: [
+        { type: "Hash160", value: address.value as string },
+        { type: "Integer", value: amountInt },
+        { type: "Boolean", value: choice.value === "heads" },
+        { type: "Integer", value: Number(receiptId) },
+      ],
+    });
 
-    setTimeout(() => {
-      displayOutcome.value = outcome; // This triggers CSS to settle on this face
+    const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
+    const placedEvent = txid ? await waitForEvent(txid, "BetPlaced") : null;
+    if (!placedEvent) {
+      throw new Error("Bet confirmation not available yet");
+    }
+    const placedValues = Array.isArray((placedEvent as any)?.state)
+      ? (placedEvent as any).state.map(parseStackItem)
+      : [];
+    const betId = String(placedValues[3] ?? "");
+    if (!betId) {
+      throw new Error("Bet id missing");
+    }
 
-      setTimeout(() => {
-        isFlipping.value = false;
-        result.value = { won, outcome: outcome.toUpperCase() };
+    const resolvedEvent = await waitForResolved(betId);
+    if (!resolvedEvent) {
+      throw new Error("Result not available yet");
+    }
+    const values = Array.isArray((resolvedEvent as any)?.state) ? (resolvedEvent as any).state.map(parseStackItem) : [];
+    const payoutRaw = values[1];
+    const won = Boolean(values[2]);
+    const payoutValue = Number(payoutRaw || 0) / 1e8;
+    const outcome = won ? choice.value : choice.value === "heads" ? "tails" : "heads";
 
-        if (won) {
-          wins.value++;
-          const amount = parseFloat(betAmount.value) * 2; // Simple 2x for demo
-          totalWon.value += amount;
-          winAmount.value = amount.toFixed(2);
-          showWinOverlay.value = true;
-        } else {
-          losses.value++;
-        }
-      }, 500); // Wait for settle transition
-    }, 1500); // 1.5s spinning before deciding final rotation target (or use CSS track)
+    displayOutcome.value = outcome;
+    await sleep(400);
+    isFlipping.value = false;
+    result.value = { won, outcome: outcome.toUpperCase() };
+
+    if (won) {
+      wins.value++;
+      totalWon.value += payoutValue;
+      winAmount.value = payoutValue.toFixed(2);
+      showWinOverlay.value = true;
+    } else {
+      losses.value++;
+    }
   } catch (e: any) {
     console.error(e);
     isFlipping.value = false;
@@ -218,195 +303,93 @@ const flip = async () => {
 @import "@/shared/styles/variables.scss";
 
 .tab-content {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-primary);
   padding: $space-4;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-}
-
-.arena {
-  height: 250px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 50%, var(--bg-secondary) 100%);
-  border-bottom: $border-width-md solid var(--border-color);
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(circle at 50% 50%, rgba(0, 229, 153, 0.05) 0%, transparent 70%);
-    pointer-events: none;
-  }
-}
-
-.status-text {
-  margin-top: $space-5;
-  font-size: $font-size-lg;
-  font-weight: $font-weight-black;
-  color: var(--text-primary);
-  text-transform: uppercase;
-  text-shadow: 0 0 10px var(--neo-green);
-  position: relative;
-  z-index: 1;
-
-  &.blink {
-    animation: pulse 1s infinite;
-  }
-}
-
-.controls-card {
-  background: var(--bg-card);
-  border-top: $border-width-lg solid var(--neo-green);
-  padding: $space-6;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-5;
-}
-
-.section-title {
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  font-weight: $font-weight-bold;
-}
-
-.choice-row {
-  display: flex;
   gap: $space-4;
 }
 
+.arena {
+  background: white;
+  border: 4px solid black;
+  padding: $space-8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-4;
+  box-shadow: 10px 10px 0 black;
+}
+
+.status-text {
+  font-family: $font-mono;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  color: var(--neo-green);
+  font-size: 16px;
+  background: black;
+  padding: 4px 12px;
+  border: 2px solid var(--neo-green);
+}
+
+.choice-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-3;
+}
+
 .choice-btn {
-  flex: 1;
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
+  background: white;
+  border: 2px solid black;
   padding: $space-4;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: $space-2;
   cursor: pointer;
-  transition:
-    transform $transition-fast,
-    box-shadow $transition-fast,
-    border-color $transition-fast;
-  position: relative;
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: var(--neo-green);
-    opacity: 0;
-    transition: opacity $transition-fast;
-    pointer-events: none;
-  }
-
   &.active {
-    border-color: var(--neo-green);
-    box-shadow: $shadow-neo;
-
-    &::before {
-      opacity: 0.05;
-    }
+    background: var(--brutal-yellow);
+    box-shadow: 6px 6px 0 black;
+    transform: translate(-2px, -2px);
   }
-
-  &:active {
-    transform: translate(3px, 3px);
-    box-shadow: none;
-  }
-}
-
-.choice-icon {
-  font-size: 28px;
+  transition: all $transition-fast;
 }
 
 .choice-label {
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
+  font-size: 10px;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
 }
 
-// Win Modal Content
 .win-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
   padding: $space-6;
+  text-align: center;
 }
-
-.win-emoji {
-  font-size: 64px;
-  margin-bottom: $space-4;
-  animation:
-    bounce 1s infinite,
-    rotate 2s ease-in-out infinite;
-  filter: drop-shadow(0 0 20px var(--neo-green));
-}
-
 .win-amount {
-  font-size: $font-size-3xl;
-  font-weight: $font-weight-black;
-  color: var(--neo-green);
   font-family: $font-mono;
-  text-shadow: 0 0 20px var(--neo-green);
-  animation: glow 1.5s ease-in-out infinite;
+  font-weight: $font-weight-black;
+  font-size: 36px;
+  color: var(--neo-green);
+  display: block;
+  margin-top: $space-4;
+  text-shadow: 2px 2px 0 black;
 }
 
-@keyframes pulse {
+.blink {
+  animation: flash-status 0.5s infinite;
+}
+@keyframes flash-status {
   0%,
   100% {
     opacity: 1;
   }
   50% {
-    opacity: 0.5;
+    opacity: 0.2;
   }
 }
 
-@keyframes bounce {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes rotate {
-  0%,
-  100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-10px) rotate(10deg);
-  }
-}
-
-@keyframes glow {
-  0%,
-  100% {
-    text-shadow: 0 0 20px var(--neo-green);
-  }
-  50% {
-    text-shadow:
-      0 0 30px var(--neo-green),
-      0 0 40px var(--neo-green);
-  }
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

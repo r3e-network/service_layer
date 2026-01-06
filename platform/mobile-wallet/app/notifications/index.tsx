@@ -5,8 +5,10 @@ import { useState, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { loadNotifications, markAsRead, getNotifIcon, Notification } from "@/lib/notifcenter";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function NotificationsScreen() {
+  const { t } = useTranslation();
   const [notifs, setNotifs] = useState<Notification[]>([]);
 
   useFocusEffect(
@@ -34,11 +36,11 @@ export default function NotificationsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: "Notifications" }} />
+      <Stack.Screen options={{ title: t("notifications.title") }} />
       {notifs.length === 0 ? (
         <View style={styles.empty}>
           <Ionicons name="notifications-off-outline" size={64} color="#333" />
-          <Text style={styles.emptyText}>No notifications</Text>
+          <Text style={styles.emptyText}>{t("notifications.empty")}</Text>
         </View>
       ) : (
         <FlatList
@@ -53,13 +55,25 @@ export default function NotificationsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0a0a0a" },
-  list: { padding: 16 },
-  item: { flexDirection: "row", backgroundColor: "#1a1a1a", padding: 14, borderRadius: 12, marginBottom: 8, gap: 12 },
-  unread: { borderLeftWidth: 3, borderLeftColor: "#00d4aa" },
+  container: { flex: 1, backgroundColor: "#fff" },
+  list: { padding: 24, paddingBottom: 40 },
+  item: {
+    flexDirection: "row",
+    backgroundColor: "#fff",
+    padding: 18,
+    borderWidth: 3,
+    borderColor: "#000",
+    marginBottom: 16,
+    gap: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+  },
+  unread: { backgroundColor: "#ffde59" },
   content: { flex: 1 },
-  title: { color: "#fff", fontSize: 14, fontWeight: "600" },
-  body: { color: "#888", fontSize: 12, marginTop: 2 },
-  empty: { flex: 1, justifyContent: "center", alignItems: "center" },
-  emptyText: { color: "#666", fontSize: 16, marginTop: 16 },
+  title: { color: "#000", fontSize: 16, fontWeight: "900", textTransform: "uppercase" },
+  body: { color: "#333", fontSize: 13, marginTop: 4, fontWeight: "700" },
+  empty: { flex: 1, justifyContent: "center", alignItems: "center", padding: 40 },
+  emptyText: { color: "#000", fontSize: 20, fontWeight: "900", textTransform: "uppercase", marginTop: 20, fontStyle: "italic" },
 });

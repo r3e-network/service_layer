@@ -11,7 +11,7 @@ interface SearchBarProps {
 export function SearchBar({ value, onChangeText, onClear, placeholder = "Search MiniApps..." }: SearchBarProps) {
   return (
     <View style={styles.container}>
-      <Ionicons name="search" size={20} color="#888" style={styles.icon} />
+      <Ionicons name="search" size={20} color="#000" style={styles.icon} />
       <TextInput
         style={styles.input}
         value={value}
@@ -23,7 +23,7 @@ export function SearchBar({ value, onChangeText, onClear, placeholder = "Search 
       />
       {value.length > 0 && (
         <TouchableOpacity onPress={onClear} style={styles.clearBtn}>
-          <Ionicons name="close-circle" size={20} color="#888" />
+          <Ionicons name="close-circle" size={20} color="#000" />
         </TouchableOpacity>
       )}
     </View>
@@ -34,18 +34,27 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#1a1a1a",
-    borderRadius: 12,
+    backgroundColor: "#ffffff",
+    borderRadius: 0,
+    borderWidth: 4,
+    borderColor: "#000000",
     marginHorizontal: 16,
-    marginBottom: 12,
+    marginBottom: 20,
     paddingHorizontal: 12,
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 6, height: 6 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
   icon: { marginRight: 8 },
   input: {
     flex: 1,
-    height: 44,
-    color: "#fff",
+    height: 56,
+    color: "#000",
     fontSize: 16,
+    fontWeight: "900",
+    textTransform: "uppercase",
   },
   clearBtn: { padding: 4 },
 });

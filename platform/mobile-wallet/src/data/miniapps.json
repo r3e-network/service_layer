@@ -61,7 +61,7 @@
       "permissions": { "payments": true, "randomness": true }
     },
     {
-      "app_id": "miniapp-neocrash",
+      "app_id": "miniapp-neo-crash",
       "name": "Neo Crash",
       "name_zh": "Neo 崩盘",
       "description": "Watch the multiplier climb and cash out before it crashes! This adrenaline-pumping game tests your nerve with real-time multipliers and instant payouts.",
@@ -122,7 +122,7 @@
       "permissions": { "payments": true }
     },
     {
-      "app_id": "miniapp-compoundcapsule",
+      "app_id": "miniapp-compound-capsule",
       "name": "Compound Capsule",
       "name_zh": "复利胶囊",
       "description": "Maximize your yields with automatic compounding. Deposit once and watch your earnings grow exponentially as rewards are reinvested continuously.",
@@ -134,7 +134,7 @@
       "permissions": { "payments": true, "automation": true }
     },
     {
-      "app_id": "miniapp-selfloan",
+      "app_id": "miniapp-self-loan",
       "name": "Self Loan",
       "name_zh": "自助贷款",
       "description": "Borrow against your own collateral with zero liquidation risk. Lock your assets, borrow up to 50%, and repay on your own schedule.",
@@ -193,7 +193,7 @@
       "permissions": { "payments": true, "randomness": true }
     },
     {
-      "app_id": "miniapp-devtipping",
+      "app_id": "miniapp-dev-tipping",
       "name": "Dev Tipping",
       "name_zh": "开发者打赏",
       "description": "Support open-source developers directly! Tip contributors for their work on GitHub repos, Stack Overflow answers, or any valuable code contribution.",
@@ -243,7 +243,7 @@
       "permissions": { "payments": true, "randomness": true }
     },
     {
-      "app_id": "miniapp-timecapsule",
+      "app_id": "miniapp-time-capsule",
       "name": "Time Capsule",
       "name_zh": "时间胶囊",
       "description": "Lock messages, media, or assets in blockchain time capsules that unlock at a future date. Create digital legacies, schedule surprises, or preserve memories for future generations.",
@@ -255,7 +255,7 @@
       "permissions": { "payments": true, "automation": true }
     },
     {
-      "app_id": "miniapp-heritagetrust",
+      "app_id": "miniapp-heritage-trust",
       "name": "Heritage Trust",
       "name_zh": "遗产信托",
       "description": "Create smart inheritance plans that automatically transfer your digital assets to beneficiaries. Set conditions, add trustees, and ensure your crypto legacy passes on securely.",
@@ -267,7 +267,7 @@
       "permissions": { "payments": true, "automation": true }
     },
     {
-      "app_id": "miniapp-gardenofneo",
+      "app_id": "miniapp-garden-of-neo",
       "name": "Garden of Neo",
       "name_zh": "Neo 花园",
       "description": "Cultivate your own virtual garden where plants grow based on your blockchain activity. Rare seeds, seasonal events, and cross-pollination create unique botanical NFTs.",
@@ -305,7 +305,7 @@
       "permissions": { "governance": true, "payments": true }
     },
     {
-      "app_id": "miniapp-burnleague",
+      "app_id": "miniapp-burn-league",
       "name": "Burn League",
       "name_zh": "销毁联盟",
       "description": "Compete in token burning competitions where communities race to reduce supply. Climb leaderboards, earn burn badges, and prove your commitment to deflation.",
@@ -317,7 +317,7 @@
       "permissions": { "payments": true }
     },
     {
-      "app_id": "miniapp-doomsdayclock",
+      "app_id": "miniapp-doomsday-clock",
       "name": "Doomsday Clock",
       "name_zh": "末日时钟",
       "description": "A community-controlled countdown that resets when people contribute. If it hits zero, locked funds redistribute. Keep the clock alive or watch it all burn.",
@@ -341,7 +341,7 @@
       "permissions": { "governance": true }
     },
     {
-      "app_id": "miniapp-govmerc",
+      "app_id": "miniapp-gov-merc",
       "name": "Gov Merc",
       "name_zh": "治理雇佣兵",
       "description": "Hire governance mercenaries to vote on your behalf or sell your voting power to the highest bidder. A marketplace for delegation and influence in the DAO ecosystem.",

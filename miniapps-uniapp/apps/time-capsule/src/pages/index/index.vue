@@ -2,7 +2,7 @@
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab === 'capsules' || activeTab === 'create'" class="app-container">
       <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
+        <text class="status-text">{{ status.msg }}</text>
       </view>
 
       <!-- Capsules Tab -->
@@ -11,7 +11,8 @@
           <text class="card-title">{{ t("yourCapsules") }}</text>
 
           <view v-if="capsules.length === 0" class="empty-state">
-            <text class="empty-icon">📦</text>
+            <!-- Empty Box SVG -->
+            <view class="empty-icon"><AppIcon name="archive" :size="64" class="text-secondary" /></view>
             <text class="empty-text">{{ t("noCapsules") }}</text>
           </view>
 
@@ -26,7 +27,9 @@
                 <view class="capsule-top"></view>
                 <view class="capsule-middle">
                   <view class="lock-indicator">
-                    <text class="lock-icon">{{ cap.locked ? "🔒" : "🔓" }}</text>
+                    <!-- Lock/Unlock Icons -->
+                    <AppIcon v-if="cap.locked" name="lock" :size="20" />
+                    <AppIcon v-else name="unlock" :size="20" />
                   </view>
                 </view>
                 <view class="capsule-bottom"></view>
@@ -62,9 +65,10 @@
               <!-- Unlocked Status -->
               <view v-else class="unlocked-section">
                 <text class="unlocked-label">{{ t("unlocked") }}</text>
-                <view class="open-btn" @click="open(cap)">
-                  <text class="open-btn-text">{{ t("open") }}</text>
-                </view>
+                <text class="unlocked-label">{{ t("unlocked") }}</text>
+                <NeoButton variant="success" size="md" @click="open(cap)">
+                  {{ t("open") }}
+                </NeoButton>
               </view>
             </view>
           </view>
@@ -78,36 +82,50 @@
 
           <view class="form-section">
             <text class="form-label">{{ t("capsuleName") }}</text>
-            <uni-easyinput v-model="newCapsule.name" :placeholder="t('capsuleNamePlaceholder')" class="input-field" />
+            <view class="input-wrapper-clean">
+              <NeoInput v-model="newCapsule.name" :placeholder="t('capsuleNamePlaceholder')" />
+            </view>
           </view>
 
           <view class="form-section">
             <text class="form-label">{{ t("secretMessage") }}</text>
-            <uni-easyinput
-              v-model="newCapsule.content"
-              :placeholder="t('secretMessagePlaceholder')"
-              type="textarea"
-              class="input-field textarea-field"
-            />
+            <view class="input-wrapper-clean">
+              <NeoInput
+                v-model="newCapsule.content"
+                :placeholder="t('secretMessagePlaceholder')"
+                type="textarea"
+                class="textarea-field"
+              />
+            </view>
           </view>
 
           <view class="form-section">
             <text class="form-label">{{ t("unlockIn") }}</text>
             <view class="date-picker">
-              <uni-easyinput
-                v-model="newCapsule.days"
-                type="number"
-                :placeholder="t('daysPlaceholder')"
-                class="days-input"
-              />
+              <view class="input-wrapper-clean small">
+                <NeoInput
+                  v-model="newCapsule.days"
+                  type="number"
+                  :placeholder="t('daysPlaceholder')"
+                  class="days-input"
+                />
+              </view>
               <text class="days-text">{{ t("days") }}</text>
             </view>
             <text class="helper-text">{{ t("unlockDateHelper") }}</text>
           </view>
 
-          <view class="create-btn" @click="create" :style="{ opacity: isLoading || !canCreate ? 0.6 : 1 }">
-            <text class="create-btn-text">{{ isLoading ? t("creating") : t("createCapsuleButton") }}</text>
-          </view>
+          <NeoButton
+            variant="primary"
+            size="lg"
+            block
+            :loading="isLoading"
+            :disabled="isLoading || !canCreate"
+            @click="create"
+            class="mt-6"
+          >
+            {{ isLoading ? t("creating") : t("createCapsuleButton") }}
+          </NeoButton>
         </view>
       </view>
     </view>
@@ -129,8 +147,7 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
+import { AppLayout, AppIcon, NeoDoc, NeoButton, NeoInput } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
 const translations = {
@@ -163,29 +180,51 @@ const translations = {
   tabCapsules: { en: "Capsules", zh: "胶囊" },
   tabCreate: { en: "Create", zh: "创建" },
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Professional documentation for this application is coming soon.",
-    zh: "此应用程序的专业文档即将推出。",
+  docSubtitle: {
+    en: "Lock messages and assets until a future date",
+    zh: "锁定消息和资产直到未来日期",
   },
-  step1: { en: "Open the application.", zh: "打开应用程序。" },
-  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
-  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
-  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
-  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
-  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  docDescription: {
+    en: "Time Capsule lets you create digital time capsules that lock messages or assets until a specified future date. Perfect for future gifts, scheduled reveals, or personal time-locked notes.",
+    zh: "时间胶囊让您创建数字时间胶囊，锁定消息或资产直到指定的未来日期。非常适合未来礼物、定时揭晓或个人时间锁定笔记。",
+  },
+  step1: {
+    en: "Connect your Neo wallet and create a new time capsule",
+    zh: "连接您的 Neo 钱包并创建新的时间胶囊",
+  },
+  step2: {
+    en: "Enter your secret message and set the lock duration in days",
+    zh: "输入您的秘密消息并设置锁定天数",
+  },
+  step3: {
+    en: "Pay the creation fee to seal your capsule on-chain",
+    zh: "支付创建费用将您的胶囊封存在链上",
+  },
+  step4: {
+    en: "Open your capsule when the unlock date arrives",
+    zh: "当解锁日期到达时打开您的胶囊",
+  },
+  feature1Name: { en: "Time-Locked", zh: "时间锁定" },
+  feature1Desc: {
+    en: "Content is cryptographically sealed until the unlock date - no early access.",
+    zh: "内容在解锁日期前加密封存 - 无法提前访问。",
+  },
+  feature2Name: { en: "Permanent Storage", zh: "永久存储" },
+  feature2Desc: {
+    en: "Your capsules are stored on Neo blockchain forever.",
+    zh: "您的胶囊永久存储在 Neo 区块链上。",
+  },
 };
 
 const t = createT(translations);
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 
-const APP_ID = "miniapp-timecapsule";
+const APP_ID = "miniapp-time-capsule";
 const { address, connect } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
 
@@ -329,83 +368,48 @@ const open = (cap: Capsule) => {
 @import "@/shared/styles/variables.scss";
 
 .app-container {
+  padding: $space-4;
   flex: 1;
   display: flex;
   flex-direction: column;
+  gap: $space-4;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: $space-4;
 }
 
-.tab-content {
-  flex: 1;
-}
+.tab-content { flex: 1; }
 
 .status-msg {
   text-align: center;
-  padding: $space-3;
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  margin-bottom: $space-4;
-  font-weight: $font-weight-bold;
+  padding: $space-4;
+  border: 4px solid black;
+  box-shadow: 8px 8px 0 black;
+  margin-bottom: $space-6;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
   animation: slideDown 0.3s ease-out;
 
-  &.success {
-    background: var(--status-success);
-    color: var(--text-on-success);
-    border-color: var(--border-color);
-  }
-
-  &.error {
-    background: var(--status-error);
-    color: var(--text-on-error);
-    border-color: var(--border-color);
-  }
-
-  &.loading {
-    background: var(--brutal-yellow);
-    color: var(--neo-black);
-    border-color: var(--border-color);
-  }
+  &.success { background: var(--brutal-yellow); color: black; }
+  &.error { background: var(--brutal-red); color: white; }
+  &.loading { background: var(--brutal-orange); color: white; }
 }
 
 .card {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  padding: $space-5;
-  margin-bottom: $space-4;
+  background: white;
+  border: 4px solid black;
+  box-shadow: 10px 10px 0 black;
+  padding: $space-6;
+  margin-bottom: $space-6;
 }
 
 .card-title {
-  color: var(--brutal-yellow);
-  font-size: $font-size-xl;
-  font-weight: $font-weight-bold;
-  display: block;
-  margin-bottom: $space-5;
+  color: black;
+  font-size: 24px;
+  font-weight: $font-weight-black;
+  margin-bottom: $space-6;
   text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-/* Empty State */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: $space-8 $space-4;
-  text-align: center;
-}
-
-.empty-icon {
-  font-size: 64px;
-  margin-bottom: $space-4;
-  opacity: 0.5;
-}
-
-.empty-text {
-  color: var(--text-secondary);
-  font-size: $font-size-base;
+  border-bottom: 4px solid var(--brutal-yellow);
+  display: inline-block;
 }
 
 /* Capsule Container */
@@ -413,292 +417,68 @@ const open = (cap: Capsule) => {
   display: flex;
   gap: $space-4;
   padding: $space-4;
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-sm;
-  margin-bottom: $space-4;
-  transition: all $transition-normal;
+  background: #f8f8f8;
+  border: 3px solid black;
+  box-shadow: 6px 6px 0 black;
+  margin-bottom: $space-5;
+  transition: all $transition-fast;
+  &:active { transform: translate(2px, 2px); box-shadow: 4px 4px 0 black; }
 
-  &.locked {
-    border-color: var(--neo-purple);
-
-    .capsule-body {
-      background: linear-gradient(
-        135deg,
-        var(--neo-purple) 0%,
-        color-mix(in srgb, var(--neo-purple) 60%, transparent) 100%
-      );
-      border-color: var(--neo-purple);
-    }
-  }
-
-  &.unlocked {
-    border-color: var(--neo-green);
-    animation: pulse 2s ease-in-out infinite;
-
-    .capsule-body {
-      background: linear-gradient(
-        135deg,
-        var(--neo-green) 0%,
-        color-mix(in srgb, var(--neo-green) 60%, transparent) 100%
-      );
-      border-color: var(--neo-green);
-    }
-  }
+  &.locked { border-color: black; background: white; }
+  &.unlocked { border-color: black; background: var(--brutal-green-light, #e8f5e9); border-width: 4px; box-shadow: 8px 8px 0 black; }
 }
 
-/* Capsule Visual */
 .capsule-visual {
   flex-shrink: 0;
-  width: 80px;
+  width: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .capsule-body {
-  width: 60px;
-  height: 100px;
-  position: relative;
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  display: flex;
-  flex-direction: column;
-}
-
-.capsule-top {
-  height: 20px;
-  background: var(--bg-card);
-  border-bottom: $border-width-sm solid var(--border-color);
-  border-radius: 30px 30px 0 0;
-}
-
-.capsule-middle {
-  flex: 1;
+  width: 40px; height: 80px;
+  border: 3px solid black;
+  background: white;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.1);
 }
 
-.capsule-bottom {
-  height: 20px;
-  background: var(--bg-card);
-  border-top: $border-width-sm solid var(--border-color);
-  border-radius: 0 0 30px 30px;
-}
+.lock-indicator { color: black; }
 
-.lock-indicator {
-  width: 40px;
-  height: 40px;
-  background: var(--bg-card);
-  border: $border-width-sm solid var(--border-color);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: $shadow-sm;
-}
+.capsule-details { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.capsule-name { font-size: 18px; font-weight: $font-weight-black; text-transform: uppercase; margin-bottom: 4px; }
 
-.lock-icon {
-  font-size: $font-size-xl;
-}
-
-/* Capsule Details */
-.capsule-details {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
-}
-
-.capsule-name {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Countdown Section */
-.countdown-section {
-  display: flex;
-  flex-direction: column;
-  gap: $space-2;
-}
-
-.countdown-label {
-  font-size: $font-size-sm;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.countdown-display {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-}
-
+.countdown-display { display: flex; align-items: center; gap: $space-2; margin: 4px 0; }
 .countdown-unit {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: var(--bg-card);
-  border: $border-width-sm solid var(--brutal-yellow);
-  padding: $space-2 $space-3;
-  min-width: 50px;
-  box-shadow: $shadow-sm;
+  background: black; color: white; padding: 4px 8px; border: 2px solid black; min-width: 40px; text-align: center;
 }
+.countdown-value { font-size: 18px; font-weight: $font-weight-black; font-family: $font-mono; }
+.countdown-unit-label { font-size: 8px; display: block; opacity: 0.8; }
+.countdown-separator { font-weight: $font-weight-black; }
 
-.countdown-value {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-bold;
-  color: var(--brutal-yellow);
-  line-height: 1;
-}
+.unlock-date { font-size: 10px; font-weight: $font-weight-black; opacity: 0.6; font-family: $font-mono; }
 
-.countdown-unit-label {
-  font-size: $font-size-xs;
-  color: var(--text-secondary);
-  margin-top: $space-1;
-  text-transform: uppercase;
-}
-
-.countdown-separator {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-bold;
-  color: var(--brutal-yellow);
-}
-
-.unlock-date {
-  font-size: $font-size-sm;
-  color: var(--text-secondary);
-}
-
-/* Unlocked Section */
-.unlocked-section {
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
-}
-
-.unlocked-label {
-  font-size: $font-size-base;
-  font-weight: $font-weight-bold;
-  color: var(--neo-green);
-  text-transform: uppercase;
-}
-
-.open-btn {
-  padding: $space-3 $space-4;
-  background: var(--neo-green);
-  border: $border-width-md solid var(--neo-black);
-  box-shadow: $shadow-md;
-  cursor: pointer;
-  transition: all $transition-fast;
-  align-self: flex-start;
-
-  &:active {
-    transform: translate(3px, 3px);
-    box-shadow: none;
-  }
-}
-
-.open-btn-text {
-  color: var(--neo-black);
-  font-size: $font-size-base;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-}
+.unlocked-label { font-size: 14px; font-weight: $font-weight-black; color: var(--neo-green); text-transform: uppercase; margin-bottom: 8px; }
 
 /* Form Section */
-.form-section {
-  margin-bottom: $space-5;
-}
+.form-section { margin-bottom: $space-6; }
+.form-label { font-size: 12px; font-weight: $font-weight-black; text-transform: uppercase; margin-bottom: $space-2; display: block; }
+.textarea-field { min-height: 120px; border: 3px solid black!important; }
 
-.form-label {
-  display: block;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-  text-transform: uppercase;
-  margin-bottom: $space-2;
-  letter-spacing: 0.5px;
-}
+.date-picker { display: flex; align-items: center; gap: $space-4; margin-bottom: $space-2; }
+.days-input { width: 100px; }
+.days-text { font-weight: $font-weight-black; text-transform: uppercase; font-size: 14px; }
 
-.input-field {
-  width: 100%;
-}
+.helper-text { font-size: 10px; opacity: 0.6; font-weight: $font-weight-black; text-transform: uppercase; }
 
-.textarea-field {
-  min-height: 120px;
-}
-
-.date-picker {
-  display: flex;
-  align-items: center;
-  gap: $space-3;
-  margin-bottom: $space-2;
-}
-
-.days-input {
-  width: 100px;
-}
-
-.days-text {
-  color: var(--text-secondary);
-  font-weight: $font-weight-bold;
-}
-
-.helper-text {
-  display: block;
-  font-size: $font-size-xs;
-  color: var(--text-secondary);
-  font-style: italic;
-}
-
-.create-btn {
-  background: var(--brutal-yellow);
-  color: var(--neo-black);
-  padding: $space-4;
-  border: $border-width-md solid var(--neo-black);
-  box-shadow: $shadow-md;
-  text-align: center;
-  cursor: pointer;
-  transition: all $transition-fast;
-
-  &:active {
-    transform: translate(3px, 3px);
-    box-shadow: none;
-  }
-}
-
-.create-btn-text {
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Animations */
 @keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes pulse {
-  0%,
-  100% {
-    box-shadow: $shadow-sm;
-  }
-  50% {
-    box-shadow: 0 0 20px var(--neo-green);
-  }
-}
+.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 </style>

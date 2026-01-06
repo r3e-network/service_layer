@@ -5,9 +5,11 @@ import { useState, useEffect, useMemo } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { loadTokens, removeToken, Token } from "@/lib/tokens";
 import { useWalletStore } from "@/stores/wallet";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function TokensScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { deleteToken } = useWalletStore();
   const [tokens, setTokens] = useState<Token[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -37,10 +39,10 @@ export default function TokensScreen() {
   }, [tokens, searchQuery]);
 
   const handleDelete = (token: Token) => {
-    Alert.alert("Delete Token", `Remove ${token.symbol} from your wallet?`, [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t("tokens.delete_title"), t("tokens.delete_confirm").replace("{{symbol}}", token.symbol), [
+      { text: t("common.cancel"), style: "cancel" },
       {
-        text: "Delete",
+        text: t("common.delete"),
         style: "destructive",
         onPress: async () => {
           await deleteToken(token.contractHash);
@@ -68,14 +70,14 @@ export default function TokensScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: "Manage Tokens" }} />
+      <Stack.Screen options={{ title: t("tokens.manage") }} />
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search by name, symbol or contract"
+          placeholder={t("tokens.search_placeholder")}
           placeholderTextColor="#666"
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -90,15 +92,15 @@ export default function TokensScreen() {
       {/* Token List */}
       {isLoading ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Loading...</Text>
+          <Text style={styles.emptyText}>{t("tokens.loading")}</Text>
         </View>
       ) : filteredTokens.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="wallet-outline" size={48} color="#666" />
-          <Text style={styles.emptyText}>{searchQuery ? "No tokens match your search" : "No custom tokens added"}</Text>
+          <Text style={styles.emptyText}>{searchQuery ? t("tokens.no_match") : t("tokens.no_custom")}</Text>
           {!searchQuery && (
             <TouchableOpacity style={styles.addBtn} onPress={() => router.push("/add-token")}>
-              <Text style={styles.addBtnText}>Add Token</Text>
+              <Text style={styles.addBtnText}>{t("tokens.add")}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -129,6 +131,7 @@ interface TokenDetailModalProps {
 }
 
 function TokenDetailModal({ token, onClose, onDelete }: TokenDetailModalProps) {
+  const { t } = useTranslation();
   if (!token) return null;
 
   return (
@@ -136,7 +139,7 @@ function TokenDetailModal({ token, onClose, onDelete }: TokenDetailModalProps) {
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Token Details</Text>
+            <Text style={styles.modalTitle}>{t("tokens.details")}</Text>
             <TouchableOpacity onPress={onClose}>
               <Ionicons name="close" size={24} color="#fff" />
             </TouchableOpacity>
@@ -144,19 +147,19 @@ function TokenDetailModal({ token, onClose, onDelete }: TokenDetailModalProps) {
 
           <View style={styles.modalBody}>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Symbol</Text>
+              <Text style={styles.detailLabel}>{t("tokens.symbol")}</Text>
               <Text style={styles.detailValue}>{token.symbol}</Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Name</Text>
+              <Text style={styles.detailLabel}>{t("tokens.name")}</Text>
               <Text style={styles.detailValue}>{token.name}</Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Decimals</Text>
+              <Text style={styles.detailLabel}>{t("tokens.decimals")}</Text>
               <Text style={styles.detailValue}>{token.decimals}</Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Contract</Text>
+              <Text style={styles.detailLabel}>{t("tokens.contract")}</Text>
               <Text style={styles.detailValueSmall} selectable>
                 {token.contractHash}
               </Text>
@@ -165,7 +168,7 @@ function TokenDetailModal({ token, onClose, onDelete }: TokenDetailModalProps) {
 
           <TouchableOpacity style={styles.deleteModalBtn} onPress={() => onDelete(token)}>
             <Ionicons name="trash" size={20} color="#fff" />
-            <Text style={styles.deleteModalText}>Remove Token</Text>
+            <Text style={styles.deleteModalText}>{t("tokens.remove")}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -174,96 +177,124 @@ function TokenDetailModal({ token, onClose, onDelete }: TokenDetailModalProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0a0a0a" },
+  container: { flex: 1, backgroundColor: "#fff" },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "#fff",
     margin: 16,
-    paddingHorizontal: 12,
-    borderRadius: 12,
+    paddingHorizontal: 16,
+    borderWidth: 3,
+    borderColor: "#000",
+    shadowColor: "#000",
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
-  searchIcon: { marginRight: 8 },
-  searchInput: { flex: 1, color: "#fff", fontSize: 16, paddingVertical: 12 },
-  listContent: { paddingHorizontal: 16 },
+  searchIcon: { marginRight: 12 },
+  searchInput: { flex: 1, color: "#000", fontSize: 16, paddingVertical: 16, fontWeight: "bold" },
+  listContent: { paddingHorizontal: 16, paddingBottom: 100 },
   tokenItem: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "#fff",
     padding: 16,
-    borderRadius: 12,
-    marginBottom: 8,
+    borderWidth: 3,
+    borderColor: "#000",
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
   tokenIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#2a2a2a",
+    width: 48,
+    height: 48,
+    backgroundColor: "#00E599",
+    borderWidth: 2,
+    borderColor: "#000",
     justifyContent: "center",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
-  tokenEmoji: { fontSize: 20 },
-  tokenInfo: { flex: 1, marginLeft: 12 },
-  tokenSymbol: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  tokenName: { color: "#888", fontSize: 14, marginTop: 2 },
-  deleteBtn: { padding: 8 },
-  emptyContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  emptyText: { color: "#888", fontSize: 16, marginTop: 12 },
+  tokenEmoji: { fontSize: 24 },
+  tokenInfo: { flex: 1, marginLeft: 16 },
+  tokenSymbol: { color: "#000", fontSize: 18, fontWeight: "900", textTransform: "uppercase" },
+  tokenName: { color: "#666", fontSize: 12, marginTop: 2, fontWeight: "800", textTransform: "uppercase" },
+  deleteBtn: { padding: 12, backgroundColor: "#ffde59", borderWidth: 2, borderColor: "#000" },
+  emptyContainer: { flex: 1, justifyContent: "center", alignItems: "center", padding: 40 },
+  emptyText: { color: "#000", fontSize: 18, marginTop: 16, textAlign: "center", fontWeight: "900", textTransform: "uppercase", fontStyle: "italic" },
   addBtn: {
-    marginTop: 16,
-    backgroundColor: "#00d4aa",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    marginTop: 24,
+    backgroundColor: "#00E599",
+    paddingHorizontal: 32,
+    paddingVertical: 18,
+    borderWidth: 3,
+    borderColor: "#000",
+    shadowColor: "#000",
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
-  addBtnText: { color: "#fff", fontWeight: "600" },
+  addBtnText: { color: "#000", fontWeight: "900", textTransform: "uppercase", fontSize: 16 },
   fab: {
     position: "absolute",
-    bottom: 24,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#00d4aa",
+    bottom: 32,
+    right: 32,
+    width: 64,
+    height: 64,
+    backgroundColor: "#00E599",
+    borderWidth: 4,
+    borderColor: "#000",
     justifyContent: "center",
     alignItems: "center",
-    elevation: 4,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
+    shadowOffset: { width: 6, height: 6 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
+    backgroundColor: "rgba(0,0,0,0.9)",
     justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: "#1a1a1a",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: "#fff",
+    borderTopWidth: 6,
+    borderTopColor: "#000",
     padding: 24,
   },
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 32,
+    borderBottomWidth: 4,
+    borderBottomColor: "#000",
+    paddingBottom: 16,
   },
-  modalTitle: { color: "#fff", fontSize: 20, fontWeight: "bold" },
-  modalBody: { marginBottom: 24 },
-  detailRow: { marginBottom: 16 },
-  detailLabel: { color: "#888", fontSize: 14, marginBottom: 4 },
-  detailValue: { color: "#fff", fontSize: 16 },
-  detailValueSmall: { color: "#fff", fontSize: 12, fontFamily: "monospace" },
+  modalTitle: { color: "#000", fontSize: 24, fontWeight: "900", textTransform: "uppercase", fontStyle: "italic" },
+  modalBody: { marginBottom: 32 },
+  detailRow: { marginBottom: 20 },
+  detailLabel: { color: "#666", fontSize: 12, marginBottom: 4, fontWeight: "900", textTransform: "uppercase" },
+  detailValue: { color: "#000", fontSize: 18, fontWeight: "900" },
+  detailValueSmall: { color: "#000", fontSize: 13, fontWeight: "700" },
   deleteModalBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#ef4444",
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
+    backgroundColor: "#ff7e7e",
+    padding: 20,
+    borderWidth: 3,
+    borderColor: "#000",
+    gap: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
-  deleteModalText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+  deleteModalText: { color: "#000", fontSize: 18, fontWeight: "900", textTransform: "uppercase" },
 });

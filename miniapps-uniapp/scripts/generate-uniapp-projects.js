@@ -50,7 +50,7 @@ const APPS = [
     title: "Neo Crash",
     category: "gaming",
     desc: "Multiplier crash game",
-    appId: "miniapp-neocrash",
+    appId: "miniapp-neo-crash",
   },
   {
     name: "candle-wars",
@@ -159,7 +159,7 @@ const DEFI_APPS = [
     title: "Compound Capsule",
     category: "defi",
     desc: "Auto-compounding yields",
-    appId: "miniapp-compoundcapsule",
+    appId: "miniapp-compound-capsule",
   },
   { name: "dark-pool", title: "Dark Pool", category: "defi", desc: "Private large trades", appId: "miniapp-darkpool" },
   {
@@ -188,7 +188,7 @@ const DEFI_APPS = [
     title: "Self Loan",
     category: "defi",
     desc: "Self-collateralized loans",
-    appId: "miniapp-selfloan",
+    appId: "miniapp-self-loan",
   },
 ];
 

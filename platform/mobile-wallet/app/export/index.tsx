@@ -9,18 +9,19 @@ import {
   generateExportId,
   ExportFormat,
   getTransactionHistory,
-  Transaction,
 } from "@/lib/export";
 import { useWalletStore } from "@/stores/wallet";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ExportScreen() {
   const [format, setFormat] = useState<ExportFormat>("csv");
   const [exporting, setExporting] = useState(false);
   const { address } = useWalletStore();
+  const { t } = useTranslation();
 
   const handleExport = async () => {
     if (!address) {
-      Alert.alert("Error", "No wallet connected");
+      Alert.alert(t("wallet.error"), t("wallet.no_wallet"));
       return;
     }
     setExporting(true);
@@ -35,7 +36,7 @@ export default function ExportScreen() {
         fee: tx.fee || "0",
         status: tx.status,
       }));
-      const csv = generateCSV(exportData);
+      generateCSV(exportData);
       await saveExportRecord({
         id: generateExportId(),
         format,
@@ -43,9 +44,9 @@ export default function ExportScreen() {
         txCount: exportData.length,
         timestamp: Date.now(),
       });
-      Alert.alert("Success", `Exported ${exportData.length} transactions`);
+      Alert.alert(t("wallet.success"), t("wallet.export_success").replace("{{count}}", String(exportData.length)));
     } catch {
-      Alert.alert("Error", "Export failed");
+      Alert.alert(t("wallet.error"), t("wallet.export_fail"));
     } finally {
       setExporting(false);
     }
@@ -53,9 +54,9 @@ export default function ExportScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: "Export" }} />
+      <Stack.Screen options={{ title: t("wallet.export_title") }} />
       <View style={styles.content}>
-        <Text style={styles.label}>Format</Text>
+        <Text style={styles.label}>{t("wallet.export_format")}</Text>
         <View style={styles.formats}>
           {(["csv", "pdf"] as ExportFormat[]).map((f) => (
             <TouchableOpacity
@@ -63,7 +64,7 @@ export default function ExportScreen() {
               style={[styles.formatBtn, format === f && styles.formatActive]}
               onPress={() => setFormat(f)}
             >
-              <Text style={[styles.formatText, format === f && styles.formatTextActive]}>{f.toUpperCase()}</Text>
+              <Text style={styles.formatText}>{f.toUpperCase()}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -73,7 +74,7 @@ export default function ExportScreen() {
           disabled={exporting}
         >
           <Ionicons name="download" size={20} color="#000" />
-          <Text style={styles.btnText}>{exporting ? "Exporting..." : "Export"}</Text>
+          <Text style={styles.btnText}>{exporting ? t("wallet.exporting") : t("wallet.export_action")}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -81,24 +82,39 @@ export default function ExportScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0a0a0a" },
-  content: { padding: 20 },
-  label: { color: "#888", fontSize: 12, marginBottom: 8 },
-  formats: { flexDirection: "row", gap: 12 },
-  formatBtn: { flex: 1, padding: 16, backgroundColor: "#1a1a1a", borderRadius: 12, alignItems: "center" },
-  formatActive: { borderColor: "#00d4aa", borderWidth: 1 },
-  formatText: { color: "#888", fontSize: 16 },
-  formatTextActive: { color: "#00d4aa" },
+  container: { flex: 1, backgroundColor: "#fff" },
+  content: { padding: 24 },
+  label: { color: "#000", fontSize: 14, marginBottom: 12, fontWeight: "900", textTransform: "uppercase" },
+  formats: { flexDirection: "row", gap: 16 },
+  formatBtn: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: "#fff",
+    borderWidth: 3,
+    borderColor: "#000",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+  },
+  formatActive: { backgroundColor: "#FFDE59" },
+  formatText: { color: "#000", fontSize: 18, fontWeight: "900" },
   btn: {
     flexDirection: "row",
-    backgroundColor: "#00d4aa",
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: "#00E599",
+    padding: 20,
+    borderWidth: 4,
+    borderColor: "#000",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
-    marginTop: 24,
+    gap: 12,
+    marginTop: 32,
+    shadowColor: "#000",
+    shadowOffset: { width: 6, height: 6 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
-  btnDisabled: { opacity: 0.5 },
-  btnText: { color: "#000", fontSize: 18, fontWeight: "600" },
+  btnDisabled: { opacity: 0.5, backgroundColor: "#f0f0f0" },
+  btnText: { color: "#000", fontSize: 20, fontWeight: "900", textTransform: "uppercase" },
 });

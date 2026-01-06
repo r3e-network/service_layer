@@ -2,12 +2,12 @@
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <!-- Main Tab -->
     <view v-if="activeTab === 'main'" class="tab-content">
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
+        <text class="font-bold">{{ status.msg }}</text>
+      </NeoCard>
 
       <!-- Security Level Dashboard -->
-      <view class="security-dashboard">
+      <NeoCard class="security-dashboard">
         <view class="shield-icon">🛡️</view>
         <view class="security-info">
           <text class="security-label">{{ t("securityLevel") }}</text>
@@ -16,11 +16,11 @@
         <view class="security-meter">
           <view class="meter-bar" :style="{ width: securityPercentage + '%' }"></view>
         </view>
-      </view>
+      </NeoCard>
 
       <!-- Guardians Status -->
-      <view class="card guardians-card">
-        <text class="card-title">👥 {{ t("guardians") }}</text>
+      <!-- Guardians Status -->
+      <NeoCard :title="'👥 ' + t('guardians')" class="guardians-card">
         <view v-for="guardian in guardians" :key="guardian.id" class="guardian-row">
           <view class="guardian-avatar">{{ guardian.avatar }}</view>
           <view class="guardian-info">
@@ -32,11 +32,11 @@
             <text class="status-text">{{ guardian.active ? t("active") : t("inactive") }}</text>
           </view>
         </view>
-      </view>
+      </NeoCard>
 
       <!-- Policy Rules -->
-      <view class="card policies-card">
-        <text class="card-title">📋 {{ t("activePolicies") }}</text>
+      <!-- Policy Rules -->
+      <NeoCard :title="'📋 ' + t('activePolicies')" class="policies-card">
         <view v-for="policy in policies" :key="policy.id" class="policy-row">
           <view class="policy-header">
             <view class="policy-icon" :class="'level-' + policy.level">🔒</view>
@@ -52,18 +52,18 @@
             </NeoButton>
           </view>
         </view>
-      </view>
+      </NeoCard>
 
       <!-- Create New Policy -->
-      <view class="card create-card">
-        <text class="card-title">➕ {{ t("createPolicy") }}</text>
+      <!-- Create New Policy -->
+      <NeoCard :title="'➕ ' + t('createPolicy')" class="create-card">
         <NeoInput v-model="policyName" :placeholder="t('policyName')" class="input" />
         <NeoInput v-model="policyRule" :placeholder="t('policyRule')" class="input" />
         <view class="level-selector">
           <text class="selector-label">{{ t("securityLevel") }}:</text>
           <view class="level-options">
             <view
-              v-for="level in ['low', 'medium', 'high', 'critical']"
+              v-for="level in LEVELS"
               :key="level"
               :class="['level-option', { selected: newPolicyLevel === level }]"
               @click="newPolicyLevel = level"
@@ -75,13 +75,12 @@
         <NeoButton variant="primary" size="lg" block @click="createPolicy">
           {{ t("createPolicy") }}
         </NeoButton>
-      </view>
+      </NeoCard>
     </view>
 
     <!-- Stats Tab -->
     <view v-if="activeTab === 'stats'" class="tab-content scrollable">
-      <view class="stats-card">
-        <text class="stats-title">📊 {{ t("statistics") }}</text>
+      <NeoCard :title="'📊 ' + t('statistics')" class="stats-card">
         <view class="stat-row">
           <text class="stat-label">{{ t("totalPolicies") }}</text>
           <text class="stat-value">{{ stats.totalPolicies }}</text>
@@ -102,11 +101,10 @@
           <text class="stat-label">{{ t("activeGuardians") }}</text>
           <text class="stat-value">{{ guardians.filter((g) => g.active).length }}</text>
         </view>
-      </view>
+      </NeoCard>
 
       <!-- Action History -->
-      <view class="history-card">
-        <text class="history-title">📜 {{ t("actionHistory") }}</text>
+      <NeoCard :title="'📜 ' + t('actionHistory')" class="history-card">
         <view v-for="action in actionHistory" :key="action.id" class="history-item">
           <view class="history-icon" :class="action.type">{{ getActionIcon(action.type) }}</view>
           <view class="history-content">
@@ -114,7 +112,7 @@
             <text class="history-time">{{ action.time }}</text>
           </view>
         </view>
-      </view>
+      </NeoCard>
     </view>
 
     <!-- Docs Tab -->
@@ -133,10 +131,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
-import NeoButton from "@/shared/components/NeoButton.vue";
-import NeoInput from "@/shared/components/NeoInput.vue";
+import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard } from "@/shared/components";
 
 const translations = {
   title: { en: "Guardian Policy", zh: "守护策略" },
@@ -167,18 +162,40 @@ const translations = {
   levelCritical: { en: "Critical", zh: "严重" },
 
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Professional documentation for this application is coming soon.",
-    zh: "此应用程序的专业文档即将推出。",
+  docSubtitle: {
+    en: "Multi-signature wallet protection and recovery",
+    zh: "多签钱包保护和恢复",
   },
-  step1: { en: "Open the application.", zh: "打开应用程序。" },
-  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
-  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
-  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
-  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
-  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  docDescription: {
+    en: "Guardian Policy sets up trusted guardians for your wallet. Configure spending limits, multi-sig approvals, and emergency recovery options.",
+    zh: "Guardian Policy 为您的钱包设置可信守护者。配置消费限额、多签审批和紧急恢复选项。",
+  },
+  step1: {
+    en: "Connect your Neo wallet to protect",
+    zh: "连接要保护的 Neo 钱包",
+  },
+  step2: {
+    en: "Add trusted guardian addresses",
+    zh: "添加可信守护者地址",
+  },
+  step3: {
+    en: "Set approval thresholds and spending limits",
+    zh: "设置审批阈值和消费限额",
+  },
+  step4: {
+    en: "Activate protection - guardians can help recover access",
+    zh: "激活保护 - 守护者可帮助恢复访问",
+  },
+  feature1Name: { en: "Multi-Sig Security", zh: "多签安全" },
+  feature1Desc: {
+    en: "Require multiple guardian approvals for large transactions.",
+    zh: "大额交易需要多个守护者批准。",
+  },
+  feature2Name: { en: "Recovery Options", zh: "恢复选项" },
+  feature2Desc: {
+    en: "Guardians can help recover wallet access if keys are lost.",
+    zh: "如果密钥丢失，守护者可帮助恢复钱包访问。",
+  },
 };
 
 const t = createT(translations);
@@ -191,19 +208,22 @@ const navTabs = [
 
 const activeTab = ref("main");
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
-const APP_ID = "miniapp-guardian-policy";
+const APP_ID = "miniapp-guardianpolicy";
+
+const LEVELS = ["low", "medium", "high", "critical"] as const;
+type Level = (typeof LEVELS)[number];
 
 interface Policy {
   id: string;
   name: string;
   description: string;
   enabled: boolean;
-  level: "low" | "medium" | "high" | "critical";
+  level: Level;
 }
 
 interface Guardian {
@@ -243,7 +263,7 @@ const actionHistory = ref<ActionHistoryItem[]>([
 
 const policyName = ref("");
 const policyRule = ref("");
-const newPolicyLevel = ref<"low" | "medium" | "high" | "critical">("medium");
+const newPolicyLevel = ref<Level>("medium");
 const status = ref<{ msg: string; type: string } | null>(null);
 
 const stats = computed(() => ({
@@ -350,523 +370,245 @@ const getActionIcon = (type: string) => {
 @import "@/shared/styles/variables.scss";
 
 .tab-content {
-  padding: $space-3;
+  padding: $space-4;
   flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
+  gap: $space-4;
   overflow-y: auto;
-  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
 
-// Security Dashboard
 .security-dashboard {
-  background: linear-gradient(135deg, var(--neo-purple) 0%, var(--neo-cyan) 100%);
-  border: $border-width-lg solid var(--neo-black);
-  border-radius: $radius-md;
-  padding: $space-6;
-  margin-bottom: $space-4;
-  box-shadow: $shadow-md;
+  background: black;
+  padding: $space-8;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: $space-3;
+  gap: $space-4;
+  border: 4px solid black;
+  box-shadow: 12px 12px 0 var(--brutal-yellow);
 }
-
 .shield-icon {
-  font-size: 48px;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  font-size: 64px;
 }
-
-.security-info {
-  text-align: center;
-}
-
 .security-label {
-  display: block;
-  color: var(--neo-white);
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  margin-bottom: $space-2;
-}
-
-.security-value {
-  display: block;
-  font-size: $font-size-3xl;
+  color: white;
+  font-size: 10px;
   font-weight: $font-weight-black;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-
-  &.level-low {
-    color: var(--brutal-yellow);
-  }
-  &.level-medium {
-    color: var(--neo-cyan);
-  }
-  &.level-high {
-    color: var(--neo-green);
-  }
-  &.level-critical {
-    color: var(--neo-white);
-  }
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  border: 1px solid white;
+  padding: 2px 10px;
 }
-
+.security-value {
+  font-size: 40px;
+  font-weight: $font-weight-black;
+  color: var(--brutal-yellow);
+  text-transform: uppercase;
+  text-shadow: 4px 4px 0 black;
+}
 .security-meter {
   width: 100%;
-  height: 12px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 9999px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  border: 2px solid var(--neo-black);
+  height: 24px;
+  background: #333;
+  border: 3px solid white;
+  position: relative;
+  padding: 2px;
 }
-
 .meter-bar {
-  flex: 1;
-  min-height: 0;
-  background: linear-gradient(90deg, var(--neo-green) 0%, var(--neo-cyan) 100%);
+  height: 100%;
+  background: var(--neo-green);
+  border-right: 3px solid white;
   transition: width $transition-normal;
-  box-shadow: 0 0 10px rgba(var(--neo-green-rgb), 0.5);
-}
-
-.status-msg {
-  text-align: center;
-  padding: $space-4;
-  border-radius: $radius-sm;
-  margin-bottom: $space-4;
-  flex-shrink: 0;
-  border: $border-width-md solid var(--neo-black);
-  font-weight: $font-weight-bold;
-
-  &.success {
-    background: rgba(var(--status-success), 0.15);
-    color: var(--status-success);
-    box-shadow: $shadow-md;
-  }
-  &.error {
-    background: rgba(var(--status-error), 0.15);
-    color: var(--status-error);
-    box-shadow: 5px 5px 0 var(--status-error);
-  }
-}
-
-.card {
-  background: var(--bg-card);
-  border: $border-width-lg solid var(--neo-black);
-  border-radius: $radius-sm;
-  padding: $space-6;
-  margin-bottom: $space-4;
-  box-shadow: $shadow-lg;
-  transition: box-shadow $transition-fast;
-
-  &:hover {
-    box-shadow: $shadow-xl;
-  }
-}
-
-.card-title {
-  color: var(--neo-green);
-  font-size: $font-size-xl;
-  font-weight: $font-weight-black;
-  display: block;
-  margin-bottom: $space-4;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-// Guardians Card
-.guardians-card {
-  background: linear-gradient(135deg, rgba(var(--neo-purple-rgb), 0.1) 0%, rgba(var(--neo-cyan-rgb), 0.1) 100%);
 }
 
 .guardian-row {
   display: flex;
   align-items: center;
-  gap: $space-3;
+  gap: $space-4;
   padding: $space-4;
-  background: var(--bg-card);
-  border: $border-width-sm solid var(--border-color);
-  border-radius: $radius-sm;
-  margin-bottom: $space-3;
+  background: white;
+  border: 3px solid black;
+  margin-bottom: $space-4;
   transition: all $transition-fast;
-
+  box-shadow: 6px 6px 0 black;
   &:hover {
-    border-color: var(--neo-purple);
-    box-shadow: 3px 3px 0 rgba(var(--neo-purple-rgb), 0.3);
-    transform: translateX(4px);
+    transform: translate(2px, 2px);
+    box-shadow: 4px 4px 0 black;
   }
 }
-
 .guardian-avatar {
-  font-size: 32px;
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
+  background: #eee;
+  border: 3px solid black;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-secondary);
-  border-radius: 9999px;
-  border: 2px solid var(--neo-black);
+  font-size: 32px;
 }
-
-.guardian-info {
-  flex: 1;
-}
-
 .guardian-name {
+  font-weight: $font-weight-black;
+  font-size: 16px;
   display: block;
-  font-weight: $font-weight-bold;
-  font-size: $font-size-base;
-  color: var(--text-primary);
-  margin-bottom: $space-1;
+  border-bottom: 2px solid black;
 }
-
 .guardian-role {
-  display: block;
-  font-size: $font-size-sm;
-  color: var(--text-secondary);
-}
-
-.guardian-status {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  padding: $space-2 $space-3;
-  border-radius: $radius-sm;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-
-  &.active {
-    background: rgba(var(--neo-green-rgb), 0.15);
-    color: var(--neo-green);
-    border: 1px solid var(--neo-green);
-  }
-
-  &.inactive {
-    background: rgba(var(--text-secondary-rgb), 0.15);
-    color: var(--text-secondary);
-    border: 1px solid var(--text-secondary);
-  }
-}
-
-.status-dot {
-  font-size: 8px;
-}
-
-.status-text {
+  font-size: 10px;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  opacity: 1;
+  color: #666;
 }
-
-// Policy Rules Card
-.policies-card {
-  background: linear-gradient(135deg, rgba(var(--neo-green-rgb), 0.05) 0%, rgba(var(--neo-cyan-rgb), 0.05) 100%);
+.guardian-status {
+  margin-left: auto;
+  padding: 4px 12px;
+  border: 2px solid black;
+  font-size: 10px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  box-shadow: 3px 3px 0 black;
+  &.active {
+    background: var(--neo-green);
+    color: black;
+  }
+  &.inactive {
+    background: #bbb;
+    color: black;
+  }
 }
 
 .policy-row {
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
   padding: $space-4;
-  background: var(--bg-card);
-  border: $border-width-sm solid var(--border-color);
-  border-radius: $radius-sm;
-  margin-bottom: $space-3;
-  transition: all $transition-fast;
-
-  &:hover {
-    border-color: var(--neo-green);
-    box-shadow: 4px 4px 0 rgba(var(--neo-green-rgb), 0.2);
-  }
+  background: white;
+  border: 3px solid black;
+  margin-bottom: $space-4;
+  box-shadow: 5px 5px 0 black;
 }
-
 .policy-header {
   display: flex;
   align-items: center;
-  gap: $space-3;
+  gap: $space-4;
+  margin-bottom: $space-4;
 }
-
 .policy-icon {
-  font-size: 24px;
   width: 40px;
   height: 40px;
+  border: 3px solid black;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: $radius-sm;
-  border: 2px solid var(--neo-black);
-
-  &.level-low {
-    background: rgba(var(--brutal-yellow-rgb), 0.2);
-  }
-  &.level-medium {
-    background: rgba(var(--neo-cyan-rgb), 0.2);
-  }
-  &.level-high {
-    background: rgba(var(--neo-green-rgb), 0.2);
-  }
-  &.level-critical {
-    background: rgba(var(--brutal-red-rgb), 0.2);
-  }
+  font-size: 20px;
+  &.level-low { background: var(--brutal-yellow); }
+  &.level-medium { background: var(--neo-cyan); }
+  &.level-high { background: var(--neo-green); }
+  &.level-critical { background: var(--brutal-red); }
 }
-
-.policy-info {
-  flex: 1;
-}
-
 .policy-name {
-  font-weight: $font-weight-bold;
-  display: block;
-  margin-bottom: $space-1;
-  font-size: $font-size-base;
-  color: var(--text-primary);
+  font-weight: $font-weight-black;
+  font-size: 16px;
+  text-transform: uppercase;
 }
-
 .policy-desc {
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
+  font-size: 10px;
+  font-weight: $font-weight-black;
+  opacity: 0.6;
 }
-
 .policy-controls {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: $space-3;
+  align-items: center;
+  background: #eee;
+  padding: $space-2 $space-4;
+  border: 2px solid black;
 }
-
 .policy-level {
-  padding: $space-1 $space-3;
-  border-radius: $radius-sm;
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
+  font-size: 10px;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  border: 2px solid var(--neo-black);
-
-  &.level-low {
-    background: var(--brutal-yellow);
-    color: var(--neo-black);
-  }
-  &.level-medium {
-    background: var(--neo-cyan);
-    color: var(--neo-black);
-  }
-  &.level-high {
-    background: var(--neo-green);
-    color: var(--neo-black);
-  }
-  &.level-critical {
-    background: var(--brutal-red);
-    color: var(--neo-white);
-  }
-}
-
-.input {
-  margin-bottom: $space-4;
-}
-
-// Create Policy Card
-.create-card {
-  background: linear-gradient(135deg, rgba(var(--neo-green-rgb), 0.08) 0%, rgba(var(--neo-purple-rgb), 0.08) 100%);
-}
-
-.level-selector {
-  margin-bottom: $space-4;
-}
-
-.selector-label {
-  display: block;
-  font-weight: $font-weight-bold;
-  font-size: $font-size-sm;
-  color: var(--text-primary);
-  margin-bottom: $space-2;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  background: white;
+  padding: 2px 10px;
+  border: 1px solid black;
 }
 
 .level-options {
   display: flex;
-  gap: $space-2;
-  flex-wrap: wrap;
+  gap: $space-3;
+  margin-bottom: $space-6;
 }
-
 .level-option {
   flex: 1;
-  min-width: 60px;
-  padding: $space-2 $space-3;
-  border: 2px solid var(--border-color);
-  border-radius: $radius-sm;
+  padding: $space-3;
+  border: 3px solid black;
   text-align: center;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  cursor: pointer;
-  transition: all $transition-fast;
-  background: var(--bg-secondary);
-
-  &:hover {
-    border-color: var(--neo-purple);
-    transform: translateY(-2px);
-  }
-
-  &.selected {
-    border-color: var(--neo-purple);
-    background: var(--neo-purple);
-    color: var(--neo-white);
-    box-shadow: 3px 3px 0 rgba(var(--neo-purple-rgb), 0.3);
-  }
-}
-
-.stats-card {
-  background: var(--bg-card);
-  border: $border-width-lg solid $neo-black;
-  border-radius: $radius-sm;
-  padding: $space-6;
-  margin-bottom: $space-4;
-  box-shadow: $shadow-lg;
-}
-
-.stats-title {
-  font-size: $font-size-xl;
+  font-size: 12px;
   font-weight: $font-weight-black;
-  color: var(--neo-green);
-  margin-bottom: $space-4;
-  display: block;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  cursor: pointer;
+  background: white;
+  transition: all $transition-fast;
+  &.selected {
+    background: var(--brutal-yellow);
+    box-shadow: 4px 4px 0 black;
+    transform: translate(2px, 2px);
+  }
 }
 
 .stat-row {
   display: flex;
   justify-content: space-between;
   padding: $space-3 0;
-  border-bottom: $border-width-sm solid var(--border-color);
-  transition: all $transition-fast;
-
-  &:hover {
-    padding-left: $space-2;
-    border-left: $border-width-md solid var(--neo-green);
-  }
-
-  &:last-child {
-    border-bottom: none;
-  }
+  border-bottom: 2px solid black;
 }
-
 .stat-label {
-  color: var(--text-secondary);
-  font-weight: $font-weight-medium;
-}
-
-.stat-value {
+  font-size: 12px;
   font-weight: $font-weight-black;
-  color: var(--text-primary);
-  font-size: $font-size-lg;
-}
-
-// Action History
-.history-card {
-  background: var(--bg-card);
-  border: $border-width-lg solid var(--neo-black);
-  border-radius: $radius-sm;
-  padding: $space-6;
-  margin-bottom: $space-4;
-  box-shadow: $shadow-lg;
-}
-
-.history-title {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-black;
-  color: var(--neo-purple);
-  margin-bottom: $space-4;
-  display: block;
   text-transform: uppercase;
-  letter-spacing: 1px;
+}
+.stat-value {
+  font-family: $font-mono;
+  font-weight: $font-weight-black;
+  font-size: 18px;
+  background: black;
+  color: white;
+  padding: 0 8px;
 }
 
 .history-item {
   display: flex;
   align-items: center;
-  gap: $space-3;
-  padding: $space-3;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-  border-radius: $radius-sm;
-  margin-bottom: $space-3;
-  transition: all $transition-fast;
-
-  &:hover {
-    border-color: var(--neo-purple);
-    box-shadow: 3px 3px 0 rgba(var(--neo-purple-rgb), 0.2);
-    transform: translateX(4px);
-  }
-
-  &:last-child {
-    margin-bottom: 0;
-  }
+  gap: $space-4;
+  padding: $space-4;
+  border-bottom: 2px solid black;
+  background: white;
+  margin-bottom: $space-2;
+  box-shadow: 3px 3px 0 black;
 }
-
 .history-icon {
-  font-size: 20px;
   width: 36px;
   height: 36px;
+  border: 2px solid black;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: $radius-sm;
-  border: 2px solid var(--neo-black);
-
-  &.create {
-    background: rgba(var(--neo-green-rgb), 0.2);
-  }
-  &.enable {
-    background: rgba(var(--neo-cyan-rgb), 0.2);
-  }
-  &.disable {
-    background: rgba(var(--brutal-red-rgb), 0.2);
-  }
-  &.update {
-    background: rgba(var(--neo-purple-rgb), 0.2);
-  }
+  font-size: 20px;
+  background: #eee;
 }
-
-.history-content {
-  flex: 1;
-}
-
 .history-action {
-  display: block;
-  font-weight: $font-weight-bold;
-  font-size: $font-size-sm;
-  color: var(--text-primary);
-  margin-bottom: $space-1;
+  font-size: 12px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
 }
-
 .history-time {
+  font-size: 10px;
+  opacity: 0.6;
+  font-weight: $font-weight-black;
   display: block;
-  font-size: $font-size-xs;
-  color: var(--text-secondary);
 }
 
-// Animations
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.02);
-  }
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

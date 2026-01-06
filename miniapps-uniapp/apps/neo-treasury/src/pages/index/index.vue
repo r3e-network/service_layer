@@ -1,85 +1,109 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav>
-    <view class="treasury-container">
+  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <view class="app-container">
       <!-- Loading State -->
-      <view v-if="loading" class="loading-state">
-        <view class="spinner"></view>
-        <text>{{ t("loading") }}</text>
+      <view v-if="loading" class="loading-state-neo">
+        <text class="animate-pulse">{{ t("loading") }}</text>
       </view>
-
+ 
       <!-- Error State -->
-      <view v-else-if="error" class="error-state">
-        <text class="error-icon">⚠️</text>
-        <text class="error-msg">{{ error }}</text>
-        <view class="retry-btn" @click="loadData">{{ t("retry") }}</view>
-      </view>
-
-      <!-- Data Display -->
+      <NeoCard v-else-if="error" variant="danger" class="mb-4">
+        <view class="error-msg flex flex-col items-center gap-4">
+          <text class="text-center font-bold uppercase">{{ error }}</text>
+          <NeoButton variant="primary" @click="loadData">{{ t("retry") }}</NeoButton>
+        </view>
+      </NeoCard>
+ 
+      <!-- Tab Content -->
       <view v-else-if="data" class="content">
-        <!-- Total Summary Card -->
-        <view class="summary-card">
-          <text class="summary-title">{{ t("totalTreasury") }}</text>
-          <text class="summary-value">${{ formatNum(data.totalUsd) }}</text>
-          <view class="summary-tokens">
-            <view class="token-item">
-              <text class="token-label">NEO</text>
-              <text class="token-value">{{ formatNum(data.totalNeo) }}</text>
-            </view>
-            <view class="token-item">
-              <text class="token-label">GAS</text>
-              <text class="token-value">{{ formatNum(data.totalGas, 2) }}</text>
-            </view>
-          </view>
-        </view>
-
-        <!-- Price Cards -->
-        <view class="price-grid">
-          <view class="price-card">
-            <text class="price-label">NEO</text>
-            <text class="price-value">${{ data.prices.neo.usd.toFixed(2) }}</text>
-            <text :class="['price-change', data.prices.neo.usd_24h_change >= 0 ? 'up' : 'down']">
-              {{ data.prices.neo.usd_24h_change >= 0 ? "+" : "" }}{{ data.prices.neo.usd_24h_change.toFixed(2) }}%
-            </text>
-          </view>
-          <view class="price-card">
-            <text class="price-label">GAS</text>
-            <text class="price-value">${{ data.prices.gas.usd.toFixed(2) }}</text>
-            <text :class="['price-change', data.prices.gas.usd_24h_change >= 0 ? 'up' : 'down']">
-              {{ data.prices.gas.usd_24h_change >= 0 ? "+" : "" }}{{ data.prices.gas.usd_24h_change.toFixed(2) }}%
-            </text>
-          </view>
-        </view>
-
-        <!-- Category Cards -->
-        <view v-for="cat in data.categories" :key="cat.name" class="category-card">
-          <view class="category-header" @click="toggleCategory(cat.name)">
-            <text class="category-name">{{ cat.name }}</text>
-            <view class="category-summary">
-              <text class="category-usd">${{ formatNum(cat.totalUsd) }}</text>
-              <text class="expand-icon">{{ expanded[cat.name] ? "▼" : "▶" }}</text>
-            </view>
-          </view>
-          <view class="category-tokens">
-            <text class="cat-token">{{ formatNum(cat.totalNeo) }} NEO</text>
-            <text class="cat-token">{{ formatNum(cat.totalGas, 2) }} GAS</text>
-          </view>
-          <!-- Expanded Wallet List -->
-          <view v-if="expanded[cat.name]" class="wallet-list">
-            <view v-for="w in cat.wallets" :key="w.address" class="wallet-item">
-              <text class="wallet-label">{{ w.label }}</text>
-              <text class="wallet-addr">{{ shortAddr(w.address) }}</text>
-              <view class="wallet-balances">
-                <text>{{ formatNum(w.neo) }} NEO</text>
-                <text>{{ formatNum(w.gas, 2) }} GAS</text>
+        <!-- Total Overview Tab -->
+        <view v-if="activeTab === 'total'" class="tab-content">
+          <!-- Total Summary Card -->
+          <NeoCard :title="t('totalTreasury')" variant="success" class="mb-6">
+            <template #header-extra>
+               <text class="text-xs font-mono opacity-60">{{ formatTime(data.lastUpdated) }}</text>
+            </template>
+            <view class="summary-content-neo text-center py-4">
+              <text class="summary-value text-4xl font-black block mb-4">${{ formatNum(data.totalUsd) }}</text>
+              <view class="summary-tokens flex justify-center gap-8">
+                <view class="token-item">
+                  <text class="token-label text-xs uppercase opacity-60 font-black block">NEO</text>
+                  <text class="token-value font-bold text-lg">{{ formatNum(data.totalNeo) }}</text>
+                </view>
+                <view class="token-item">
+                  <text class="token-label text-xs uppercase opacity-60 font-black block">GAS</text>
+                  <text class="token-value font-bold text-lg">{{ formatNum(data.totalGas, 2) }}</text>
+                </view>
               </view>
             </view>
+          </NeoCard>
+ 
+          <!-- Price Cards -->
+          <view class="price-grid grid grid-cols-2 gap-4 mb-6">
+            <NeoCard title="NEO" variant="default" class="price-card-neo">
+              <view class="price-info flex flex-col items-center">
+                <text class="price-value text-xl font-black">${{ data.prices.neo.usd.toFixed(2) }}</text>
+                <text :class="['price-change text-xs font-bold uppercase', data.prices.neo.usd_24h_change >= 0 ? 'text-success' : 'text-danger']">
+                  {{ data.prices.neo.usd_24h_change >= 0 ? "+" : "" }}{{ data.prices.neo.usd_24h_change.toFixed(2) }}%
+                </text>
+              </view>
+            </NeoCard>
+            <NeoCard title="GAS" variant="default" class="price-card-gas">
+              <view class="price-info flex flex-col items-center">
+                <text class="price-value text-xl font-black">${{ data.prices.gas.usd.toFixed(2) }}</text>
+                <text :class="['price-change text-xs font-bold uppercase', data.prices.gas.usd_24h_change >= 0 ? 'text-success' : 'text-danger']">
+                  {{ data.prices.gas.usd_24h_change >= 0 ? "+" : "" }}{{ data.prices.gas.usd_24h_change.toFixed(2) }}%
+                </text>
+              </view>
+            </NeoCard>
           </view>
+ 
+          <!-- Founders Summary -->
+          <text class="section-title-neo text-xs font-black uppercase opacity-60 mb-4 block">{{ t("founders") }}</text>
+          <NeoCard v-for="cat in data.categories" :key="cat.name" class="mb-4" @click="goToFounder(cat.name)">
+            <view class="founder-card-content flex justify-between items-center">
+              <view class="founder-info">
+                <text class="founder-name font-black uppercase">{{ cat.name }}</text>
+                <text class="founder-wallets text-xs opacity-60 block">{{ cat.wallets.length }} {{ t("wallets") }}</text>
+              </view>
+              <view class="founder-stats text-right">
+                <text class="founder-usd text-lg font-black block text-success">${{ formatNum(cat.totalUsd) }}</text>
+                <view class="founder-tokens flex gap-3 text-[10px] font-bold opacity-60 mt-1">
+                  <text>{{ formatNum(cat.totalNeo) }} NEO</text>
+                  <text>{{ formatNum(cat.totalGas, 2) }} GAS</text>
+                </view>
+              </view>
+            </view>
+          </NeoCard>
         </view>
-
-        <!-- Last Updated -->
-        <view class="last-updated">
-          <text>{{ t("lastUpdated") }}: {{ formatTime(data.lastUpdated) }}</text>
-          <view class="refresh-btn" @click="loadData">🔄</view>
+ 
+        <!-- Da Hongfei Detail Tab -->
+        <view v-if="activeTab === 'da'" class="tab-content">
+          <FounderDetail :category="daCategory" :prices="data.prices" />
+        </view>
+ 
+        <!-- Erik Zhang Detail Tab -->
+        <view v-if="activeTab === 'erik'" class="tab-content">
+          <FounderDetail :category="erikCategory" :prices="data.prices" />
+        </view>
+ 
+        <!-- Docs Tab -->
+        <view v-if="activeTab === 'docs'" class="tab-content scrollable">
+          <NeoDoc
+            :title="t('title')"
+            subtitle="Explore Neo's core treasury."
+            description="The Neo Treasury MiniApp provides a transparent view of the assets held by the Neo core founders and the foundation, essential for network governance and decentralization monitoring."
+            :steps="[
+              'Browse the overview for total treasury balances.',
+              'Check real-time price changes for NEO and GAS.',
+              'Drill down into individual founder wallet addresses.'
+            ]"
+            :features="[
+              { name: 'Transparency', desc: 'Full visibility into core network assets.' },
+              { name: 'Real-time Stats', desc: 'Up-to-the-minute price and balance tracking.' },
+              { name: 'Detailed Breakdown', desc: 'Explore down to the individual wallet level.' }
+            ]"
+          />
         </view>
       </view>
     </view>
@@ -87,10 +111,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
-import AppLayout from "@/shared/components/AppLayout.vue";
+import { ref, computed, onMounted } from "vue";
+import { AppLayout, NeoCard, AppIcon, NeoButton, NeoDoc } from "@/shared/components";
+import FounderDetail from "@/components/FounderDetail.vue";
 import { createT } from "@/shared/utils/i18n";
-import { fetchTreasuryData, type TreasuryData } from "@/utils/treasury";
+import { fetchTreasuryData, type TreasuryData, type CategoryBalance } from "@/utils/treasury";
 
 const translations = {
   title: { en: "Neo Treasury", zh: "Neo 国库" },
@@ -98,29 +123,49 @@ const translations = {
   retry: { en: "Retry", zh: "重试" },
   totalTreasury: { en: "Total Treasury Value", zh: "国库总价值" },
   lastUpdated: { en: "Last updated", zh: "最后更新" },
+  founders: { en: "Co-Founders", zh: "联合创始人" },
+  wallets: { en: "wallets", zh: "个钱包" },
+  tabTotal: { en: "Overview", zh: "总览" },
+  tabDa: { en: "Da Hongfei", zh: "达鸿飞" },
+  tabErik: { en: "Erik Zhang", zh: "张铮文" },
+  docs: { en: "Docs", zh: "文档" },
 };
 
 const t = createT(translations);
 
+// Tab configuration
+const navTabs = [
+  { id: "total", icon: "pie-chart", label: t("tabTotal") },
+  { id: "da", icon: "user", label: t("tabDa") },
+  { id: "erik", icon: "user", label: t("tabErik") },
+  { id: "docs", icon: "book", label: t("docs") },
+];
+const activeTab = ref("total");
+
 const loading = ref(true);
 const error = ref("");
 const data = ref<TreasuryData | null>(null);
-const expanded = reactive<Record<string, boolean>>({});
+
+// Computed properties for founder data
+const daCategory = computed<CategoryBalance | null>(() => {
+  return data.value?.categories.find((c: CategoryBalance) => c.name === "Da Hongfei") || null;
+});
+
+const erikCategory = computed<CategoryBalance | null>(() => {
+  return data.value?.categories.find((c: CategoryBalance) => c.name === "Erik Zhang") || null;
+});
 
 function formatNum(n: number, decimals = 0): string {
   return n.toLocaleString("en-US", { maximumFractionDigits: decimals });
-}
-
-function shortAddr(addr: string): string {
-  return addr.slice(0, 8) + "..." + addr.slice(-6);
 }
 
 function formatTime(ts: number): string {
   return new Date(ts).toLocaleTimeString();
 }
 
-function toggleCategory(name: string) {
-  expanded[name] = !expanded[name];
+function goToFounder(name: string) {
+  if (name === "Da Hongfei") activeTab.value = "da";
+  else if (name === "Erik Zhang") activeTab.value = "erik";
 }
 
 async function loadData() {
@@ -139,225 +184,36 @@ onMounted(loadData);
 </script>
 
 <style lang="scss" scoped>
-.treasury-container {
-  padding: 16px;
-  min-height: 100vh;
-  background: var(--bg-primary);
-}
+@import "@/shared/styles/tokens.scss";
+@import "@/shared/styles/variables.scss";
 
-.loading-state,
-.error-state {
+.app-container {
+  padding: $space-4;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  gap: 16px;
 }
 
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--border-color);
-  border-top-color: var(--accent-primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+.tab-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.error-icon {
-  font-size: 48px;
-}
-
-.error-msg {
-  color: var(--text-secondary);
-  text-align: center;
-}
-
-.retry-btn {
-  padding: 10px 24px;
-  background: var(--accent-primary);
-  color: white;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.summary-card {
-  background: linear-gradient(135deg, #00e599 0%, #00a86b 100%);
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 16px;
-  color: white;
-}
-
-.summary-title {
-  font-size: 14px;
-  opacity: 0.9;
+.loading-state-neo {
+  display: flex; justify-content: center; padding: $space-12 0;
+  font-size: 14px; font-weight: $font-weight-black; text-transform: uppercase; opacity: 0.6;
 }
 
 .summary-value {
-  font-size: 32px;
-  font-weight: 700;
-  display: block;
-  margin: 8px 0 16px;
+  font-family: $font-mono;
 }
 
-.summary-tokens {
-  display: flex;
-  gap: 24px;
+.price-card-neo, .price-card-gas {
+  border: 2px solid black; box-shadow: 4px 4px 0 black;
 }
 
-.token-item {
-  display: flex;
-  flex-direction: column;
-}
+.founder-usd { font-family: $font-mono; }
 
-.token-label {
-  font-size: 12px;
-  opacity: 0.8;
-}
-
-.token-value {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.price-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.price-card {
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  padding: 16px;
-  border: 1px solid var(--border-color);
-}
-
-.price-label {
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-.price-value {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text-primary);
-  display: block;
-  margin: 4px 0;
-}
-
-.price-change {
-  font-size: 13px;
-  &.up {
-    color: #00e599;
-  }
-  &.down {
-    color: #ff6b6b;
-  }
-}
-
-.category-card {
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 12px;
-  border: 1px solid var(--border-color);
-}
-
-.category-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-}
-
-.category-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.category-summary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.category-usd {
-  font-size: 16px;
-  font-weight: 600;
-  color: #00e599;
-}
-
-.expand-icon {
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.category-tokens {
-  display: flex;
-  gap: 16px;
-  margin-top: 8px;
-}
-
-.cat-token {
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-.wallet-list {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border-color);
-}
-
-.wallet-item {
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border-color);
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-.wallet-label {
-  font-size: 14px;
-  color: var(--text-primary);
-  display: block;
-}
-
-.wallet-addr {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  font-family: monospace;
-}
-
-.wallet-balances {
-  display: flex;
-  gap: 12px;
-  margin-top: 4px;
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-.last-updated {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 0;
-  font-size: 12px;
-  color: var(--text-tertiary);
-}
-
-.refresh-btn {
-  cursor: pointer;
-  font-size: 18px;
-}
+.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 </style>

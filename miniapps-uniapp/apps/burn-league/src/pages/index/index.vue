@@ -1,9 +1,9 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab === 'game'" class="tab-content">
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
+        <text class="font-bold">{{ status.msg }}</text>
+      </NeoCard>
 
       <!-- Total Burned Hero Section with Fire Animation -->
       <NeoCard variant="default" class="hero-card">
@@ -21,16 +21,16 @@
 
       <!-- Stats Grid -->
       <view class="stats-grid">
-        <view class="stat-box stat-box-user">
+        <NeoCard variant="accent" class="flex-1 text-center">
           <text class="stat-icon">🔥</text>
           <text class="stat-value">{{ formatNum(userBurned) }}</text>
           <text class="stat-label">{{ t("youBurned") }}</text>
-        </view>
-        <view class="stat-box stat-box-rank">
+        </NeoCard>
+        <NeoCard variant="warning" class="flex-1 text-center">
           <text class="stat-icon">{{ getRankIcon(rank) }}</text>
           <text class="stat-value">#{{ rank }}</text>
           <text class="stat-label">{{ t("rank") }}</text>
-        </view>
+        </NeoCard>
       </view>
 
       <!-- Burn Action Card -->
@@ -106,15 +106,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { ref, computed, onMounted, watch } from "vue";
+import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
+import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoButton from "@/shared/components/NeoButton.vue";
-import NeoCard from "@/shared/components/NeoCard.vue";
-import NeoInput from "@/shared/components/NeoInput.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
+import { AppLayout, NeoButton, NeoCard, NeoInput, NeoDoc } from "@/shared/components";
 
 const translations = {
   title: { en: "Burn League", zh: "燃烧联盟" },
@@ -125,7 +122,7 @@ const translations = {
   burnTokens: { en: "Burn Tokens", zh: "燃烧代币" },
   amountPlaceholder: { en: "Amount to burn", zh: "燃烧数量" },
   estimatedRewards: { en: "Estimated Rewards", zh: "预估奖励" },
-  points: { en: "Points", zh: "积分" },
+  points: { en: "GAS", zh: "GAS" },
   burning: { en: "Burning...", zh: "燃烧中..." },
   burnNow: { en: "Burn Now", zh: "立即燃烧" },
   leaderboard: { en: "Leaderboard", zh: "排行榜" },
@@ -137,18 +134,40 @@ const translations = {
   statistics: { en: "Statistics", zh: "统计数据" },
   totalGames: { en: "Total Games", zh: "总游戏数" },
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Professional documentation for this application is coming soon.",
-    zh: "此应用程序的专业文档即将推出。",
+  docSubtitle: {
+    en: "Competitive token burning with seasonal rewards",
+    zh: "带有赛季奖励的竞争性代币销毁",
   },
-  step1: { en: "Open the application.", zh: "打开应用程序。" },
-  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
-  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
-  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
-  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
-  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  docDescription: {
+    en: "Burn League is a competitive token burning platform where participants compete to burn the most tokens during seasonal competitions. Climb the leaderboard, earn points, and win exclusive rewards.",
+    zh: "Burn League 是一个竞争性代币销毁平台，参与者在赛季竞赛中竞争销毁最多的代币。攀登排行榜，赚取积分，赢取独家奖励。",
+  },
+  step1: {
+    en: "Connect your Neo wallet and join the current season",
+    zh: "连接您的 Neo 钱包并加入当前赛季",
+  },
+  step2: {
+    en: "Burn tokens to earn points and climb the leaderboard",
+    zh: "销毁代币以赚取积分并攀登排行榜",
+  },
+  step3: {
+    en: "Compete with others for top positions before season ends",
+    zh: "在赛季结束前与他人竞争顶级位置",
+  },
+  step4: {
+    en: "Claim your seasonal rewards based on final ranking",
+    zh: "根据最终排名领取赛季奖励",
+  },
+  feature1Name: { en: "Seasonal Competitions", zh: "赛季竞赛" },
+  feature1Desc: {
+    en: "Time-limited seasons with fresh leaderboards and prize pools.",
+    zh: "限时赛季，全新排行榜和奖池。",
+  },
+  feature2Name: { en: "On-Chain Leaderboard", zh: "链上排行榜" },
+  feature2Desc: {
+    en: "All burns and rankings are transparently recorded on Neo N3.",
+    zh: "所有销毁和排名都透明地记录在 Neo N3 上。",
+  },
 };
 
 const t = createT(translations);
@@ -160,14 +179,15 @@ const navTabs = [
 ];
 const activeTab = ref("game");
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 
 const APP_ID = "miniapp-burn-league";
-const { address, connect } = useWallet();
+const { address, connect, invokeContract, invokeRead, getContractHash } = useWallet();
+const { list: listEvents } = useEvents();
 
 interface LeaderEntry {
   rank: number;
@@ -178,22 +198,32 @@ interface LeaderEntry {
 
 const { payGAS, isLoading } = usePayments(APP_ID);
 
-const burnAmount = ref("10");
-const totalBurned = ref(50000);
-const userBurned = ref(250);
-const rank = ref(15);
+const burnAmount = ref("1");
+const totalBurned = ref(0);
+const rewardPool = ref(0);
+const userBurned = ref(0);
+const rank = ref(0);
 const burnCount = ref(0);
 const status = ref<{ msg: string; type: string } | null>(null);
+const contractHash = ref<string | null>(null);
 
-const leaderboard = ref<LeaderEntry[]>([
-  { rank: 1, address: "0x1a2b...3c4d", burned: 5000, isUser: false },
-  { rank: 2, address: "0x5e6f...7g8h", burned: 3500, isUser: false },
-  { rank: 3, address: "0x9i0j...1k2l", burned: 2800, isUser: false },
-  { rank: 15, address: "You", burned: 250, isUser: true },
-]);
+const leaderboard = ref<LeaderEntry[]>([]);
 
-const estimatedReward = computed(() => parseFloat(burnAmount.value || "0") * 10);
-const formatNum = (n: number) => formatNumber(n, 0);
+const formatNum = (n: number) => formatNumber(n, 2);
+const toFixed8 = (value: string) => {
+  const num = Number.parseFloat(value);
+  if (!Number.isFinite(num)) return "0";
+  return Math.floor(num * 1e8).toString();
+};
+const toGas = (value: any) => {
+  const num = Number(value ?? 0);
+  return Number.isFinite(num) ? num / 1e8 : 0;
+};
+
+const estimatedReward = computed(() => {
+  if (!totalBurned.value) return 0;
+  return (userBurned.value / totalBurned.value) * rewardPool.value;
+});
 
 const getMedalIcon = (rank: number): string => {
   if (rank === 1) return "🥇";
@@ -208,6 +238,85 @@ const getRankIcon = (rank: number): string => {
   return "📊";
 };
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const ensureContractHash = async () => {
+  if (!contractHash.value) {
+    contractHash.value = await getContractHash();
+  }
+  if (!contractHash.value) {
+    throw new Error("Contract not configured");
+  }
+};
+
+const waitForEvent = async (txid: string, eventName: string) => {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const res = await listEvents({ app_id: APP_ID, event_name: eventName, limit: 25 });
+    const match = res.events.find((evt) => evt.tx_hash === txid);
+    if (match) return match;
+    await sleep(1500);
+  }
+  return null;
+};
+
+const loadStats = async () => {
+  try {
+    await ensureContractHash();
+    const totalRes = await invokeRead({ contractHash: contractHash.value!, operation: "TotalBurned" });
+    totalBurned.value = toGas(parseInvokeResult(totalRes));
+    const poolRes = await invokeRead({ contractHash: contractHash.value!, operation: "RewardPool" });
+    rewardPool.value = toGas(parseInvokeResult(poolRes));
+    if (address.value) {
+      const userRes = await invokeRead({
+        contractHash: contractHash.value!,
+        operation: "GetUserBurned",
+        args: [{ type: "Hash160", value: address.value }],
+      });
+      userBurned.value = toGas(parseInvokeResult(userRes));
+    } else {
+      userBurned.value = 0;
+    }
+  } catch (e) {
+    console.warn("Failed to load burn stats", e);
+  }
+};
+
+const loadLeaderboard = async () => {
+  try {
+    const res = await listEvents({ app_id: APP_ID, event_name: "GasBurned", limit: 100 });
+    const totals: Record<string, number> = {};
+    let userBurns = 0;
+    res.events.forEach((evt) => {
+      const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
+      const burner = String(values[0] ?? "");
+      const amount = Number(values[1] ?? 0);
+      if (!burner) return;
+      totals[burner] = (totals[burner] || 0) + amount;
+      if (address.value && burner === address.value) {
+        userBurns += 1;
+      }
+    });
+    const entries = Object.entries(totals)
+      .map(([addr, amount]) => ({
+        address: addr,
+        burned: toGas(amount),
+        isUser: address.value ? addr === address.value : false,
+      }))
+      .sort((a, b) => b.burned - a.burned)
+      .map((entry, idx) => ({ rank: idx + 1, ...entry }));
+    leaderboard.value = entries;
+    const userEntry = entries.find((entry) => entry.isUser);
+    rank.value = userEntry ? userEntry.rank : 0;
+    burnCount.value = userBurns;
+  } catch (e) {
+    console.warn("Failed to load leaderboard", e);
+  }
+};
+
+const refreshData = async () => {
+  await Promise.all([loadStats(), loadLeaderboard()]);
+};
+
 const burnTokens = async () => {
   if (isLoading.value) return;
   const amount = parseFloat(burnAmount.value);
@@ -216,16 +325,47 @@ const burnTokens = async () => {
     return;
   }
   try {
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) {
+      throw new Error(t("error"));
+    }
+    await ensureContractHash();
     status.value = { msg: t("burning"), type: "loading" };
-    await payGAS(burnAmount.value, "burn");
-    userBurned.value += amount;
-    totalBurned.value += amount;
-    burnCount.value++;
-    status.value = { msg: `${t("burned")} ${amount} GAS! +${estimatedReward.value} ${t("points")}`, type: "success" };
+    const payment = await payGAS(burnAmount.value, "burn");
+    const receiptId = payment.receipt_id;
+    if (!receiptId) {
+      throw new Error("Missing payment receipt");
+    }
+    const tx = await invokeContract({
+      scriptHash: contractHash.value!,
+      operation: "BurnGas",
+      args: [
+        { type: "Hash160", value: address.value },
+        { type: "Integer", value: toFixed8(burnAmount.value) },
+        { type: "Integer", value: receiptId },
+      ],
+    });
+    const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
+    if (txid) {
+      await waitForEvent(txid, "GasBurned");
+    }
+    status.value = { msg: `${t("burned")} ${amount} GAS ${t("success")}`, type: "success" };
+    burnAmount.value = "1";
+    await refreshData();
   } catch (e: any) {
     status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
+
+onMounted(() => {
+  refreshData();
+});
+
+watch(address, () => {
+  refreshData();
+});
 </script>
 
 <style lang="scss" scoped>
@@ -233,388 +373,68 @@ const burnTokens = async () => {
 @import "@/shared/styles/variables.scss";
 
 .tab-content {
-  padding: $space-3;
+  padding: $space-4;
   flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: $space-4;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
 }
 
-.status-msg {
-  text-align: center;
-  padding: $space-3;
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  margin-bottom: $space-4;
-  font-weight: $font-weight-bold;
-
-  &.success {
-    background: var(--status-success);
-    color: var(--neo-black);
-    border-color: var(--neo-green);
-  }
-
-  &.error {
-    background: var(--status-error);
-    color: var(--neo-white);
-    border-color: var(--brutal-red);
-  }
-
-  &.loading {
-    background: var(--brutal-yellow);
-    color: var(--neo-black);
-    border-color: var(--brutal-orange);
-  }
-}
-
-/* Hero Card with Fire Animation */
 .hero-card {
-  position: relative;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  background: linear-gradient(135deg, var(--brutal-orange) 0%, var(--brutal-red) 100%);
-  border: $border-width-lg solid var(--brutal-red);
-  box-shadow:
-    0 8px 0 var(--brutal-red),
-    0 12px 20px rgba(0, 0, 0, 0.3);
+  text-align: center; padding: $space-6; background: black; border: 4px solid black; box-shadow: 10px 10px 0 black; position: relative; overflow: hidden;
 }
 
 .fire-container {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 60px;
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-end;
-  pointer-events: none;
+  position: absolute; bottom: 0; left: 0; right: 0; height: 30px;
+  display: flex; justify-content: space-around; align-items: flex-end; pointer-events: none;
 }
 
 .flame {
-  width: 30px;
-  height: 40px;
-  background: linear-gradient(to top, var(--brutal-orange), var(--brutal-yellow));
-  border-radius: 50% 50% 0 0;
-  animation: flicker 1.5s infinite ease-in-out;
-  opacity: 0.8;
-
-  &.flame-1 {
-    animation-delay: 0s;
-  }
-
-  &.flame-2 {
-    animation-delay: 0.3s;
-    height: 50px;
-  }
-
-  &.flame-3 {
-    animation-delay: 0.6s;
-    height: 35px;
-  }
+  width: 15px; height: 20px; background: var(--brutal-orange); border-radius: 50% 50% 0 0;
+  animation: neo-flicker 0.8s infinite alternate;
+  &.flame-2 { height: 30px; animation-delay: 0.1s; background: var(--brutal-red); }
+  &.flame-3 { height: 18px; animation-delay: 0.2s; background: var(--brutal-yellow); }
 }
 
-@keyframes flicker {
-  0%,
-  100% {
-    transform: scaleY(1) scaleX(1);
-    opacity: 0.8;
-  }
-  50% {
-    transform: scaleY(1.2) scaleX(0.9);
-    opacity: 1;
-  }
+@keyframes neo-flicker {
+  0% { transform: scaleY(1); opacity: 0.6; }
+  100% { transform: scaleY(1.5); opacity: 1; }
 }
 
-.hero-content {
-  position: relative;
-  z-index: 1;
-  text-align: center;
-  padding: $space-6 $space-4;
-}
+.hero-content { position: relative; z-index: 1; }
+.hero-label { font-size: 8px; font-weight: $font-weight-black; text-transform: uppercase; color: white; opacity: 0.6; }
+.hero-value { font-size: 36px; font-weight: $font-weight-black; color: var(--brutal-orange); font-family: $font-mono; display: block; filter: drop-shadow(2px 2px 0 black); }
+.hero-suffix { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; color: white; }
 
-.hero-label {
-  display: block;
-  color: var(--neo-white);
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: $space-2;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.hero-value {
-  display: block;
-  color: var(--neo-white);
-  font-size: 48px;
-  font-weight: $font-weight-black;
-  line-height: 1;
-  text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
-  animation: pulse 2s infinite ease-in-out;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
-
-.hero-suffix {
-  display: block;
-  color: var(--brutal-yellow);
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  margin-top: $space-2;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-/* Stats Grid */
-.stats-grid {
-  display: flex;
-  gap: $space-3;
-}
-
-.stat-box {
-  flex: 1;
-  text-align: center;
-  background: var(--bg-elevated);
-  border: $border-width-md solid var(--neo-green);
-  box-shadow: 4px 4px 0 var(--neo-green);
-  padding: $space-4;
-  transition: all $transition-fast;
-
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 var(--neo-green);
-  }
-}
-
-.stat-box-user {
-  border-color: var(--brutal-orange);
-  box-shadow: 4px 4px 0 var(--brutal-orange);
-
-  &:active {
-    box-shadow: 2px 2px 0 var(--brutal-orange);
-  }
-}
-
-.stat-box-rank {
-  border-color: var(--brutal-yellow);
-  box-shadow: 4px 4px 0 var(--brutal-yellow);
-
-  &:active {
-    box-shadow: 2px 2px 0 var(--brutal-yellow);
-  }
-}
-
-.stat-icon {
-  display: block;
-  font-size: 32px;
-  margin-bottom: $space-2;
-}
-
-.stat-value {
-  color: var(--text-primary);
-  font-size: $font-size-2xl;
-  font-weight: $font-weight-black;
-  display: block;
-  line-height: $line-height-tight;
-}
-
-.stat-label {
-  color: var(--text-secondary);
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: $space-2;
-  display: block;
-}
-
-/* Burn Card */
-.burn-card {
-  background: var(--bg-card);
-}
+.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: $space-3; }
+.stat-icon { font-size: 24px; display: block; margin-bottom: 4px; }
+.stat-value { font-size: 20px; font-weight: $font-weight-black; font-family: $font-mono; }
+.stat-label { font-size: 8px; font-weight: $font-weight-black; text-transform: uppercase; opacity: 0.6; }
 
 .reward-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: $space-4;
-  background: var(--bg-elevated);
-  border: $border-width-md solid var(--brutal-yellow);
-  box-shadow: 4px 4px 0 var(--brutal-yellow);
-  margin: $space-4 0;
-  border-radius: $radius-sm;
+  background: white; padding: $space-3; border: 2px solid black;
+  display: flex; justify-content: space-between; align-items: center; margin: $space-4 0;
 }
+.reward-label { font-size: 8px; font-weight: $font-weight-black; text-transform: uppercase; opacity: 0.6; }
+.reward-value { font-size: 12px; font-weight: $font-weight-black; color: var(--neo-purple); font-family: $font-mono; }
 
-.reward-label {
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-}
+.burn-button-text { font-size: 14px; font-weight: $font-weight-black; text-transform: uppercase; }
 
-.reward-value {
-  color: var(--brutal-yellow);
-  font-size: $font-size-xl;
-  font-weight: $font-weight-black;
-}
-
-.burn-button {
-  background: linear-gradient(135deg, var(--brutal-orange), var(--brutal-red));
-  border-color: var(--brutal-red);
-
-  &:active {
-    background: var(--brutal-red);
-  }
-}
-
-.burn-button-text {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-black;
-}
-
-/* Leaderboard */
-.leaderboard-card {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.leaderboard-list {
-  display: flex;
-  flex-direction: column;
-  gap: $space-2;
-  overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-}
-
+.leaderboard-list { display: flex; flex-direction: column; gap: $space-3; }
 .leader-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: $space-3;
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: 3px 3px 0 var(--neo-black);
-  transition: all $transition-fast;
-
-  &.highlight {
-    background: var(--bg-elevated);
-    border-color: var(--neo-green);
-    box-shadow: 5px 5px 0 var(--neo-green);
-  }
-
-  &.rank-1 {
-    border-color: var(--brutal-yellow);
-    box-shadow: 5px 5px 0 var(--brutal-yellow);
-    background: linear-gradient(
-      135deg,
-      rgba(var(--brutal-yellow-rgb, 255, 222, 89), 0.1),
-      rgba(var(--brutal-yellow-rgb, 255, 222, 89), 0.05)
-    );
-  }
-
-  &.rank-2 {
-    border-color: var(--text-secondary);
-    box-shadow: 5px 5px 0 var(--text-secondary);
-    background: linear-gradient(
-      135deg,
-      rgba(var(--text-secondary-rgb, 192, 192, 192), 0.1),
-      rgba(var(--text-secondary-rgb, 192, 192, 192), 0.05)
-    );
-  }
-
-  &.rank-3 {
-    border-color: var(--brutal-orange);
-    box-shadow: 5px 5px 0 var(--brutal-orange);
-    background: linear-gradient(
-      135deg,
-      rgba(var(--brutal-orange-rgb, 205, 127, 50), 0.1),
-      rgba(var(--brutal-orange-rgb, 205, 127, 50), 0.05)
-    );
-  }
-
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: 1px 1px 0 var(--neo-black);
-  }
+  display: flex; justify-content: space-between; align-items: center; padding: $space-3;
+  background: white; border: 2px solid black; box-shadow: 4px 4px 0 black;
+  &.highlight { background: var(--brutal-yellow); border-color: black; }
 }
 
-.leader-rank-container {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  min-width: 80px;
-}
+.leader-rank-container { display: flex; align-items: center; gap: 4px; }
+.leader-medal { font-size: 14px; }
+.leader-rank { font-size: 10px; font-weight: $font-weight-black; font-family: $font-mono; }
+.leader-addr { font-size: 8px; font-family: $font-mono; font-weight: $font-weight-bold; opacity: 0.6; flex: 1; padding: 0 $space-4; word-break: break-all; }
+.leader-burned { font-size: 14px; font-weight: $font-weight-black; font-family: $font-mono; color: var(--brutal-orange); }
+.leader-burned-suffix { font-size: 8px; font-weight: $font-weight-black; opacity: 0.6; margin-left: 2px; }
 
-.leader-medal {
-  font-size: 24px;
-}
+.stat-row { display: flex; justify-content: space-between; padding: $space-3 0; border-bottom: 1px dashed black; }
 
-.leader-rank {
-  color: var(--text-primary);
-  font-weight: $font-weight-black;
-  font-size: $font-size-lg;
-}
-
-.leader-addr {
-  color: var(--text-primary);
-  font-weight: $font-weight-semibold;
-  flex: 1;
-  padding: 0 $space-3;
-  font-size: $font-size-base;
-}
-
-.leader-burned-container {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
-
-.leader-burned {
-  color: var(--brutal-orange);
-  font-weight: $font-weight-black;
-  font-size: $font-size-lg;
-}
-
-.leader-burned-suffix {
-  color: var(--text-secondary);
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-}
-
-/* Stats Tab */
-.stat-row {
-  display: flex;
-  justify-content: space-between;
-  padding: $space-3 0;
-  border-bottom: $border-width-sm solid var(--border-color);
-
-  &:last-child {
-    border-bottom: 0;
-  }
-
-  .stat-label {
-    color: var(--text-secondary);
-    font-weight: $font-weight-semibold;
-  }
-
-  .stat-value {
-    font-weight: $font-weight-bold;
-    color: var(--text-primary);
-  }
-}
+.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 </style>

@@ -2,141 +2,132 @@
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab === 'search' || activeTab === 'history'" class="app-container">
       <!-- Network Stats Cards -->
-      <view class="stats-grid">
-        <view class="network-card mainnet">
-          <text class="network-label">{{ t("mainnet") }}</text>
-          <view class="network-stats">
-            <view class="stat-item">
-              <text class="stat-value">{{ formatNum(stats.mainnet.height) }}</text>
-              <text class="stat-label">{{ t("blockHeight") }}</text>
-            </view>
-            <view class="stat-item">
-              <text class="stat-value">{{ formatNum(stats.mainnet.txCount) }}</text>
-              <text class="stat-label">{{ t("transactions") }}</text>
-            </view>
-          </view>
-        </view>
-        <view class="network-card testnet">
-          <text class="network-label">{{ t("testnet") }}</text>
-          <view class="network-stats">
-            <view class="stat-item">
-              <text class="stat-value">{{ formatNum(stats.testnet.height) }}</text>
-              <text class="stat-label">{{ t("blockHeight") }}</text>
-            </view>
-            <view class="stat-item">
-              <text class="stat-value">{{ formatNum(stats.testnet.txCount) }}</text>
-              <text class="stat-label">{{ t("transactions") }}</text>
-            </view>
-          </view>
-        </view>
+      <view class="stats-grid mb-6">
+        <NeoCard :title="t('mainnet')" variant="success" class="flex-1">
+          <NeoStats :stats="mainnetStats" />
+        </NeoCard>
+        <NeoCard :title="t('testnet')" variant="accent" class="flex-1">
+          <NeoStats :stats="testnetStats" />
+        </NeoCard>
       </view>
 
       <!-- Status Message -->
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
+        <text class="status-text font-bold uppercase">{{ status.msg }}</text>
+      </NeoCard>
 
       <!-- Search Tab -->
       <view v-if="activeTab === 'search'" class="tab-content">
-        <view class="search-section">
-          <view class="search-box">
-            <input v-model="searchQuery" class="search-input" :placeholder="t('searchPlaceholder')" @confirm="search" />
-            <view class="search-btn" @click="search">
-              <text>{{ t("search") }}</text>
-            </view>
+        <NeoCard :title="t('search')" class="mb-6">
+          <view class="search-box-neo mb-4">
+            <NeoInput
+              v-model="searchQuery"
+              :placeholder="t('searchPlaceholder')"
+              @confirm="search"
+              class="flex-1 mb-2"
+            />
+            <NeoButton variant="primary" block @click="search" :loading="isLoading">
+              {{ t("search") }}
+            </NeoButton>
           </view>
-          <view class="network-toggle">
-            <view
-              :class="['toggle-btn', selectedNetwork === 'mainnet' && 'active']"
+
+          <view class="network-toggle flex gap-2">
+            <NeoButton
+              :variant="selectedNetwork === 'mainnet' ? 'success' : 'secondary'"
+              size="sm"
+              class="flex-1"
               @click="selectedNetwork = 'mainnet'"
             >
-              <text>{{ t("mainnet") }}</text>
-            </view>
-            <view
-              :class="['toggle-btn', selectedNetwork === 'testnet' && 'active']"
+              {{ t("mainnet") }}
+            </NeoButton>
+            <NeoButton
+              :variant="selectedNetwork === 'testnet' ? 'warning' : 'secondary'"
+              size="sm"
+              class="flex-1"
               @click="selectedNetwork = 'testnet'"
             >
-              <text>{{ t("testnet") }}</text>
-            </view>
+              {{ t("testnet") }}
+            </NeoButton>
           </view>
-        </view>
+        </NeoCard>
 
         <view v-if="isLoading" class="loading">
           <text>{{ t("searching") }}</text>
         </view>
 
         <view v-if="searchResult" class="result-section">
-          <text class="section-title">{{ t("searchResult") }}</text>
-          <view v-if="searchResult.type === 'transaction'" class="result-card">
-            <view class="result-header">
-              <text class="result-type">{{ t("transaction") }}</text>
-              <text :class="['vm-state', searchResult.data.vmState]">{{ searchResult.data.vmState }}</text>
-            </view>
-            <view class="result-row">
-              <text class="label">{{ t("hash") }}</text>
-              <text class="value hash">{{ searchResult.data.hash }}</text>
-            </view>
-            <view class="result-row">
-              <text class="label">{{ t("block") }}</text>
-              <text class="value">{{ searchResult.data.blockIndex }}</text>
-            </view>
-            <view class="result-row">
-              <text class="label">{{ t("time") }}</text>
-              <text class="value">{{ formatTime(searchResult.data.blockTime) }}</text>
-            </view>
-            <view class="result-row">
-              <text class="label">{{ t("sender") }}</text>
-              <text class="value addr">{{ searchResult.data.sender }}</text>
-            </view>
-            <view class="result-row">
-              <text class="label">System Fee:</text>
-              <text class="value">{{ searchResult.data.systemFee }} GAS</text>
-            </view>
-            <view class="result-row">
-              <text class="label">Network Fee:</text>
-              <text class="value">{{ searchResult.data.networkFee }} GAS</text>
-            </view>
-          </view>
+          <text class="section-title-neo mb-4 font-bold uppercase">{{ t("searchResult") }}</text>
 
-          <view v-else-if="searchResult.type === 'address'" class="result-card">
-            <view class="result-header">
-              <text class="result-type">{{ t("address") }}</text>
+          <NeoCard v-if="searchResult.type === 'transaction'" class="mb-6">
+            <template #header-extra>
+              <text :class="['vm-state-neo font-black', searchResult.data.vmState]">{{
+                searchResult.data.vmState
+              }}</text>
+            </template>
+
+            <view class="result-rows">
+              <view class="result-row-neo">
+                <text class="label-neo text-xs opacity-60 uppercase font-black">{{ t("hash") }}</text>
+                <text class="value-neo text-sm font-mono word-break">{{ searchResult.data.hash }}</text>
+              </view>
+              <view class="result-row-neo">
+                <text class="label-neo text-xs opacity-60 uppercase font-black">{{ t("block") }}</text>
+                <text class="value-neo text-sm font-bold">{{ searchResult.data.blockIndex }}</text>
+              </view>
+              <view class="result-row-neo">
+                <text class="label-neo text-xs opacity-60 uppercase font-black">{{ t("time") }}</text>
+                <text class="value-neo text-sm">{{ formatTime(searchResult.data.blockTime) }}</text>
+              </view>
+              <view class="result-row-neo">
+                <text class="label-neo text-xs opacity-60 uppercase font-black">{{ t("sender") }}</text>
+                <text class="value-neo text-sm font-mono word-break">{{ searchResult.data.sender }}</text>
+              </view>
             </view>
-            <view class="result-row">
-              <text class="label">Address:</text>
-              <text class="value addr">{{ searchResult.data.address }}</text>
+          </NeoCard>
+
+          <NeoCard v-else-if="searchResult.type === 'address'" :title="t('address')" class="mb-6">
+            <view class="result-rows mb-4">
+              <view class="result-row-neo">
+                <text class="label-neo text-xs opacity-60 uppercase font-black">Address:</text>
+                <text class="value-neo text-sm font-mono word-break">{{ searchResult.data.address }}</text>
+              </view>
+              <view class="result-row-neo">
+                <text class="label-neo text-xs opacity-60 uppercase font-black">Transactions:</text>
+                <text class="value-neo text-sm font-bold">{{ searchResult.data.txCount }}</text>
+              </view>
             </view>
-            <view class="result-row">
-              <text class="label">Transactions:</text>
-              <text class="value">{{ searchResult.data.txCount }}</text>
-            </view>
-            <view class="tx-list" v-if="searchResult.data.transactions?.length">
-              <text class="list-title">{{ t("recentTransactions") }}</text>
+
+            <view class="tx-list-neo" v-if="searchResult.data.transactions?.length">
+              <text class="list-title-neo text-xs uppercase opacity-60 font-black mb-2 block">{{
+                t("recentTransactions")
+              }}</text>
               <view
                 v-for="tx in searchResult.data.transactions"
                 :key="tx.hash"
-                class="tx-item"
+                class="tx-item-neo mb-2"
                 @click="viewTx(tx.hash)"
               >
-                <text class="tx-hash">{{ truncateHash(tx.hash) }}</text>
-                <text class="tx-time">{{ formatTime(tx.blockTime) }}</text>
+                <text class="tx-hash-neo text-sm font-mono">{{ truncateHash(tx.hash) }}</text>
+                <text class="tx-time text-xs opacity-60">{{ formatTime(tx.blockTime) }}</text>
               </view>
             </view>
-          </view>
+          </NeoCard>
         </view>
       </view>
 
       <!-- History Tab -->
       <view v-if="activeTab === 'history'" class="tab-content">
         <view v-if="recentTxs.length" class="recent-section">
-          <text class="section-title">{{ t("recentTransactions") }}</text>
-          <view v-for="tx in recentTxs" :key="tx.hash" class="tx-item" @click="viewTx(tx.hash)">
-            <view class="tx-info">
-              <text class="tx-hash">{{ truncateHash(tx.hash) }}</text>
-              <text :class="['vm-state-small', tx.vmState]">{{ tx.vmState }}</text>
+          <text class="section-title-neo mb-4 font-bold uppercase">{{ t("recentTransactions") }}</text>
+          <NeoCard v-for="tx in recentTxs" :key="tx.hash" class="mb-3" @click="viewTx(tx.hash)">
+            <view class="tx-item-content-neo flex justify-between items-center w-full">
+              <view class="tx-info flex items-center gap-2">
+                <text class="tx-hash-neo text-sm font-mono">{{ truncateHash(tx.hash) }}</text>
+                <text :class="['vm-state-small-neo text-xs font-black px-2 py-1', tx.vmState]">{{ tx.vmState }}</text>
+              </view>
+              <text class="tx-time text-xs opacity-60">{{ formatTime(tx.blockTime) }}</text>
             </view>
-            <text class="tx-time">{{ formatTime(tx.blockTime) }}</text>
-          </view>
+          </NeoCard>
         </view>
       </view>
     </view>
@@ -158,9 +149,9 @@
 import { ref, computed, onMounted } from "vue";
 import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
+import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard, NeoStats } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
+import type { StatItem } from "@/shared/components/NeoStats.vue";
 
 const translations = {
   title: { en: "Neo Explorer", zh: "Neo 浏览器" },
@@ -189,23 +180,45 @@ const translations = {
   tabHistory: { en: "History", zh: "历史" },
 
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Professional documentation for this application is coming soon.",
-    zh: "此应用程序的专业文档即将推出。",
+  docSubtitle: {
+    en: "Browse Neo N3 blockchain data in real-time",
+    zh: "实时浏览 Neo N3 区块链数据",
   },
-  step1: { en: "Open the application.", zh: "打开应用程序。" },
-  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
-  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
-  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
-  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
-  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  docDescription: {
+    en: "Explorer provides a comprehensive view of the Neo N3 blockchain. Search transactions, inspect addresses, and analyze smart contracts.",
+    zh: "Explorer 提供 Neo N3 区块链的全面视图。搜索交易、检查地址并分析智能合约。",
+  },
+  step1: {
+    en: "Enter a transaction hash, address, or contract hash",
+    zh: "输入交易哈希、地址或合约哈希",
+  },
+  step2: {
+    en: "View detailed information about the searched item",
+    zh: "查看搜索项目的详细信息",
+  },
+  step3: {
+    en: "Explore related transactions and contract interactions",
+    zh: "探索相关交易和合约交互",
+  },
+  step4: {
+    en: "Bookmark addresses you want to monitor",
+    zh: "收藏您想监控的地址",
+  },
+  feature1Name: { en: "Real-Time Data", zh: "实时数据" },
+  feature1Desc: {
+    en: "Live blockchain data updated as new blocks are confirmed.",
+    zh: "实时区块链数据，随新区块确认而更新。",
+  },
+  feature2Name: { en: "Deep Analysis", zh: "深度分析" },
+  feature2Desc: {
+    en: "Detailed transaction traces and contract state inspection.",
+    zh: "详细的交易追踪和合约状态检查。",
+  },
 };
 
 const t = createT(translations);
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
@@ -231,6 +244,16 @@ const stats = ref({
   mainnet: { height: 0, txCount: 0 },
   testnet: { height: 0, txCount: 0 },
 });
+
+const mainnetStats = computed<StatItem[]>(() => [
+  { label: t("blockHeight"), value: formatNum(stats.value.mainnet.height), variant: "default" },
+  { label: t("transactions"), value: formatNum(stats.value.mainnet.txCount), variant: "default" },
+]);
+
+const testnetStats = computed<StatItem[]>(() => [
+  { label: t("blockHeight"), value: formatNum(stats.value.testnet.height), variant: "default" },
+  { label: t("transactions"), value: formatNum(stats.value.testnet.txCount), variant: "default" },
+]);
 
 const formatNum = (n: number) => formatNumber(n, 0);
 
@@ -343,429 +366,46 @@ onMounted(() => {
 @import "@/shared/styles/variables.scss";
 
 .app-container {
+  padding: $space-4;
   flex: 1;
   display: flex;
   flex-direction: column;
+  gap: $space-4;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: $space-4;
 }
 
-.tab-content {
-  flex: 1;
+.tab-content { display: flex; flex-direction: column; gap: $space-4; }
+.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: $space-4; }
+
+.section-title-neo { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; margin-bottom: 8px; background: black; color: white; padding: 2px 8px; display: inline-block; }
+
+.vm-state-neo, .vm-state-small-neo {
+  padding: 4px 10px; font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; border: 2px solid black; box-shadow: 2px 2px 0 black;
+  &.HALT { background: var(--neo-green); color: black; }
+  &.FAULT { background: var(--brutal-red); color: white; }
 }
 
-.stats-grid {
-  display: flex;
-  gap: $space-3;
-  margin-bottom: $space-5;
+.result-rows { display: flex; flex-direction: column; gap: $space-3; }
+.result-row-neo { padding: $space-3; background: #f8f8f8; border: 2px solid black; box-shadow: 4px 4px 0 black; margin-bottom: $space-2; }
+
+.label-neo { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; color: black; margin-bottom: 4px; display: block; }
+.value-neo { font-family: $font-mono; font-size: 12px; word-break: break-all; font-weight: $font-weight-black; color: black; }
+
+.tx-list-neo { margin-top: $space-6; border-top: 4px solid black; padding-top: $space-4; }
+.tx-item-neo {
+  padding: $space-3; background: white; border: 2px solid black;
+  margin-bottom: $space-2; display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 4px 4px 0 black;
+  &:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 black; }
 }
 
-.network-card {
-  flex: 1;
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  border-radius: $radius-lg;
-  padding: $space-4;
-  position: relative;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  box-shadow: $shadow-sm;
-  transition: all 0.3s ease;
+.tx-hash-neo { font-family: $font-mono; font-size: 12px; font-weight: $font-weight-black; color: black; }
+.tx-time { font-size: 10px; opacity: 0.6; font-weight: $font-weight-black; }
 
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    flex: 1;
-    min-height: 0;
-    background: var(--accent-color);
-  }
+.network-toggle { margin-top: $space-4; border-top: 3px solid black; padding-top: $space-4; display: grid; grid-template-columns: 1fr 1fr; gap: $space-2; }
 
-  &.mainnet {
-    --accent-color: var(--neo-green);
+.status-text { font-family: $font-mono; font-size: 12px; font-weight: $font-weight-black; }
 
-    &:hover {
-      border-color: var(--accent-color);
-      box-shadow: $shadow-md;
-    }
-  }
-
-  &.testnet {
-    --accent-color: var(--brutal-orange);
-
-    &:hover {
-      border-color: var(--accent-color);
-      box-shadow: $shadow-md;
-    }
-  }
-}
-
-.network-label {
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  margin-bottom: $space-3;
-  display: block;
-  color: var(--accent-color);
-  letter-spacing: 0.5px;
-}
-
-.network-stats {
-  display: flex;
-  gap: $space-2;
-}
-
-.stat-item {
-  flex: 1;
-  text-align: center;
-}
-
-.stat-value {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-  display: block;
-}
-
-.stat-label {
-  font-size: $font-size-xs;
-  color: var(--text-secondary);
-}
-
-.search-section {
-  margin-bottom: $space-5;
-}
-
-.search-box {
-  display: flex;
-  gap: $space-2;
-  margin-bottom: $space-3;
-}
-
-.search-input {
-  flex: 1;
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  border-radius: $radius-md;
-  padding: $space-3 $space-4;
-  color: var(--text-primary);
-  font-size: $font-size-sm;
-  font-family: $font-mono;
-  transition: all 0.2s ease;
-
-  &:focus {
-    border-color: var(--brutal-orange);
-    outline: none;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brutal-orange) 10%, transparent);
-  }
-
-  &::placeholder {
-    color: var(--text-tertiary);
-  }
-}
-
-.search-btn {
-  background: var(--brutal-orange);
-  color: var(--neo-white);
-  padding: $space-3 $space-5;
-  border-radius: $radius-md;
-  font-weight: $font-weight-bold;
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-sm;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: $shadow-md;
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: $shadow-sm;
-  }
-}
-
-.network-toggle {
-  display: flex;
-  gap: $space-2;
-}
-
-.toggle-btn {
-  flex: 1;
-  text-align: center;
-  padding: $space-2 $space-3;
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  border-radius: $radius-md;
-  color: var(--text-secondary);
-  font-weight: $font-weight-medium;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    border-color: var(--text-secondary);
-  }
-
-  &.active {
-    background: color-mix(in srgb, var(--brutal-orange) 10%, transparent);
-    border-color: var(--brutal-orange);
-    color: var(--brutal-orange);
-    font-weight: $font-weight-bold;
-  }
-}
-
-.status-msg {
-  text-align: center;
-  padding: $space-2;
-  border-radius: $radius-md;
-  margin-bottom: $space-4;
-
-  &.success {
-    background: color-mix(in srgb, var(--status-success) 15%, transparent);
-    color: var(--status-success);
-  }
-
-  &.error {
-    background: color-mix(in srgb, var(--status-error) 15%, transparent);
-    color: var(--status-error);
-  }
-}
-
-.loading {
-  text-align: center;
-  padding: $space-5;
-  color: var(--text-secondary);
-}
-
-.section-title {
-  font-size: $font-size-base;
-  font-weight: $font-weight-bold;
-  color: var(--brutal-orange);
-  margin-bottom: $space-3;
-  display: block;
-}
-
-.result-section,
-.recent-section {
-  margin-top: $space-5;
-}
-
-.result-card {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  border-radius: $radius-lg;
-  padding: $space-4;
-  box-shadow: $shadow-sm;
-  transition: all 0.3s ease;
-
-  &:hover {
-    box-shadow: $shadow-md;
-    border-color: var(--brutal-orange);
-  }
-}
-
-.result-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: $space-3;
-  padding-bottom: $space-3;
-  border-bottom: $border-width-sm solid var(--border-color);
-}
-
-.result-type {
-  font-weight: $font-weight-bold;
-  color: var(--brutal-orange);
-}
-
-.vm-state {
-  padding: $space-1 $space-3;
-  border-radius: $radius-sm;
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border: $border-width-sm solid transparent;
-
-  &.HALT {
-    background: color-mix(in srgb, var(--neo-green) 15%, transparent);
-    color: var(--neo-green);
-    border-color: color-mix(in srgb, var(--neo-green) 30%, transparent);
-  }
-
-  &.FAULT {
-    background: color-mix(in srgb, var(--status-error) 15%, transparent);
-    color: var(--status-error);
-    border-color: color-mix(in srgb, var(--status-error) 30%, transparent);
-  }
-}
-
-.result-row {
-  display: flex;
-  padding: $space-3 0;
-  border-bottom: $border-width-sm solid var(--border-color);
-  align-items: flex-start;
-  gap: $space-3;
-
-  &:last-child {
-    border-bottom: none;
-  }
-
-  &:hover {
-    background: color-mix(in srgb, var(--brutal-orange) 3%, transparent);
-    margin: 0 (-$space-2);
-    padding-left: $space-2;
-    padding-right: $space-2;
-    border-radius: $radius-sm;
-  }
-}
-
-.label {
-  min-width: 100px;
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  text-transform: capitalize;
-}
-
-.value {
-  flex: 1;
-  font-size: $font-size-sm;
-  word-break: break-all;
-  color: var(--text-primary);
-  line-height: 1.5;
-
-  &.hash,
-  &.addr {
-    font-family: $font-mono;
-    color: var(--brutal-orange);
-    background: color-mix(in srgb, var(--brutal-orange) 5%, transparent);
-    padding: $space-1 $space-2;
-    border-radius: $radius-sm;
-    border: $border-width-sm solid color-mix(in srgb, var(--brutal-orange) 20%, transparent);
-  }
-}
-
-.tx-list {
-  margin-top: $space-4;
-  padding-top: $space-4;
-  border-top: $border-width-sm solid var(--border-color);
-}
-
-.list-title {
-  font-size: $font-size-sm;
-  color: var(--text-secondary);
-  margin-bottom: $space-2;
-  display: block;
-}
-
-.tx-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: $space-3;
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  border-radius: $radius-md;
-  margin-bottom: $space-2;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    flex: 1;
-    min-height: 0;
-    width: 3px;
-    background: var(--brutal-orange);
-    transform: scaleY(0);
-    transition: transform 0.2s ease;
-  }
-
-  &:hover {
-    border-color: var(--brutal-orange);
-    box-shadow: $shadow-sm;
-    transform: translateX(2px);
-
-    &::before {
-      transform: scaleY(1);
-    }
-  }
-
-  &:active {
-    transform: translateX(0);
-  }
-}
-
-.tx-info {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-}
-
-.tx-hash {
-  font-family: $font-mono;
-  font-size: $font-size-sm;
-  color: var(--brutal-orange);
-  font-weight: $font-weight-medium;
-  letter-spacing: -0.5px;
-}
-
-.tx-time {
-  font-size: $font-size-xs;
-  color: var(--text-secondary);
-  font-weight: $font-weight-normal;
-}
-
-.vm-state-small {
-  padding: $space-1 $space-2;
-  border-radius: $radius-sm;
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  border: $border-width-sm solid transparent;
-
-  &.HALT {
-    background: color-mix(in srgb, var(--neo-green) 15%, transparent);
-    color: var(--neo-green);
-    border-color: color-mix(in srgb, var(--neo-green) 30%, transparent);
-  }
-
-  &.FAULT {
-    background: color-mix(in srgb, var(--status-error) 15%, transparent);
-    color: var(--status-error);
-    border-color: color-mix(in srgb, var(--status-error) 30%, transparent);
-  }
-}
-
-// Animations
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(-10px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
+.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 </style>

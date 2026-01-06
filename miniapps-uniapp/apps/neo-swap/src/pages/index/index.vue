@@ -3,7 +3,8 @@
     <!-- Swap Tab -->
     <view v-if="activeTab === 'swap'">
       <!-- Swap Card -->
-      <view class="swap-card">
+      <!-- Swap Card -->
+      <NeoCard class="swap-card">
         <!-- From Token Card -->
         <view class="token-card">
           <view class="token-card-header">
@@ -12,18 +13,16 @@
           </view>
           <view class="token-input-row">
             <view class="token-select" @click="openFromSelector">
-              <text class="token-icon">{{ fromToken.icon }}</text>
+              <AppIcon :name="fromToken.symbol.toLowerCase()" :size="32" />
               <view class="token-info">
                 <text class="token-symbol">{{ fromToken.symbol }}</text>
-                <text class="dropdown-arrow">▼</text>
+                <AppIcon name="chevron-right" :size="16" rotate="90" />
               </view>
             </view>
-            <uni-easyinput
+            <NeoInput
               v-model="fromAmount"
               type="number"
-              :placeholder="'0.0'"
-              :inputBorder="false"
-              :clearable="true"
+              placeholder="0.0"
               @input="onFromAmountChange"
               class="amount-input-wrapper"
             />
@@ -33,7 +32,7 @@
         <!-- Swap Direction Button -->
         <view class="swap-direction-container">
           <view :class="['swap-direction-btn', { rotating: isSwapping }]" @click="swapTokens">
-            <text class="swap-icon">⇅</text>
+            <AppIcon name="swap" :size="24" />
           </view>
         </view>
 
@@ -45,23 +44,16 @@
           </view>
           <view class="token-input-row">
             <view class="token-select" @click="openToSelector">
-              <text class="token-icon">{{ toToken.icon }}</text>
+              <AppIcon :name="toToken.symbol.toLowerCase()" :size="32" />
               <view class="token-info">
                 <text class="token-symbol">{{ toToken.symbol }}</text>
-                <text class="dropdown-arrow">▼</text>
+                <AppIcon name="chevron-right" :size="16" rotate="90" />
               </view>
             </view>
-            <uni-easyinput
-              v-model="toAmount"
-              type="number"
-              :placeholder="'0.0'"
-              :inputBorder="false"
-              disabled
-              class="amount-input-wrapper disabled"
-            />
+            <NeoInput v-model="toAmount" type="number" placeholder="0.0" disabled class="amount-input-wrapper" />
           </view>
         </view>
-      </view>
+      </NeoCard>
 
       <!-- Exchange Rate & Details -->
       <view class="rate-card" v-if="exchangeRate">
@@ -71,8 +63,8 @@
             <text class="rate-value">1 {{ fromToken.symbol }} ≈ {{ exchangeRate }} {{ toToken.symbol }}</text>
           </view>
           <view class="rate-actions">
-            <text class="refresh-icon" @click.stop="fetchExchangeRate">↻</text>
-            <text class="expand-icon">{{ showDetails ? "▲" : "▼" }}</text>
+            <AppIcon name="history" :size="20" class="refresh-icon" @click.stop="fetchExchangeRate" />
+            <AppIcon name="chevron-right" :size="16" :rotate="showDetails ? 270 : 90" />
           </view>
         </view>
 
@@ -98,40 +90,45 @@
       </view>
 
       <!-- Swap Button -->
-      <button
-        :class="['swap-btn', { loading: loading }]"
+      <!-- Swap Button -->
+      <NeoButton
+        variant="primary"
+        size="lg"
+        block
+        :loading="loading"
         :disabled="!canSwap || loading"
         @click="executeSwap"
-        hover-class="button-hover"
       >
-        <text v-if="loading" class="loading-spinner">⟳</text>
-        <text>{{ swapButtonText }}</text>
-      </button>
+        {{ swapButtonText }}
+      </NeoButton>
 
       <!-- Status -->
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <!-- Status -->
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mt-4">
+        <text class="text-center font-bold">{{ status.msg }}</text>
+      </NeoCard>
 
       <!-- Token Selector Modal -->
       <view v-if="showSelector" class="modal-overlay" @click="closeSelector">
         <view class="modal-content scale-in" @click.stop>
           <view class="modal-header">
             <text class="modal-title">{{ t("selectToken") }}</text>
-            <text class="close-btn" @click="closeSelector">×</text>
+            <AppIcon name="x" :size="24" class="close-btn" @click="closeSelector" />
           </view>
           <scroll-view scroll-y class="token-list">
             <view v-for="token in availableTokens" :key="token.symbol" class="token-option" @click="selectToken(token)">
-              <text class="token-icon">{{ token.icon }}</text>
+              <AppIcon :name="token.symbol.toLowerCase()" :size="32" />
               <view class="token-info">
                 <text class="token-name">{{ token.symbol }}</text>
                 <text class="token-balance">{{ formatAmount(token.balance) }}</text>
               </view>
-              <text
-                v-if="token.symbol === (selectorTarget === 'from' ? fromToken.symbol : toToken.symbol)"
-                class="check-mark"
-                >✓</text
               >
+              <AppIcon
+                v-if="token.symbol === (selectorTarget === 'from' ? fromToken.symbol : toToken.symbol)"
+                name="check"
+                :size="20"
+                class="check-mark"
+              />
             </view>
           </scroll-view>
         </view>
@@ -147,29 +144,23 @@
         </view>
 
         <!-- Pool Stats -->
+        <!-- Pool Stats -->
         <view class="pool-stats">
-          <view class="stat-card">
-            <text class="stat-label">TVL</text>
-            <text class="stat-value">$12.5M</text>
-          </view>
-          <view class="stat-card">
-            <text class="stat-label">APR</text>
-            <text class="stat-value highlight">24.5%</text>
-          </view>
+          <NeoStats :stats="poolStats" />
         </view>
 
         <!-- Your Position -->
-        <view class="position-card">
-          <text class="position-title">{{ t("yourPosition") }}</text>
-          <view class="position-row">
-            <text class="position-label">NEO/GAS LP</text>
-            <text class="position-value">0.00</text>
+        <!-- Your Position -->
+        <NeoCard :title="t('yourPosition')" variant="default">
+          <view class="position-row mb-2 flex justify-between">
+            <text class="position-label text-secondary">NEO/GAS LP</text>
+            <text class="position-value font-bold">0.00</text>
           </view>
-          <view class="position-row">
-            <text class="position-label">{{ t("poolShare") }}</text>
-            <text class="position-value">0.00%</text>
+          <view class="position-row flex justify-between">
+            <text class="position-label text-secondary">{{ t("poolShare") }}</text>
+            <text class="position-value font-bold">0.00%</text>
           </view>
-        </view>
+        </NeoCard>
 
         <!-- Add Liquidity Button -->
         <button class="pool-btn" disabled>
@@ -196,11 +187,10 @@
 import { ref, computed, onMounted } from "vue";
 import { useWallet } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
+import { AppLayout, NeoDoc, AppIcon, NeoButton, NeoCard, NeoInput, NeoStats, type StatItem } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
@@ -234,18 +224,40 @@ const translations = {
   comingSoon: { en: "Coming Soon", zh: "即将推出" },
 
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Professional documentation for this application is coming soon.",
-    zh: "此应用程序的专业文档即将推出。",
+  docSubtitle: {
+    en: "Instant token swaps via Flamingo DEX",
+    zh: "通过 Flamingo DEX 即时代币兑换",
   },
-  step1: { en: "Open the application.", zh: "打开应用程序。" },
-  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
-  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
-  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
-  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
-  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  docDescription: {
+    en: "Neo Swap provides instant token swaps between NEO, GAS, and other Neo N3 tokens. Powered by Flamingo DEX with competitive rates and minimal slippage.",
+    zh: "Neo Swap 提供 NEO、GAS 和其他 Neo N3 代币之间的即时兑换。由 Flamingo DEX 驱动，提供有竞争力的汇率和最小滑点。",
+  },
+  step1: {
+    en: "Connect your Neo wallet and select tokens to swap",
+    zh: "连接您的 Neo 钱包并选择要兑换的代币",
+  },
+  step2: {
+    en: "Enter the amount and review the exchange rate and price impact",
+    zh: "输入金额并查看汇率和价格影响",
+  },
+  step3: {
+    en: "Confirm the swap transaction in your wallet",
+    zh: "在钱包中确认兑换交易",
+  },
+  step4: {
+    en: "Receive tokens instantly - no waiting period required",
+    zh: "即时收到代币 - 无需等待期",
+  },
+  feature1Name: { en: "Best Rates", zh: "最佳汇率" },
+  feature1Desc: {
+    en: "Aggregates liquidity from Flamingo DEX for optimal swap rates.",
+    zh: "聚合 Flamingo DEX 流动性以获得最佳兑换率。",
+  },
+  feature2Name: { en: "Low Slippage", zh: "低滑点" },
+  feature2Desc: {
+    en: "Deep liquidity pools ensure minimal price impact on your trades.",
+    zh: "深度流动性池确保您的交易价格影响最小。",
+  },
 };
 
 const t = createT(translations);
@@ -269,8 +281,8 @@ interface Token {
 }
 
 const TOKENS: Token[] = [
-  { symbol: "NEO", icon: "💚", hash: "0xef4073a0f2b305a38ec4050e4d3d28bc40ea63f5", balance: 0, decimals: 0 },
-  { symbol: "GAS", icon: "⛽", hash: "0xd2a4cff31913016155e38e474a2c06d08be276cf", balance: 0, decimals: 8 },
+  { symbol: "NEO", icon: "neo", hash: "0xef4073a0f2b305a38ec4050e4d3d28bc40ea63f5", balance: 0, decimals: 0 },
+  { symbol: "GAS", icon: "gas", hash: "0xd2a4cff31913016155e38e474a2c06d08be276cf", balance: 0, decimals: 8 },
 ];
 
 // State
@@ -323,6 +335,11 @@ const minReceived = computed(() => {
   return (amount * 0.995).toFixed(4);
 });
 
+const poolStats = computed<StatItem[]>(() => [
+  { label: "TVL", value: "$12.5M" },
+  { label: "APR", value: "24.5%", variant: "success" },
+]);
+
 // Methods
 function formatAmount(amount: number): string {
   return amount.toFixed(4);
@@ -337,8 +354,8 @@ async function loadBalances() {
   try {
     const neo = await getBalance("NEO");
     const gas = await getBalance("GAS");
-    TOKENS[0].balance = neo || 0;
-    TOKENS[1].balance = gas || 0;
+    TOKENS[0].balance = typeof neo === "object" ? 0 : Number(neo || 0);
+    TOKENS[1].balance = typeof gas === "object" ? 0 : Number(gas || 0);
     fromToken.value = { ...TOKENS[0] };
     toToken.value = { ...TOKENS[1] };
   } catch (e) {
@@ -441,160 +458,216 @@ onMounted(() => {
 @import "@/shared/styles/tokens.scss";
 @import "@/shared/styles/variables.scss";
 
-// === SWAP CARD ===
+.tab-content {
+  padding: $space-4;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
 .swap-card {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
+  background: white;
+  border: 4px solid black;
+  box-shadow: 10px 10px 0 black;
   padding: $space-5;
   margin-bottom: $space-4;
   position: relative;
 }
 
-// === TOKEN CARDS ===
 .token-card {
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-  padding: $space-4;
-  margin-bottom: $space-3;
-  transition: all $transition-normal;
-
-  &:hover {
-    border-color: var(--neo-purple);
-  }
+  margin-bottom: $space-4;
 }
-
 .token-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: $space-3;
+  margin-bottom: $space-2;
 }
-
 .section-label {
-  font-size: $font-size-xs;
-  color: var(--text-secondary);
+  font-size: 8px;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
-  font-weight: $font-weight-semibold;
-  letter-spacing: 0.5px;
+  opacity: 0.6;
 }
-
 .balance-text {
-  font-size: $font-size-xs;
-  color: var(--text-muted);
+  font-size: 8px;
+  font-weight: $font-weight-bold;
+  opacity: 0.6;
 }
 
 .token-input-row {
   display: flex;
   align-items: center;
   gap: $space-3;
+  background: #f0f0f0;
+  border: 2px solid black;
+  padding: $space-2;
 }
-
 .token-select {
   display: flex;
   align-items: center;
   gap: $space-2;
-  background: var(--bg-elevated);
-  border: $border-width-sm solid var(--border-color);
-  padding: $space-3 $space-4;
+  background: black;
+  color: white;
+  padding: $space-2 $space-3;
   cursor: pointer;
-  transition: all $transition-fast;
-  min-width: 120px;
-
+  border: 2px solid black;
   &:hover {
-    border-color: var(--neo-green);
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: translateY(0);
+    background: var(--neo-purple);
   }
 }
-
-.token-info {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-}
-
-.token-icon {
-  font-size: $font-size-xl;
-}
-
 .token-symbol {
-  font-size: $font-size-base;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-}
-
-.dropdown-arrow {
-  font-size: $font-size-xs;
-  color: var(--text-secondary);
+  font-weight: $font-weight-black;
+  font-size: 14px;
 }
 
 .amount-input-wrapper {
   flex: 1;
-  text-align: right;
-  ::v-deep .uni-easyinput__content {
+  ::v_deep .uni-easyinput__content {
     background: transparent !important;
     border: none !important;
-    min-height: 48px;
   }
-  ::v-deep .uni-easyinput__content-input {
-    font-size: $font-size-2xl !important;
-    color: var(--text-primary) !important;
+  ::v_deep .uni-easyinput__content-input {
+    font-size: 24px !important;
+    font-weight: $font-weight-black;
     text-align: right !important;
-    height: 48px;
-    padding-right: 0;
-  }
-  ::v-deep .uni-easyinput__content-input::placeholder {
-    color: var(--text-muted);
-  }
-  &.disabled {
-    opacity: 0.7;
+    height: 40px;
   }
 }
 
-// === SWAP DIRECTION BUTTON ===
 .swap-direction-container {
   display: flex;
   justify-content: center;
-  margin: -$space-2 0;
+  margin: -$space-4 0;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
-
 .swap-direction-btn {
-  width: 48px;
-  height: 48px;
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-sm;
+  width: 40px;
+  height: 40px;
+  background: var(--brutal-yellow);
+  border: 2px solid black;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all $transition-normal;
-
+  box-shadow: 4px 4px 0 black;
   &:hover {
-    border-color: var(--neo-purple);
-    box-shadow: $shadow-purple;
-    transform: translateY(-2px);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-
-  &.rotating {
-    animation: rotate360 0.3s ease-in-out;
+    transform: scale(1.1) rotate(180deg);
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
 }
 
-.swap-icon {
-  font-size: $font-size-2xl;
-  color: var(--neo-purple);
+.rate-card {
+  background: #f9f9f9;
+  border: 2px solid black;
+  padding: $space-3;
+  margin-bottom: $space-4;
+}
+.rate-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+.rate-label {
+  font-size: 8px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  opacity: 0.6;
+  display: block;
+}
+.rate-value {
+  font-weight: $font-weight-black;
+  font-size: 10px;
+  font-family: $font-mono;
+}
+
+.details-accordion {
+  margin-top: $space-3;
+  padding-top: $space-3;
+  border-top: 1px dashed black;
+}
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+.detail-label {
+  font-size: 8px;
+  opacity: 0.6;
   font-weight: $font-weight-bold;
+}
+.detail-value {
+  font-size: 8px;
+  font-weight: $font-weight-black;
+  &.impact-low {
+    color: #10b981;
+  }
+}
+
+.pool-section {
+  padding: $space-4;
+}
+.pool-title {
+  font-size: 24px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  display: block;
+}
+.pool-subtitle {
+  font-size: 10px;
+  opacity: 0.6;
+  font-weight: $font-weight-bold;
+  display: block;
+  margin-bottom: $space-4;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.modal-content {
+  background: white;
+  border: 4px solid black;
+  width: 300px;
+  box-shadow: 10px 10px 0 black;
+}
+.modal-header {
+  padding: $space-3;
+  border-bottom: 2px solid black;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #eee;
+}
+.modal-title {
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+.token-option {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-3;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  &:hover {
+    background: #f0f0f0;
+  }
+}
+
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 @keyframes rotate360 {
@@ -603,110 +676,6 @@ onMounted(() => {
   }
   to {
     transform: rotate(180deg);
-  }
-}
-
-// === RATE CARD ===
-.rate-card {
-  background: var(--bg-card);
-  border: $border-width-sm solid var(--border-color);
-  padding: $space-4;
-  margin-bottom: $space-4;
-}
-
-.rate-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-}
-
-.rate-info {
-  display: flex;
-  flex-direction: column;
-  gap: $space-1;
-}
-
-.rate-label {
-  font-size: $font-size-xs;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-}
-
-.rate-value {
-  font-size: $font-size-base;
-  color: var(--text-primary);
-  font-weight: $font-weight-semibold;
-}
-
-.rate-actions {
-  display: flex;
-  align-items: center;
-  gap: $space-3;
-}
-
-.refresh-icon {
-  font-size: $font-size-lg;
-  color: var(--neo-green);
-  cursor: pointer;
-  transition: transform $transition-fast;
-
-  &:hover {
-    transform: rotate(180deg);
-  }
-}
-
-.expand-icon {
-  font-size: $font-size-sm;
-  color: var(--text-secondary);
-}
-
-// === DETAILS ACCORDION ===
-.details-accordion {
-  margin-top: $space-4;
-  padding-top: $space-4;
-  border-top: $border-width-sm solid var(--border-color);
-  animation: slideDown $transition-normal;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    max-height: 0;
-  }
-  to {
-    opacity: 1;
-    max-height: 200px;
-  }
-}
-
-.detail-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: $space-2 0;
-}
-
-.detail-label {
-  font-size: $font-size-sm;
-  color: var(--text-secondary);
-}
-
-.detail-value {
-  font-size: $font-size-sm;
-  color: var(--text-primary);
-  font-weight: $font-weight-medium;
-
-  &.impact-low {
-    color: var(--neo-green);
-  }
-
-  &.impact-medium {
-    color: var(--brutal-yellow);
-  }
-
-  &.impact-high {
-    color: var(--brutal-red);
   }
 }
 

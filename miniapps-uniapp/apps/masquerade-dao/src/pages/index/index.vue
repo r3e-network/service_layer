@@ -155,28 +155,50 @@ const translations = {
   voteEncrypted: { en: "Your vote is encrypted and anonymous", zh: "您的投票已加密且匿名" },
 
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Professional documentation for this application is coming soon.",
-    zh: "此应用程序的专业文档即将推出。",
+  docSubtitle: {
+    en: "Anonymous governance voting with cryptographic identity masks",
+    zh: "使用加密身份面具的匿名治理投票",
   },
-  step1: { en: "Open the application.", zh: "打开应用程序。" },
-  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
-  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
-  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
-  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
-  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  docDescription: {
+    en: "Masquerade DAO enables truly anonymous on-chain voting. Create cryptographic masks to participate in governance without revealing your identity, while maintaining vote integrity through zero-knowledge proofs.",
+    zh: "Masquerade DAO 实现真正的链上匿名投票。创建加密面具参与治理而不暴露身份，同时通过零知识证明保持投票完整性。",
+  },
+  step1: {
+    en: "Connect your Neo wallet and create a cryptographic mask identity",
+    zh: "连接您的 Neo 钱包并创建加密面具身份",
+  },
+  step2: {
+    en: "Browse active proposals and review their details",
+    zh: "浏览活跃提案并查看详情",
+  },
+  step3: {
+    en: "Cast your vote anonymously using your mask - votes are encrypted",
+    zh: "使用面具匿名投票 - 投票已加密",
+  },
+  step4: {
+    en: "Results are revealed after voting ends, maintaining voter privacy",
+    zh: "投票结束后揭晓结果，同时保护投票者隐私",
+  },
+  feature1Name: { en: "Anonymous Voting", zh: "匿名投票" },
+  feature1Desc: {
+    en: "Cryptographic masks hide your identity while preserving vote validity.",
+    zh: "加密面具隐藏您的身份，同时保持投票有效性。",
+  },
+  feature2Name: { en: "Delayed Reveal", zh: "延迟揭晓" },
+  feature2Desc: {
+    en: "Vote results are encrypted until the reveal time to prevent vote manipulation.",
+    zh: "投票结果在揭晓时间前保持加密，防止投票操纵。",
+  },
 };
 
 const t = createT(translations);
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
-const APP_ID = "miniapp-masquerade-dao";
+const APP_ID = "miniapp-masqueradedao";
 const { address, connect } = useWallet();
 
 interface Mask {
@@ -287,405 +309,125 @@ onMounted(() => fetchData());
 .app-container {
   display: flex;
   flex-direction: column;
-  padding: $space-4;
-  min-flex: 1;
-  min-height: 0;
-  background: var(--bg-primary);
+  height: 100%;
 }
 
 .tab-content {
+  padding: $space-4;
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: $space-4;
 }
 
 .status-msg {
-  text-align: center;
-  padding: $space-3;
-  margin-bottom: $space-4;
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-sm;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  font-size: $font-size-sm;
-
-  &.success {
-    background: var(--status-success);
-    color: $neo-black;
-    border-color: $neo-black;
-  }
-  &.error {
-    background: var(--status-error);
-    color: $neo-white;
-    border-color: $neo-black;
-  }
-  &.loading {
-    background: var(--status-warning);
-    color: $neo-black;
-    border-color: $neo-black;
-  }
+  text-align: center; padding: $space-3; border: 2px solid black; font-weight: $font-weight-black; text-transform: uppercase; font-size: 10px; margin-bottom: $space-2; box-shadow: 4px 4px 0 black;
+  &.success { background: var(--neo-green); color: black; }
+  &.error { background: var(--brutal-red); color: white; }
+  &.loading { background: var(--brutal-yellow); color: black; }
 }
 
-// ============================================
-// MASKS SECTION - Mysterious Identity Cards
-// ============================================
-
 .masks-grid {
-  display: flex;
-  gap: $space-3;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $space-4;
   margin-bottom: $space-4;
 }
 
 .mask-item {
-  flex: 1;
+  padding: $space-4;
+  background: white;
+  border: 3px solid black;
   text-align: center;
-  padding: $space-4 $space-2;
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-sm;
   cursor: pointer;
+  position: relative;
   transition: all $transition-fast;
-  position: relative;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, var(--neo-purple) 0%, transparent 50%);
-    opacity: 0;
-    transition: opacity $transition-normal;
-  }
-
-  &:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 5px 5px 0 var(--neo-purple);
-
-    &::before {
-      opacity: 0.1;
-    }
-
-    .mask-glow {
-      opacity: 0.6;
-    }
-  }
-
-  &:active {
-    transform: translate(1px, 1px);
-    box-shadow: none;
-  }
-
+  box-shadow: 6px 6px 0 black;
   &.active {
-    border-color: var(--neo-purple);
-    box-shadow: 5px 5px 0 var(--neo-purple);
-    background: var(--bg-elevated);
-
-    &::before {
-      opacity: 0.15;
-    }
-
-    .mask-glow {
-      opacity: 0.8;
-    }
+    background: var(--brutal-yellow);
+    box-shadow: 2px 2px 0 black;
+    transform: translate(4px, 4px);
   }
 }
 
-.mask-icon-wrapper {
-  position: relative;
-  display: inline-block;
-  margin-bottom: $space-2;
-}
+.mask-icon-wrapper { position: relative; margin-bottom: $space-2; }
+.mask-icon { font-size: 40px; display: block; z-index: 2; position: relative; }
+.mask-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 30px; height: 30px; background: var(--neo-purple); filter: blur(15px); opacity: 0; transition: opacity 0.3s; }
+.mask-item.active .mask-glow { opacity: 0.4; }
 
-.mask-icon {
-  font-size: $font-size-4xl;
-  display: block;
-  position: relative;
-  z-index: 1;
-  filter: drop-shadow(0 0 8px var(--neo-purple));
-}
-
-.mask-glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 60px;
-  height: 60px;
-  background: radial-gradient(circle, var(--neo-purple) 0%, transparent 70%);
-  opacity: 0;
-  transition: opacity $transition-normal;
-  pointer-events: none;
-}
-
-.mask-name {
-  color: var(--text-primary);
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  display: block;
-  margin-bottom: $space-2;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.mask-power-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: $space-2;
-}
-
-.mask-power {
-  color: var(--neo-purple);
-  font-size: $font-size-xs;
-  font-weight: $font-weight-black;
-  font-family: $font-mono;
-}
-
-.mask-encrypted {
-  font-size: $font-size-xs;
-  opacity: 0.6;
-}
-
-// ============================================
-// PROPOSALS SECTION - Anonymous Voting Cards
-// ============================================
+.mask-name { font-weight: $font-weight-black; font-size: 14px; text-transform: uppercase; display: block; margin-bottom: 4px; border-bottom: 1px solid black; padding-bottom: 2px; }
+.mask-power-wrapper { display: flex; align-items: center; justify-content: center; gap: 4px; }
+.mask-power { font-family: $font-mono; font-size: 12px; font-weight: $font-weight-black; color: black; }
+.mask-encrypted { font-size: 10px; opacity: 0.6; }
 
 .proposals-list {
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: $space-5;
 }
 
 .proposal-item {
-  padding: $space-4;
-  background: var(--bg-elevated);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-sm;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    flex: 1;
-    min-height: 0;
-    background: var(--neo-purple);
-    opacity: 0.5;
-  }
+  padding: $space-5;
+  background: white;
+  border: 3px solid black;
+  box-shadow: 8px 8px 0 black;
 }
 
-.proposal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: $space-3;
-}
-
-.proposal-id {
-  font-family: $font-mono;
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  color: var(--text-secondary);
-  padding: $space-1 $space-2;
-  background: var(--bg-card);
-  border: 2px solid var(--border-color);
-}
-
-.proposal-status {
-  display: flex;
-  align-items: center;
-  gap: $space-1;
-  padding: $space-1 $space-2;
-  background: var(--neo-purple);
-  border: 2px solid var(--border-color);
-}
-
-.status-icon {
-  font-size: $font-size-sm;
-}
-
-.status-text {
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  color: $neo-white;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
+.proposal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: $space-3; }
+.proposal-id { font-family: $font-mono; font-weight: $font-weight-black; background: black; color: white; padding: 2px 8px; font-size: 10px; }
+.proposal-status { display: flex; align-items: center; gap: 4px; background: #eee; border: 1px solid black; padding: 2px 6px; }
+.status-text { font-size: 8px; font-weight: $font-weight-black; text-transform: uppercase; }
 
 .proposal-title {
-  color: var(--text-primary);
-  font-weight: $font-weight-bold;
-  font-size: $font-size-lg;
-  display: block;
+  font-weight: $font-weight-black;
+  font-size: 18px;
+  line-height: 1.2;
   margin-bottom: $space-4;
-  line-height: $line-height-normal;
+  display: block;
 }
 
 .proposal-meta {
   display: flex;
-  gap: $space-4;
-  margin-bottom: $space-4;
-  padding: $space-3;
-  background: var(--bg-card);
-  border: 2px solid var(--border-color);
-}
-
-.meta-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: $space-1;
-}
-
-.meta-label {
-  font-size: $font-size-xs;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: $font-weight-medium;
-}
-
-.meta-value {
-  font-family: $font-mono;
-  font-size: $font-size-base;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-
-  &.encrypted {
-    color: var(--neo-purple);
-    letter-spacing: 2px;
-  }
-
-  &.countdown {
-    color: var(--brutal-yellow);
-  }
-}
-
-// ============================================
-// VOTE VISUALIZATION - Encrypted Progress
-// ============================================
-
-.vote-visualization {
-  margin-bottom: $space-4;
-}
-
-.vote-bar {
-  height: 32px;
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  position: relative;
-  overflow: hidden;
-  margin-bottom: $space-2;
-}
-
-.vote-bar-fill {
-  flex: 1;
-  min-height: 0;
-  background: linear-gradient(90deg, var(--neo-purple) 0%, var(--brutal-pink) 100%);
-  transition: width $transition-slow;
-  position: relative;
-
-  &::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 10px,
-      rgba(255, 255, 255, 0.1) 10px,
-      rgba(255, 255, 255, 0.1) 20px
-    );
-    animation: slide 2s linear infinite;
-  }
-}
-
-@keyframes slide {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(28px);
-  }
-}
-
-.vote-counts {
-  display: flex;
   justify-content: space-between;
-  padding: 0 $space-2;
+  margin-bottom: $space-4;
+  padding: $space-2;
+  background: #f0f0f0;
+  border: 1px solid black;
 }
 
-.vote-count {
-  font-family: $font-mono;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
+.meta-label { font-size: 8px; font-weight: $font-weight-black; opacity: 0.6; text-transform: uppercase; }
+.meta-value { font-weight: $font-weight-black; font-family: $font-mono; font-size: 12px; }
+.meta-value.encrypted { background: black; color: black; }
 
-  &.for {
-    color: var(--neo-purple);
-  }
-
-  &.against {
-    color: var(--brutal-pink);
-  }
+.vote-visualization { margin-bottom: $space-4; }
+.vote-bar {
+  height: 12px;
+  background: white;
+  border: 2px solid black;
+  margin-bottom: 4px;
 }
+.vote-bar-fill { height: 100%; background: var(--neo-purple); border-right: 2px solid black; }
 
-// ============================================
-// VOTE BUTTONS - Action Controls
-// ============================================
+.vote-counts { display: flex; justify-content: space-between; }
+.vote-count { font-size: 10px; font-weight: $font-weight-black; font-family: $font-mono; }
 
 .vote-options {
   display: flex;
   gap: $space-3;
-  margin-bottom: $space-3;
 }
+.vote-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 4px 4px 0 black; }
 
-.vote-btn {
-  flex: 1;
+.anonymity-notice {
+  margin-top: $space-4;
+  padding: $space-2;
+  background: var(--brutal-yellow);
+  border: 1px solid black;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: $space-2;
+  gap: 8px;
 }
+.notice-text { font-size: 9px; font-weight: $font-weight-black; text-transform: uppercase; }
 
-.vote-icon {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-black;
-}
-
-// ============================================
-// ANONYMITY NOTICE - Security Indicator
-// ============================================
-
-.anonymity-notice {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  padding: $space-2 $space-3;
-  background: var(--bg-card);
-  border: 2px dashed var(--border-color);
-  border-radius: $radius-sm;
-}
-
-.notice-icon {
-  font-size: $font-size-base;
-  opacity: 0.8;
-}
-
-.notice-text {
-  font-size: $font-size-xs;
-  color: var(--text-secondary);
-  font-style: italic;
-  flex: 1;
-}
+.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 </style>

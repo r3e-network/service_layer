@@ -5,9 +5,11 @@ import { useState, useEffect, useCallback } from "react";
 import { useWalletStore } from "@/stores/wallet";
 import { fetchTransactions, Transaction } from "@/lib/api/transactions";
 import { TransactionItem } from "@/components/TransactionItem";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function HistoryScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { address } = useWalletStore();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,28 +68,28 @@ export default function HistoryScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: "Transaction History" }} />
+      <Stack.Screen options={{ title: t("wallet.history_title") }} />
 
       {loading && transactions.length === 0 ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#00d4aa" />
+          <ActivityIndicator size="large" color="#00E599" />
         </View>
       ) : (
         <FlatList
           data={transactions}
           keyExtractor={(item) => item.hash}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#00d4aa" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#00E599" />}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
           renderItem={({ item }) => <TransactionItem tx={item} onPress={() => navigateToDetail(item)} />}
           ListEmptyComponent={
             <View style={styles.center}>
-              <Text style={styles.empty}>No transactions yet</Text>
+              <Text style={styles.empty}>{t("wallet.history_empty")}</Text>
             </View>
           }
           ListFooterComponent={
-            hasMore && transactions.length > 0 ? <ActivityIndicator style={styles.footer} color="#00d4aa" /> : null
+            hasMore && transactions.length > 0 ? <ActivityIndicator style={styles.footer} color="#00E599" /> : null
           }
         />
       )}
@@ -96,9 +98,9 @@ export default function HistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0a0a0a" },
-  list: { padding: 16 },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  empty: { color: "#888", fontSize: 16 },
-  footer: { padding: 16 },
+  container: { flex: 1, backgroundColor: "#fff" },
+  list: { padding: 24, paddingBottom: 40 },
+  center: { flex: 1, justifyContent: "center", alignItems: "center", padding: 40 },
+  empty: { color: "#000", fontSize: 20, fontWeight: "900", textTransform: "uppercase", fontStyle: "italic", textAlign: "center" },
+  footer: { padding: 20 },
 });

@@ -6,7 +6,8 @@ interface AssetCardProps {
 }
 
 export function AssetCard({ asset }: AssetCardProps) {
-  const changeColor = asset.usdChange >= 0 ? "#00d4aa" : "#ef4444";
+  // Neo Green (#00E599) or Brutal Red (#EF4444)
+  const changeColor = asset.usdChange >= 0 ? "#00E599" : "#EF4444";
   const changeSign = asset.usdChange >= 0 ? "+" : "";
 
   return (
@@ -34,17 +35,24 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
     justifyContent: "space-between",
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "#ffffff",
     padding: 16,
-    borderRadius: 12,
-    marginBottom: 8,
+    borderWidth: 3,
+    borderColor: "#000000",
+    borderRadius: 0,
+    marginBottom: 16,
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
-  left: { flexDirection: "row", alignItems: "center", gap: 12 },
-  icon: { fontSize: 32 },
-  symbol: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  name: { color: "#888", fontSize: 12 },
+  left: { flexDirection: "row", alignItems: "center", gap: 16 },
+  icon: { fontSize: 40 },
+  symbol: { color: "#000", fontSize: 18, fontWeight: "900", textTransform: "uppercase" },
+  name: { color: "#666", fontSize: 12, fontWeight: "700" },
   right: { alignItems: "flex-end" },
-  balance: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  usd: { color: "#888", fontSize: 12 },
-  change: { fontSize: 10, marginTop: 2 },
+  balance: { color: "#000", fontSize: 20, fontWeight: "900" },
+  usd: { color: "#666", fontSize: 14, fontWeight: "700" },
+  change: { fontSize: 12, marginTop: 4, fontWeight: "900", backgroundColor: "#000", paddingHorizontal: 6, paddingVertical: 2 },
 });

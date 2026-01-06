@@ -257,7 +257,7 @@ export const MINIAPPS: MiniAppInfo[] = [
     status: "active",
   },
   {
-    app_id: "miniapp-masquerade-dao",
+    app_id: "miniapp-masqueradedao",
     name: "Masquerade DAO",
     description: "Anonymous DAO voting with mask identities",
     category: "governance",
@@ -379,7 +379,7 @@ export const MINIAPPS: MiniAppInfo[] = [
     status: "active",
   },
   {
-    app_id: "miniapp-unbreakable-vault",
+    app_id: "miniapp-unbreakablevault",
     name: "Unbreakable Vault",
     description: "Hacker bounty challenge - break the vault to win",
     category: "gaming",

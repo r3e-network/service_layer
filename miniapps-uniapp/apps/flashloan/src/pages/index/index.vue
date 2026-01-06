@@ -8,9 +8,9 @@
         <text class="demo-note">{{ t("demoNote") }}</text>
       </view>
 
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
+        <text class="font-bold">{{ status.msg }}</text>
+      </NeoCard>
 
       <!-- Flash Loan Flow Visualization -->
       <NeoCard variant="default" class="flow-card">
@@ -82,8 +82,8 @@
               @click="selectedOperation = op.id"
             >
               <text class="op-icon">{{ op.icon }}</text>
-              <text class="op-name">{{ t(op.id) }}</text>
-              <text class="op-desc">{{ t(op.id + "Desc") }}</text>
+              <text class="op-name">{{ (t as any)(op.id) }}</text>
+              <text class="op-desc">{{ (t as any)(op.id + "Desc") }}</text>
             </view>
           </view>
         </view>
@@ -143,24 +143,24 @@
       <NeoCard variant="default" class="stats-overview">
         <text class="stats-title">📊 {{ t("statistics") }}</text>
         <view class="stats-grid">
-          <view class="stat-box">
+          <NeoCard variant="default" class="flex-1 text-center">
             <text class="stat-value">{{ stats.totalLoans }}</text>
             <text class="stat-label">{{ t("totalLoans") }}</text>
-          </view>
-          <view class="stat-box">
+          </NeoCard>
+          <NeoCard variant="default" class="flex-1 text-center">
             <text class="stat-value">{{ formatNum(stats.totalVolume) }}</text>
             <text class="stat-label">{{ t("totalVolume") }}</text>
-          </view>
-          <view class="stat-box">
+          </NeoCard>
+          <NeoCard variant="default" class="flex-1 text-center">
             <text class="stat-value">{{ stats.totalFees.toFixed(2) }}</text>
             <text class="stat-label">{{ t("totalFees") }}</text>
-          </view>
-          <view class="stat-box">
+          </NeoCard>
+          <NeoCard variant="default" class="flex-1 text-center">
             <text class="stat-value">{{
               stats.totalLoans > 0 ? formatNum(stats.totalVolume / stats.totalLoans) : 0
             }}</text>
             <text class="stat-label">{{ t("avgLoanSize") }}</text>
-          </view>
+          </NeoCard>
         </view>
       </NeoCard>
 
@@ -265,6 +265,7 @@ const translations = {
   },
   step2: { en: "Enter loan amount and review simulated fees", zh: "输入贷款金额并查看模拟手续费" },
   step3: { en: "Run the simulation to see potential outcomes", zh: "运行模拟查看潜在结果" },
+  step4: { en: "Review results in the Stats tab and refine your strategy.", zh: "在统计标签页查看结果并优化策略。" },
   feature1Name: { en: "Risk-Free Learning", zh: "无风险学习" },
   feature1Desc: { en: "Practice flash loan strategies without real funds", zh: "无需真实资金即可练习闪电贷策略" },
   feature2Name: { en: "Real Scenarios", zh: "真实场景" },
@@ -281,7 +282,7 @@ const navTabs = [
 
 const activeTab = ref("main");
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
@@ -402,585 +403,242 @@ onMounted(() => fetchData());
 .tab-content {
   padding: $space-4;
   flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: $space-4;
   overflow-y: auto;
-  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
 
-// DEMO Banner
 .demo-banner {
-  background: linear-gradient(135deg, var(--brutal-yellow) 0%, var(--brutal-red) 100%);
-  border: $border-width-md solid var(--neo-black);
-  padding: $space-3 $space-4;
-  text-align: center;
-  box-shadow: $shadow-md;
-}
-
-.demo-badge {
-  display: block;
-  font-size: $font-size-lg;
-  font-weight: $font-weight-black;
-  color: var(--neo-black);
-  text-transform: uppercase;
-  letter-spacing: 2px;
-}
-
-.demo-note {
-  display: block;
-  font-size: $font-size-sm;
-  color: var(--neo-black);
-  margin-top: $space-1;
-  opacity: 0.8;
-}
-
-// Operation Selector
-.operation-section {
-  margin-bottom: $space-4;
-}
-
-.section-label {
-  display: block;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  margin-bottom: $space-3;
-}
-
-.operation-grid {
-  display: flex;
-  gap: $space-3;
-}
-
-.operation-btn {
-  flex: 1;
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
+  background: var(--brutal-yellow);
   padding: $space-3;
+  border: 3px solid black;
   text-align: center;
-  cursor: pointer;
-  transition: all $transition-fast;
-
-  &.active {
-    border-color: var(--neo-green);
-    background: var(--bg-elevated);
-    box-shadow: 0 0 0 2px var(--neo-green);
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
-}
-
-.op-icon {
-  display: block;
-  font-size: $font-size-2xl;
-  margin-bottom: $space-2;
-}
-
-.op-name {
-  display: block;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-}
-
-.op-desc {
-  display: block;
-  font-size: $font-size-xs;
-  color: var(--text-muted);
-  margin-top: $space-1;
-}
-
-// Profit highlight
-.profit-highlight {
-  color: var(--neo-green) !important;
-  font-weight: $font-weight-bold;
-}
-
-.status-msg {
-  text-align: center;
-  padding: $space-4;
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
   margin-bottom: $space-4;
-  font-weight: $font-weight-bold;
+  box-shadow: 6px 6px 0 black;
+}
+.demo-badge {
+  font-weight: $font-weight-black;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-
-  &.success {
-    background: var(--neo-green);
-    color: var(--neo-black);
-    border-color: var(--neo-black);
-  }
-
-  &.error {
-    background: var(--brutal-red);
-    color: var(--neo-white);
-    border-color: var(--neo-black);
-  }
+  font-size: 14px;
+  border-bottom: 2px solid black;
+  display: inline-block;
+  margin-bottom: 4px;
+}
+.demo-note {
+  font-size: 10px;
+  font-weight: $font-weight-black;
+  display: block;
+  opacity: 1;
 }
 
-// Flow Visualization
 .flow-card {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  padding: $space-4;
+  border-left: 8px solid var(--neo-purple) !important;
 }
-
-.flow-header {
-  margin-bottom: $space-4;
-}
-
-.flow-title {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-bold;
-  color: var(--brutal-yellow);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
 .flow-diagram {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: $space-4 0;
-  margin-bottom: $space-3;
-}
-
-.flow-step {
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: $space-2;
+  margin: $space-6 0;
+  background: #eee;
+  padding: $space-4;
+  border: 2px solid black;
+  box-shadow: inset 4px 4px 0 rgba(0, 0, 0, 0.1);
+}
+.flow-step {
+  text-align: center;
   flex: 1;
 }
-
 .flow-icon {
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--brutal-yellow);
-  border: $border-width-md solid var(--neo-black);
-  border-radius: $radius-md;
-  font-size: $font-size-2xl;
-  box-shadow: $shadow-md;
-}
-
-.flow-label {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-  text-transform: uppercase;
-}
-
-.flow-arrow {
-  font-size: $font-size-2xl;
-  color: var(--brutal-yellow);
-  font-weight: $font-weight-bold;
-  padding: 0 $space-2;
-}
-
-.flow-note {
-  background: color-mix(in srgb, var(--brutal-yellow) 10%, transparent);
-  border: $border-width-sm solid var(--brutal-yellow);
-  padding: $space-3;
-  border-radius: $radius-md;
-}
-
-.note-text {
-  font-size: $font-size-sm;
-  color: var(--text-secondary);
-  text-align: center;
+  font-size: 32px;
   display: block;
+  margin-bottom: 4px;
 }
-
-// Liquidity Card
-.liquidity-card {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  padding: $space-4;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: $space-4;
-}
-
-.card-title {
-  color: var(--neo-green);
-  font-size: $font-size-xl;
-  font-weight: $font-weight-bold;
+.flow-label {
+  font-size: 10px;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
-  letter-spacing: 1px;
 }
-
-.lightning-badge {
-  font-size: $font-size-2xl;
-  background: var(--brutal-yellow);
-  border: $border-width-md solid var(--neo-black);
-  border-radius: $radius-md;
-  padding: $space-2;
-  box-shadow: $shadow-sm;
+.flow-arrow {
+  font-size: 24px;
+  font-weight: $font-weight-black;
+  color: var(--neo-purple);
 }
-
-.liquidity-grid {
-  display: flex;
-  flex-direction: column;
-  gap: $space-4;
+.flow-note {
+  font-size: 10px;
+  font-weight: $font-weight-black;
+  text-align: center;
+  border-top: 3px solid black;
+  padding-top: 8px;
+  margin-top: 4px;
 }
 
 .liquidity-item {
-  display: flex;
-  flex-direction: column;
-  gap: $space-2;
+  margin-bottom: $space-4;
 }
-
 .token-label {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
+  border: 1px solid black;
+  padding: 2px 6px;
+  background: white;
 }
-
 .token-amount {
-  font-size: $font-size-2xl;
-  font-weight: $font-weight-bold;
-  color: var(--neo-green);
+  font-family: $font-mono;
+  font-weight: $font-weight-black;
+  font-size: 24px;
+  color: black;
+  display: block;
+  margin-top: 4px;
 }
-
 .liquidity-bar {
-  height: 8px;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-  border-radius: $radius-sm;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+  height: 16px;
+  background: white;
+  border: 3px solid black;
+  margin-top: 8px;
+  padding: 2px;
 }
-
 .liquidity-fill {
-  flex: 1;
-  min-height: 0;
+  height: 100%;
   background: var(--neo-green);
-  transition: width 0.3s ease;
-
   &.neo {
-    background: var(--brutal-yellow);
+    background: var(--brutal-blue);
   }
 }
 
-// Loan Card
-.loan-card {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  padding: $space-4;
+.operation-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $space-3;
+  margin: $space-6 0;
 }
-
-.risk-indicator {
-  padding: $space-2 $space-3;
-  border: $border-width-md solid var(--neo-black);
-  border-radius: $radius-md;
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-
-  &.low {
-    background: var(--neo-green);
-    color: var(--neo-black);
-  }
-
-  &.medium {
-    background: var(--brutal-yellow);
-    color: var(--neo-black);
-  }
-
-  &.high {
-    background: var(--brutal-red);
-    color: var(--neo-white);
-  }
-}
-
-.input-section {
-  margin-bottom: $space-4;
-}
-
-.amount-hints {
-  display: flex;
-  gap: $space-2;
-  margin-top: $space-2;
-}
-
-.hint-btn {
-  flex: 1;
-  padding: $space-2;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-  border-radius: $radius-md;
+.operation-btn {
+  padding: $space-4 $space-2;
+  background: white;
+  border: 3px solid black;
   text-align: center;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: var(--text-secondary);
-  cursor: pointer;
-  box-shadow: $shadow-sm;
-  transition: all 0.2s ease;
-
-  &:active {
+  box-shadow: 4px 4px 0 black;
+  transition: all $transition-fast;
+  &.active {
     background: var(--brutal-yellow);
-    color: var(--neo-black);
-    transform: translateY(2px);
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 black;
   }
 }
-
-// Fee Calculator
-.fee-calculator {
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  border-radius: $radius-md;
-  padding: $space-4;
-  margin-bottom: $space-4;
+.op-icon {
+  font-size: 24px;
+  display: block;
+  margin-bottom: 4px;
+}
+.op-name {
+  font-weight: $font-weight-black;
+  font-size: 10px;
+  text-transform: uppercase;
+  display: block;
 }
 
+.fee-calculator {
+  background: black;
+  color: white;
+  padding: $space-5;
+  border: 3px solid black;
+  margin-top: $space-6;
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.2);
+}
 .calc-row {
   display: flex;
   justify-content: space-between;
-  padding: $space-2 0;
-
+  font-size: 12px;
+  margin-bottom: 8px;
   &.total {
-    padding-top: $space-3;
-
-    .calc-label,
-    .calc-value {
-      font-size: $font-size-lg;
-      font-weight: $font-weight-bold;
-      color: var(--neo-green);
-    }
+    font-weight: $font-weight-black;
+    color: var(--brutal-green);
+    border-top: 1px solid #444;
+    padding-top: 8px;
   }
-}
-
-.calc-label {
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
-}
-
-.calc-value {
-  color: var(--text-primary);
-  font-weight: $font-weight-bold;
-  font-size: $font-size-sm;
-
-  &.fee-highlight {
+  &.profit {
     color: var(--brutal-yellow);
+    font-weight: $font-weight-black;
+    margin-top: 8px;
+    border-top: 1px solid #444;
+    padding-top: 8px;
   }
 }
 
-.calc-divider {
-  height: $border-width-md;
-  background: var(--border-color);
-  margin: $space-2 0;
-}
-
-// Risk Warning
-.risk-warning {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  padding: $space-3;
-  background: color-mix(in srgb, var(--brutal-red) 10%, transparent);
-  border: $border-width-md solid var(--brutal-red);
-  border-radius: $radius-md;
-  margin-bottom: $space-4;
-}
-
-.warning-icon {
-  font-size: $font-size-xl;
-}
-
-.warning-text {
-  flex: 1;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: var(--brutal-red);
-}
-
-.execute-btn {
-  box-shadow: $shadow-md;
-
-  &:active {
-    transform: translateY(2px);
-    box-shadow: $shadow-sm;
-  }
-}
-
-// Stats Overview
-.stats-overview {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  padding: $space-4;
-  margin-bottom: $space-4;
-}
-
-.stats-title {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-bold;
-  color: var(--neo-green);
-  margin-bottom: $space-4;
-  display: block;
+.risk-indicator {
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
+  border: 2px solid black;
+  box-shadow: 3px 3px 0 black;
+  &.low {
+    background: var(--neo-green);
+  }
+  &.medium {
+    background: var(--brutal-yellow);
+  }
+  &.high {
+    background: var(--brutal-red);
+    color: white;
+  }
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: $space-3;
+  gap: $space-4;
 }
-
-.stat-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: $space-4;
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  border-radius: $radius-md;
-  box-shadow: $shadow-sm;
-}
-
 .stat-value {
-  font-size: $font-size-2xl;
-  font-weight: $font-weight-bold;
-  color: var(--neo-green);
-  margin-bottom: $space-2;
+  font-weight: $font-weight-black;
+  font-family: $font-mono;
+  font-size: 18px;
+  display: block;
+  border-bottom: 3px solid black;
+  margin-bottom: 4px;
 }
-
 .stat-label {
-  font-size: $font-size-xs;
-  color: var(--text-secondary);
-  text-align: center;
+  font-size: 10px;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
-}
-
-// History Table
-.history-card {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  padding: $space-4;
+  opacity: 0.6;
 }
 
 .loans-table {
-  display: flex;
-  flex-direction: column;
+  border: 3px solid black;
+  background: white;
 }
-
 .table-header {
   display: flex;
+  background: black;
+  color: white;
+}
+.th {
+  flex: 1;
   padding: $space-3;
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  border-radius: $radius-md $radius-md 0 0;
-  font-weight: $font-weight-bold;
-  font-size: $font-size-xs;
-  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
 }
-
 .table-row {
   display: flex;
-  padding: $space-3;
-  border-bottom: $border-width-sm solid var(--border-color);
-
+  border-bottom: 2px solid black;
   &:last-child {
     border-bottom: none;
   }
-
-  &:nth-child(even) {
-    background: rgba($neo-green, 0.05);
-  }
 }
-
-.th,
 .td {
   flex: 1;
-  text-align: left;
-
-  &.th-amount,
-  &.td-amount {
-    flex: 2;
-  }
-
-  &.th-fee,
-  &.td-fee {
-    flex: 1.5;
-  }
-
-  &.th-time,
-  &.td-time {
-    flex: 1.5;
-  }
+  padding: $space-3;
+  font-size: 12px;
+  font-family: $font-mono;
+  font-weight: $font-weight-black;
 }
 
-.td {
-  font-size: $font-size-sm;
-  color: var(--text-primary);
-
-  &.td-amount {
-    font-weight: $font-weight-bold;
-    color: var(--neo-green);
-  }
-
-  &.td-fee {
-    color: var(--brutal-yellow);
-  }
-
-  &.td-time {
-    color: var(--text-secondary);
-  }
-}
-
-// Empty State
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: $space-6 $space-4;
-  gap: $space-3;
-}
-
-.empty-icon {
-  font-size: 48px;
-  opacity: 0.5;
-}
-
-.empty-text {
-  color: var(--text-muted);
-  text-align: center;
-  font-size: $font-size-sm;
-}
-
-// Animations
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.02);
-  }
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

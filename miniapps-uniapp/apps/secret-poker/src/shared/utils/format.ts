@@ -33,3 +33,13 @@ export function randomIntFromBytes(bytes: Uint8Array, offset: number, max: numbe
   const val = (bytes[offset] << 8) | bytes[offset + 1];
   return val % max;
 }
+
+export function formatCountdown(endTimeInMillis: number): string {
+  const diff = endTimeInMillis - Date.now();
+  if (diff <= 0) return "Expired";
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  if (days > 0) return `${days}d ${hours}h`;
+  return `${hours}h ${minutes}m`;
+}

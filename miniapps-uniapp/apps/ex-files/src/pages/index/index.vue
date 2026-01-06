@@ -1,126 +1,118 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab === 'files' || activeTab === 'upload'" class="app-container">
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
+        <text class="status-text font-bold uppercase">{{ status.msg }}</text>
+      </NeoCard>
 
       <!-- Files Archive Tab -->
       <view v-if="activeTab === 'files'" class="tab-content">
         <!-- Archive Stats -->
-        <view class="stats-grid">
-          <view class="stat-card stat-pink">
-            <text class="stat-icon">💕</text>
-            <text class="stat-value">{{ memories.length }}</text>
-            <text class="stat-label">{{ t("totalMemories") }}</text>
+        <NeoCard class="mb-4">
+          <NeoStats :stats="statsData" />
+        </NeoCard>
+
+        <!-- Query Record -->
+        <NeoCard :title="t('queryRecord')" class="mb-6">
+          <template #header-extra>
+            <text class="section-icon">🔎</text>
+          </template>
+
+          <NeoInput v-model="queryInput" :label="t('queryLabel')" :placeholder="t('queryPlaceholder')" class="mb-4" />
+
+          <NeoButton
+            variant="primary"
+            block
+            @click="queryRecord"
+            :loading="isLoading"
+            :disabled="!queryInput.trim()"
+            class="mb-4"
+          >
+            {{ t("queryRecord") }}
+          </NeoButton>
+
+          <view v-if="queryResult" class="result-card-neo">
+            <text class="result-title font-bold block mb-2">{{ t("queryResult") }}</text>
+            <view class="result-info">
+              <text class="result-line">{{ t("record") }} #{{ queryResult.id }}</text>
+              <text class="result-line">{{ t("rating") }}: {{ queryResult.rating }}</text>
+              <text class="result-line">{{ t("totalQueries") }}: {{ queryResult.queryCount }}</text>
+              <text class="result-line word-break">{{ t("hashLabel") }}: {{ queryResult.dataHash }}</text>
+            </view>
           </view>
-          <view class="stat-card stat-purple">
-            <text class="stat-icon">📅</text>
-            <text class="stat-value">{{ calculateDays() }}</text>
-            <text class="stat-label">{{ t("daysTogether") }}</text>
-          </view>
-          <view class="stat-card stat-yellow">
-            <text class="stat-icon">🔒</text>
-            <text class="stat-value">{{ memories.filter((m) => m.locked).length }}</text>
-            <text class="stat-label">{{ t("lockedFiles") }}</text>
-          </view>
-        </view>
+        </NeoCard>
 
         <!-- Memory Archive -->
         <view class="archive-section">
-          <view class="section-header">
+          <view class="section-header-neo mb-4">
             <text class="section-icon">📁</text>
-            <text class="section-title">{{ t("memoryArchive") }}</text>
+            <text class="section-title font-bold">{{ t("memoryArchive") }}</text>
           </view>
 
           <view class="timeline">
-            <view
-              v-for="memory in sortedMemories"
-              :key="memory.id"
-              class="file-card"
-              :class="[`file-${memory.type}`, memory.locked ? 'locked' : '']"
-              @click="viewMemory(memory)"
+            <NeoCard
+              v-for="record in sortedRecords"
+              :key="record.id"
+              :variant="record.active ? 'success' : 'default'"
+              class="mb-4"
+              @click="viewRecord(record)"
             >
-              <view class="file-header">
-                <view class="file-tab" :class="`tab-${memory.type}`">
-                  <text class="file-icon">{{ getMemoryIcon(memory.type) }}</text>
-                </view>
-                <view class="file-status">
-                  <text v-if="memory.locked" class="lock-icon">🔒</text>
-                  <text v-else class="unlock-icon">🔓</text>
-                </view>
-              </view>
+              <template #header-extra>
+                <text v-if="record.active" class="status-icon">✅</text>
+                <text v-else class="status-icon">🚫</text>
+              </template>
 
               <view class="file-body">
-                <text class="file-title">{{ memory.title }}</text>
-                <view class="file-meta">
-                  <text class="file-date">📆 {{ memory.date }}</text>
-                  <text class="file-type">{{ getTypeLabel(memory.type) }}</text>
+                <text class="file-title font-bold block mb-2">{{ t("record") }} #{{ record.id }}</text>
+                <view class="file-meta flex justify-between mb-2">
+                  <text class="file-date text-xs">{{ record.date }}</text>
+                  <text class="file-type text-xs">{{ record.active ? t("statusActive") : t("statusInactive") }}</text>
                 </view>
-                <text v-if="memory.description" class="file-desc">{{ memory.description }}</text>
+                <text class="file-desc text-sm opacity-80">{{ record.hashShort }}</text>
               </view>
 
-              <view class="file-footer">
-                <text class="file-id">ID: {{ memory.id }}</text>
-                <text class="view-label">{{ t("tapToView") }} →</text>
-              </view>
-            </view>
+              <template #footer>
+                <view class="file-footer-neo flex justify-between items-center w-full">
+                  <text class="file-id text-xs opacity-60">ID: {{ record.id }}</text>
+                  <text class="view-label font-bold">{{ t("tapToView") }} →</text>
+                </view>
+              </template>
+            </NeoCard>
           </view>
         </view>
       </view>
 
       <!-- Upload Tab -->
       <view v-if="activeTab === 'upload'" class="tab-content">
-        <view class="upload-container">
-          <view class="upload-header">
+        <NeoCard :title="t('uploadMemory')">
+          <template #header-extra>
             <text class="upload-icon">📤</text>
-            <text class="upload-title">{{ t("uploadMemory") }}</text>
-            <text class="upload-subtitle">{{ t("uploadSubtitle") }}</text>
-          </view>
+          </template>
 
-          <view class="form-card">
-            <view class="form-group">
-              <text class="form-label">{{ t("memoryTitle") }}</text>
-              <uni-easyinput v-model="memoryTitle" :placeholder="t('memoryTitlePlaceholder')" class="input-field" />
-            </view>
+          <text class="upload-subtitle mb-6 text-center block opacity-70">{{ t("uploadSubtitle") }}</text>
 
-            <view class="form-group">
-              <text class="form-label">{{ t("memoryType") }}</text>
-              <view class="type-selector">
-                <view
-                  v-for="type in memoryTypes"
-                  :key="type.id"
-                  class="type-option"
-                  :class="{ active: selectedType === type.id }"
-                  @click="selectedType = type.id"
-                >
-                  <text class="type-icon">{{ type.icon }}</text>
-                  <text class="type-name">{{ type.label }}</text>
-                </view>
-              </view>
-            </view>
+          <NeoInput
+            v-model="recordContent"
+            :label="t('recordContent')"
+            :placeholder="t('contentPlaceholder')"
+            type="textarea"
+            class="mb-2"
+          />
+          <text class="hash-note text-[10px] font-bold uppercase opacity-60 mb-6 block">{{ t("hashNote") }}</text>
 
-            <view class="form-group">
-              <text class="form-label">{{ t("contentOrUrl") }}</text>
-              <uni-easyinput
-                v-model="memoryContent"
-                :placeholder="t('contentPlaceholder')"
-                class="input-field"
-                type="textarea"
-              />
-            </view>
+          <NeoInput v-model="recordRating" :label="t('rating')" type="number" min="1" max="5" class="mb-8" />
 
-            <view class="form-actions">
-              <view
-                class="action-btn upload-btn"
-                @click="uploadMemory"
-                :style="{ opacity: isLoading || !canUpload ? 0.5 : 1 }"
-              >
-                <text>{{ isLoading ? t("uploading") : t("uploadMemoryBtn") }}</text>
-              </view>
-            </view>
-          </view>
-        </view>
+          <NeoButton
+            variant="primary"
+            size="lg"
+            block
+            @click="createRecord"
+            :loading="isLoading"
+            :disabled="!canCreate"
+          >
+            {{ t("createRecord") }}
+          </NeoButton>
+        </NeoCard>
       </view>
     </view>
 
@@ -138,36 +130,54 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { ref, computed, onMounted } from "vue";
+import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
+import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
+import { sha256Hex } from "@/shared/utils/hash";
+import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard, NeoStats } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
+import type { StatItem } from "@/shared/components/NeoStats.vue";
 
 const translations = {
   title: { en: "Ex Files", zh: "前任档案" },
-  subtitle: { en: "Relationship memory vault", zh: "关系回忆保险库" },
+  subtitle: { en: "Anonymous record vault", zh: "匿名记录保险库" },
 
   // Stats
   totalMemories: { en: "Total Memories", zh: "总回忆" },
   daysTogether: { en: "Days Together", zh: "相处天数" },
   lockedFiles: { en: "Locked Files", zh: "已锁定" },
+  totalRecords: { en: "Total Records", zh: "记录总数" },
+  averageRating: { en: "Avg Rating", zh: "平均评分" },
+  totalQueries: { en: "Total Queries", zh: "查询总数" },
+  record: { en: "Record", zh: "记录" },
+  statusActive: { en: "Active", zh: "有效" },
+  statusInactive: { en: "Inactive", zh: "已删除" },
 
   // Archive
-  memoryArchive: { en: "Memory Archive", zh: "回忆档案" },
+  memoryArchive: { en: "Record Archive", zh: "记录档案" },
   tapToView: { en: "Tap to view", zh: "点击查看" },
 
   // Upload
-  uploadMemory: { en: "Upload Memory", zh: "上传回忆" },
-  uploadSubtitle: { en: "Add a new memory to the archive", zh: "添加新回忆到档案" },
+  uploadMemory: { en: "Create Record", zh: "创建记录" },
+  uploadSubtitle: { en: "Add a hashed record to the archive", zh: "将哈希记录加入档案" },
   memoryTitle: { en: "Memory Title", zh: "回忆标题" },
   memoryTitlePlaceholder: { en: "e.g., First Date at Cafe", zh: "例如：咖啡馆的初次约会" },
   memoryType: { en: "Memory Type", zh: "回忆类型" },
   contentOrUrl: { en: "Content / URL", zh: "内容 / 链接" },
-  contentPlaceholder: { en: "Describe the memory or paste a URL", zh: "描述回忆或粘贴链接" },
+  contentPlaceholder: { en: "Describe the record or paste a URL", zh: "填写记录内容或粘贴链接" },
   uploading: { en: "Uploading...", zh: "上传中..." },
   uploadMemoryBtn: { en: "Upload to Archive", zh: "上传到档案" },
+  recordContent: { en: "Record Content", zh: "记录内容" },
+  rating: { en: "Rating (1-5)", zh: "评分（1-5）" },
+  hashNote: { en: "Content is hashed locally before upload.", zh: "内容将在本地哈希后上传。" },
+  createRecord: { en: "Create Record", zh: "创建记录" },
+  queryRecord: { en: "Query Record", zh: "查询记录" },
+  queryLabel: { en: "Hash or Content", zh: "哈希或内容" },
+  queryPlaceholder: { en: "Paste hash or enter content to hash", zh: "粘贴哈希或输入内容生成哈希" },
+  querying: { en: "Querying...", zh: "查询中..." },
+  queryResult: { en: "Query Result", zh: "查询结果" },
+  hashLabel: { en: "Hash", zh: "哈希" },
 
   // Memory types
   typePhoto: { en: "Photo", zh: "照片" },
@@ -179,6 +189,12 @@ const translations = {
   viewing: { en: "Viewing", zh: "查看中" },
   memoryUploaded: { en: "Memory uploaded to archive!", zh: "回忆已上传到档案！" },
   error: { en: "Error", zh: "错误" },
+  invalidContent: { en: "Enter content to hash", zh: "请输入内容" },
+  invalidRating: { en: "Rating must be between 1 and 5", zh: "评分必须在 1-5 之间" },
+  recordCreated: { en: "Record created", zh: "记录已创建" },
+  recordQueried: { en: "Record queried", zh: "记录已查询" },
+  failedToLoad: { en: "Failed to load records", zh: "加载记录失败" },
+  missingContract: { en: "Contract not configured", zh: "合约未配置" },
 
   // Sample memories
   firstDate: { en: "First Date", zh: "初次约会" },
@@ -192,14 +208,15 @@ const translations = {
   docs: { en: "Docs", zh: "文档" },
 
   // Docs
-  docSubtitle: { en: "Secure relationship memory storage", zh: "安全的关系回忆存储" },
+  docSubtitle: { en: "Privacy-first record storage", zh: "隐私优先的记录存储" },
   docDescription: {
-    en: "Store and manage your relationship memories on-chain with TEE security.",
-    zh: "使用TEE安全技术在链上存储和管理您的关系回忆。",
+    en: "Store hashed records on-chain and query by hash with TEE-backed privacy.",
+    zh: "将记录哈希存储在链上，并通过哈希查询，TEE 保障隐私。",
   },
   step1: { en: "Connect your wallet", zh: "连接钱包" },
-  step2: { en: "Upload memories to the archive", zh: "上传回忆到档案" },
-  step3: { en: "Lock sensitive files for privacy", zh: "锁定敏感文件以保护隐私" },
+  step2: { en: "Create records with hashed content", zh: "创建哈希记录" },
+  step3: { en: "Query records by hash when needed", zh: "按需通过哈希查询记录" },
+  step4: { en: "View your archive and track query statistics.", zh: "查看档案并跟踪查询统计。" },
   feature1Name: { en: "TEE Secured", zh: "TEE 安全" },
   feature1Desc: { en: "Hardware-level memory protection", zh: "硬件级回忆保护" },
   feature2Name: { en: "On-Chain Storage", zh: "链上存储" },
@@ -208,15 +225,19 @@ const translations = {
 
 const t = createT(translations);
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 
 const APP_ID = "miniapp-exfiles";
-const { address, connect } = useWallet();
+const CREATE_FEE = "0.1";
+const QUERY_FEE = "0.05";
+
+const { address, connect, invokeRead, invokeContract, getContractHash } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
+const { list: listEvents } = useEvents();
 
 const activeTab = ref("files");
 const navTabs: NavTab[] = [
@@ -225,134 +246,227 @@ const navTabs: NavTab[] = [
   { id: "docs", icon: "book", label: t("docs") },
 ];
 
-// Form state
-const memoryTitle = ref("");
-const memoryContent = ref("");
-const selectedType = ref("photo");
+interface RecordItem {
+  id: number;
+  dataHash: string;
+  rating: number;
+  queryCount: number;
+  createTime: number;
+  active: boolean;
+  date: string;
+  hashShort: string;
+}
+
+const contractHash = ref<string | null>(null);
+const records = ref<RecordItem[]>([]);
+const recordContent = ref("");
+const recordRating = ref("3");
+const queryInput = ref("");
+const queryResult = ref<RecordItem | null>(null);
 const status = ref<{ msg: string; type: string } | null>(null);
 
-// Memory types
-const memoryTypes = computed(() => [
-  { id: "photo", icon: "📷", label: t("typePhoto") },
-  { id: "text", icon: "📝", label: t("typeText") },
-  { id: "video", icon: "🎥", label: t("typeVideo") },
-  { id: "audio", icon: "🎵", label: t("typeAudio") },
+const statsData = computed<StatItem[]>(() => [
+  { label: t("totalRecords"), value: records.value.length, variant: "default" },
+  { label: t("averageRating"), value: averageRating.value, variant: "accent" },
+  { label: t("totalQueries"), value: totalQueries.value, variant: "default" },
 ]);
 
-// Sample memories
-const memories = ref([
-  {
-    id: "001",
-    title: t("firstDate"),
-    type: "photo",
-    date: "2023-06-15",
-    description: "Coffee shop on 5th street",
-    locked: false,
-  },
-  {
-    id: "002",
-    title: t("loveLetter"),
-    type: "text",
-    date: "2023-08-20",
-    description: "Handwritten letter from Paris",
-    locked: true,
-  },
-  {
-    id: "003",
-    title: t("anniversary"),
-    type: "photo",
-    date: "2024-06-15",
-    description: "One year celebration",
-    locked: false,
-  },
-  {
-    id: "004",
-    title: t("breakupLetter"),
-    type: "text",
-    date: "2024-12-01",
-    description: "Final goodbye",
-    locked: true,
-  },
-]);
+const sortedRecords = computed(() => [...records.value].sort((a, b) => b.createTime - a.createTime));
 
-// Computed
-const sortedMemories = computed(() => {
-  return [...memories.value].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+const averageRating = computed(() => {
+  if (!records.value.length) return "0.0";
+  const total = records.value.reduce((sum, record) => sum + record.rating, 0);
+  return (total / records.value.length).toFixed(1);
 });
 
-const canUpload = computed(() => {
-  return memoryTitle.value.trim() && memoryContent.value.trim();
+const totalQueries = computed(() => records.value.reduce((sum, record) => sum + record.queryCount, 0));
+
+const canCreate = computed(() => {
+  const rating = Number(recordRating.value);
+  return recordContent.value.trim().length > 0 && rating >= 1 && rating <= 5;
 });
 
-// Methods
-const calculateDays = () => {
-  if (memories.value.length === 0) return 0;
-  const dates = memories.value.map((m) => new Date(m.date).getTime());
-  const earliest = Math.min(...dates);
-  const latest = Math.max(...dates);
-  return Math.floor((latest - earliest) / (1000 * 60 * 60 * 24));
+const showStatus = (msg: string, type: string) => {
+  status.value = { msg, type };
+  setTimeout(() => (status.value = null), 3000);
 };
 
-const getMemoryIcon = (type: string) => {
-  const icons: Record<string, string> = {
-    photo: "📷",
-    text: "📝",
-    video: "🎥",
-    audio: "🎵",
-  };
-  return icons[type] || "📄";
-};
-
-const getTypeLabel = (type: string) => {
-  const labels: Record<string, string> = {
-    photo: t("typePhoto"),
-    text: t("typeText"),
-    video: t("typeVideo"),
-    audio: t("typeAudio"),
-  };
-  return labels[type] || type;
-};
-
-const viewMemory = (memory: any) => {
-  if (memory.locked) {
-    status.value = { msg: `🔒 ${memory.title} - ${t("error")}`, type: "error" };
-  } else {
-    status.value = { msg: `${t("viewing")}: ${memory.title}`, type: "success" };
+const ensureContractHash = async () => {
+  if (!contractHash.value) {
+    contractHash.value = await getContractHash();
   }
-  setTimeout(() => {
-    status.value = null;
-  }, 3000);
+  if (!contractHash.value) {
+    throw new Error(t("missingContract"));
+  }
 };
 
-const uploadMemory = async () => {
-  if (!canUpload.value || isLoading.value) return;
+const formatHash = (hash: string) => {
+  if (!hash) return "--";
+  const clean = hash.startsWith("0x") ? hash : `0x${hash}`;
+  if (clean.length <= 14) return clean;
+  return `${clean.slice(0, 10)}...${clean.slice(-6)}`;
+};
 
-  try {
-    await payGAS("0.5", `upload:${memoryTitle.value.slice(0, 20)}`);
+const parseRecord = (recordId: number, raw: any): RecordItem => {
+  const values = Array.isArray(raw) ? raw : [];
+  const dataHash = String(values[1] || "");
+  const createTime = Number(values[4] || 0);
+  return {
+    id: recordId,
+    dataHash,
+    rating: Number(values[2] || 0),
+    queryCount: Number(values[3] || 0),
+    createTime,
+    active: Boolean(values[5]),
+    date: createTime ? new Date(createTime * 1000).toISOString().split("T")[0] : "--",
+    hashShort: formatHash(dataHash),
+  };
+};
 
-    // Add to memories
-    memories.value.push({
-      id: String(memories.value.length + 1).padStart(3, "0"),
-      title: memoryTitle.value,
-      type: selectedType.value,
-      date: new Date().toISOString().split("T")[0],
-      description: memoryContent.value.slice(0, 50),
-      locked: false,
+const loadRecords = async () => {
+  await ensureContractHash();
+  const res = await listEvents({ app_id: APP_ID, event_name: "RecordCreated", limit: 50 });
+  const ids = Array.from(
+    new Set(
+      res.events
+        .map((evt: any) => {
+          const values = Array.isArray(evt?.state) ? evt.state.map(parseStackItem) : [];
+          return Number(values[0] || 0);
+        })
+        .filter((id: number) => id > 0),
+    ),
+  );
+  const list: RecordItem[] = [];
+  for (const id of ids) {
+    const recordRes = await invokeRead({
+      contractHash: contractHash.value as string,
+      operation: "GetRecord",
+      args: [{ type: "Integer", value: id }],
     });
+    const data = parseInvokeResult(recordRes);
+    list.push(parseRecord(id, data));
+  }
+  records.value = list;
+};
 
-    status.value = { msg: t("memoryUploaded"), type: "success" };
-    memoryTitle.value = "";
-    memoryContent.value = "";
-    selectedType.value = "photo";
+const viewRecord = (record: RecordItem) => {
+  queryResult.value = record;
+  showStatus(`${t("record")} #${record.id}`, "success");
+};
 
-    setTimeout(() => {
-      activeTab.value = "files";
-      status.value = null;
-    }, 2000);
+const createRecord = async () => {
+  if (!canCreate.value || isLoading.value) return;
+  const rating = Number(recordRating.value);
+  if (!recordContent.value.trim()) {
+    showStatus(t("invalidContent"), "error");
+    return;
+  }
+  if (!Number.isFinite(rating) || rating < 1 || rating > 5) {
+    showStatus(t("invalidRating"), "error");
+    return;
+  }
+  try {
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) {
+      throw new Error(t("error"));
+    }
+    await ensureContractHash();
+    const hashHex = await sha256Hex(recordContent.value.trim());
+    const payment = await payGAS(CREATE_FEE, `create:${hashHex.slice(0, 8)}`);
+    const receiptId = payment.receipt_id;
+    if (!receiptId) {
+      throw new Error("Missing payment receipt");
+    }
+    await invokeContract({
+      scriptHash: contractHash.value as string,
+      operation: "CreateRecord",
+      args: [
+        { type: "Hash160", value: address.value as string },
+        { type: "ByteArray", value: hashHex },
+        { type: "Integer", value: rating },
+        { type: "Integer", value: Number(receiptId) },
+      ],
+    });
+    showStatus(t("recordCreated"), "success");
+    recordContent.value = "";
+    recordRating.value = "3";
+    await loadRecords();
+    activeTab.value = "files";
   } catch (e: any) {
-    status.value = { msg: e.message || t("error"), type: "error" };
+    showStatus(e.message || t("error"), "error");
   }
 };
+
+const waitForEvent = async (txid: string, eventName: string) => {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const res = await listEvents({ app_id: APP_ID, event_name: eventName, limit: 20 });
+    const match = res.events.find((evt: any) => evt.tx_hash === txid);
+    if (match) return match;
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+  }
+  return null;
+};
+
+const queryRecord = async () => {
+  if (!queryInput.value.trim() || isLoading.value) return;
+  try {
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) {
+      throw new Error(t("error"));
+    }
+    await ensureContractHash();
+    const input = queryInput.value.trim();
+    const isHash = /^(0x)?[0-9a-fA-F]{64}$/.test(input);
+    const hashHex = isHash ? input.replace(/^0x/, "") : await sha256Hex(input);
+    const payment = await payGAS(QUERY_FEE, `query:${hashHex.slice(0, 8)}`);
+    const receiptId = payment.receipt_id;
+    if (!receiptId) {
+      throw new Error("Missing payment receipt");
+    }
+    const tx = await invokeContract({
+      scriptHash: contractHash.value as string,
+      operation: "QueryByHash",
+      args: [
+        { type: "Hash160", value: address.value as string },
+        { type: "ByteArray", value: hashHex },
+        { type: "Integer", value: Number(receiptId) },
+      ],
+    });
+    const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
+    if (txid) {
+      const evt = await waitForEvent(txid, "RecordQueried");
+      if (evt) {
+        const values = Array.isArray(evt?.state) ? evt.state.map(parseStackItem) : [];
+        const recordId = Number(values[0] || 0);
+        if (recordId > 0) {
+          const recordRes = await invokeRead({
+            contractHash: contractHash.value as string,
+            operation: "GetRecord",
+            args: [{ type: "Integer", value: recordId }],
+          });
+          const data = parseInvokeResult(recordRes);
+          queryResult.value = parseRecord(recordId, data);
+        }
+      }
+    }
+    showStatus(t("recordQueried"), "success");
+    await loadRecords();
+  } catch (e: any) {
+    showStatus(e.message || t("error"), "error");
+  }
+};
+
+onMounted(async () => {
+  try {
+    await loadRecords();
+  } catch (e: any) {
+    showStatus(e.message || t("failedToLoad"), "error");
+  }
+});
 </script>
 
 <style lang="scss" scoped>
@@ -360,405 +474,144 @@ const uploadMemory = async () => {
 @import "@/shared/styles/variables.scss";
 
 .app-container {
+  padding: $space-4;
   flex: 1;
   display: flex;
   flex-direction: column;
+  gap: $space-4;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: $space-4;
 }
 
 .tab-content {
   flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-}
-
-// Status Message
-.status-msg {
-  text-align: center;
-  padding: $space-3;
-  border-radius: $radius-md;
-  margin-bottom: $space-4;
-  border: $border-width-md solid var(--border-color);
-  font-weight: $font-weight-bold;
-
-  &.success {
-    background: var(--brutal-lime);
-    color: var(--neo-black);
-  }
-
-  &.error {
-    background: var(--brutal-red);
-    color: var(--neo-white);
-  }
-}
-
-// Stats Grid
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: $space-3;
-  margin-bottom: $space-5;
-}
-
-.stat-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: $space-4;
-  border: $border-width-md solid var(--border-color);
-  border-radius: $radius-md;
-
-  &.stat-pink {
-    background: var(--brutal-pink);
-    box-shadow: 4px 4px 0 var(--neo-purple);
-  }
-
-  &.stat-purple {
-    background: var(--neo-purple);
-    box-shadow: 4px 4px 0 var(--brutal-yellow);
-  }
-
-  &.stat-yellow {
-    background: var(--brutal-yellow);
-    box-shadow: 4px 4px 0 var(--brutal-pink);
-  }
-}
-
-.stat-icon {
-  font-size: $font-size-3xl;
-  margin-bottom: $space-2;
-}
-
-.stat-value {
-  font-size: $font-size-2xl;
-  font-weight: $font-weight-black;
-  color: var(--neo-black);
-  margin-bottom: $space-1;
-}
-
-.stat-label {
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  color: var(--neo-black);
-  text-align: center;
-}
-
-// Archive Section
-.archive-section {
-  margin-bottom: $space-4;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: $space-4;
-  padding: $space-3;
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  border-radius: $radius-md;
-}
-
-.section-icon {
-  font-size: $font-size-2xl;
-  margin-right: $space-3;
-}
-
-.section-title {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-}
-
-// Timeline
-.timeline {
   display: flex;
   flex-direction: column;
   gap: $space-4;
 }
 
-// File Card
-.file-card {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  border-radius: $radius-lg;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  transition: transform $transition-fast;
-
-  &.file-photo {
-    border-left: 6px solid var(--brutal-pink);
-  }
-
-  &.file-text {
-    border-left: 6px solid var(--neo-purple);
-  }
-
-  &.file-video {
-    border-left: 6px solid var(--brutal-blue);
-  }
-
-  &.file-audio {
-    border-left: 6px solid var(--brutal-yellow);
-  }
-
-  &.locked {
-    opacity: 0.8;
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
-}
-
-.file-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: $space-3;
-  background: var(--bg-elevated);
-  border-bottom: $border-width-sm solid var(--border-color);
-}
-
-.file-tab {
+.section-header-neo {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: $space-2 $space-3;
-  border-radius: $radius-sm;
+  gap: $space-3;
+  padding: $space-3 $space-4;
+  background: black;
+  color: white;
+  border: 3px solid black;
+  box-shadow: 4px 4px 0 var(--brutal-yellow);
+}
 
-  &.tab-photo {
-    background: var(--brutal-pink);
-  }
+.section-icon {
+  font-size: 24px;
+}
+.section-title {
+  font-size: 14px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
 
-  &.tab-text {
-    background: var(--neo-purple);
-  }
-
-  &.tab-video {
-    background: var(--brutal-blue);
-  }
-
-  &.tab-audio {
+.result-card-neo {
+  background: white;
+  border: 4px solid black;
+  padding: $space-6;
+  box-shadow: 8px 8px 0 black;
+  margin-top: $space-4;
+  position: relative;
+  &::before {
+    content: "QUERY HIT";
+    position: absolute;
+    top: -12px;
+    right: $space-4;
     background: var(--brutal-yellow);
+    border: 2px solid black;
+    padding: 2px 10px;
+    font-size: 10px;
+    font-weight: $font-weight-black;
   }
 }
 
-.file-icon {
-  font-size: $font-size-lg;
+.result-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
-
-.file-status {
-  font-size: $font-size-xl;
-}
-
-.lock-icon {
-  color: var(--brutal-red);
-}
-
-.unlock-icon {
-  color: var(--brutal-lime);
+.result-line {
+  font-size: 12px;
+  font-family: $font-mono;
+  font-weight: $font-weight-black;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 4px;
 }
 
 .file-body {
-  padding: $space-4;
+  padding: $space-2 0;
 }
-
 .file-title {
-  display: block;
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-  margin-bottom: $space-2;
+  font-size: 18px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  color: black;
+  border-bottom: 3px solid var(--brutal-yellow);
+  display: inline-block;
+  margin-bottom: 8px;
 }
-
-.file-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: $space-2;
-}
-
 .file-date {
-  font-size: $font-size-sm;
-  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: $font-weight-black;
+  opacity: 0.6;
+  font-family: $font-mono;
 }
-
 .file-type {
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  padding: $space-1 $space-2;
-  background: var(--bg-elevated);
-  border-radius: $radius-sm;
-  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  background: var(--neo-green);
+  color: black;
+  padding: 2px 8px;
+  border: 1px solid black;
 }
 
-.file-desc {
-  display: block;
-  font-size: $font-size-sm;
-  color: var(--text-secondary);
-  line-height: $line-height-relaxed;
-}
-
-.file-footer {
+.file-footer-neo {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: $space-3;
-  background: var(--bg-elevated);
-  border-top: $border-width-sm solid var(--border-color);
+  padding-top: $space-3;
+  border-top: 2px solid black;
+  margin-top: $space-3;
 }
-
-.file-id {
-  font-size: $font-size-xs;
-  font-family: $font-mono;
-  color: var(--text-muted);
-}
-
 .view-label {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: var(--brutal-pink);
-}
-
-// Upload Container
-.upload-container {
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.upload-header {
-  text-align: center;
-  margin-bottom: $space-6;
-}
-
-.upload-icon {
-  display: block;
-  font-size: $font-size-4xl;
-  margin-bottom: $space-3;
-}
-
-.upload-title {
-  display: block;
-  font-size: $font-size-2xl;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-  margin-bottom: $space-2;
+  font-size: 12px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  color: black;
 }
 
 .upload-subtitle {
+  font-size: 12px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-bottom: $space-6;
   display: block;
-  font-size: $font-size-base;
-  color: var(--text-secondary);
+  border-left: 4px solid black;
+  padding-left: 8px;
+}
+.hash-note {
+  font-size: 10px;
+  font-weight: $font-weight-black;
+  opacity: 0.8;
+  background: #eee;
+  padding: 4px 8px;
+  border: 1px solid black;
 }
 
-.form-card {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  border-radius: $radius-lg;
-  padding: $space-5;
+.word-break {
+  word-break: break-all;
 }
 
-.form-group {
-  margin-bottom: $space-5;
-}
-
-.form-label {
-  display: block;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-  margin-bottom: $space-2;
-}
-
-.input-field {
-  width: 100%;
-}
-
-.type-selector {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: $space-2;
-}
-
-.type-option {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: $space-3;
-  background: var(--bg-elevated);
-  border: $border-width-md solid var(--border-color);
-  border-radius: $radius-md;
-  transition: all $transition-fast;
-
-  &.active {
-    background: var(--brutal-pink);
-    border-color: var(--neo-purple);
-    box-shadow: 3px 3px 0 var(--neo-purple);
-  }
-}
-
-.type-icon {
-  font-size: $font-size-2xl;
-  margin-bottom: $space-1;
-}
-
-.type-name {
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-}
-
-.form-actions {
-  margin-top: $space-6;
-}
-
-.action-btn {
-  width: 100%;
-  padding: $space-4;
-  border-radius: $radius-lg;
-  text-align: center;
-  font-weight: $font-weight-bold;
-  font-size: $font-size-base;
-  border: $border-width-md solid var(--border-color);
-  transition: all $transition-fast;
-
-  &.upload-btn {
-    background: var(--brutal-pink);
-    color: var(--neo-black);
-    box-shadow: 5px 5px 0 var(--neo-purple);
-
-    &:active {
-      transform: translate(2px, 2px);
-      box-shadow: 3px 3px 0 var(--neo-purple);
-    }
-  }
-}
-
-// Animations
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateY(10px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

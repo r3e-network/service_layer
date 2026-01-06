@@ -7,9 +7,11 @@ import { useWalletStore } from "@/stores/wallet";
 import { buildTransferScript, signTransaction } from "@/lib/neo/transaction";
 import { sendRawTransaction } from "@/lib/neo/rpc";
 import { isValidNeoAddress } from "@/lib/qrcode";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function SendScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ to?: string; amount?: string }>();
   const { address, assets } = useWalletStore();
   const [recipient, setRecipient] = useState("");
@@ -27,15 +29,15 @@ export default function SendScreen() {
 
   const handleSend = async () => {
     if (!recipient || !amount) {
-      Alert.alert("Error", "Please fill all fields");
+      Alert.alert(t("wallet.error"), t("wallet.fill_all_fields"));
       return;
     }
     if (!isValidNeoAddress(recipient)) {
-      Alert.alert("Error", "Invalid Neo N3 address");
+      Alert.alert(t("wallet.error"), t("wallet.invalid_address"));
       return;
     }
     if (!address) {
-      Alert.alert("Error", "No wallet connected");
+      Alert.alert(t("wallet.error"), t("wallet.no_wallet"));
       return;
     }
 
@@ -49,11 +51,11 @@ export default function SendScreen() {
       });
       const signature = await signTransaction(script);
       const result = await sendRawTransaction(signature);
-      Alert.alert("Success", `Transaction sent!\nHash: ${result.hash.slice(0, 16)}...`);
+      Alert.alert(t("wallet.success"), `${t("wallet.tx_sent")}\nHash: ${result.hash.slice(0, 16)}...`);
       router.back();
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Transaction failed";
-      Alert.alert("Error", message);
+      const message = e instanceof Error ? e.message : t("wallet.tx_failed");
+      Alert.alert(t("wallet.error"), message);
     } finally {
       setLoading(false);
     }
@@ -61,7 +63,7 @@ export default function SendScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: "Send" }} />
+      <Stack.Screen options={{ title: t("wallet.send") }} />
 
       {/* Asset Selector */}
       <View style={styles.assetRow}>
@@ -79,10 +81,10 @@ export default function SendScreen() {
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.balance}>Balance: {selectedAsset?.balance || "0"}</Text>
+      <Text style={styles.balance}>{t("wallet.balance")}: {selectedAsset?.balance || "0"}</Text>
 
       {/* Recipient */}
-      <Text style={styles.label}>Recipient Address</Text>
+      <Text style={styles.label}>{t("wallet.recipient_address")}</Text>
       <View style={styles.recipientRow}>
         <TextInput
           style={styles.recipientInput}
@@ -92,12 +94,12 @@ export default function SendScreen() {
           onChangeText={setRecipient}
         />
         <TouchableOpacity style={styles.scanBtn} onPress={() => router.push("/scanner")}>
-          <Ionicons name="scan" size={24} color="#00d4aa" />
+          <Ionicons name="scan" size={24} color="#000" />
         </TouchableOpacity>
       </View>
 
       {/* Amount */}
-      <Text style={styles.label}>Amount</Text>
+      <Text style={styles.label}>{t("wallet.amount")}</Text>
       <TextInput
         style={styles.input}
         placeholder="0.00"
@@ -113,35 +115,80 @@ export default function SendScreen() {
         onPress={handleSend}
         disabled={loading}
       >
-        <Ionicons name="send" size={20} color="#fff" />
-        <Text style={styles.sendText}>{loading ? "Sending..." : "Send"}</Text>
+        <Ionicons name="send" size={20} color="#000" />
+        <Text style={styles.sendText}>{loading ? t("wallet.sending") : t("wallet.send")}</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0a0a0a", padding: 20 },
-  assetRow: { flexDirection: "row", gap: 12, marginBottom: 8 },
-  assetBtn: { flex: 1, padding: 16, backgroundColor: "#1a1a1a", borderRadius: 12, alignItems: "center" },
-  assetActive: { backgroundColor: "#00d4aa" },
-  assetText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  balance: { color: "#888", marginBottom: 24, textAlign: "center" },
-  label: { color: "#888", marginBottom: 8 },
-  recipientRow: { flexDirection: "row", gap: 8, marginBottom: 16 },
-  recipientInput: { flex: 1, backgroundColor: "#1a1a1a", color: "#fff", padding: 16, borderRadius: 12, fontSize: 16 },
-  scanBtn: { backgroundColor: "#1a1a1a", padding: 16, borderRadius: 12, justifyContent: "center" },
-  input: { backgroundColor: "#1a1a1a", color: "#fff", padding: 16, borderRadius: 12, marginBottom: 16, fontSize: 16 },
+  container: { flex: 1, backgroundColor: "#fff", padding: 20 },
+  assetRow: { flexDirection: "row", gap: 12, marginBottom: 12 },
+  assetBtn: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: "#fff",
+    borderWidth: 3,
+    borderColor: "#000",
+    shadowColor: "#000",
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    alignItems: "center",
+  },
+  assetActive: { backgroundColor: "#00E599" },
+  assetText: { color: "#000", fontSize: 16, fontWeight: "900", textTransform: "uppercase", fontStyle: "italic" },
+  balance: { color: "#000", marginBottom: 32, textAlign: "center", fontWeight: "900", fontSize: 14, textTransform: "uppercase", opacity: 0.5 },
+  label: { color: "#000", marginBottom: 8, fontWeight: "900", textTransform: "uppercase", fontSize: 12 },
+  recipientRow: { flexDirection: "row", gap: 12, marginBottom: 20 },
+  recipientInput: {
+    flex: 1,
+    backgroundColor: "#fff",
+    color: "#000",
+    padding: 16,
+    borderWidth: 3,
+    borderColor: "#000",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  scanBtn: {
+    backgroundColor: "#fff",
+    padding: 16,
+    borderWidth: 3,
+    borderColor: "#000",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+  },
+  input: {
+    backgroundColor: "#fff",
+    color: "#000",
+    padding: 16,
+    borderWidth: 3,
+    borderColor: "#000",
+    marginBottom: 20,
+    fontSize: 24,
+    fontWeight: "900",
+    fontStyle: "italic",
+  },
   sendBtn: {
     flexDirection: "row",
-    backgroundColor: "#00d4aa",
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: "#00E599",
+    padding: 20,
+    borderWidth: 4,
+    borderColor: "#000",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: 12,
     marginTop: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 6, height: 6 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
-  sendBtnDisabled: { opacity: 0.5 },
-  sendText: { color: "#fff", fontSize: 18, fontWeight: "600" },
+  sendBtnDisabled: { opacity: 0.5, backgroundColor: "#f0f0f0" },
+  sendText: { color: "#000", fontSize: 20, fontWeight: "900", textTransform: "uppercase" },
 });

@@ -1,10 +1,18 @@
 /**
  * useWallet - Wallet composable for uni-app
+ * Provides wallet connection, balance, and transaction management
  */
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { getSDKSync, waitForSDK } from "../bridge";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "https://api.neo-service-layer.io";
+
+export interface RequireConnectionOptions {
+  /** Show prompt instead of throwing error (default: true) */
+  showPrompt?: boolean;
+  /** Custom error message */
+  errorMessage?: string;
+}
 
 export interface WalletBalances {
   GAS: string;
@@ -28,6 +36,8 @@ export function useWallet() {
   const isConnected = ref(false);
   const isLoading = ref(false);
   const error = ref<Error | null>(null);
+  const showConnectionPrompt = ref(false);
+  const connectionPromptMessage = ref<string | null>(null);
 
   const connect = async () => {
     isLoading.value = true;
@@ -57,14 +67,33 @@ export function useWallet() {
     return sdk.invoke("invokeFunction", {
       contract: params.scriptHash,
       method: params.operation,
-      args: params.args
+      args: params.args,
     });
+  };
+
+  const invokeRead = async (params: { contractHash?: string; operation: string; args?: any[]; network?: string }) => {
+    const sdk = await waitForSDK();
+    const contractHash = params.contractHash || sdk.getConfig?.().contractHash;
+    if (!contractHash) {
+      throw new Error("contract hash not configured");
+    }
+    return sdk.invoke("invokeRead", {
+      contract: contractHash,
+      method: params.operation,
+      args: params.args || [],
+      network: params.network,
+    });
+  };
+
+  const getContractHash = async () => {
+    const sdk = await waitForSDK();
+    return sdk.getConfig?.().contractHash ?? null;
   };
 
   const getAddress = async () => {
     const sdk = await waitForSDK();
     return sdk.wallet.getAddress();
-  }
+  };
 
   const getBalance = async (token?: string): Promise<string | WalletBalances> => {
     isLoading.value = true;
@@ -115,6 +144,40 @@ export function useWallet() {
     }
   };
 
+  /**
+   * Check if wallet is connected, show prompt if not
+   * @returns true if connected, false otherwise
+   */
+  const requireConnection = (options: RequireConnectionOptions = {}): boolean => {
+    const { showPrompt = true, errorMessage } = options;
+
+    if (isConnected.value) {
+      return true;
+    }
+
+    if (showPrompt) {
+      connectionPromptMessage.value = errorMessage || null;
+      showConnectionPrompt.value = true;
+    }
+
+    return false;
+  };
+
+  /**
+   * Close the connection prompt
+   */
+  const closeConnectionPrompt = () => {
+    showConnectionPrompt.value = false;
+    connectionPromptMessage.value = null;
+  };
+
+  /**
+   * Clear any wallet errors
+   */
+  const clearError = () => {
+    error.value = null;
+  };
+
   onMounted(() => {
     const sdk = getSDKSync();
     if (sdk) {
@@ -124,21 +187,31 @@ export function useWallet() {
           address.value = addr;
           isConnected.value = true;
         })
-        .catch(() => { });
+        .catch(() => {});
     }
   });
 
   return {
+    // State
     address,
     balances,
     isConnected,
     isLoading,
     error,
+    showConnectionPrompt,
+    connectionPromptMessage,
+    // Actions
     connect,
     invokeIntent,
     invokeContract,
+    invokeRead,
+    getContractHash,
     getAddress,
     getBalance,
-    getTransactions
+    getTransactions,
+    // Connection management
+    requireConnection,
+    closeConnectionPrompt,
+    clearError,
   };
 }

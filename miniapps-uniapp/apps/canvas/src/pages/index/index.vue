@@ -2,14 +2,16 @@
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <!-- Canvas Tab -->
     <view v-if="activeTab === 'canvas'" class="tab-content">
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <NeoCard
+        v-if="status"
+        :variant="status.type === 'error' ? 'danger' : status.type === 'loading' ? 'warning' : 'success'"
+        class="mb-4 text-center"
+      >
+        <text class="font-bold">{{ status.msg }}</text>
+      </NeoCard>
 
-      <!-- Main Canvas Card -->
-      <view class="canvas-card">
-        <view class="canvas-header">
-          <text class="canvas-title">{{ t("workspace") }}</text>
+      <NeoCard :title="t('workspace')" variant="default" class="canvas-card-neo">
+        <view class="canvas-header-sub">
           <view class="layer-indicator">
             <text class="layer-text">{{ t("layer") }} 1</text>
           </view>
@@ -45,7 +47,7 @@
               @click="selectedTool = tool.id"
             >
               <text class="tool-icon">{{ tool.icon }}</text>
-              <text class="tool-label">{{ t(tool.label) }}</text>
+              <text class="tool-label">{{ t(tool.label as any) }}</text>
             </view>
           </view>
         </view>
@@ -97,13 +99,11 @@
             {{ isLoading ? t("minting") : t("mintAsNFT") }}
           </NeoButton>
         </view>
-      </view>
+      </NeoCard>
     </view>
 
-    <!-- Gallery Tab -->
     <view v-if="activeTab === 'gallery'" class="tab-content scrollable">
-      <view class="card">
-        <text class="card-title">{{ t("recentArtworks") }}</text>
+      <NeoCard :title="t('recentArtworks')" variant="success">
         <view class="artworks-list">
           <view v-for="art in artworks" :key="art.id" class="artwork-item">
             <text class="artwork-icon">🎨</text>
@@ -114,7 +114,7 @@
             <text class="artwork-price">{{ art.price }} GAS</text>
           </view>
         </view>
-      </view>
+      </NeoCard>
     </view>
 
     <!-- Docs Tab -->
@@ -134,9 +134,7 @@
 import { ref, computed } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoButton from "@/shared/components/NeoButton.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
+import { AppLayout, NeoButton, NeoCard, NeoDoc } from "@/shared/components";
 
 const translations = {
   title: { en: "Pixel Canvas", zh: "像素画布" },
@@ -165,18 +163,40 @@ const translations = {
   canvasMinted: { en: "Canvas minted as NFT!", zh: "画布已铸造为 NFT！" },
   error: { en: "Error", zh: "错误" },
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Professional documentation for this application is coming soon.",
-    zh: "此应用程序的专业文档即将推出。",
+  docSubtitle: {
+    en: "Collaborative pixel art on the blockchain",
+    zh: "区块链上的协作像素艺术",
   },
-  step1: { en: "Open the application.", zh: "打开应用程序。" },
-  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
-  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
-  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
-  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
-  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  docDescription: {
+    en: "Canvas is a collaborative pixel art platform where users can create and own pixels on a shared canvas. Each pixel placement is recorded on-chain, creating permanent digital art.",
+    zh: "Canvas 是一个协作像素艺术平台，用户可以在共享画布上创建和拥有像素。每次像素放置都记录在链上，创建永久的数字艺术。",
+  },
+  step1: {
+    en: "Connect your Neo wallet to start creating",
+    zh: "连接您的 Neo 钱包开始创作",
+  },
+  step2: {
+    en: "Select a color from the palette",
+    zh: "从调色板中选择颜色",
+  },
+  step3: {
+    en: "Click on the canvas to place your pixel (costs GAS)",
+    zh: "点击画布放置像素（消耗 GAS）",
+  },
+  step4: {
+    en: "Watch the community artwork evolve in real-time",
+    zh: "实时观看社区艺术作品的演变",
+  },
+  feature1Name: { en: "Permanent Storage", zh: "永久存储" },
+  feature1Desc: {
+    en: "All pixel art is stored permanently on Neo N3 blockchain.",
+    zh: "所有像素艺术永久存储在 Neo N3 区块链上。",
+  },
+  feature2Name: { en: "Real-Time Updates", zh: "实时更新" },
+  feature2Desc: {
+    en: "See other artists' contributions appear instantly on the canvas.",
+    zh: "即时看到其他艺术家的贡献出现在画布上。",
+  },
 };
 
 const t = createT(translations);
@@ -189,7 +209,7 @@ const navTabs = [
 
 const activeTab = ref("canvas");
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
@@ -274,389 +294,71 @@ const mintCanvas = async () => {
 @import "@/shared/styles/variables.scss";
 
 .tab-content {
-  padding: $space-3;
+  padding: $space-4;
   flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+  gap: $space-4;
 }
 
-.status-msg {
-  text-align: center;
-  padding: $space-3;
-  border-radius: $radius-sm;
-  margin-bottom: $space-4;
-  border: $border-width-md solid var(--neo-black);
-  font-weight: $font-weight-bold;
+.canvas-card-neo { margin-bottom: $space-4; border: 4px solid black; box-shadow: 10px 10px 0 black; }
+.canvas-header-sub { display: flex; justify-content: flex-end; margin-bottom: $space-2; }
+.layer-text { font-size: 8px; font-weight: $font-weight-black; text-transform: uppercase; opacity: 0.6; }
 
-  &.success {
-    background: var(--status-success);
-    color: var(--neo-black);
-    box-shadow: $shadow-sm;
-  }
-  &.error {
-    background: var(--status-error);
-    color: var(--neo-white);
-    box-shadow: $shadow-sm;
-  }
-  &.loading {
-    background: var(--brutal-yellow);
-    color: var(--neo-black);
-    box-shadow: $shadow-sm;
-  }
-}
-
-// Main Canvas Card
-.canvas-card {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--neo-black);
-  border-radius: $radius-sm;
-  padding: $space-4;
-  box-shadow: $shadow-lg;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  max-height: calc(100vh - 180px);
-}
-
-.canvas-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: $space-4;
-  padding-bottom: $space-3;
-  border-bottom: $border-width-sm solid var(--neo-purple);
-}
-
-.canvas-title {
-  color: var(--neo-purple);
-  font-size: $font-size-xl;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.layer-indicator {
-  background: var(--bg-elevated);
-  border: $border-width-sm solid var(--neo-black);
-  border-radius: $radius-sm;
-  padding: $space-2 $space-3;
-  box-shadow: $shadow-sm;
-}
-
-.layer-text {
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-}
-
-// Canvas Container
 .canvas-container {
-  background: var(--bg-elevated);
-  border: $border-width-lg solid var(--neo-black);
-  border-radius: $radius-sm;
-  padding: $space-3;
-  margin-bottom: $space-4;
-  box-shadow: $shadow-neo;
+  padding: $space-1; background: black; border: 2px solid black; margin-bottom: $space-4; box-shadow: 8px 8px 0 black;
 }
 
 .canvas-grid {
-  display: grid;
-  grid-template-columns: repeat(16, 1fr);
-  gap: 1px;
-  aspect-ratio: 1;
-  background: var(--neo-black);
-  border: 2px solid var(--neo-black);
+  display: grid; grid-template-columns: repeat(16, 1fr); gap: 1px; aspect-ratio: 1; background: #333;
 }
 
 .pixel {
-  aspect-ratio: 1;
-  border-radius: $radius-none;
-  transition: all $transition-fast;
-  cursor: pointer;
-  position: relative;
-
-  &:hover {
-    opacity: 0.8;
-  }
-
-  &.pixel-hover {
-    box-shadow: inset 0 0 0 2px var(--neo-purple);
-  }
-
-  &:active {
-    transform: scale(0.9);
-  }
+  aspect-ratio: 1; transition: transform $transition-fast;
+  &.pixel-hover { transform: scale(1.1); z-index: 10; border: 1px solid white; box-shadow: 0 0 10px rgba(255,255,255,0.5); }
 }
 
-// Tools Section
-.tools-section,
-.brush-section,
-.palette-section {
-  margin-bottom: $space-4;
-}
+.section-label { font-size: 8px; font-weight: $font-weight-black; text-transform: uppercase; opacity: 0.6; margin-bottom: 4px; }
 
-.section-label {
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: $space-2;
-  display: block;
-}
-
-.tools-bar {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: $space-2;
-}
-
+.tools-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: $space-2; margin-bottom: $space-4; }
 .tool-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: $space-3;
-  background: var(--bg-elevated);
-  border: $border-width-md solid var(--neo-black);
-  border-radius: $radius-sm;
-  box-shadow: $shadow-sm;
+  padding: $space-2; background: white; border: 2px solid black; text-align: center; cursor: pointer;
+  &.active { background: var(--brutal-yellow); box-shadow: 4px 4px 0 black; transform: translate(-2px, -2px); }
   transition: all $transition-fast;
-  cursor: pointer;
-
-  &.active {
-    background: var(--neo-purple);
-    border-color: var(--neo-purple);
-    box-shadow: $shadow-neo;
-    transform: translate(-2px, -2px);
-
-    .tool-icon {
-      transform: scale(1.2);
-    }
-
-    .tool-label {
-      color: var(--neo-white);
-    }
-  }
-
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: none;
-  }
 }
 
-.tool-icon {
-  font-size: 1.5em;
-  margin-bottom: $space-1;
-  transition: transform $transition-fast;
-}
+.tool-icon { display: block; font-size: 20px; }
+.tool-label { font-size: 8px; font-weight: $font-weight-black; text-transform: uppercase; }
 
-.tool-label {
-  color: var(--text-primary);
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-}
-
-// Brush Size Section
-.brush-sizes {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: $space-2;
-}
-
+.brush-sizes { display: grid; grid-template-columns: repeat(3, 1fr); gap: $space-2; margin-bottom: $space-4; }
 .brush-size-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: $space-3;
-  background: var(--bg-elevated);
-  border: $border-width-md solid var(--neo-black);
-  border-radius: $radius-sm;
-  box-shadow: $shadow-sm;
-  transition: all $transition-fast;
-  cursor: pointer;
-  min-height: 60px;
-
-  &.active {
-    border-color: var(--neo-green);
-    box-shadow: $shadow-neo;
-    transform: translate(-2px, -2px);
-
-    .brush-preview {
-      background: var(--neo-green);
-    }
-  }
-
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: none;
-  }
+  padding: $space-2; background: white; border: 2px solid black; text-align: center; cursor: pointer;
+  &.active { background: var(--neo-green); box-shadow: 4px 4px 0 black; transform: translate(-2px, -2px); }
 }
 
-.brush-preview {
-  background: var(--neo-black);
-  border-radius: 50%;
-  margin-bottom: $space-2;
-  transition: all $transition-fast;
-}
+.brush-preview { background: black; border-radius: 50%; margin: 0 auto 4px; border: 1px solid black; }
+.brush-size-label { font-size: 8px; font-weight: $font-weight-black; }
 
-.brush-size-label {
-  color: var(--text-primary);
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-}
-
-// Color Palette
-.color-palette {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: $space-2;
-}
-
+.color-palette { display: grid; grid-template-columns: repeat(6, 1fr); gap: $space-2; margin-bottom: $space-4; }
 .color-btn {
-  aspect-ratio: 1;
-  border-radius: $radius-sm;
-  border: $border-width-md solid var(--neo-black);
-  box-shadow: $shadow-sm;
-  transition: all $transition-fast;
-  cursor: pointer;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &.active {
-    border-width: $border-width-lg;
-    box-shadow: $shadow-neo;
-    transform: translate(-2px, -2px);
-  }
-
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: none;
-  }
+  aspect-ratio: 1; border: 2px solid black; display: flex; align-items: center; justify-content: center; cursor: pointer;
+  &.active { border-color: black; transform: scale(1.1); box-shadow: 4px 4px 0 black; z-index: 2; border-width: 4px; }
 }
 
-.color-check {
-  color: var(--neo-white);
-  font-size: $font-size-lg;
-  font-weight: $font-weight-black;
-  text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
-}
+.color-check { font-size: 10px; color: white; -webkit-text-stroke: 1px black; font-weight: $font-weight-black; }
 
-// Action Section
-.action-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: $space-3;
-  margin-top: $space-4;
-  padding-top: $space-4;
-  border-top: $border-width-sm solid var(--neo-black);
-}
+.action-section { display: grid; grid-template-columns: 1fr 1fr; gap: $space-2; }
 
-// Gallery Styles
-.card {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--neo-black);
-  border-radius: $radius-sm;
-  padding: $space-6;
-  margin-bottom: $space-4;
-  box-shadow: $shadow-md;
-}
-
-.card-title {
-  color: var(--neo-green);
-  font-size: $font-size-lg;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  display: block;
-  margin-bottom: $space-4;
-}
-
-.artworks-list {
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
-}
-
+.artworks-list { display: flex; flex-direction: column; gap: $space-3; }
 .artwork-item {
-  display: flex;
-  align-items: center;
-  padding: $space-3;
-  background: var(--bg-elevated);
-  border: $border-width-sm solid var(--neo-black);
-  border-radius: $radius-sm;
-  box-shadow: $shadow-sm;
-  transition: all $transition-fast;
-
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: none;
-  }
+  display: flex; align-items: center; padding: $space-3; background: white; border: 2px solid black; box-shadow: 4px 4px 0 black;
 }
 
-.artwork-icon {
-  font-size: 1.8em;
-  margin-right: $space-3;
-}
+.artwork-icon { font-size: 24px; margin-right: $space-3; }
+.artwork-info { flex: 1; }
+.artwork-name { font-weight: $font-weight-black; text-transform: uppercase; font-size: 14px; display: block; }
+.artwork-author { font-size: 10px; font-weight: $font-weight-bold; opacity: 0.6; }
+.artwork-price { font-family: $font-mono; font-weight: $font-weight-black; color: var(--neo-purple); font-size: 14px; }
 
-.artwork-info {
-  flex: 1;
-}
-
-.artwork-name {
-  display: block;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-  margin-bottom: $space-1;
-}
-
-.artwork-author {
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
-}
-
-.artwork-price {
-  color: var(--neo-green);
-  font-weight: $font-weight-bold;
-  font-size: $font-size-base;
-}
-
-// Animations
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(10px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
+.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 </style>

@@ -1,29 +1,35 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view class="app-container">
-      <view v-if="statusMessage" :class="['status', statusType]">
-        <text>{{ statusMessage }}</text>
-      </view>
+      <NeoCard v-if="statusMessage" :variant="statusType === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
+        <text class="font-bold">{{ statusMessage }}</text>
+      </NeoCard>
 
       <!-- Register Tab -->
       <view v-if="activeTab === 'register'" class="tab-content">
-        <view class="search-box">
-          <input
+        <view class="mb-4">
+          <NeoInput
             v-model="searchQuery"
             :placeholder="t('searchPlaceholder')"
-            class="search-input"
+            suffix=".neo"
             @input="checkAvailability"
           />
-          <text class="domain-suffix">.neo</text>
         </view>
 
-        <view v-if="searchQuery && searchResult" class="result-card">
+        <NeoCard
+          v-if="searchQuery && searchResult"
+          :variant="searchResult.available ? 'success' : 'danger'"
+          class="result-card"
+        >
           <view class="result-header">
             <view class="domain-title-row">
               <text class="result-domain">{{ searchQuery }}.neo</text>
               <text v-if="searchQuery.length <= 3" class="premium-badge">{{ t("premium") }}</text>
             </view>
-            <text class="result-status" :class="searchResult.available ? 'available' : 'taken'">
+            <text
+              class="result-status font-bold uppercase"
+              :class="searchResult.available ? 'text-green-700' : 'text-red-700'"
+            >
               {{ searchResult.available ? t("available") : t("taken") }}
             </text>
           </view>
@@ -35,39 +41,41 @@
               </text>
               <text class="price-period">{{ t("perYear") }}</text>
             </view>
-            <button class="register-btn" :disabled="loading" @click="handleRegister">
-              {{ loading ? t("processing") : t("registerNow") }}
-            </button>
+            <NeoButton :disabled="loading" :loading="loading" @click="handleRegister" block size="lg" variant="primary">
+              {{ t("registerNow") }}
+            </NeoButton>
           </view>
           <view v-else class="result-body taken-body">
             <view class="owner-info">
               <text class="owner-label">{{ t("owner") }}</text>
-              <text class="owner-value">{{ shortenAddress(searchResult.owner) }}</text>
+              <text class="owner-value">{{ shortenAddress(searchResult.owner!) }}</text>
             </view>
           </view>
-        </view>
+        </NeoCard>
       </view>
 
       <!-- Domains Tab -->
       <view v-if="activeTab === 'domains'" class="tab-content">
-        <view class="panel">
+        <NeoCard :title="t('tabDomains')" icon="folder">
           <view v-if="myDomains.length === 0" class="empty-state">
             <text>{{ t("noDomains") }}</text>
           </view>
-          <view v-for="domain in myDomains" :key="domain.name" class="domain-card">
-            <view class="domain-card-header">
+          <view v-for="domain in myDomains" :key="domain.name" class="domain-item mb-4 pb-4 border-b border-gray-200">
+            <view class="domain-card-header mb-2 flex justify-between">
               <view class="domain-info">
-                <text class="domain-name">{{ domain.name }}</text>
-                <text class="domain-expiry">{{ t("expires") }}: {{ formatDate(domain.expiry) }}</text>
+                <text class="domain-name font-bold text-lg">{{ domain.name }}</text>
+                <text class="domain-expiry text-sm text-gray-500"
+                  >{{ t("expires") }}: {{ formatDate(domain.expiry) }}</text
+                >
               </view>
               <view class="domain-status-indicator active"></view>
             </view>
-            <view class="domain-actions">
-              <button class="action-btn-sm manage" @click="showManage(domain)">{{ t("manage") }}</button>
-              <button class="action-btn-sm renew" @click="handleRenew(domain)">{{ t("renew") }}</button>
+            <view class="domain-actions flex gap-2">
+              <NeoButton size="sm" variant="secondary" @click="showManage(domain)">{{ t("manage") }}</NeoButton>
+              <NeoButton size="sm" variant="primary" @click="handleRenew(domain)">{{ t("renew") }}</NeoButton>
             </view>
           </view>
-        </view>
+        </NeoCard>
       </view>
     </view>
 
@@ -88,9 +96,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
-import type { NavTab } from "@/shared/components/NavBar.vue";
+import { AppLayout, NeoDoc, AppIcon, NeoButton, NeoCard, NeoInput } from "@/shared/components";
 
 const translations = {
   title: { en: "Neo Name Service", zh: "Neo 域名服务" },
@@ -115,23 +121,45 @@ const translations = {
   tabDomains: { en: "Domains", zh: "域名" },
   premium: { en: "Premium", zh: "高级" },
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Professional documentation for this application is coming soon.",
-    zh: "此应用程序的专业文档即将推出。",
+  docSubtitle: {
+    en: "Human-readable .neo domain names for Neo addresses",
+    zh: "Neo 地址的人类可读 .neo 域名",
   },
-  step1: { en: "Open the application.", zh: "打开应用程序。" },
-  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
-  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
-  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
-  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
-  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  docDescription: {
+    en: "Neo Name Service lets you register memorable .neo domains that map to your wallet address. Send and receive assets using simple names like alice.neo instead of complex addresses.",
+    zh: "Neo 域名服务让您注册易记的 .neo 域名，映射到您的钱包地址。使用简单的名称如 alice.neo 发送和接收资产，而不是复杂的地址。",
+  },
+  step1: {
+    en: "Connect your Neo wallet and search for available domain names",
+    zh: "连接您的 Neo 钱包并搜索可用域名",
+  },
+  step2: {
+    en: "Check availability and pricing (shorter names are premium)",
+    zh: "检查可用性和价格（较短的名称为高级域名）",
+  },
+  step3: {
+    en: "Register your domain by paying the registration fee in GAS",
+    zh: "支付 GAS 注册费来注册您的域名",
+  },
+  step4: {
+    en: "Manage your domains - renew before expiry to keep ownership",
+    zh: "管理您的域名 - 在到期前续费以保持所有权",
+  },
+  feature1Name: { en: "Simple Addresses", zh: "简单地址" },
+  feature1Desc: {
+    en: "Replace complex wallet addresses with memorable .neo names.",
+    zh: "用易记的 .neo 名称替换复杂的钱包地址。",
+  },
+  feature2Name: { en: "Full Ownership", zh: "完全所有权" },
+  feature2Desc: {
+    en: "Your domain is an NFT - transfer, sell, or manage it freely.",
+    zh: "您的域名是 NFT - 可自由转让、出售或管理。",
+  },
 };
 
 const t = createT(translations);
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
@@ -142,7 +170,7 @@ const { payGAS } = usePayments(APP_ID);
 
 interface SearchResult {
   available: boolean;
-  price: number;
+  price?: number;
   owner?: string;
 }
 
@@ -153,7 +181,7 @@ interface Domain {
 }
 
 const activeTab = ref("register");
-const navTabs: NavTab[] = [
+const navTabs = [
   { id: "register", icon: "plus", label: t("tabRegister") },
   { id: "domains", icon: "folder", label: t("tabDomains") },
   { id: "docs", icon: "book", label: t("docs") },
@@ -200,7 +228,7 @@ function calculatePrice(name: string): number {
 }
 
 async function handleRegister() {
-  if (!searchResult.value?.available || loading.value) return;
+  if (!searchResult.value?.available || searchResult.value.price === undefined || loading.value) return;
   loading.value = true;
   try {
     await payGAS(searchResult.value.price.toString(), "nns:register:" + searchQuery.value);
@@ -250,378 +278,178 @@ onMounted(async () => {
 @import "@/shared/styles/variables.scss";
 
 .app-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
   padding: $space-4;
-}
-
-.tab-content {
   flex: 1;
-}
-
-.status {
-  text-align: center;
-  padding: $space-4;
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  margin-bottom: $space-4;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-
-  &.success {
-    background: var(--status-success);
-    color: $neo-black;
-    border-color: $neo-black;
-  }
-
-  &.error {
-    background: var(--status-error);
-    color: $neo-white;
-    border-color: $neo-black;
-  }
-}
-
-.search-box {
-  display: flex;
-  align-items: center;
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  padding: $space-1;
-  margin-bottom: $space-4;
-  transition: box-shadow $transition-normal;
-
-  &:focus-within {
-    box-shadow: $shadow-lg;
-  }
-}
-
-.search-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  padding: $space-3 $space-4;
-  font-size: $font-size-lg;
-  color: var(--text-primary);
-  font-weight: $font-weight-medium;
-
-  &::placeholder {
-    color: var(--text-tertiary);
-  }
-}
-
-.domain-suffix {
-  padding: $space-3 $space-4;
-  color: var(--neo-green);
-  font-weight: $font-weight-bold;
-  font-size: $font-size-lg;
-  font-family: $font-mono;
-}
-
-.result-card {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  padding: $space-5;
-  margin-bottom: $space-4;
-}
-
-.result-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: $space-4;
-  padding-bottom: $space-4;
-  border-bottom: $border-width-sm solid var(--border-color);
-}
-
-.domain-title-row {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  flex-wrap: wrap;
-}
-
-.result-domain {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-  font-family: $font-mono;
-}
-
-.premium-badge {
-  display: inline-block;
-  padding: $space-1 $space-2;
-  background: var(--neo-purple);
-  color: var(--text-on-primary);
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  border: $border-width-sm solid var(--border-color);
-  box-shadow: $shadow-sm;
-}
-
-.result-status {
-  font-size: $font-size-xs;
-  padding: $space-1 $space-3;
-  border: $border-width-sm solid $neo-black;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-
-  &.available {
-    background: var(--status-success);
-    color: $neo-black;
-  }
-
-  &.taken {
-    background: var(--status-error);
-    color: $neo-white;
-  }
-}
-
-.result-body {
   display: flex;
   flex-direction: column;
   gap: $space-4;
 }
 
-.price-display {
+.tab-content {
   display: flex;
   flex-direction: column;
-  gap: $space-2;
-  padding: $space-4;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-  border-radius: $radius-sm;
+  gap: $space-4;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-.price-label {
-  color: var(--text-secondary);
-  font-size: $font-size-xs;
-  text-transform: uppercase;
-  font-weight: $font-weight-bold;
-  letter-spacing: 0.05em;
-}
-
-.price-value {
-  color: var(--neo-green);
-  font-weight: $font-weight-bold;
-  font-size: $font-size-2xl;
-  font-family: $font-mono;
-
-  &.premium-price {
-    color: var(--neo-purple);
+.result-card {
+  margin-top: $space-6;
+  border: 4px solid black;
+  box-shadow: 10px 10px 0 black;
+  &.variant-success {
+    background: white;
+    border-color: black;
+  }
+  &.variant-danger {
+    background: #ffebeb;
+    color: black;
+    border-color: black;
   }
 }
 
-.price-period {
-  color: var(--text-tertiary);
-  font-size: $font-size-sm;
+.result-header {
+  padding: $space-5;
+  border-bottom: 3px solid black;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.domain-title-row {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+}
+.result-domain {
+  font-weight: $font-weight-black;
+  font-family: $font-mono;
+  font-size: 28px;
+  border-bottom: 2px solid black;
+}
+.premium-badge {
+  background: var(--brutal-yellow);
+  color: black;
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  border: 1px solid black;
+  box-shadow: 2px 2px 0 black;
+}
+.result-status {
+  font-size: 12px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  border: 2px solid black;
+  padding: 4px 12px;
+  background: black;
+  color: white !important;
+  &.text-red-700 { background: var(--brutal-red); color: white !important; }
+  &.text-green-700 { background: var(--neo-green); color: black !important; }
 }
 
-.taken-body {
-  gap: 0;
+.result-body {
+  padding: $space-5;
+}
+.price-display {
+  background: #eee;
+  border: 3px solid black;
+  padding: $space-5;
+  margin-bottom: $space-6;
+  text-align: center;
+  box-shadow: inset 4px 4px 0 rgba(0,0,0,0.1);
+}
+.price-label {
+  font-size: 10px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 8px;
+  color: #666;
+}
+.price-value {
+  font-weight: $font-weight-black;
+  font-size: 40px;
+  font-family: $font-mono;
+  color: black;
+}
+.price-value.premium-price {
+  color: var(--neo-purple);
+  text-shadow: 3px 3px 0 white;
+}
+.price-period {
+  font-size: 12px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  margin-left: 6px;
 }
 
 .owner-info {
-  display: flex;
-  flex-direction: column;
-  gap: $space-2;
+  background: black;
+  border: 2px solid black;
   padding: $space-4;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-  border-radius: $radius-sm;
+  color: white;
 }
-
 .owner-label {
-  color: var(--text-secondary);
-  font-size: $font-size-xs;
+  font-size: 10px;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
-  font-weight: $font-weight-bold;
-  letter-spacing: 0.05em;
+  display: block;
+  color: var(--brutal-yellow);
 }
-
 .owner-value {
-  color: var(--text-primary);
   font-family: $font-mono;
-  font-size: $font-size-base;
-  font-weight: $font-weight-medium;
+  font-size: 16px;
+  font-weight: $font-weight-black;
 }
 
-.register-btn {
-  width: 100%;
-  padding: $space-4 $space-6;
-  background: var(--neo-green);
-  color: var(--text-on-primary);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  font-weight: $font-weight-bold;
-  font-size: $font-size-base;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  transition: all $transition-normal;
-
+.domain-item {
+  padding: $space-4;
+  background: white;
+  border: 3px solid black;
+  margin-bottom: $space-4;
+  transition: all $transition-fast;
+  box-shadow: 6px 6px 0 black;
   &:hover {
-    box-shadow: $shadow-lg;
-  }
-
-  &:active {
-    transform: translate(4px, 4px);
-    box-shadow: none;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background: var(--bg-tertiary);
-    color: var(--text-tertiary);
+    transform: translate(2px, 2px);
+    box-shadow: 4px 4px 0 black;
   }
 }
+.domain-info {
+  margin-bottom: $space-4;
+  border-left: 4px solid black;
+  padding-left: $space-4;
+}
+.domain-name {
+  font-weight: $font-weight-black;
+  font-family: $font-mono;
+  font-size: 20px;
+  display: block;
+  text-transform: uppercase;
+}
+.domain-expiry {
+  font-size: 12px;
+  font-weight: $font-weight-black;
+  color: #666;
+}
 
-.panel {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  padding: $space-5;
+.domain-actions {
+  display: flex;
+  gap: $space-3;
+  margin-top: $space-4;
 }
 
 .empty-state {
   text-align: center;
   padding: $space-10;
-  color: var(--text-secondary);
-  font-weight: $font-weight-medium;
-}
-
-.domain-card {
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  padding: $space-4;
-  margin-bottom: $space-3;
-  transition: all $transition-normal;
-
-  &:hover {
-    box-shadow: $shadow-lg;
-  }
-}
-
-.domain-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding-bottom: $space-3;
-  border-bottom: $border-width-sm solid var(--border-color);
-}
-
-.domain-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: $space-1;
-}
-
-.domain-name {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-  font-family: $font-mono;
-}
-
-.domain-expiry {
-  font-size: $font-size-xs;
-  color: var(--text-secondary);
+  border: 4px dashed #ccc;
+  font-weight: $font-weight-black;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  color: #999;
 }
 
-.domain-status-indicator {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: $border-width-sm solid var(--border-color);
-  flex-shrink: 0;
-
-  &.active {
-    background: var(--neo-green);
-    box-shadow: 0 0 8px var(--neo-green);
-  }
-}
-
-.domain-actions {
-  display: flex;
-  gap: $space-2;
-  width: 100%;
-}
-
-.action-btn-sm {
-  flex: 1;
-  padding: $space-2 $space-4;
-  border: $border-width-md solid var(--border-color);
-  font-size: $font-size-xs;
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  transition: all $transition-normal;
-  box-shadow: $shadow-sm;
-
-  &:hover {
-    box-shadow: $shadow-md;
-  }
-
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: none;
-  }
-
-  &.manage {
-    background: var(--bg-card);
-    color: var(--text-secondary);
-    border-color: var(--border-color);
-
-    &:hover {
-      color: var(--text-primary);
-      background: var(--bg-secondary);
-    }
-  }
-
-  &.renew {
-    background: var(--neo-green);
-    color: var(--text-on-primary);
-    border-color: var(--border-color);
-
-    &:hover {
-      box-shadow: $shadow-md;
-    }
-  }
-}
-
-// Animations
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.02);
-  }
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

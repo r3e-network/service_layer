@@ -29,7 +29,7 @@ export function createT<T extends Record<string, { en: string; zh: string }>>(
   translations: T,
 ): (key: keyof T) => string {
   return (key: keyof T) => {
-    const locale = getLocale();
+    const locale = getLocale(); // Get locale on each call
     const entry = translations[key];
     if (!entry) return String(key);
     return entry[locale] || entry.en;

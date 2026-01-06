@@ -5,6 +5,7 @@ import { getTokenPrices, calculateUsdValue } from "@/lib/price";
 import { authenticate, setBiometricsEnabled, getBiometricsStatus } from "@/lib/biometrics";
 import { loadNetwork, saveNetwork, Network } from "@/lib/network";
 import { loadTokens, saveToken, removeToken, Token } from "@/lib/tokens";
+import { getLocale, setLocale as saveLocale, Locale } from "@/lib/i18n";
 
 export interface Asset {
   symbol: string;
@@ -36,6 +37,8 @@ interface WalletState {
   addToken: (token: Token) => Promise<void>;
   deleteToken: (contractHash: string) => Promise<void>;
   setAddress: (address: string) => void;
+  locale: Locale;
+  setLocale: (locale: Locale) => Promise<void>;
 }
 
 const DEFAULT_ASSETS: Asset[] = [
@@ -52,10 +55,16 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   biometricsEnabled: false,
   biometricsAvailable: false,
   network: "mainnet",
+  locale: "en",
 
   initialize: async () => {
     set({ isLoading: true });
-    const [wallet, status, network] = await Promise.all([loadWallet(), getBiometricsStatus(), loadNetwork()]);
+    const [wallet, status, network, locale] = await Promise.all([
+      loadWallet(),
+      getBiometricsStatus(),
+      loadNetwork(),
+      getLocale(),
+    ]);
     if (wallet) {
       set({ address: wallet.address, isLocked: true });
     }
@@ -64,6 +73,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
       biometricsEnabled: status.isEnabled,
       biometricsAvailable: status.isAvailable,
       network,
+      locale,
     });
   },
 
@@ -192,5 +202,10 @@ export const useWalletStore = create<WalletState>((set, get) => ({
 
   setAddress: (address: string) => {
     set({ address, isLocked: false });
+  },
+
+  setLocale: async (locale: Locale) => {
+    await saveLocale(locale);
+    set({ locale });
   },
 }));

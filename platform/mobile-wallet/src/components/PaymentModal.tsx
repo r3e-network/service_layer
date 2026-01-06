@@ -24,7 +24,9 @@ export function PaymentModal({ visible, request, onApprove, onReject }: PaymentM
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <View style={styles.header}>
-            <Ionicons name="shield-checkmark" size={48} color="#00d4aa" />
+            <View style={styles.headerIcon}>
+              <Ionicons name="shield-checkmark" size={40} color="#000" />
+            </View>
             <Text style={styles.title}>Payment Request</Text>
           </View>
 
@@ -57,20 +59,21 @@ export function PaymentModal({ visible, request, onApprove, onReject }: PaymentM
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.8)", justifyContent: "flex-end" },
-  modal: { backgroundColor: "#1a1a1a", borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24 },
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.9)", justifyContent: "flex-end" },
+  modal: { backgroundColor: "#ffffff", borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTopWidth: 6, borderTopColor: "#000", padding: 24, paddingBottom: 40 },
   header: { alignItems: "center", marginBottom: 24 },
-  title: { fontSize: 20, fontWeight: "bold", color: "#fff", marginTop: 12 },
-  appInfo: { alignItems: "center", marginBottom: 16 },
-  appName: { fontSize: 18, color: "#fff", fontWeight: "600" },
-  appId: { fontSize: 12, color: "#888" },
-  amountBox: { backgroundColor: "#0a0a0a", padding: 16, borderRadius: 12, alignItems: "center", marginBottom: 16 },
-  amountLabel: { color: "#888", fontSize: 12 },
-  amount: { color: "#00d4aa", fontSize: 28, fontWeight: "bold", marginTop: 4 },
-  memo: { color: "#888", textAlign: "center", marginBottom: 16 },
-  actions: { flexDirection: "row", gap: 12 },
-  rejectBtn: { flex: 1, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: "#333", alignItems: "center" },
-  rejectText: { color: "#fff", fontWeight: "600" },
-  approveBtn: { flex: 1, padding: 16, borderRadius: 12, backgroundColor: "#00d4aa", alignItems: "center" },
-  approveText: { color: "#fff", fontWeight: "600" },
+  headerIcon: { backgroundColor: "#00E599", padding: 12, borderWidth: 3, borderColor: "#000", shadowColor: "#000", shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0, marginBottom: 12 },
+  title: { fontSize: 24, fontWeight: "900", color: "#000", textTransform: "uppercase", letterSpacing: -1 },
+  appInfo: { alignItems: "center", marginBottom: 20, padding: 16, backgroundColor: "#fff", borderWidth: 3, borderColor: "#000", shadowColor: "#000", shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 },
+  appName: { fontSize: 20, color: "#000", fontWeight: "900", textTransform: "uppercase" },
+  appId: { fontSize: 13, color: "#666", fontWeight: "700", fontFamily: "monospace", marginTop: 4 },
+  amountBox: { backgroundColor: "#FFDE59", padding: 20, borderWidth: 3, borderColor: "#000", borderRadius: 0, alignItems: "center", marginBottom: 24, shadowColor: "#000", shadowOffset: { width: 6, height: 6 }, shadowOpacity: 1, shadowRadius: 0 },
+  amountLabel: { color: "#000", fontSize: 12, fontWeight: "900", textTransform: "uppercase", marginBottom: 4 },
+  amount: { color: "#000", fontSize: 36, fontWeight: "900", fontStyle: "italic" },
+  memo: { color: "#000", textAlign: "center", marginBottom: 24, fontWeight: "700", fontStyle: "italic", borderWidth: 2, borderColor: "#000", padding: 12, borderStyle: "dashed" },
+  actions: { flexDirection: "row", gap: 16 },
+  rejectBtn: { flex: 1, padding: 18, backgroundColor: "#EF4444", borderWidth: 3, borderColor: "#000", alignItems: "center", shadowColor: "#000", shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 },
+  rejectText: { color: "#000", fontWeight: "900", textTransform: "uppercase" },
+  approveBtn: { flex: 1, padding: 18, backgroundColor: "#00E599", borderWidth: 3, borderColor: "#000", alignItems: "center", shadowColor: "#000", shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 },
+  approveText: { color: "#000", fontWeight: "900", textTransform: "uppercase" },
 });

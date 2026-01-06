@@ -25,23 +25,23 @@ export interface Theme {
 }
 
 const DARK_COLORS: ThemeColors = {
-  background: "#0a0a0a",
+  background: "#0f0f0f",
   surface: "#1a1a1a",
   text: "#ffffff",
-  textSecondary: "#888888",
-  primary: "#00d4aa",
-  border: "#222222",
-  error: "#ff4444",
+  textSecondary: "#a0a0a0",
+  primary: "#00e599",
+  border: "#ffffff",
+  error: "#ff4757",
 };
 
 const LIGHT_COLORS: ThemeColors = {
-  background: "#ffffff",
-  surface: "#f5f5f5",
+  background: "#f5f5f5",
+  surface: "#ffffff",
   text: "#000000",
-  textSecondary: "#666666",
-  primary: "#00a080",
-  border: "#e0e0e0",
-  error: "#d32f2f",
+  textSecondary: "#555555",
+  primary: "#00e599",
+  border: "#000000",
+  error: "#ff4757",
 };
 
 /**

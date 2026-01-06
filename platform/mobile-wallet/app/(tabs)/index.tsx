@@ -5,9 +5,11 @@ import { useRouter } from "expo-router";
 import { useWalletStore } from "@/stores/wallet";
 import { AssetCard } from "@/components/AssetCard";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function WalletScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { address, assets, totalUsdValue, isLocked, isLoading, unlock, createWallet, initialize, refreshBalances } =
     useWalletStore();
 
@@ -30,13 +32,15 @@ export default function WalletScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.lockedContainer}>
-          <Ionicons name="wallet-outline" size={64} color="#00d4aa" />
-          <Text style={styles.lockedText}>Welcome to Neo Wallet</Text>
+          <View style={styles.brutalIconLarge}>
+            <Ionicons name="wallet" size={80} color="#000" />
+          </View>
+          <Text style={styles.lockedText}>{t("wallet.welcome") || "Welcome to Neo Wallet"}</Text>
           <TouchableOpacity style={styles.unlockButton} onPress={createWallet}>
-            <Text style={styles.unlockButtonText}>Create New Wallet</Text>
+            <Text style={styles.unlockButtonText}>{t("wallet.create") || "Create New Wallet"}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.importButton} onPress={() => router.push("/import")}>
-            <Text style={styles.importButtonText}>Import Existing Wallet</Text>
+            <Text style={styles.importButtonText}>{t("wallet.import") || "Import Existing Wallet"}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -48,10 +52,12 @@ export default function WalletScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.lockedContainer}>
-          <Ionicons name="lock-closed" size={64} color="#00d4aa" />
-          <Text style={styles.lockedText}>Wallet Locked</Text>
+          <View style={[styles.brutalIconLarge, { backgroundColor: "#ffde59" }]}>
+            <Ionicons name="lock-closed" size={80} color="#000" />
+          </View>
+          <Text style={styles.lockedText}>{t("wallet.locked") || "Wallet Locked"}</Text>
           <TouchableOpacity style={styles.unlockButton} onPress={unlock}>
-            <Text style={styles.unlockButtonText}>Unlock with Biometrics</Text>
+            <Text style={styles.unlockButtonText}>{t("wallet.unlock") || "Unlock with Biometrics"}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -71,16 +77,16 @@ export default function WalletScreen() {
 
         {/* Total Balance */}
         <View style={styles.balanceCard}>
-          <Text style={styles.balanceLabel}>Total Balance</Text>
+          <Text style={styles.balanceLabel}>{t("wallet.balance") || "Total Balance"}</Text>
           <Text style={styles.balanceValue}>${totalUsdValue}</Text>
           <TouchableOpacity onPress={refreshBalances} style={styles.refreshBtn}>
-            <Ionicons name="refresh" size={20} color="#00d4aa" />
+            <Ionicons name="refresh" size={24} color="#00E599" />
           </TouchableOpacity>
         </View>
 
         {/* Assets */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Assets</Text>
+          <Text style={styles.sectionTitle}>{t("wallet.assets") || "Assets"}</Text>
           {assets.map((asset) => (
             <AssetCard key={asset.symbol} asset={asset} />
           ))}
@@ -89,16 +95,16 @@ export default function WalletScreen() {
         {/* Quick Actions */}
         <View style={styles.actions}>
           <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/send")}>
-            <Ionicons name="arrow-up" size={24} color="#fff" />
-            <Text style={styles.actionText}>Send</Text>
+            <Ionicons name="arrow-up" size={24} color="#000" />
+            <Text style={styles.actionText}>{t("wallet.send") || "Send"}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/receive")}>
-            <Ionicons name="arrow-down" size={24} color="#fff" />
-            <Text style={styles.actionText}>Receive</Text>
+            <Ionicons name="arrow-down" size={24} color="#000" />
+            <Text style={styles.actionText}>{t("wallet.receive") || "Receive"}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/history")}>
-            <Ionicons name="time" size={24} color="#fff" />
-            <Text style={styles.actionText}>History</Text>
+            <Ionicons name="time" size={24} color="#000" />
+            <Text style={styles.actionText}>{t("wallet.history") || "History"}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -107,44 +113,73 @@ export default function WalletScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0a0a0a" },
-  header: { padding: 20 },
-  title: { fontSize: 28, fontWeight: "bold", color: "#fff" },
-  address: { fontSize: 14, color: "#888", marginTop: 4 },
+  container: { flex: 1, backgroundColor: "#fff" },
+  header: { padding: 32, backgroundColor: "#000", borderBottomWidth: 6, borderBottomColor: "#00E599" },
+  title: { fontSize: 44, fontWeight: "900", color: "#00E599", textTransform: "uppercase", letterSpacing: -2, fontStyle: "italic" },
+  address: { fontSize: 13, color: "#fff", marginTop: 8, fontWeight: "800", opacity: 0.8, fontFamily: "monospace" },
   balanceCard: {
     margin: 20,
-    padding: 24,
-    backgroundColor: "#1a1a1a",
-    borderRadius: 16,
+    padding: 32,
+    backgroundColor: "#fff",
+    borderWidth: 4,
+    borderColor: "#000",
+    shadowColor: "#000",
+    shadowOffset: { width: 10, height: 10 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 0,
+    position: "relative",
   },
-  balanceLabel: { fontSize: 14, color: "#888" },
-  balanceValue: { fontSize: 36, fontWeight: "bold", color: "#fff", marginTop: 8 },
-  refreshBtn: { position: "absolute", top: 16, right: 16 },
-  section: { padding: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: "600", color: "#fff", marginBottom: 12 },
-  actions: { flexDirection: "row", justifyContent: "space-around", padding: 20 },
+  balanceLabel: { fontSize: 14, color: "#000", fontWeight: "900", textTransform: "uppercase", letterSpacing: 1 },
+  balanceValue: { fontSize: 56, fontWeight: "900", color: "#000", marginTop: 8, fontStyle: "italic", letterSpacing: -2 },
+  refreshBtn: { position: "absolute", top: 16, right: 16, padding: 8 },
+  section: { padding: 24 },
+  sectionTitle: { fontSize: 24, fontWeight: "900", color: "#000", marginBottom: 20, textTransform: "uppercase", fontStyle: "italic", borderBottomWidth: 4, borderBottomColor: "#000", alignSelf: "flex-start" },
+  actions: { flexDirection: "row", justifyContent: "space-between", padding: 20, gap: 16 },
   actionButton: {
+    flex: 1,
     alignItems: "center",
-    backgroundColor: "#00d4aa",
-    padding: 16,
-    borderRadius: 12,
-    width: 80,
+    backgroundColor: "#ffde59",
+    paddingVertical: 20,
+    borderWidth: 4,
+    borderColor: "#000",
+    shadowColor: "#000",
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
-  actionText: { color: "#fff", marginTop: 4, fontSize: 12 },
-  lockedContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  lockedText: { fontSize: 20, color: "#fff", marginTop: 16 },
+  actionText: { color: "#000", marginTop: 8, fontSize: 13, fontWeight: "900", textTransform: "uppercase" },
+  lockedContainer: { flex: 1, justifyContent: "center", alignItems: "center", padding: 40, backgroundColor: "#fff" },
+  brutalIconLarge: {
+    backgroundColor: "#00E599",
+    padding: 32,
+    borderWidth: 6,
+    borderColor: "#000",
+    shadowColor: "#000",
+    shadowOffset: { width: 8, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    marginBottom: 32,
+  },
+  lockedText: { fontSize: 36, fontWeight: "900", color: "#000", textTransform: "uppercase", textAlign: "center", fontStyle: "italic", letterSpacing: -1 },
   unlockButton: {
-    marginTop: 24,
-    backgroundColor: "#00d4aa",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    marginTop: 48,
+    backgroundColor: "#00E599",
+    paddingHorizontal: 32,
+    paddingVertical: 22,
+    borderWidth: 5,
+    borderColor: "#000",
+    shadowColor: "#000",
+    shadowOffset: { width: 8, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    width: "100%",
+    alignItems: "center",
   },
-  unlockButtonText: { color: "#fff", fontWeight: "600" },
+  unlockButtonText: { color: "#000", fontWeight: "900", textTransform: "uppercase", fontSize: 18 },
   importButton: {
-    marginTop: 12,
-    paddingHorizontal: 24,
+    marginTop: 32,
     paddingVertical: 12,
   },
-  importButtonText: { color: "#00d4aa", fontWeight: "600" },
+  importButtonText: { color: "#000", fontWeight: "900", textTransform: "uppercase", textDecorationLine: "underline", fontSize: 15 },
 });

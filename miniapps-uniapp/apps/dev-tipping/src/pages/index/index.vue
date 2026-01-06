@@ -5,9 +5,9 @@
         <text class="title">{{ t("title") }}</text>
         <text class="subtitle">{{ t("subtitle") }}</text>
       </view>
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4">
+        <text class="text-center font-bold">{{ status.msg }}</text>
+      </NeoCard>
 
       <view v-if="activeTab === 'developers'" class="tab-content">
         <NeoCard :title="t('topDevelopers')" variant="accent">
@@ -20,16 +20,16 @@
               <view class="dev-info">
                 <text class="dev-name">{{ dev.name }}</text>
                 <text class="dev-projects">
-                  <text class="project-icon">📦</text>
-                  {{ dev.projects }} {{ t("projects") }}
+                  <text class="project-icon">🧩</text>
+                  {{ dev.role }}
                 </text>
-                <text class="dev-contributions">{{ dev.contributions }} {{ t("contributions") }}</text>
+                <text class="dev-contributions">{{ dev.tipCount }} {{ t("tipsCount") }}</text>
               </view>
             </view>
             <view class="dev-card-footer">
               <view class="tip-stats">
                 <text class="tip-label">{{ t("totalTips") }}</text>
-                <text class="tip-amount">{{ dev.tips }} GAS</text>
+                <text class="tip-amount">{{ formatNum(dev.totalTips) }} GAS</text>
               </view>
               <view class="tip-action">
                 <text class="tip-icon">💚</text>
@@ -42,10 +42,20 @@
       <view v-if="activeTab === 'send'" class="tab-content">
         <NeoCard :title="t('sendTip')" variant="accent">
           <view class="form-group">
-            <!-- Developer Address -->
+            <!-- Developer Selection -->
             <view class="input-section">
-              <text class="input-label">{{ t("developerAddress") }}</text>
-              <NeoInput v-model="recipientAddress" :placeholder="t('addressPlaceholder')" />
+              <text class="input-label">{{ t("selectDeveloper") }}</text>
+              <view class="dev-selector">
+                <view
+                  v-for="dev in developers"
+                  :key="dev.id"
+                  :class="['dev-select-item', { active: selectedDevId === dev.id }]"
+                  @click="selectedDevId = dev.id"
+                >
+                  <text class="dev-select-name">{{ dev.name }}</text>
+                  <text class="dev-select-role">{{ dev.role }}</text>
+                </view>
+              </view>
             </view>
 
             <!-- Tip Amount with Presets -->
@@ -69,6 +79,10 @@
             <view class="input-section">
               <text class="input-label">{{ t("optionalMessage") }}</text>
               <NeoInput v-model="tipMessage" :placeholder="t('messagePlaceholder')" />
+            </view>
+            <view class="input-section">
+              <text class="input-label">{{ t("tipperName") }}</text>
+              <NeoInput v-model="tipperName" :placeholder="t('tipperNamePlaceholder')" />
             </view>
 
             <!-- Send Button -->
@@ -108,30 +122,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { ref, computed, onMounted } from "vue";
+import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
+import { formatNumber } from "@/shared/utils/format";
+import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
-import NeoButton from "@/shared/components/NeoButton.vue";
-import NeoInput from "@/shared/components/NeoInput.vue";
-import NeoCard from "@/shared/components/NeoCard.vue";
+import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
 const translations = {
   title: { en: "Dev Tipping", zh: "开发者打赏" },
   subtitle: { en: "Support developers", zh: "支持开发者" },
   topDevelopers: { en: "Top Developers", zh: "顶级开发者" },
-  projects: { en: "projects", zh: "项目" },
-  contributions: { en: "contributions", zh: "贡献" },
+  tipsCount: { en: "tips", zh: "打赏次数" },
   totalTips: { en: "Total Tips", zh: "总打赏" },
   sendTip: { en: "Send Tip", zh: "发送打赏" },
-  developerAddress: { en: "Developer Address", zh: "开发者地址" },
-  addressPlaceholder: { en: "Enter Neo address...", zh: "输入 Neo 地址..." },
+  selectDeveloper: { en: "Select Developer", zh: "选择开发者" },
   tipAmount: { en: "Tip Amount", zh: "打赏金额" },
   customAmount: { en: "Custom amount...", zh: "自定义金额..." },
   optionalMessage: { en: "Optional Message", zh: "可选消息" },
   messagePlaceholder: { en: "Say thanks...", zh: "说声谢谢..." },
+  tipperName: { en: "Your Name (optional)", zh: "您的昵称（可选）" },
+  tipperNamePlaceholder: { en: "Anonymous", zh: "匿名" },
   sending: { en: "Sending...", zh: "发送中..." },
   sendTipBtn: { en: "Send Tip", zh: "发送打赏" },
   selected: { en: "Selected", zh: "已选择" },
@@ -140,30 +152,54 @@ const translations = {
   recentTips: { en: "Recent Tips", zh: "最近打赏" },
 
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Professional documentation for this application is coming soon.",
-    zh: "此应用程序的专业文档即将推出。",
+  docSubtitle: {
+    en: "Support developers with direct GAS tips",
+    zh: "用 GAS 打赏直接支持开发者",
   },
-  step1: { en: "Open the application.", zh: "打开应用程序。" },
-  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
-  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
-  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
-  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
-  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  docDescription: {
+    en: "Dev Tipping lets you show appreciation to Neo developers by sending GAS tips directly to their wallets. Support open source projects and track your contribution history.",
+    zh: "Dev Tipping 让您通过直接向开发者钱包发送 GAS 打赏来表达感谢。支持开源项目并跟踪您的贡献历史。",
+  },
+  step1: {
+    en: "Connect your Neo wallet",
+    zh: "连接您的 Neo 钱包",
+  },
+  step2: {
+    en: "Find a developer or project to support",
+    zh: "找到要支持的开发者或项目",
+  },
+  step3: {
+    en: "Enter tip amount and optional message",
+    zh: "输入打赏金额和可选留言",
+  },
+  step4: {
+    en: "Confirm transaction - tips go directly to developer",
+    zh: "确认交易 - 打赏直接发送给开发者",
+  },
+  feature1Name: { en: "Direct Payments", zh: "直接支付" },
+  feature1Desc: {
+    en: "100% of your tip goes directly to the developer's wallet.",
+    zh: "您的打赏 100% 直接进入开发者钱包。",
+  },
+  feature2Name: { en: "Contribution Tracking", zh: "贡献追踪" },
+  feature2Desc: {
+    en: "All tips are recorded on-chain with full transparency.",
+    zh: "所有打赏都记录在链上，完全透明。",
+  },
 };
 
 const t = createT(translations);
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
-const APP_ID = "miniapp-devtipping";
-const { address, connect } = useWallet();
+const APP_ID = "miniapp-dev-tipping";
+const { address, connect, invokeContract, invokeRead, getContractHash } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
+const { list: listEvents } = useEvents();
+const contractHash = ref<string | null>(null);
 
 const activeTab = ref<string>("developers");
 const navTabs: NavTab[] = [
@@ -172,401 +208,270 @@ const navTabs: NavTab[] = [
   { id: "docs", icon: "book", label: t("docs") },
 ];
 
-const recipientAddress = ref("");
-const tipAmount = ref("");
+const selectedDevId = ref<number | null>(null);
+const tipAmount = ref("1");
 const tipMessage = ref("");
+const tipperName = ref("");
 const status = ref<{ msg: string; type: string } | null>(null);
+const totalDonated = ref(0);
 
 // Preset tip amounts
-const presetAmounts = [5, 10, 25, 50];
+const presetAmounts = [1, 2, 5, 10];
 
-// Enhanced developer data
-const developers = ref([
-  { id: "1", name: "Alice.neo", projects: 12, contributions: 342, tips: "150", rank: "#1" },
-  { id: "2", name: "Bob.neo", projects: 8, contributions: 198, tips: "89", rank: "#2" },
-  { id: "3", name: "Charlie.neo", projects: 5, contributions: 127, tips: "45", rank: "#3" },
-]);
+interface Developer {
+  id: number;
+  name: string;
+  role: string;
+  wallet: string;
+  totalTips: number;
+  tipCount: number;
+  balance: number;
+  rank: string;
+}
 
-// Recent tips history
-const recentTips = ref([
-  { id: "1", to: "Alice.neo", amount: "10", time: "2 mins ago" },
-  { id: "2", to: "Bob.neo", amount: "5", time: "1 hour ago" },
-]);
+interface RecentTip {
+  id: string;
+  to: string;
+  amount: string;
+  time: string;
+}
 
-const selectDev = (dev: any) => {
-  recipientAddress.value = `N${dev.name.slice(0, 3)}...xyz`;
+const developers = ref<Developer[]>([]);
+const recentTips = ref<RecentTip[]>([]);
+
+const formatNum = (n: number) => formatNumber(n, 2);
+const toGas = (value: any) => {
+  const num = Number(value ?? 0);
+  return Number.isFinite(num) ? num / 1e8 : 0;
+};
+const toFixed8 = (value: string) => {
+  const num = Number.parseFloat(value);
+  if (!Number.isFinite(num)) return "0";
+  return Math.floor(num * 1e8).toString();
+};
+
+const ensureContractHash = async () => {
+  if (!contractHash.value) {
+    contractHash.value = (await getContractHash()) as string;
+  }
+  if (!contractHash.value) {
+    throw new Error("Contract not configured");
+  }
+};
+
+const loadDevelopers = async () => {
+  await ensureContractHash();
+  const hash = contractHash.value as string;
+  const totalRes = await invokeRead({ contractHash: hash, operation: "TotalDevelopers" });
+  const total = Number(parseInvokeResult(totalRes) ?? 0);
+  const list: Developer[] = [];
+  for (let id = 1; id <= total; id += 1) {
+    const [nameRes, roleRes, walletRes, tipsRes, countRes, balanceRes] = await Promise.all([
+      invokeRead({ contractHash: hash, operation: "GetDevName", args: [{ type: "Integer", value: id }] }),
+      invokeRead({ contractHash: hash, operation: "GetDevRole", args: [{ type: "Integer", value: id }] }),
+      invokeRead({
+        contractHash: hash,
+        operation: "GetDevWallet",
+        args: [{ type: "Integer", value: id }],
+      }),
+      invokeRead({
+        contractHash: hash,
+        operation: "GetDevTotalTips",
+        args: [{ type: "Integer", value: id }],
+      }),
+      invokeRead({
+        contractHash: hash,
+        operation: "GetDevTipCount",
+        args: [{ type: "Integer", value: id }],
+      }),
+      invokeRead({
+        contractHash: hash,
+        operation: "GetDevBalance",
+        args: [{ type: "Integer", value: id }],
+      }),
+    ]);
+    list.push({
+      id,
+      name: String(parseInvokeResult(nameRes) || `Dev #${id}`),
+      role: String(parseInvokeResult(roleRes) || ""),
+      wallet: String(parseInvokeResult(walletRes) || ""),
+      totalTips: toGas(parseInvokeResult(tipsRes)),
+      tipCount: Number(parseInvokeResult(countRes) ?? 0),
+      balance: toGas(parseInvokeResult(balanceRes)),
+      rank: "",
+    });
+  }
+  list.sort((a, b) => b.totalTips - a.totalTips);
+  list.forEach((dev, idx) => {
+    dev.rank = `#${idx + 1}`;
+  });
+  developers.value = list;
+  const totalDonatedRes = await invokeRead({ contractHash: hash, operation: "TotalDonated" });
+  totalDonated.value = toGas(parseInvokeResult(totalDonatedRes));
+};
+
+const loadRecentTips = async () => {
+  const res = await listEvents({ app_id: APP_ID, event_name: "TipSent", limit: 20 });
+  const devMap = new Map(developers.value.map((dev) => [dev.id, dev.name]));
+  recentTips.value = res.events.map((evt) => {
+    const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
+    const devId = Number(values[1] ?? 0);
+    const amount = toGas(values[2]);
+    const to = devMap.get(devId) || `Dev #${devId}`;
+    return {
+      id: evt.id,
+      to,
+      amount: amount.toFixed(2),
+      time: new Date(evt.created_at || Date.now()).toLocaleString(),
+    };
+  });
+};
+
+const refreshData = async () => {
+  try {
+    await loadDevelopers();
+    await loadRecentTips();
+  } catch (e) {
+    console.warn("Failed to load dev tipping data", e);
+  }
+};
+
+const selectDev = (dev: Developer) => {
+  selectedDevId.value = dev.id;
   status.value = { msg: `${t("selected")} ${dev.name}`, type: "success" };
   activeTab.value = "send";
 };
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const waitForEvent = async (txid: string, eventName: string) => {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const res = await listEvents({ app_id: APP_ID, event_name: eventName, limit: 20 });
+    const match = res.events.find((evt) => evt.tx_hash === txid);
+    if (match) return match;
+    await sleep(1500);
+  }
+  return null;
+};
+
 const sendTip = async () => {
-  if (!recipientAddress.value || !tipAmount.value || isLoading.value) return;
+  if (!selectedDevId.value || !tipAmount.value || isLoading.value) return;
   try {
-    await payGAS(tipAmount.value, `tip:${recipientAddress.value.slice(0, 10)}`);
-
-    // Add to recent tips
-    const devName =
-      developers.value.find((d) => recipientAddress.value.includes(d.name.slice(0, 3)))?.name || "Developer";
-    recentTips.value.unshift({
-      id: Date.now().toString(),
-      to: devName,
-      amount: tipAmount.value,
-      time: "Just now",
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) {
+      throw new Error(t("error"));
+    }
+    await ensureContractHash();
+    const hash = contractHash.value as string;
+    const payment = await payGAS(tipAmount.value, `tip:${selectedDevId.value}`);
+    const receiptId = payment.receipt_id;
+    if (!receiptId) {
+      throw new Error("Missing payment receipt");
+    }
+    const tx = await invokeContract({
+      scriptHash: hash,
+      operation: "Tip",
+      args: [
+        { type: "Hash160", value: address.value as string },
+        { type: "Integer", value: selectedDevId.value },
+        { type: "Integer", value: toFixed8(tipAmount.value) },
+        { type: "String", value: tipMessage.value || "" },
+        { type: "String", value: tipperName.value || "" },
+        { type: "Integer", value: Number(receiptId) },
+      ],
     });
-    if (recentTips.value.length > 5) recentTips.value.pop();
-
+    const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
+    if (txid) {
+      await waitForEvent(txid, "TipSent");
+    }
     status.value = { msg: t("tipSent"), type: "success" };
-    recipientAddress.value = "";
-    tipAmount.value = "";
+    tipAmount.value = "1";
     tipMessage.value = "";
+    tipperName.value = "";
+    await refreshData();
   } catch (e: any) {
     status.value = { msg: e.message || t("error"), type: "error" };
   }
 };
+
+onMounted(() => {
+  refreshData();
+});
 </script>
 
 <style lang="scss" scoped>
 @import "@/shared/styles/tokens.scss";
 @import "@/shared/styles/variables.scss";
 
-.app-container {
-  display: flex;
-  flex-direction: column;
-  padding: $space-4;
-  gap: $space-4;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: $space-4;
-}
-
-.title {
-  font-size: $font-size-2xl;
-  font-weight: $font-weight-black;
-  color: var(--neo-green);
-  text-transform: uppercase;
-  letter-spacing: 2px;
-}
-
-.subtitle {
-  color: var(--text-secondary);
-  font-size: $font-size-base;
-  margin-top: $space-2;
-  font-weight: $font-weight-medium;
-}
-.status-msg {
-  text-align: center;
-  padding: $space-4;
-  border: $border-width-md solid var(--border-color);
-  margin-bottom: $space-4;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-
-  &.success {
-    background: var(--status-success);
-    color: var(--neo-black);
-    border-color: var(--neo-black);
-    box-shadow: 5px 5px 0 var(--neo-black);
-  }
-
-  &.error {
-    background: var(--status-error);
-    color: var(--neo-white);
-    border-color: var(--neo-black);
-    box-shadow: 5px 5px 0 var(--neo-black);
-  }
-}
 .tab-content {
+  padding: $space-4;
   flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group {
   display: flex;
   flex-direction: column;
   gap: $space-4;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-// Developer Card Styles
 .dev-card {
-  display: flex;
-  flex-direction: column;
-  padding: $space-4;
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: 4px 4px 0 var(--neo-green);
-  margin-bottom: $space-4;
+  padding: $space-6;
+  background: white;
+  border: 4px solid black;
+  margin-bottom: $space-6;
   cursor: pointer;
+  box-shadow: 10px 10px 0 black;
   transition: all $transition-fast;
-
-  &:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0 var(--neo-green);
-  }
-
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 var(--neo-green);
-  }
+  &:active { transform: translate(4px, 4px); box-shadow: 6px 6px 0 black; }
 }
 
-.dev-card-header {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: $space-3;
-}
-
+.dev-card-header { display: flex; gap: $space-5; margin-bottom: $space-4; }
 .dev-avatar {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 64px;
-  height: 64px;
-  background: var(--neo-purple);
-  border: $border-width-md solid var(--border-color);
-  margin-right: $space-3;
-  flex-shrink: 0;
+  width: 60px; height: 60px; background: var(--brutal-yellow); border: 4px solid black;
+  display: flex; align-items: center; justify-content: center; position: relative;
+  box-shadow: 4px 4px 0 black;
 }
 
-.avatar-emoji {
-  font-size: $font-size-3xl;
-}
-
+.avatar-emoji { font-size: 32px; }
 .avatar-badge {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  background: var(--brutal-yellow);
-  color: var(--neo-black);
-  font-size: $font-size-xs;
-  font-weight: $font-weight-black;
-  padding: 2px 6px;
-  border: $border-width-sm solid var(--neo-black);
+  position: absolute; top: -10px; right: -10px; background: black; color: white;
+  padding: 2px 8px; font-size: 10px; font-weight: $font-weight-black; border: 2px solid black;
 }
 
-.dev-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: $space-1;
-}
+.dev-info { flex: 1; }
+.dev-name { font-size: 20px; font-weight: $font-weight-black; text-transform: uppercase; display: block; border-bottom: 2px solid black; margin-bottom: 4px; }
+.dev-projects { font-size: 10px; font-weight: $font-weight-black; opacity: 0.6; text-transform: uppercase; background: #eee; padding: 2px 6px; display: inline-block; }
+.dev-contributions { font-size: 10px; font-weight: $font-weight-black; color: var(--neo-purple); text-transform: uppercase; display: block; margin-top: 4px; }
 
-.dev-name {
-  font-weight: $font-weight-black;
-  font-size: $font-size-xl;
-  color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
+.dev-card-footer { display: flex; justify-content: space-between; align-items: flex-end; padding-top: $space-4; border-top: 4px solid black; }
+.tip-label { font-size: 10px; font-weight: $font-weight-black; opacity: 1; text-transform: uppercase; }
+.tip-amount { font-family: $font-mono; font-weight: $font-weight-black; color: black; background: var(--neo-green); padding: 4px 10px; border: 2px solid black; font-size: 16px; margin-left: 8px; }
 
-.dev-projects,
-.dev-contributions {
-  display: flex;
-  align-items: center;
-  gap: $space-1;
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-}
+.form-group { display: flex; flex-direction: column; gap: $space-6; }
+.input-label { font-size: 12px; font-weight: $font-weight-black; text-transform: uppercase; color: black; margin-bottom: 8px; display: block; }
 
-.project-icon {
-  font-size: $font-size-base;
-}
-
-.dev-card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: $space-3;
-  border-top: $border-width-sm solid var(--border-color);
-}
-
-.tip-stats {
-  display: flex;
-  flex-direction: column;
-  gap: $space-1;
-}
-
-.tip-label {
-  color: var(--text-secondary);
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.tip-amount {
-  color: var(--neo-green);
-  font-weight: $font-weight-black;
-  font-size: $font-size-2xl;
-  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
-}
-
-.tip-action {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  background: var(--neo-green);
-  border: $border-width-md solid var(--border-color);
-}
-
-.tip-icon {
-  font-size: $font-size-2xl;
-}
-
-// Form Styles
-.input-section {
-  display: flex;
-  flex-direction: column;
-  gap: $space-2;
-}
-
-.input-label {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.preset-amounts {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: $space-2;
-  margin-bottom: $space-2;
-}
-
+.preset-amounts { display: grid; grid-template-columns: repeat(4, 1fr); gap: $space-3; margin-bottom: $space-4; }
 .preset-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: $space-3;
-  background: var(--bg-secondary);
-  border: $border-width-md solid var(--border-color);
-  cursor: pointer;
+  padding: $space-4; background: white; border: 3px solid black;
+  text-align: center; cursor: pointer;
+  box-shadow: 4px 4px 0 black;
+  &.active { background: var(--brutal-yellow); transform: translate(2px, 2px); box-shadow: 2px 2px 0 black; }
   transition: all $transition-fast;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 0 var(--border-color);
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: none;
-  }
-
-  &.active {
-    background: var(--neo-green);
-    border-color: var(--neo-black);
-    box-shadow: 3px 3px 0 var(--neo-black);
-
-    .preset-value,
-    .preset-unit {
-      color: var(--neo-black);
-    }
-  }
 }
+.preset-value { font-weight: $font-weight-black; font-size: 18px; display: block; line-height: 1; }
+.preset-unit { font-size: 10px; font-weight: $font-weight-black; opacity: 0.8; }
 
-.preset-value {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-black;
-  color: var(--text-primary);
-}
-
-.preset-unit {
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  margin-top: $space-1;
-}
-
-// Recent Tips Styles
-.recent-tips {
-  margin-top: $space-6;
-  padding-top: $space-4;
-  border-top: $border-width-md solid var(--border-color);
-}
-
-.recent-tips-title {
-  display: block;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-black;
-  color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: $space-3;
-}
-
+.recent-tips { margin-top: $space-8; border-top: 6px solid black; padding-top: $space-6; }
+.recent-tips-title { font-size: 14px; font-weight: $font-weight-black; text-transform: uppercase; margin-bottom: $space-4; background: black; color: white; padding: 4px 12px; display: inline-block; }
 .recent-tip-item {
-  display: flex;
-  align-items: center;
-  padding: $space-3;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-  margin-bottom: $space-2;
-  transition: all $transition-fast;
-
-  &:hover {
-    border-color: var(--brutal-yellow);
-    box-shadow: 2px 2px 0 var(--brutal-yellow);
-  }
+  padding: $space-4; background: white; border: 3px solid black;
+  margin-bottom: $space-4; display: flex; align-items: center; gap: $space-4;
+  box-shadow: 4px 4px 0 black;
 }
+.recent-tip-info { flex: 1; display: flex; flex-direction: column; }
+.recent-tip-to { font-weight: $font-weight-black; font-size: 14px; text-transform: uppercase; }
+.recent-tip-time { font-size: 10px; font-weight: $font-weight-black; opacity: 0.5; }
+.recent-tip-amount { font-family: $font-mono; font-weight: $font-weight-black; color: black; background: var(--neo-green); padding: 2px 8px; border: 1px solid black; }
 
-.recent-tip-emoji {
-  font-size: $font-size-xl;
-  margin-right: $space-3;
-}
-
-.recent-tip-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: $space-1;
-}
-
-.recent-tip-to {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-}
-
-.recent-tip-time {
-  font-size: $font-size-xs;
-  color: var(--text-secondary);
-}
-
-.recent-tip-amount {
-  font-size: $font-size-base;
-  font-weight: $font-weight-black;
-  color: var(--neo-green);
-}
-
-// Animations
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
+.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 </style>

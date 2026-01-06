@@ -2,9 +2,9 @@
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <!-- Main Tab -->
     <view v-if="activeTab === 'main'" class="tab-content">
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
+        <text class="font-bold">{{ status.msg }}</text>
+      </NeoCard>
 
       <!-- Health Factor & Position Summary -->
       <view class="position-summary">
@@ -85,8 +85,7 @@
         <text class="card-title">{{ t("takeSelfLoan") }}</text>
 
         <view class="input-section">
-          <text class="input-label">{{ t("borrowAmount") }}</text>
-          <uni-easyinput v-model="loanAmount" type="number" :placeholder="t('amountToBorrow')" />
+          <NeoInput v-model="loanAmount" type="number" :label="t('borrowAmount')" :placeholder="t('amountToBorrow')" />
         </view>
 
         <view class="ltv-section">
@@ -121,36 +120,37 @@
           </view>
         </view>
 
-        <view class="action-btn" @click="takeLoan">
+        <NeoButton variant="primary" size="lg" block :loading="isLoading" @click="takeLoan">
           <text>{{ isLoading ? t("processing") : t("borrowNow") }}</text>
-        </view>
+        </NeoButton>
         <text class="note">{{ t("note") }}</text>
       </view>
     </view>
 
     <!-- Stats Tab -->
     <view v-if="activeTab === 'stats'" class="tab-content scrollable">
-      <view class="stats-card">
-        <text class="stats-title">{{ t("statistics") }}</text>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("totalLoans") }}</text>
-          <text class="stat-value">{{ stats.totalLoans }}</text>
+      <NeoCard :title="t('statistics')" variant="default">
+        <view class="flex flex-col gap-3">
+          <NeoCard variant="default" flat class="flex justify-between items-center p-3 border-none!">
+            <text class="stat-label">{{ t("totalLoans") }}</text>
+            <text class="stat-value">{{ stats.totalLoans }}</text>
+          </NeoCard>
+          <NeoCard variant="default" flat class="flex justify-between items-center p-3 border-none!">
+            <text class="stat-label">{{ t("totalBorrowed") }}</text>
+            <text class="stat-value">{{ fmt(stats.totalBorrowed, 2) }} GAS</text>
+          </NeoCard>
+          <NeoCard variant="default" flat class="flex justify-between items-center p-3 border-none!">
+            <text class="stat-label">{{ t("totalRepaid") }}</text>
+            <text class="stat-value">{{ fmt(stats.totalRepaid, 2) }} GAS</text>
+          </NeoCard>
+          <NeoCard variant="default" flat class="flex justify-between items-center p-3 border-none!">
+            <text class="stat-label">{{ t("avgLoanSize") }}</text>
+            <text class="stat-value"
+              >{{ stats.totalLoans > 0 ? fmt(stats.totalBorrowed / stats.totalLoans, 2) : 0 }} GAS</text
+            >
+          </NeoCard>
         </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("totalBorrowed") }}</text>
-          <text class="stat-value">{{ fmt(stats.totalBorrowed, 2) }} GAS</text>
-        </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("totalRepaid") }}</text>
-          <text class="stat-value">{{ fmt(stats.totalRepaid, 2) }} GAS</text>
-        </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("avgLoanSize") }}</text>
-          <text class="stat-value"
-            >{{ stats.totalLoans > 0 ? fmt(stats.totalBorrowed / stats.totalLoans, 2) : 0 }} GAS</text
-          >
-        </view>
-      </view>
+      </NeoCard>
       <view class="stats-card">
         <text class="stats-title">{{ t("loanHistory") }}</text>
         <view v-for="(item, idx) in loanHistory" :key="idx" class="history-item">
@@ -178,8 +178,7 @@ import { ref, computed } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
+import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard } from "@/shared/components";
 
 const translations = {
   title: { en: "Self Loan", zh: "自我贷款" },
@@ -223,18 +222,40 @@ const translations = {
   loanToValue: { en: "Loan-to-Value (LTV)", zh: "贷款价值比 (LTV)" },
   totalRepayment: { en: "Total Repayment", zh: "总还款" },
   docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn more about this MiniApp.", zh: "了解更多关于此小程序的信息。" },
-  docDescription: {
-    en: "Professional documentation for this application is coming soon.",
-    zh: "此应用程序的专业文档即将推出。",
+  docSubtitle: {
+    en: "Borrow against your own collateral with zero liquidation risk",
+    zh: "用自己的抵押品借款，零清算风险",
   },
-  step1: { en: "Open the application.", zh: "打开应用程序。" },
-  step2: { en: "Follow the on-screen instructions.", zh: "按照屏幕上的指示操作。" },
-  step3: { en: "Enjoy the secure experience!", zh: "享受安全体验！" },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全保护" },
-  feature1Desc: { en: "Hardware-level isolation.", zh: "硬件级隔离。" },
-  feature2Name: { en: "On-Chain Fairness", zh: "链上公正" },
-  feature2Desc: { en: "Provably fair execution.", zh: "可证明公平的执行。" },
+  docDescription: {
+    en: "Self Loan lets you borrow GAS against your own collateral with no liquidation risk. Lock your assets as collateral, borrow up to 66% of their value, and repay on your own schedule.",
+    zh: "Self Loan 让您用自己的抵押品借入 GAS，无清算风险。锁定您的资产作为抵押品，借入最高 66% 的价值，按自己的时间表还款。",
+  },
+  step1: {
+    en: "Connect your Neo wallet and check your available collateral",
+    zh: "连接您的 Neo 钱包并查看可用抵押品",
+  },
+  step2: {
+    en: "Enter the amount you want to borrow (up to 66% of collateral value)",
+    zh: "输入您想借入的金额（最高为抵押品价值的 66%）",
+  },
+  step3: {
+    en: "Lock your collateral and receive borrowed GAS instantly",
+    zh: "锁定您的抵押品并立即收到借入的 GAS",
+  },
+  step4: {
+    en: "Repay the loan anytime to unlock your collateral",
+    zh: "随时还款以解锁您的抵押品",
+  },
+  feature1Name: { en: "Zero Liquidation", zh: "零清算" },
+  feature1Desc: {
+    en: "Your collateral is never at risk - no forced liquidations regardless of market conditions.",
+    zh: "您的抵押品永远不会有风险 - 无论市场条件如何都不会强制清算。",
+  },
+  feature2Name: { en: "Flexible Repayment", zh: "灵活还款" },
+  feature2Desc: {
+    en: "Repay on your own schedule with low fixed interest rates.",
+    zh: "按自己的时间表还款，享受低固定利率。",
+  },
 };
 
 const t = createT(translations);
@@ -252,12 +273,12 @@ type Status = { msg: string; type: StatusType };
 type Terms = { maxBorrow: number; interestRate: number; repaymentSchedule: string };
 type Loan = { borrowed: number; collateralLocked: number; nextPayment: number; nextPaymentDue: string };
 
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3")]);
+const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
-const APP_ID = "miniapp-selfloan";
+const APP_ID = "miniapp-self-loan";
 const { address, connect } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
 
@@ -337,8 +358,8 @@ const takeLoan = async (): Promise<void> => {
 
   try {
     // Lock collateral via smart contract
-    const result = await payGAS(collateral, `self-loan:collateral:${amount}`);
-    if (!result.success) {
+    const result = await payGAS(collateral.toString(), `self-loan:collateral:${amount}`);
+    if (!result) {
       status.value = { msg: t("paymentFailed"), type: "error" };
       return;
     }
@@ -376,29 +397,6 @@ const takeLoan = async (): Promise<void> => {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-}
-
-.status-msg {
-  text-align: center;
-  padding: $space-3;
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  margin-bottom: $space-3;
-  flex-shrink: 0;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-
-  &.success {
-    background: var(--status-success);
-    color: $neo-black;
-    border-color: $neo-black;
-  }
-
-  &.error {
-    background: var(--status-error);
-    color: $neo-white;
-    border-color: $neo-black;
-  }
 }
 
 // Position Summary Section
@@ -778,24 +776,6 @@ const takeLoan = async (): Promise<void> => {
 
   &.total {
     color: var(--brutal-blue);
-  }
-}
-
-.action-btn {
-  background: var(--neo-green);
-  color: $neo-black;
-  padding: $space-4;
-  border: $border-width-md solid $neo-black;
-  box-shadow: $shadow-md;
-  text-align: center;
-  font-weight: $font-weight-bold;
-  cursor: pointer;
-  transition: transform $transition-fast;
-  text-transform: uppercase;
-
-  &:active {
-    transform: translate(3px, 3px);
-    box-shadow: none;
   }
 }
 
