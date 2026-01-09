@@ -35,10 +35,14 @@ defineEmits<{
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 $space-4;
-  background: var(--bg-card);
-  border-bottom: $border-width-md solid $neo-black;
+  padding: 0 16px;
+  background: var(--bg-secondary, rgba(10, 10, 10, 0.8));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
   flex-shrink: 0;
+  box-shadow: 0 4px 20px var(--shadow-color, rgba(0, 0, 0, 0.1));
+  z-index: 10;
 }
 
 .nav-left,
@@ -53,16 +57,20 @@ defineEmits<{
 }
 
 .nav-btn {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: 12px;
   color: var(--text-primary, #ffffff);
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
+  cursor: pointer;
 
   &:active {
-    background: var(--bg-secondary, #1a1a1a);
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.1);
   }
 }
 
@@ -72,10 +80,12 @@ defineEmits<{
 }
 
 .nav-title {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-black;
-  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 800;
+  font-family: "Inter", sans-serif;
+  color: var(--text-primary, #ffffff);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 </style>

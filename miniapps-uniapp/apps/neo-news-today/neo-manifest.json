@@ -1,0 +1,9 @@
+{
+  "category": "utility",
+  "name": "Neo News Today",
+  "name_zh": "Neo新闻今日",
+  "description": "Stay updated with the latest Neo ecosystem news from NeoNewsToday.com",
+  "description_zh": "获取NeoNewsToday.com的最新Neo生态系统新闻",
+  "status": "active",
+  "permissions": {}
+}

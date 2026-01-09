@@ -39,8 +39,10 @@ defineEmits<{
 .navbar {
   height: 64px;
   min-height: 64px;
-  background: var(--bg-card, #1a1a1a);
-  border-top: $border-width-md solid var(--border-color, rgba(255, 255, 255, 0.1));
+  background: var(--bg-secondary, rgba(10, 10, 10, 0.8));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -58,7 +60,8 @@ defineEmits<{
     right: 0;
     height: 1px;
     background: linear-gradient(90deg, transparent 0%, var(--neo-green, #00e599) 50%, transparent 100%);
-    opacity: 0.3;
+    opacity: 0.5;
+    box-shadow: 0 0 10px rgba(0, 229, 153, 0.3);
   }
 }
 

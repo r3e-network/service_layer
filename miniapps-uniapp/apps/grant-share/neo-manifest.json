@@ -1,0 +1,11 @@
+{
+  "category": "social",
+  "name_zh": "资助分享",
+  "description": "Create and fund community grants with transparent on-chain tracking. Support open-source projects, education initiatives, and community development.",
+  "description_zh": "创建和资助社区资助项目，链上透明追踪。",
+  "status": "active",
+  "contract_hash": null,
+  "permissions": {
+    "payments": true
+  }
+}

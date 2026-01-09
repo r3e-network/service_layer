@@ -40,15 +40,23 @@ body {
 
 :root {
   // Default to dark theme - Primary variables (short names)
-  --bg-primary: #0f0f0f;
-  --bg-secondary: #1a1a1a;
-  --bg-card: #262626;
-  --bg-elevated: #333333;
+  --bg-primary: #02040a;
+  --bg-secondary: #0b1121;
+  --bg-card: rgba(20, 30, 50, 0.6);
+  --bg-elevated: #1e293b;
   --text-primary: #ffffff;
-  --text-secondary: #a0a0a0;
-  --text-muted: #666666;
-  --border-color: rgba(255, 255, 255, 0.15);
-  --shadow-color: rgba(0, 0, 0, 0.3);
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --shadow-color: rgba(0, 0, 0, 0.2);
+
+  // E-Robo Wallet Style CSS Variables
+  --erobo-purple: #9f9df3;
+  --erobo-purple-dark: #7b79d1;
+  --erobo-gradient: linear-gradient(135deg, #9f9df3 0%, #7b79d1 100%);
+  --erobo-glow: 0 0 30px rgba(159, 157, 243, 0.4);
+  --card-radius: 20px;
+  --blur-radius: 50px;
 
   // Aliases for backward compatibility
   --color-bg-primary: var(--bg-primary);
@@ -61,32 +69,40 @@ body {
   --color-shadow: var(--shadow-color);
 }
 
-// Light theme
+// Light theme - WCAG AA compliant contrast
 [data-theme="light"],
 .theme-light {
-  --bg-primary: #f5f5f5;
-  --bg-secondary: #e8e8e8;
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
   --bg-card: #ffffff;
-  --bg-elevated: #fafafa;
-  --text-primary: #0a0a0a;
-  --text-secondary: #555555;
-  --text-muted: #888888;
-  --border-color: rgba(0, 0, 0, 0.12);
-  --shadow-color: rgba(0, 0, 0, 0.1);
+  --bg-elevated: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --border-color: rgba(0, 0, 0, 0.1);
+  --shadow-color: rgba(0, 0, 0, 0.08);
+
+  // E-Robo colors for light theme
+  --erobo-purple: #7c7ab8;
+  --erobo-purple-dark: #5a58a3;
+  --erobo-gradient: linear-gradient(135deg, #7c7ab8 0%, #5a58a3 100%);
+  --erobo-glow: 0 0 20px rgba(124, 122, 184, 0.3);
 }
 
 // System preference detection
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]):not(.theme-dark) {
-    --bg-primary: #f5f5f5;
-    --bg-secondary: #e8e8e8;
+    --bg-primary: #f8fafc;
+    --bg-secondary: #f1f5f9;
     --bg-card: #ffffff;
-    --bg-elevated: #fafafa;
-    --text-primary: #0a0a0a;
-    --text-secondary: #555555;
-    --text-muted: #888888;
-    --border-color: rgba(0, 0, 0, 0.12);
-    --shadow-color: rgba(0, 0, 0, 0.1);
+    --bg-elevated: #ffffff;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --border-color: rgba(0, 0, 0, 0.1);
+    --shadow-color: rgba(0, 0, 0, 0.08);
+    --erobo-purple: #7c7ab8;
+    --erobo-purple-dark: #5a58a3;
   }
 }
 
@@ -103,6 +119,16 @@ $color-border: rgba(255, 255, 255, 0.1);
 // Brand Colors
 $color-neo: #00e599;
 $color-electric-purple: #7000ff;
+
+// E-Robo Wallet Style Colors
+$color-erobo-purple: #9f9df3;
+$color-erobo-purple-dark: #7b79d1;
+$color-erobo-bitcoin: #ffe4c3;
+$color-erobo-neo-accent: #d5eec9;
+$color-erobo-achain: #e0e2ff;
+$color-erobo-watchlist: #def5e9;
+$color-erobo-trending: #dff0ff;
+$color-erobo-best: #ffebe4;
 
 // Text colors
 $color-text-primary: #f8fafc;
@@ -148,3 +174,77 @@ $font-lg: 1.125rem;
 $font-xl: 1.25rem;
 $font-2xl: 1.5rem;
 $font-3xl: 1.875rem;
+
+// ============================================
+// E-Robo Animation System
+// ============================================
+
+// Animation durations
+$anim-fast: 150ms;
+$anim-normal: 300ms;
+$anim-slow: 500ms;
+
+// Animation curves (E-Robo style)
+$ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+$ease-in-out-expo: cubic-bezier(0.87, 0, 0.13, 1);
+$ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+// Keyframe animations
+@keyframes erobo-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes erobo-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes erobo-glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(159, 157, 243, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(159, 157, 243, 0.5);
+  }
+}
+
+@keyframes erobo-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+// Animation utility classes
+.erobo-animate-in {
+  animation: erobo-fade-in $anim-normal $ease-out-expo;
+}
+
+.erobo-scale-in {
+  animation: erobo-scale-in $anim-normal $ease-spring;
+}
+
+.erobo-glow-pulse {
+  animation: erobo-glow-pulse 2s ease-in-out infinite;
+}
+
+.erobo-float {
+  animation: erobo-float 3s ease-in-out infinite;
+}

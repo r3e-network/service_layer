@@ -161,12 +161,13 @@ const withdraw = () => {
 .balance-display {
   text-align: center;
   padding: $space-8;
-  background: white;
-  border: 4px solid black;
-  box-shadow: 8px 8px 0 black;
+  background: var(--bg-card, white);
+  border: 4px solid var(--border-color, black);
+  box-shadow: 8px 8px 0 var(--shadow-color, black);
   margin-bottom: $space-6;
   position: relative;
   overflow: hidden;
+  color: var(--text-primary, black);
   &::after {
     content: "UNBREAKABLE";
     position: absolute;
@@ -185,7 +186,7 @@ const withdraw = () => {
 .balance {
   font-size: 48px;
   font-weight: $font-weight-black;
-  color: black;
+  color: var(--text-primary, black);
   display: block;
   font-family: $font-mono;
   line-height: 1;
@@ -224,8 +225,8 @@ const withdraw = () => {
   display: inline-block;
   font-weight: $font-weight-black;
   text-transform: uppercase;
-  border: 1px solid black;
-  box-shadow: 2px 2px 0 black;
+  border: 1px solid var(--border-color, black);
+  box-shadow: 2px 2px 0 var(--shadow-color, black);
 }
 
 .scrollable {

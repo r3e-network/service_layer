@@ -54,7 +54,7 @@ const coinStyle = computed(() => {
   height: 120px;
   perspective: 1000px;
   margin: 30px auto;
-  filter: drop-shadow(0 0 20px var(--neo-green));
+  filter: drop-shadow(0 0 20px rgba(0, 229, 153, 0.4));
 }
 
 .coin {
@@ -75,29 +75,30 @@ const coinStyle = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow:
-    0 0 30px rgba(0, 229, 153, 0.3),
-    inset 0 0 20px rgba(255, 255, 255, 0.1);
-  border: 4px solid var(--brutal-orange);
+  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.2);
 }
 
 .heads {
-  background: radial-gradient(circle at 30% 30%, var(--brutal-yellow), var(--brutal-orange));
+  background: radial-gradient(circle at 30% 30%, #00E599, #008f5d);
   transform: rotateY(0deg) translateZ(5px);
+  border: 4px solid #00E599;
+  box-shadow: 0 0 30px rgba(0, 229, 153, 0.3);
 
   .symbol {
     font-size: 60px;
-    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
   }
 }
 
 .tails {
-  background: radial-gradient(circle at 30% 30%, var(--bg-elevated), var(--text-secondary));
+  background: radial-gradient(circle at 30% 30%, #a855f7, #6b21a8);
   transform: rotateY(180deg) translateZ(5px);
+  border: 4px solid #a855f7;
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.3);
 
   .symbol {
     font-size: 60px;
-    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
   }
 }
 

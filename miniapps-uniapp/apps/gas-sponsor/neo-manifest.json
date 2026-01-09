@@ -1,0 +1,11 @@
+{
+  "category": "defi",
+  "name_zh": "GAS 赞助",
+  "description": "Sponsor GAS fees for other users or get your transactions sponsored. Enable gasless transactions for your dApp users with a decentralized gas sponsorship marketplace.",
+  "description_zh": "为其他用户赞助 GAS 费用或获得交易赞助。通过去中心化的 GAS 赞助市场为您的 dApp 用户启用无 GAS 交易。",
+  "status": "active",
+  "contract_hash": null,
+  "permissions": {
+    "payments": true
+  }
+}

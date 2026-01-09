@@ -2,123 +2,37 @@
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <!-- Destroy Tab -->
     <view v-if="activeTab === 'destroy'" class="tab-content">
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <StatusMessage :status="status" />
 
-      <!-- Animated Graveyard Hero -->
-      <view class="graveyard-hero">
-        <view class="tombstone-scene">
-          <view class="moon"></view>
-          <view class="fog fog-1"></view>
-          <view class="fog fog-2"></view>
-          <view v-for="i in 3" :key="i" :class="['tombstone', `tombstone-${i}`]">
-            <view class="tombstone-top"></view>
-            <view class="tombstone-body">
-              <text class="rip">R.I.P</text>
-            </view>
-          </view>
-          <view class="ground"></view>
-        </view>
-        <view class="hero-stats">
-          <view class="hero-stat">
-            <text class="hero-stat-icon">💀</text>
-            <text class="hero-stat-value">{{ totalDestroyed }}</text>
-            <text class="hero-stat-label">{{ t("itemsDestroyed") }}</text>
-          </view>
-          <view class="hero-stat">
-            <text class="hero-stat-icon">⛽</text>
-            <text class="hero-stat-value">{{ formatNum(gasReclaimed) }}</text>
-            <text class="hero-stat-label">{{ t("gasReclaimed") }}</text>
-          </view>
-        </view>
-      </view>
+      <GraveyardHero
+        :total-destroyed="totalDestroyed"
+        :gas-reclaimed="gasReclaimed"
+        :t="t as any"
+      />
 
-      <!-- Destruction Chamber -->
-      <view class="destruction-chamber">
-        <view class="chamber-header">
-          <text class="chamber-icon">🔥</text>
-          <text class="chamber-title">{{ t("destroyAsset") }}</text>
-        </view>
+      <DestructionChamber
+        v-model:assetHash="assetHash"
+        :is-destroying="isDestroying"
+        :show-warning-shake="showWarningShake"
+        :t="t as any"
+        @initiate="initiateDestroy"
+      />
 
-        <view class="input-container">
-          <NeoInput v-model="assetHash" :placeholder="t('assetHashPlaceholder')" type="text" />
-        </view>
-
-        <!-- Animated Warning -->
-        <view class="warning-box" :class="{ shake: showWarningShake }">
-          <view class="warning-icon-container">
-            <text class="warning-icon">⚠️</text>
-          </view>
-          <view class="warning-content">
-            <text class="warning-title">{{ t("warning") }}</text>
-            <text class="warning-text">{{ t("warningText") }}</text>
-          </view>
-        </view>
-
-        <!-- Destruction Button with Fire Effect -->
-        <view class="destroy-btn-container">
-          <view class="fire-particles" v-if="isDestroying">
-            <view v-for="i in 12" :key="i" :class="['particle', `particle-${i}`]"></view>
-          </view>
-          <NeoButton variant="danger" size="lg" block @click="initiateDestroy" :class="{ destroying: isDestroying }">
-            <text class="btn-icon">{{ isDestroying ? "🔥" : "💀" }}</text>
-            <text>{{ isDestroying ? t("destroying") : t("destroyForever") }}</text>
-          </NeoButton>
-        </view>
-
-        <!-- Confirmation Modal -->
-        <view v-if="showConfirm" class="confirm-overlay" @click="showConfirm = false">
-          <view class="confirm-modal" @click.stop>
-            <view class="confirm-skull">💀</view>
-            <text class="confirm-title">{{ t("confirmTitle") }}</text>
-            <text class="confirm-text">{{ t("confirmText") }}</text>
-            <view class="confirm-hash">{{ assetHash }}</view>
-            <view class="confirm-actions">
-              <NeoButton variant="secondary" @click="showConfirm = false">
-                {{ t("cancel") }}
-              </NeoButton>
-              <NeoButton variant="danger" @click="executeDestroy">
-                {{ t("confirmDestroy") }}
-              </NeoButton>
-            </view>
-          </view>
-        </view>
-      </view>
+      <ConfirmDestroyModal
+        :show="showConfirm"
+        :asset-hash="assetHash"
+        :t="t as any"
+        @cancel="showConfirm = false"
+        @confirm="executeDestroy"
+      />
     </view>
 
     <!-- History Tab -->
-    <view v-if="activeTab === 'history'" class="tab-content scrollable">
-      <view class="history-header">
-        <text class="history-title">🪦 {{ t("recentDestructions") }}</text>
-        <text class="history-count">{{ history.length }} {{ t("records") }}</text>
-      </view>
-
-      <view v-if="history.length === 0" class="empty-state">
-        <text class="empty-icon">🕊️</text>
-        <text class="empty-text">{{ t("noDestructions") }}</text>
-      </view>
-
-      <view v-else class="history-list">
-        <view
-          v-for="(item, index) in history"
-          :key="item.id"
-          class="history-item"
-          :style="{ animationDelay: `${index * 0.1}s` }"
-        >
-          <view class="history-icon">
-            <text>{{ getDestructionIcon(index) }}</text>
-          </view>
-          <view class="history-info">
-            <text class="history-hash">{{ item.hash.slice(0, 16) }}...</text>
-            <text class="history-time">{{ item.time }}</text>
-          </view>
-          <view class="history-badge">
-            <text class="badge-text">{{ t("destroyed") }}</text>
-          </view>
-        </view>
-      </view>
-    </view>
+    <HistoryTab
+      v-if="activeTab === 'history'"
+      :history="history"
+      :t="t as any"
+    />
 
     <!-- Docs Tab -->
     <view v-if="activeTab === 'docs'" class="tab-content scrollable">
@@ -141,8 +55,11 @@ import { createT } from "@/shared/utils/i18n";
 import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 import AppLayout from "@/shared/components/AppLayout.vue";
 import NeoDoc from "@/shared/components/NeoDoc.vue";
-import NeoButton from "@/shared/components/NeoButton.vue";
-import NeoInput from "@/shared/components/NeoInput.vue";
+import GraveyardHero from "./components/GraveyardHero.vue";
+import DestructionChamber from "./components/DestructionChamber.vue";
+import ConfirmDestroyModal from "./components/ConfirmDestroyModal.vue";
+import HistoryTab from "./components/HistoryTab.vue";
+import StatusMessage from "./components/StatusMessage.vue";
 
 const translations = {
   title: { en: "Graveyard", zh: "数字墓地" },
@@ -249,11 +166,6 @@ const ensureContractHash = async () => {
   }
   if (!contractHash.value) throw new Error(t("contractUnavailable"));
   return contractHash.value as string;
-};
-
-const getDestructionIcon = (index: number) => {
-  const icons = ["💀", "⚰️", "🪦", "☠️", "🔥"];
-  return icons[index % icons.length];
 };
 
 const initiateDestroy = () => {
@@ -368,326 +280,8 @@ watch(activeTab, async (tab) => {
   gap: $space-6;
 }
 
-.status-msg {
-  text-align: center;
-  padding: $space-4;
-  border: 4px solid black;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  font-size: 12px;
-  box-shadow: 6px 6px 0 black;
-  font-style: italic;
-  &.success {
-    background: var(--neo-green);
-    color: black;
-  }
-  &.error {
-    background: var(--brutal-red);
-    color: white;
-  }
-}
-
-// Graveyard Hero Section
-.graveyard-hero {
-  background: white;
-  border: 4px solid black;
-  padding: $space-8;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 12px 12px 0 black;
-}
-
-.tombstone-scene {
-  height: 140px;
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-end;
-  margin-bottom: $space-8;
-  position: relative;
-  border-bottom: 6px solid black;
-  background: #f0f0f0;
-  padding: 0 20px;
-}
-
-.moon {
-  position: absolute;
-  top: 15px;
-  right: 30px;
-  width: 50px;
-  height: 50px;
-  background: #ffde59;
-  border: 4px solid black;
-}
-
-.tombstone {
-  width: 60px;
-  height: 90px;
-  background: white;
-  border: 4px solid black;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  z-index: 2;
-  box-shadow: 4px -4px 0 black;
-  &.tombstone-1 {
-    transform: rotate(-5deg);
-  }
-  &.tombstone-3 {
-    transform: rotate(5deg);
-  }
-}
-
-.rip {
-  font-size: 14px;
-  color: black;
-  font-weight: $font-weight-black;
-  letter-spacing: 2px;
-  font-style: italic;
-}
-
-// Hero Stats
-.hero-stats {
-  display: flex;
-  gap: $space-4;
-}
-.hero-stat {
-  flex: 1;
-  text-align: center;
-  background: #ffde59;
-  padding: $space-4;
-  border: 4px solid black;
-  box-shadow: 6px 6px 0 black;
-  transition: transform 0.2s;
-  &:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 8px 8px 0 black;
-  }
-}
-.hero-stat-icon {
-  font-size: 32px;
-  display: block;
-  margin-bottom: 8px;
-}
-.hero-stat-value {
-  font-size: 24px;
-  font-weight: $font-weight-black;
-  color: black;
-  font-family: $font-mono;
-  display: block;
-  font-style: italic;
-}
-.hero-stat-label {
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  color: black;
-  letter-spacing: 1px;
-}
-
-// Destruction Chamber
-.destruction-chamber {
-  padding: $space-8;
-  background: white;
-  border: 4px solid black;
-  box-shadow: 12px 12px 0 black;
-}
-.chamber-header {
-  display: flex;
-  align-items: center;
-  gap: $space-4;
-  margin-bottom: $space-8;
-  border-bottom: 6px solid black;
-  padding-bottom: $space-3;
-}
-.chamber-title {
-  font-size: 24px;
-  font-weight: $font-weight-black;
-  color: black;
-  text-transform: uppercase;
-  font-style: italic;
-}
-
-// Warning Box
-.warning-box {
-  display: flex;
-  gap: $space-5;
-  background: #ff7e7e;
-  color: black;
-  padding: $space-6;
-  border: 4px solid black;
-  margin-bottom: $space-8;
-  box-shadow: 8px 8px 0 black;
-  &.shake {
-    animation: shake 0.5s ease-in-out;
-  }
-}
-
-.warning-icon {
-  font-size: 40px;
-}
-.warning-title {
-  font-weight: $font-weight-black;
-  font-size: 16px;
-  text-transform: uppercase;
-  border-bottom: 3px solid black;
-  margin-bottom: 8px;
-  display: inline-block;
-  font-style: italic;
-}
-.warning-text {
-  font-size: 12px;
-  font-weight: $font-weight-black;
-  line-height: 1.2;
-  text-transform: uppercase;
-}
-
-// Destroy Button
-.destroy-btn-container {
-  position: relative;
-}
-
-// Confirmation Modal
-.confirm-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  padding: $space-4;
-}
-.confirm-modal {
-  background: white;
-  border: 6px solid black;
-  padding: $space-10;
-  width: 100%;
-  max-width: 400px;
-  text-align: center;
-  box-shadow: 20px 20px 0 black;
-}
-.confirm-skull {
-  font-size: 80px;
-  display: block;
-  margin-bottom: $space-6;
-}
-.confirm-title {
-  font-size: 28px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  margin-bottom: $space-4;
-  color: black;
-  font-style: italic;
-}
-.confirm-text {
-  font-size: 14px;
-  font-weight: $font-weight-black;
-  margin-bottom: $space-6;
-  text-transform: uppercase;
-}
-.confirm-hash {
-  font-family: $font-mono;
-  font-size: 12px;
-  background: #f0f0f0;
-  padding: $space-4;
-  border: 3px solid black;
-  word-break: break-all;
-  margin-bottom: $space-8;
-  font-weight: $font-weight-bold;
-}
-
-.confirm-actions {
-  display: flex;
-  gap: $space-6;
-}
-
-// History Tab
-.history-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: $space-8;
-  border-bottom: 6px solid black;
-  padding-bottom: $space-3;
-}
-
-.history-title {
-  font-size: 24px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  font-style: italic;
-}
-.history-count {
-  font-size: 14px;
-  font-weight: $font-weight-black;
-  background: black;
-  color: var(--neo-green);
-  padding: 4px 12px;
-  border: 2px solid black;
-  transform: rotate(3deg);
-}
-
-.history-list {
-  display: flex;
-  flex-direction: column;
-  gap: $space-6;
-}
-
-.history-item {
-  display: flex;
-  align-items: center;
-  gap: $space-5;
-  padding: $space-6;
-  background: white;
-  border: 4px solid black;
-  box-shadow: 8px 8px 0 black;
-  transition: transform 0.2s;
-  &:hover {
-    transform: translate(-3px, -3px);
-    box-shadow: 11px 11px 0 black;
-  }
-}
-
-.history-icon {
-  font-size: 40px;
-  width: 60px;
-  text-align: center;
-  border-right: 4px solid black;
-  margin-right: $space-3;
-}
-.history-hash {
-  font-family: $font-mono;
-  font-size: 14px;
-  font-weight: $font-weight-black;
-  display: block;
-  margin-bottom: 6px;
-  text-transform: uppercase;
-}
-.history-time {
-  font-size: 11px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  color: #666;
-}
-.history-badge {
-  background: black;
-  color: white;
-  padding: 4px 10px;
-  font-size: 12px;
-  font-weight: $font-weight-black;
-  border: 2px solid black;
-  transform: skew(-10deg);
-}
-
 .scrollable {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0) rotate(0); }
-  25% { transform: translateX(-8px) rotate(-1deg); }
-  75% { transform: translateX(8px) rotate(1deg); }
 }
 </style>

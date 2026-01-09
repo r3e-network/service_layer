@@ -1,0 +1,9 @@
+{
+  "name": "neo-news-today",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "uni -p h5",
+    "build": "uni build -p h5"
+  }
+}

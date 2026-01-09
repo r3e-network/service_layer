@@ -16,98 +16,26 @@
 
       <!-- Create Contract Tab -->
       <view v-if="activeTab === 'create'" class="tab-content">
-        <view class="contract-document">
-          <view class="document-header">
-            <text class="document-title">{{ t("contractTitle") }}</text>
-            <view class="document-seal">
-              <text class="seal-text">💕</text>
-            </view>
-          </view>
-
-          <view class="document-body">
-            <text class="document-clause">{{ t("clause1") }}</text>
-
-            <view class="form-group">
-              <text class="form-label">{{ t("partnerLabel") }}</text>
-              <NeoInput v-model="partnerAddress" :placeholder="t('partnerPlaceholder')" />
-            </view>
-
-            <view class="form-group">
-              <text class="form-label">{{ t("stakeLabel") }}</text>
-              <NeoInput v-model="stakeAmount" type="number" :placeholder="t('stakePlaceholder')" />
-            </view>
-
-            <view class="form-group">
-              <text class="form-label">{{ t("durationLabel") }}</text>
-              <NeoInput v-model="duration" type="number" :placeholder="t('durationPlaceholder')" />
-            </view>
-
-            <view class="signature-section">
-              <text class="signature-label">{{ t("signatureLabel") }}</text>
-              <view class="signature-line">
-                <text class="signature-placeholder">{{ address || t("connectWallet") }}</text>
-              </view>
-            </view>
-
-            <NeoButton variant="primary" size="lg" block :loading="isLoading" @click="createContract">
-              {{ isLoading ? t("creating") : t("createBtn") }}
-            </NeoButton>
-          </view>
-        </view>
+        <CreateContractForm
+          v-model:partnerAddress="partnerAddress"
+          v-model:stakeAmount="stakeAmount"
+          v-model:duration="duration"
+          :address="address"
+          :is-loading="isLoading"
+          :t="t as any"
+          @create="createContract"
+        />
       </view>
 
       <!-- Active Contracts Tab -->
       <view v-if="activeTab === 'contracts'" class="tab-content">
-        <view class="contracts-list">
-          <text class="section-title">{{ t("activeContracts") }}</text>
-
-          <view v-for="contract in contracts" :key="contract.id" class="contract-card">
-            <view class="contract-status-badge" :class="contract.status">
-              <text class="status-icon">{{ contract.status === "active" ? "💕" : "💔" }}</text>
-              <text class="status-text">{{ t(contract.status) }}</text>
-            </view>
-
-            <view class="contract-info">
-              <view class="info-row">
-                <text class="info-label">{{ t("partner") }}:</text>
-                <text class="info-value">{{ contract.partner }}</text>
-              </view>
-              <view class="info-row">
-                <text class="info-label">{{ t("stake") }}:</text>
-                <text class="info-value stake-amount">{{ contract.stake }} GAS</text>
-              </view>
-              <view class="info-row">
-                <text class="info-label">{{ t("duration") }}:</text>
-                <text class="info-value">{{ contract.daysLeft }} {{ t("daysLeft") }}</text>
-              </view>
-            </view>
-
-            <view class="contract-progress-section">
-              <text class="progress-label">{{ t("progress") }}: {{ contract.progress }}%</text>
-              <view class="progress-track">
-                <view class="progress-fill" :style="{ width: contract.progress + '%' }">
-                  <view class="progress-heart">💕</view>
-                </view>
-              </view>
-            </view>
-
-            <view class="contract-actions">
-              <view
-                v-if="contract.status === 'pending' && canSignContract(contract)"
-                class="claim-btn"
-                @click="signContract(contract)"
-              >
-                <text>{{ t("signContract") }}</text>
-              </view>
-              <view v-else-if="contract.status === 'active'" class="break-btn" @click="breakContract(contract)">
-                <text>{{ t("breakContract") }}</text>
-              </view>
-              <view v-else class="contract-status-text">
-                <text>{{ t(contract.status) }}</text>
-              </view>
-            </view>
-          </view>
-        </view>
+        <ContractList
+          :contracts="contracts"
+          :address="address"
+          :t="t as any"
+          @sign="signContract"
+          @break="breakContract"
+        />
       </view>
     </view>
 
@@ -129,8 +57,10 @@ import { ref, computed, onMounted } from "vue";
 import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 import { createT } from "@/shared/utils/i18n";
-import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard } from "@/shared/components";
+import { AppLayout, NeoDoc, NeoCard } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
+import CreateContractForm from "./components/CreateContractForm.vue";
+import ContractList from "./components/ContractList.vue";
 
 const translations = {
   title: { en: "Breakup Contract", zh: "分手合约" },
@@ -215,6 +145,7 @@ const partnerAddress = ref("");
 const stakeAmount = ref("");
 const duration = ref("");
 const status = ref<{ msg: string; type: string } | null>(null);
+
 type ContractStatus = "pending" | "active" | "broken" | "ended";
 interface RelationshipContractView {
   id: number;
@@ -314,9 +245,6 @@ const loadContracts = async () => {
     console.warn("Failed to load contracts", e);
   }
 };
-
-const canSignContract = (contract: RelationshipContractView) =>
-  Boolean(address.value && contract.status === "pending" && contract.party2 === address.value);
 
 const createContract = async () => {
   if (!partnerAddress.value || !stakeAmount.value || isLoading.value) return;
@@ -453,197 +381,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: $space-4;
-}
-
-.contract-document {
-  background: white;
-  border: 4px solid black;
-  box-shadow: 10px 10px 0 black;
-  padding: $space-6;
-  position: relative;
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 10px;
-    background: repeating-linear-gradient(45deg, var(--brutal-pink), var(--brutal-pink) 10px, black 10px, black 20px);
-  }
-}
-
-.document-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: $space-4;
-  border-bottom: 2px dashed black;
-  padding: $space-2 0;
-}
-.document-title {
-  font-weight: $font-weight-black;
-  font-size: 14px;
-  text-transform: uppercase;
-}
-.document-seal {
-  font-size: 24px;
-  opacity: 0.5;
-  filter: grayscale(1);
-}
-
-.document-clause {
-  font-size: 8px;
-  font-weight: $font-weight-bold;
-  line-height: 1.4;
-  padding: $space-3;
-  border: 1px dashed black;
-  background: #f9f9f9;
-  display: block;
-  margin-bottom: $space-4;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: $space-2;
-  margin-bottom: $space-4;
-}
-.form-label {
-  font-size: 8px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  opacity: 0.6;
-}
-
-.signature-section {
-  border-top: 2px dashed black;
-  padding-top: $space-4;
-  margin-top: $space-2;
-}
-.signature-label {
-  font-size: 8px;
-  font-weight: $font-weight-black;
-  opacity: 0.6;
-  text-transform: uppercase;
-}
-.signature-line {
-  font-family: $font-mono;
-  font-size: 12px;
-  font-weight: $font-weight-black;
-  color: var(--brutal-pink);
-  padding: $space-2 0;
-  border-bottom: 3px solid var(--brutal-pink);
-}
-
-.contracts-list {
-  display: flex;
-  flex-direction: column;
-  gap: $space-4;
-}
-.section-title {
-  font-size: 16px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  border-bottom: 2px solid black;
-  padding-bottom: $space-1;
-}
-
-.contract-card {
-  background: white;
-  border: 2px solid black;
-  padding: $space-4;
-  box-shadow: 6px 6px 0 black;
-  border-left: 8px solid var(--brutal-pink);
-}
-
-.contract-status-badge {
-  display: inline-flex;
-  padding: 2px 8px;
-  border: 1px solid black;
-  font-size: 8px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  margin-bottom: $space-2;
-  &.active {
-    background: var(--neo-green);
-  }
-  &.pending {
-    background: var(--brutal-yellow);
-  }
-  &.broken {
-    background: var(--brutal-red);
-    color: white;
-  }
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  padding: 2px 0;
-  border-bottom: 1px solid #eee;
-}
-.info-label {
-  opacity: 0.6;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-}
-.info-value {
-  font-family: $font-mono;
-  font-weight: $font-weight-black;
-}
-
-.contract-progress-section {
-  margin-top: $space-4;
-}
-.progress-label {
-  font-size: 8px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  color: black;
-}
-.progress-track {
-  height: 12px;
-  background: #eee;
-  margin-top: 4px;
-  border: 2px solid black;
-}
-.progress-fill {
-  height: 100%;
-  background: var(--brutal-pink);
-  border-right: 2px solid black;
-}
-
-.contract-actions {
-  margin-top: $space-4;
-  display: flex;
-  gap: $space-2;
-}
-.break-btn,
-.claim-btn {
-  flex: 1;
-  text-align: center;
-  padding: $space-2;
-  border: 2px solid black;
-  font-weight: $font-weight-black;
-  font-size: 10px;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all $transition-fast;
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: none;
-  }
-}
-.break-btn {
-  background: var(--brutal-red);
-  color: white;
-  box-shadow: 4px 4px 0 black;
-}
-.claim-btn {
-  background: var(--neo-green);
-  color: black;
-  box-shadow: 4px 4px 0 black;
 }
 
 .scrollable {

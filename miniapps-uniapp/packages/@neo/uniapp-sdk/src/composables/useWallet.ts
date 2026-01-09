@@ -2,8 +2,8 @@
  * useWallet - Wallet composable for uni-app
  * Provides wallet connection, balance, and transaction management
  */
-import { ref, onMounted, computed } from "vue";
-import { getSDKSync, waitForSDK } from "../bridge";
+import { ref, onMounted, onUnmounted } from "vue";
+import { getSDKSync, waitForSDK, subscribeToWalletState, getWalletState } from "../bridge";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "https://api.neo-service-layer.io";
 
@@ -178,9 +178,43 @@ export function useWallet() {
     error.value = null;
   };
 
+  // Track unsubscribe function
+  let unsubscribeWalletState: (() => void) | null = null;
+
   onMounted(() => {
+    // First, check host wallet state (from postMessage)
+    const hostState = getWalletState();
+    if (hostState.connected && hostState.address) {
+      address.value = hostState.address;
+      isConnected.value = true;
+      if (hostState.balance) {
+        balances.value = {
+          GAS: hostState.balance.gas || "0",
+          NEO: hostState.balance.neo || "0",
+        };
+      }
+    }
+
+    // Subscribe to wallet state changes from host
+    unsubscribeWalletState = subscribeToWalletState((state) => {
+      if (state.connected && state.address) {
+        address.value = state.address;
+        isConnected.value = true;
+        if (state.balance) {
+          balances.value = {
+            GAS: state.balance.gas || "0",
+            NEO: state.balance.neo || "0",
+          };
+        }
+      } else {
+        address.value = null;
+        isConnected.value = false;
+      }
+    });
+
+    // Fallback: try SDK directly
     const sdk = getSDKSync();
-    if (sdk) {
+    if (sdk && !isConnected.value) {
       sdk.wallet
         .getAddress()
         .then((addr) => {
@@ -188,6 +222,12 @@ export function useWallet() {
           isConnected.value = true;
         })
         .catch(() => {});
+    }
+  });
+
+  onUnmounted(() => {
+    if (unsubscribeWalletState) {
+      unsubscribeWalletState();
     }
   });
 

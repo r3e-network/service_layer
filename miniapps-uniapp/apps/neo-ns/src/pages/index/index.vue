@@ -1,6 +1,6 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
-    <view class="app-container">
+    <view v-if="activeTab !== 'docs'" class="app-container">
       <NeoCard v-if="statusMessage" :variant="statusType === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
         <text class="font-bold">{{ statusMessage }}</text>
       </NeoCard>
@@ -79,8 +79,8 @@
       </view>
     </view>
 
-    <!-- Docs Tab -->
-    <view v-if="activeTab === 'docs'" class="tab-content scrollable">
+    <!-- Docs Tab - Outside app-container to ensure top alignment -->
+    <view v-else class="tab-content scrollable">
       <NeoDoc
         :title="t('title')"
         :subtitle="t('docSubtitle')"
@@ -278,39 +278,47 @@ onMounted(async () => {
 @import "@/shared/styles/variables.scss";
 
 .app-container {
-  padding: $space-4;
+  padding: 20px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: 16px;
 }
 
 .tab-content {
   display: flex;
   flex-direction: column;
-  gap: $space-4;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  gap: 16px;
+  flex: 1;
 }
 
 .result-card {
-  margin-top: $space-6;
-  border: 4px solid black;
-  box-shadow: 10px 10px 0 black;
+  margin-top: 24px;
+  background: linear-gradient(135deg, rgba(159, 157, 243, 0.05) 0%, rgba(123, 121, 209, 0.03) 100%);
+  border: 1px solid rgba(159, 157, 243, 0.2);
+  border-radius: 16px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+
   &.variant-success {
-    background: white;
-    border-color: black;
+    background: radial-gradient(circle at top right, rgba(0, 229, 153, 0.1), transparent 70%),
+                rgba(255, 255, 255, 0.03);
+    border-color: rgba(0, 229, 153, 0.2);
+    box-shadow: 0 0 30px rgba(0, 229, 153, 0.1);
   }
   &.variant-danger {
-    background: #ffebeb;
-    color: black;
-    border-color: black;
+    background: radial-gradient(circle at top right, rgba(239, 68, 68, 0.1), transparent 70%),
+                rgba(255, 255, 255, 0.03);
+    border-color: rgba(239, 68, 68, 0.2);
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.1);
   }
 }
 
 .result-header {
-  padding: $space-5;
-  border-bottom: 3px solid black;
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -318,134 +326,163 @@ onMounted(async () => {
 .domain-title-row {
   display: flex;
   align-items: center;
-  gap: $space-3;
+  gap: 12px;
 }
 .result-domain {
-  font-weight: $font-weight-black;
-  font-family: $font-mono;
-  font-size: 28px;
-  border-bottom: 2px solid black;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  font-size: 24px;
+  text-shadow: 0 0 15px rgba(0, 229, 153, 0.3);
+  color: white;
 }
 .premium-badge {
-  background: var(--brutal-yellow);
-  color: black;
+  background: rgba(138, 43, 226, 0.2);
+  color: #ccaadd;
   padding: 4px 10px;
   font-size: 10px;
-  font-weight: $font-weight-black;
+  font-weight: 700;
   text-transform: uppercase;
-  border: 1px solid black;
-  box-shadow: 2px 2px 0 black;
+  border: 1px solid rgba(138, 43, 226, 0.3);
+  box-shadow: 0 0 10px rgba(138, 43, 226, 0.2);
+  border-radius: 99px;
+  letter-spacing: 0.05em;
 }
 .result-status {
   font-size: 12px;
-  font-weight: $font-weight-black;
+  font-weight: 700;
   text-transform: uppercase;
-  border: 2px solid black;
-  padding: 4px 12px;
-  background: black;
-  color: white !important;
-  &.text-red-700 { background: var(--brutal-red); color: white !important; }
-  &.text-green-700 { background: var(--neo-green); color: black !important; }
+  padding: 6px 14px;
+  border-radius: 99px;
+  letter-spacing: 0.1em;
+  border: none;
+
+  &.text-green-700 {
+    background: rgba(0, 229, 153, 0.1);
+    color: #00E599 !important;
+    border: 1px solid rgba(0, 229, 153, 0.2);
+    box-shadow: 0 0 15px rgba(0, 229, 153, 0.2);
+  }
+  &.text-red-700 {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444 !important;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+  }
 }
 
 .result-body {
-  padding: $space-5;
+  padding: 20px;
 }
 .price-display {
-  background: #eee;
-  border: 3px solid black;
-  padding: $space-5;
-  margin-bottom: $space-6;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
+  padding: 24px;
+  margin-bottom: 24px;
   text-align: center;
-  box-shadow: inset 4px 4px 0 rgba(0,0,0,0.1);
+  border-radius: 16px;
 }
 .price-label {
-  font-size: 10px;
-  font-weight: $font-weight-black;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
   display: block;
   margin-bottom: 8px;
-  color: #666;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  letter-spacing: 0.1em;
 }
 .price-value {
-  font-weight: $font-weight-black;
-  font-size: 40px;
-  font-family: $font-mono;
-  color: black;
-}
-.price-value.premium-price {
-  color: var(--neo-purple);
-  text-shadow: 3px 3px 0 white;
+  font-weight: 700;
+  font-size: 48px;
+  font-family: 'Inter', sans-serif;
+  color: white;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+  
+  &.premium-price {
+    color: #d8b4fe;
+    text-shadow: 0 0 30px rgba(168, 85, 247, 0.4);
+  }
 }
 .price-period {
-  font-size: 12px;
-  font-weight: $font-weight-black;
+  font-size: 13px;
+  font-weight: 600;
   text-transform: uppercase;
-  margin-left: 6px;
+  margin-left: 8px;
+  color: var(--text-muted, rgba(255, 255, 255, 0.4));
 }
 
 .owner-info {
-  background: black;
-  border: 2px solid black;
-  padding: $space-4;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
+  padding: 16px;
+  border-radius: 12px;
   color: white;
 }
 .owner-label {
-  font-size: 10px;
-  font-weight: $font-weight-black;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
   display: block;
-  color: var(--brutal-yellow);
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  margin-bottom: 4px;
+  letter-spacing: 0.1em;
 }
 .owner-value {
-  font-family: $font-mono;
-  font-size: 16px;
-  font-weight: $font-weight-black;
+  font-family: monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
 }
 
 .domain-item {
-  padding: $space-4;
-  background: white;
-  border: 3px solid black;
-  margin-bottom: $space-4;
-  transition: all $transition-fast;
-  box-shadow: 6px 6px 0 black;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(159, 157, 243, 0.05) 0%, rgba(123, 121, 209, 0.03) 100%);
+  border: 1px solid rgba(159, 157, 243, 0.2);
+  border-radius: 16px;
+  margin-bottom: 16px;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(20px);
+  
   &:hover {
-    transform: translate(2px, 2px);
-    box-shadow: 4px 4px 0 black;
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, rgba(159, 157, 243, 0.1) 0%, rgba(123, 121, 209, 0.06) 100%);
+    border-color: rgba(159, 157, 243, 0.4);
+    box-shadow: 0 10px 40px -10px rgba(159, 157, 243, 0.2);
   }
 }
 .domain-info {
-  margin-bottom: $space-4;
-  border-left: 4px solid black;
-  padding-left: $space-4;
+  margin-bottom: 16px;
+  border-left: 3px solid #00E599;
+  padding-left: 16px;
 }
 .domain-name {
-  font-weight: $font-weight-black;
-  font-family: $font-mono;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
   font-size: 20px;
   display: block;
   text-transform: uppercase;
+  color: white;
+  margin-bottom: 4px;
 }
 .domain-expiry {
   font-size: 12px;
-  font-weight: $font-weight-black;
-  color: #666;
+  font-weight: 500;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
 }
 
 .domain-actions {
   display: flex;
-  gap: $space-3;
-  margin-top: $space-4;
+  gap: 12px;
+  margin-top: 16px;
 }
 
 .empty-state {
   text-align: center;
-  padding: $space-10;
-  border: 4px dashed #ccc;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  color: #999;
+  padding: 48px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  font-style: italic;
+  color: var(--text-muted, rgba(255, 255, 255, 0.4));
+  font-size: 14px;
 }
 
 .scrollable {

@@ -1,0 +1,11 @@
+{
+  "category": "nft",
+  "name_zh": "墓园",
+  "description": "Create permanent digital memorials for loved ones, pets, or even failed crypto projects. Mint tombstone NFTs with epitaphs, photos, and memories that live forever on-chain.",
+  "description_zh": "创建永久的数字纪念碑作为墓碑 NFT。",
+  "status": "active",
+  "contract_hash": "0xe88938b2c2032483cf5edcdab7e4bde981e5fb24",
+  "permissions": {
+    "payments": true
+  }
+}

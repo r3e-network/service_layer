@@ -1,0 +1,11 @@
+{
+  "category": "social",
+  "name_zh": "开发者打赏",
+  "description": "Support open-source developers directly! Tip contributors for their work on GitHub repos, Stack Overflow answers, or any valuable code contribution.",
+  "description_zh": "直接支持开源开发者，为他们的贡献打赏。",
+  "status": "active",
+  "contract_hash": "0x38ec54ce12e9cbf041cc7e31534eccae0eaa38dc",
+  "permissions": {
+    "payments": true
+  }
+}

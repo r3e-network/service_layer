@@ -1,0 +1,11 @@
+{
+  "category": "social",
+  "name_zh": "分手合约",
+  "description": "Create immutable relationship agreements on-chain. Define terms for shared assets, responsibilities, and exit conditions with smart contract enforcement.",
+  "description_zh": "在链上创建不可变的关系协议，智能合约执行。",
+  "status": "active",
+  "contract_hash": "0x84a3864028b7b71e9f420056e1eae2e3e3113a0c",
+  "permissions": {
+    "payments": true
+  }
+}

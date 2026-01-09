@@ -1,0 +1,13 @@
+{
+  "name_zh": "Ex Files",
+  "description": "Ex Files - Neo MiniApp",
+  "description_zh": "Ex Files - Neo 小程序",
+  "category": "social",
+  "status": "active",
+  "contract_hash": null,
+  "permissions": {
+    "payments": true,
+    "governance": false,
+    "automation": false
+  }
+}

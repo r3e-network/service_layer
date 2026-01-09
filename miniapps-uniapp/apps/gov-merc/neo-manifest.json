@@ -1,0 +1,12 @@
+{
+  "category": "governance",
+  "name_zh": "治理雇佣兵",
+  "description": "Hire governance mercenaries to vote on your behalf or sell your voting power to the highest bidder. A marketplace for delegation and influence in the DAO ecosystem.",
+  "description_zh": "雇佣治理雇佣兵或出售您的投票权。",
+  "status": "active",
+  "contract_hash": "0x05d4ed2e60141043d6d20f5cde274704bd42c0dc",
+  "permissions": {
+    "governance": true,
+    "payments": true
+  }
+}

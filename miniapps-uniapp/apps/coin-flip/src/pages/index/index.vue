@@ -2,64 +2,30 @@
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab === 'game'" class="tab-content">
       <!-- Coin Arena -->
-      <view class="arena">
-        <ThreeDCoin :result="displayOutcome" :flipping="isFlipping" />
-        <text class="status-text" :class="{ blink: isFlipping }">
-          {{ isFlipping ? t("flipping") : result ? (result.won ? t("youWon") : t("youLost")) : t("placeBet") }}
-        </text>
-      </view>
+      <CoinArena
+        :display-outcome="displayOutcome"
+        :is-flipping="isFlipping"
+        :result="result"
+        :t="t as any"
+      />
 
       <!-- Bet Controls -->
-      <NeoCard :title="t('makeChoice')">
-        <view class="choice-row">
-          <view :class="['choice-btn', choice === 'heads' && 'active']" @click="choice = 'heads'">
-            <AppIcon name="heads" :size="32" />
-            <text class="choice-label">{{ t("heads") }}</text>
-          </view>
-          <view :class="['choice-btn', choice === 'tails' && 'active']" @click="choice = 'tails'">
-            <AppIcon name="tails" :size="32" />
-            <text class="choice-label">{{ t("tails") }}</text>
-          </view>
-        </view>
-
-        <view class="mt-4 flex flex-col gap-4">
-          <NeoInput
-            v-model="betAmount"
-            type="number"
-            :label="t('wager')"
-            :placeholder="t('betAmountPlaceholder')"
-            suffix="GAS"
-            :hint="t('minBet')"
-          />
-
-          <NeoButton
-            variant="primary"
-            size="lg"
-            block
-            :disabled="isFlipping || !canBet"
-            :loading="isFlipping"
-            @click="flip"
-          >
-            {{ isFlipping ? t("flipping") : t("flipCoin") }}
-          </NeoButton>
-        </view>
-      </NeoCard>
+      <BetControls
+        v-model:choice="choice"
+        v-model:betAmount="betAmount"
+        :is-flipping="isFlipping"
+        :can-bet="canBet"
+        :t="t as any"
+        @flip="flip"
+      />
 
       <!-- Result Modal -->
-      <NeoModal
+      <ResultOverlay
         :visible="showWinOverlay"
-        :title="t('youWon')"
-        variant="success"
-        closeable
+        :win-amount="winAmount"
+        :t="t as any"
         @close="showWinOverlay = false"
-      >
-        <view class="win-content">
-          <view class="win-icon">
-            <AppIcon name="trophy" :size="64" />
-          </view>
-          <text class="win-amount">+{{ winAmount }} GAS</text>
-        </view>
-      </NeoModal>
+      />
     </view>
 
     <!-- Stats Tab -->
@@ -88,15 +54,15 @@ import { parseStackItem } from "@/shared/utils/neo";
 import { createT } from "@/shared/utils/i18n";
 import {
   AppLayout,
-  NeoButton,
-  NeoInput,
-  NeoModal,
   NeoStats,
   NeoDoc,
-  AppIcon,
   type StatItem,
 } from "@/shared/components";
-import ThreeDCoin from "@/components/ThreeDCoin.vue";
+import type { NavTab } from "@/shared/components/NavBar.vue";
+
+import CoinArena, { type GameResult } from "./components/CoinArena.vue";
+import BetControls from "./components/BetControls.vue";
+import ResultOverlay from "./components/ResultOverlay.vue";
 
 const translations = {
   title: { en: "Coin Flip", zh: "抛硬币" },
@@ -141,7 +107,7 @@ const translations = {
 };
 const t = createT(translations);
 
-const navTabs = [
+const navTabs: NavTab[] = [
   { id: "game", icon: "game", label: t("game") },
   { id: "stats", icon: "chart", label: t("stats") },
   { id: "docs", icon: "book", label: t("docs") },
@@ -165,7 +131,7 @@ const wins = ref(0);
 const losses = ref(0);
 const totalWon = ref(0);
 const isFlipping = ref(false);
-const result = ref<{ won: boolean; outcome: string } | null>(null);
+const result = ref<GameResult | null>(null);
 const displayOutcome = ref<"heads" | "tails" | null>(null);
 const showWinOverlay = ref(false);
 const winAmount = ref("0");
@@ -220,7 +186,7 @@ const flip = async () => {
 
   isFlipping.value = true;
   result.value = null;
-  displayOutcome.value = null; // Reset for animation start if needed, though usually handled by style
+  displayOutcome.value = null; // Reset for animation start if needed
   showWinOverlay.value = false;
 
   try {
@@ -308,84 +274,6 @@ const flip = async () => {
   display: flex;
   flex-direction: column;
   gap: $space-4;
-}
-
-.arena {
-  background: white;
-  border: 4px solid black;
-  padding: $space-8;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: $space-4;
-  box-shadow: 10px 10px 0 black;
-}
-
-.status-text {
-  font-family: $font-mono;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  color: var(--neo-green);
-  font-size: 16px;
-  background: black;
-  padding: 4px 12px;
-  border: 2px solid var(--neo-green);
-}
-
-.choice-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: $space-3;
-}
-
-.choice-btn {
-  background: white;
-  border: 2px solid black;
-  padding: $space-4;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: $space-2;
-  cursor: pointer;
-  &.active {
-    background: var(--brutal-yellow);
-    box-shadow: 6px 6px 0 black;
-    transform: translate(-2px, -2px);
-  }
-  transition: all $transition-fast;
-}
-
-.choice-label {
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-}
-
-.win-content {
-  padding: $space-6;
-  text-align: center;
-}
-.win-amount {
-  font-family: $font-mono;
-  font-weight: $font-weight-black;
-  font-size: 36px;
-  color: var(--neo-green);
-  display: block;
-  margin-top: $space-4;
-  text-shadow: 2px 2px 0 black;
-}
-
-.blink {
-  animation: flash-status 0.5s infinite;
-}
-@keyframes flash-status {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.2;
-  }
 }
 
 .scrollable {

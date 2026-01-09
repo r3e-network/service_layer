@@ -6,90 +6,33 @@
       </NeoCard>
 
       <!-- Total Burned Hero Section with Fire Animation -->
-      <NeoCard variant="default" class="hero-card">
-        <view class="fire-container">
-          <view class="flame flame-1"></view>
-          <view class="flame flame-2"></view>
-          <view class="flame flame-3"></view>
-        </view>
-        <view class="hero-content">
-          <text class="hero-label">{{ t("totalBurned") }}</text>
-          <text class="hero-value">{{ formatNum(totalBurned) }}</text>
-          <text class="hero-suffix">GAS</text>
-        </view>
-      </NeoCard>
+      <HeroSection :total-burned="totalBurned" :t="t as any" />
 
       <!-- Stats Grid -->
-      <view class="stats-grid">
-        <NeoCard variant="accent" class="flex-1 text-center">
-          <text class="stat-icon">🔥</text>
-          <text class="stat-value">{{ formatNum(userBurned) }}</text>
-          <text class="stat-label">{{ t("youBurned") }}</text>
-        </NeoCard>
-        <NeoCard variant="warning" class="flex-1 text-center">
-          <text class="stat-icon">{{ getRankIcon(rank) }}</text>
-          <text class="stat-value">#{{ rank }}</text>
-          <text class="stat-label">{{ t("rank") }}</text>
-        </NeoCard>
-      </view>
+      <StatsGrid :user-burned="userBurned" :rank="rank" :t="t as any" />
 
       <!-- Burn Action Card -->
-      <NeoCard :title="t('burnTokens')" variant="accent" class="burn-card">
-        <NeoInput v-model="burnAmount" type="number" :placeholder="t('amountPlaceholder')" suffix="GAS" />
-        <view class="reward-info">
-          <text class="reward-label">{{ t("estimatedRewards") }}</text>
-          <text class="reward-value">+{{ formatNum(estimatedReward) }} {{ t("points") }}</text>
-        </view>
-        <NeoButton variant="primary" size="lg" block :loading="isLoading" @click="burnTokens" class="burn-button">
-          <text class="burn-button-text">🔥 {{ t("burnNow") }}</text>
-        </NeoButton>
-      </NeoCard>
+      <BurnActionCard
+        v-model:burnAmount="burnAmount"
+        :estimated-reward="estimatedReward"
+        :is-loading="isLoading"
+        :t="t as any"
+        @burn="burnTokens"
+      />
 
       <!-- Leaderboard with Medal Icons -->
-      <NeoCard :title="t('leaderboard')" variant="default" class="leaderboard-card">
-        <view class="leaderboard-list">
-          <view
-            v-for="(entry, i) in leaderboard"
-            :key="i"
-            :class="['leader-item', entry.isUser && 'highlight', `rank-${entry.rank}`]"
-          >
-            <view class="leader-rank-container">
-              <text class="leader-medal">{{ getMedalIcon(entry.rank) }}</text>
-              <text class="leader-rank">#{{ entry.rank }}</text>
-            </view>
-            <text class="leader-addr">{{ entry.address }}</text>
-            <view class="leader-burned-container">
-              <text class="leader-burned">{{ formatNum(entry.burned) }}</text>
-              <text class="leader-burned-suffix">GAS</text>
-            </view>
-          </view>
-        </view>
-      </NeoCard>
+      <LeaderboardList :leaderboard="leaderboard" :t="t as any" />
     </view>
 
     <view v-if="activeTab === 'stats'" class="tab-content scrollable">
-      <NeoCard :title="t('statistics')" variant="default">
-        <view class="stat-row">
-          <text class="stat-label">{{ t("totalGames") }}</text>
-          <text class="stat-value">{{ burnCount }}</text>
-        </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("youBurned") }}</text>
-          <text class="stat-value">{{ formatNum(userBurned) }} GAS</text>
-        </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("totalBurned") }}</text>
-          <text class="stat-value">{{ formatNum(totalBurned) }} GAS</text>
-        </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("rank") }}</text>
-          <text class="stat-value">#{{ rank }}</text>
-        </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("estimatedRewards") }}</text>
-          <text class="stat-value">{{ formatNum(estimatedReward) }} {{ t("points") }}</text>
-        </view>
-      </NeoCard>
+      <StatsTab
+        :burn-count="burnCount"
+        :user-burned="userBurned"
+        :total-burned="totalBurned"
+        :rank="rank"
+        :estimated-reward="estimatedReward"
+        :t="t as any"
+      />
     </view>
 
     <!-- Docs Tab -->
@@ -111,7 +54,14 @@ import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 import { createT } from "@/shared/utils/i18n";
-import { AppLayout, NeoButton, NeoCard, NeoInput, NeoDoc } from "@/shared/components";
+import { AppLayout, NeoCard, NeoDoc } from "@/shared/components";
+import type { NavTab } from "@/shared/components/NavBar.vue";
+
+import HeroSection from "./components/HeroSection.vue";
+import StatsGrid from "./components/StatsGrid.vue";
+import BurnActionCard from "./components/BurnActionCard.vue";
+import LeaderboardList, { type LeaderEntry } from "./components/LeaderboardList.vue";
+import StatsTab from "./components/StatsTab.vue";
 
 const translations = {
   title: { en: "Burn League", zh: "燃烧联盟" },
@@ -172,7 +122,7 @@ const translations = {
 
 const t = createT(translations);
 
-const navTabs = [
+const navTabs: NavTab[] = [
   { id: "game", icon: "game", label: t("game") },
   { id: "stats", icon: "chart", label: t("stats") },
   { id: "docs", icon: "book", label: t("docs") },
@@ -189,13 +139,6 @@ const APP_ID = "miniapp-burn-league";
 const { address, connect, invokeContract, invokeRead, getContractHash } = useWallet();
 const { list: listEvents } = useEvents();
 
-interface LeaderEntry {
-  rank: number;
-  address: string;
-  burned: number;
-  isUser: boolean;
-}
-
 const { payGAS, isLoading } = usePayments(APP_ID);
 
 const burnAmount = ref("1");
@@ -209,7 +152,6 @@ const contractHash = ref<string | null>(null);
 
 const leaderboard = ref<LeaderEntry[]>([]);
 
-const formatNum = (n: number) => formatNumber(n, 2);
 const toFixed8 = (value: string) => {
   const num = Number.parseFloat(value);
   if (!Number.isFinite(num)) return "0";
@@ -224,19 +166,6 @@ const estimatedReward = computed(() => {
   if (!totalBurned.value) return 0;
   return (userBurned.value / totalBurned.value) * rewardPool.value;
 });
-
-const getMedalIcon = (rank: number): string => {
-  if (rank === 1) return "🥇";
-  if (rank === 2) return "🥈";
-  if (rank === 3) return "🥉";
-  return "";
-};
-
-const getRankIcon = (rank: number): string => {
-  if (rank <= 3) return "👑";
-  if (rank <= 10) return "⭐";
-  return "📊";
-};
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -373,68 +302,15 @@ watch(address, () => {
 @import "@/shared/styles/variables.scss";
 
 .tab-content {
-  padding: $space-4;
+  padding: 20px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: 16px;
 }
 
-.hero-card {
-  text-align: center; padding: $space-6; background: black; border: 4px solid black; box-shadow: 10px 10px 0 black; position: relative; overflow: hidden;
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
-
-.fire-container {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 30px;
-  display: flex; justify-content: space-around; align-items: flex-end; pointer-events: none;
-}
-
-.flame {
-  width: 15px; height: 20px; background: var(--brutal-orange); border-radius: 50% 50% 0 0;
-  animation: neo-flicker 0.8s infinite alternate;
-  &.flame-2 { height: 30px; animation-delay: 0.1s; background: var(--brutal-red); }
-  &.flame-3 { height: 18px; animation-delay: 0.2s; background: var(--brutal-yellow); }
-}
-
-@keyframes neo-flicker {
-  0% { transform: scaleY(1); opacity: 0.6; }
-  100% { transform: scaleY(1.5); opacity: 1; }
-}
-
-.hero-content { position: relative; z-index: 1; }
-.hero-label { font-size: 8px; font-weight: $font-weight-black; text-transform: uppercase; color: white; opacity: 0.6; }
-.hero-value { font-size: 36px; font-weight: $font-weight-black; color: var(--brutal-orange); font-family: $font-mono; display: block; filter: drop-shadow(2px 2px 0 black); }
-.hero-suffix { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; color: white; }
-
-.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: $space-3; }
-.stat-icon { font-size: 24px; display: block; margin-bottom: 4px; }
-.stat-value { font-size: 20px; font-weight: $font-weight-black; font-family: $font-mono; }
-.stat-label { font-size: 8px; font-weight: $font-weight-black; text-transform: uppercase; opacity: 0.6; }
-
-.reward-info {
-  background: white; padding: $space-3; border: 2px solid black;
-  display: flex; justify-content: space-between; align-items: center; margin: $space-4 0;
-}
-.reward-label { font-size: 8px; font-weight: $font-weight-black; text-transform: uppercase; opacity: 0.6; }
-.reward-value { font-size: 12px; font-weight: $font-weight-black; color: var(--neo-purple); font-family: $font-mono; }
-
-.burn-button-text { font-size: 14px; font-weight: $font-weight-black; text-transform: uppercase; }
-
-.leaderboard-list { display: flex; flex-direction: column; gap: $space-3; }
-.leader-item {
-  display: flex; justify-content: space-between; align-items: center; padding: $space-3;
-  background: white; border: 2px solid black; box-shadow: 4px 4px 0 black;
-  &.highlight { background: var(--brutal-yellow); border-color: black; }
-}
-
-.leader-rank-container { display: flex; align-items: center; gap: 4px; }
-.leader-medal { font-size: 14px; }
-.leader-rank { font-size: 10px; font-weight: $font-weight-black; font-family: $font-mono; }
-.leader-addr { font-size: 8px; font-family: $font-mono; font-weight: $font-weight-bold; opacity: 0.6; flex: 1; padding: 0 $space-4; word-break: break-all; }
-.leader-burned { font-size: 14px; font-weight: $font-weight-black; font-family: $font-mono; color: var(--brutal-orange); }
-.leader-burned-suffix { font-size: 8px; font-weight: $font-weight-black; opacity: 0.6; margin-left: 2px; }
-
-.stat-row { display: flex; justify-content: space-between; padding: $space-3 0; border-bottom: 1px dashed black; }
-
-.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 </style>

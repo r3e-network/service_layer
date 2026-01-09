@@ -29,3 +29,10 @@ export { default as NeoDoc } from "./NeoDoc.vue";
 
 // Icons
 export { default as AppIcon } from "./AppIcon.vue";
+
+// E-Robo Style Components
+export { default as BlurGlow } from "./BlurGlow.vue";
+export type { GlowColor } from "./BlurGlow.vue";
+
+export { default as GradientCard } from "./GradientCard.vue";
+export type { GradientVariant } from "./GradientCard.vue";

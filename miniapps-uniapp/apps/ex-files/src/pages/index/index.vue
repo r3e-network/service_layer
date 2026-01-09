@@ -1,9 +1,7 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab === 'files' || activeTab === 'upload'" class="app-container">
-      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
-        <text class="status-text font-bold uppercase">{{ status.msg }}</text>
-      </NeoCard>
+      <StatusMessage :status="status" />
 
       <!-- Files Archive Tab -->
       <view v-if="activeTab === 'files'" class="tab-content">
@@ -13,106 +11,28 @@
         </NeoCard>
 
         <!-- Query Record -->
-        <NeoCard :title="t('queryRecord')" class="mb-6">
-          <template #header-extra>
-            <text class="section-icon">🔎</text>
-          </template>
-
-          <NeoInput v-model="queryInput" :label="t('queryLabel')" :placeholder="t('queryPlaceholder')" class="mb-4" />
-
-          <NeoButton
-            variant="primary"
-            block
-            @click="queryRecord"
-            :loading="isLoading"
-            :disabled="!queryInput.trim()"
-            class="mb-4"
-          >
-            {{ t("queryRecord") }}
-          </NeoButton>
-
-          <view v-if="queryResult" class="result-card-neo">
-            <text class="result-title font-bold block mb-2">{{ t("queryResult") }}</text>
-            <view class="result-info">
-              <text class="result-line">{{ t("record") }} #{{ queryResult.id }}</text>
-              <text class="result-line">{{ t("rating") }}: {{ queryResult.rating }}</text>
-              <text class="result-line">{{ t("totalQueries") }}: {{ queryResult.queryCount }}</text>
-              <text class="result-line word-break">{{ t("hashLabel") }}: {{ queryResult.dataHash }}</text>
-            </view>
-          </view>
-        </NeoCard>
+        <QueryRecordForm
+          v-model:queryInput="queryInput"
+          :query-result="queryResult"
+          :is-loading="isLoading"
+          :t="t as any"
+          @query="queryRecord"
+        />
 
         <!-- Memory Archive -->
-        <view class="archive-section">
-          <view class="section-header-neo mb-4">
-            <text class="section-icon">📁</text>
-            <text class="section-title font-bold">{{ t("memoryArchive") }}</text>
-          </view>
-
-          <view class="timeline">
-            <NeoCard
-              v-for="record in sortedRecords"
-              :key="record.id"
-              :variant="record.active ? 'success' : 'default'"
-              class="mb-4"
-              @click="viewRecord(record)"
-            >
-              <template #header-extra>
-                <text v-if="record.active" class="status-icon">✅</text>
-                <text v-else class="status-icon">🚫</text>
-              </template>
-
-              <view class="file-body">
-                <text class="file-title font-bold block mb-2">{{ t("record") }} #{{ record.id }}</text>
-                <view class="file-meta flex justify-between mb-2">
-                  <text class="file-date text-xs">{{ record.date }}</text>
-                  <text class="file-type text-xs">{{ record.active ? t("statusActive") : t("statusInactive") }}</text>
-                </view>
-                <text class="file-desc text-sm opacity-80">{{ record.hashShort }}</text>
-              </view>
-
-              <template #footer>
-                <view class="file-footer-neo flex justify-between items-center w-full">
-                  <text class="file-id text-xs opacity-60">ID: {{ record.id }}</text>
-                  <text class="view-label font-bold">{{ t("tapToView") }} →</text>
-                </view>
-              </template>
-            </NeoCard>
-          </view>
-        </view>
+        <MemoryArchive :sorted-records="sortedRecords" :t="t as any" @view="viewRecord" />
       </view>
 
       <!-- Upload Tab -->
       <view v-if="activeTab === 'upload'" class="tab-content">
-        <NeoCard :title="t('uploadMemory')">
-          <template #header-extra>
-            <text class="upload-icon">📤</text>
-          </template>
-
-          <text class="upload-subtitle mb-6 text-center block opacity-70">{{ t("uploadSubtitle") }}</text>
-
-          <NeoInput
-            v-model="recordContent"
-            :label="t('recordContent')"
-            :placeholder="t('contentPlaceholder')"
-            type="textarea"
-            class="mb-2"
-          />
-          <text class="hash-note text-[10px] font-bold uppercase opacity-60 mb-6 block">{{ t("hashNote") }}</text>
-
-          <NeoInput v-model="recordRating" :label="t('rating')" type="number" min="1" max="5" class="mb-8" />
-
-          <NeoButton
-            variant="primary"
-            size="lg"
-            block
-            @click="createRecord"
-            :loading="isLoading"
-            :disabled="!canCreate"
-          >
-            {{ t("createRecord") }}
-          </NeoButton>
-        </NeoCard>
+        <UploadForm
+          v-model:recordContent="recordContent"
+          v-model:recordRating="recordRating"
+          :is-loading="isLoading"
+          :can-create="canCreate"
+          :t="t as any"
+          @create="createRecord"
+        />
       </view>
     </view>
 
@@ -135,9 +55,14 @@ import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 import { sha256Hex } from "@/shared/utils/hash";
-import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard, NeoStats } from "@/shared/components";
+import { AppLayout, NeoDoc, NeoCard, NeoStats } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 import type { StatItem } from "@/shared/components/NeoStats.vue";
+
+import StatusMessage from "./components/StatusMessage.vue";
+import QueryRecordForm, { type RecordItem } from "./components/QueryRecordForm.vue";
+import MemoryArchive from "./components/MemoryArchive.vue";
+import UploadForm from "./components/UploadForm.vue";
 
 const translations = {
   title: { en: "Ex Files", zh: "前任档案" },
@@ -245,17 +170,6 @@ const navTabs: NavTab[] = [
   { id: "upload", icon: "upload", label: t("tabUpload") },
   { id: "docs", icon: "book", label: t("docs") },
 ];
-
-interface RecordItem {
-  id: number;
-  dataHash: string;
-  rating: number;
-  queryCount: number;
-  createTime: number;
-  active: boolean;
-  date: string;
-  hashShort: string;
-}
 
 const contractHash = ref<string | null>(null);
 const records = ref<RecordItem[]>([]);
@@ -488,126 +402,6 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: $space-4;
-}
-
-.section-header-neo {
-  display: flex;
-  align-items: center;
-  gap: $space-3;
-  padding: $space-3 $space-4;
-  background: black;
-  color: white;
-  border: 3px solid black;
-  box-shadow: 4px 4px 0 var(--brutal-yellow);
-}
-
-.section-icon {
-  font-size: 24px;
-}
-.section-title {
-  font-size: 14px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.result-card-neo {
-  background: white;
-  border: 4px solid black;
-  padding: $space-6;
-  box-shadow: 8px 8px 0 black;
-  margin-top: $space-4;
-  position: relative;
-  &::before {
-    content: "QUERY HIT";
-    position: absolute;
-    top: -12px;
-    right: $space-4;
-    background: var(--brutal-yellow);
-    border: 2px solid black;
-    padding: 2px 10px;
-    font-size: 10px;
-    font-weight: $font-weight-black;
-  }
-}
-
-.result-info {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.result-line {
-  font-size: 12px;
-  font-family: $font-mono;
-  font-weight: $font-weight-black;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 4px;
-}
-
-.file-body {
-  padding: $space-2 0;
-}
-.file-title {
-  font-size: 18px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  color: black;
-  border-bottom: 3px solid var(--brutal-yellow);
-  display: inline-block;
-  margin-bottom: 8px;
-}
-.file-date {
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  opacity: 0.6;
-  font-family: $font-mono;
-}
-.file-type {
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  background: var(--neo-green);
-  color: black;
-  padding: 2px 8px;
-  border: 1px solid black;
-}
-
-.file-footer-neo {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: $space-3;
-  border-top: 2px solid black;
-  margin-top: $space-3;
-}
-.view-label {
-  font-size: 12px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  color: black;
-}
-
-.upload-subtitle {
-  font-size: 12px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  opacity: 0.6;
-  margin-bottom: $space-6;
-  display: block;
-  border-left: 4px solid black;
-  padding-left: 8px;
-}
-.hash-note {
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  opacity: 0.8;
-  background: #eee;
-  padding: 4px 8px;
-  border: 1px solid black;
-}
-
-.word-break {
-  word-break: break-all;
 }
 
 .scrollable {

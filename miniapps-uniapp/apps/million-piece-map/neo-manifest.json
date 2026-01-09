@@ -1,0 +1,11 @@
+{
+  "category": "gaming",
+  "name_zh": "百万像素地图",
+  "description": "Own and customize pixels on a massive collaborative canvas. Create art, advertise, or stake your claim on this permanent blockchain masterpiece.",
+  "description_zh": "在大型协作画布上拥有和自定义像素。",
+  "status": "active",
+  "contract_hash": "0xdf787aaf8a70dd2612521de69f12c7bf5a8d0d6d",
+  "permissions": {
+    "payments": true
+  }
+}

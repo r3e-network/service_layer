@@ -1,0 +1,11 @@
+{
+  "category": "governance",
+  "name_zh": "销毁联盟",
+  "description": "Compete in token burning competitions where communities race to reduce supply. Climb leaderboards, earn burn badges, and prove your commitment to deflation.",
+  "description_zh": "参与代币销毁竞赛，减少供应量。",
+  "status": "active",
+  "contract_hash": "0xf1aa73e2fb00664e8ef100dac083fc42be6aaf85",
+  "permissions": {
+    "payments": true
+  }
+}

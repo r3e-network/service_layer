@@ -1,56 +1,36 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <!-- Vote Tab -->
-    <view v-if="activeTab === 'vote'" class="tab-content scrollable">
-      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4">
-        <text class="text-center font-bold">{{ status.msg }}</text>
-      </NeoCard>
-
-      <NeoCard :title="t('epochOverview')" variant="default">
-        <NeoStats :stats="epochStats" />
-      </NeoCard>
-
-      <NeoCard :title="t('registerVote')" variant="accent">
-        <view class="vote-form">
-          <NeoInput
-            v-model="voteWeight"
-            type="number"
-            :label="t('voteWeight')"
-            :placeholder="t('voteWeightPlaceholder')"
-            suffix="NEO"
-            :hint="t('minVoteWeight')"
-          />
-          <NeoButton variant="primary" size="lg" block :loading="isLoading" @click="registerVote">
-            {{ isLoading ? t("processing") : t("registerVote") }}
-          </NeoButton>
-        </view>
-      </NeoCard>
-
-      <NeoCard :title="t('rewards')" variant="default">
-        <view class="rewards-row">
-          <view class="reward-info">
-            <text class="reward-label">{{ t("pendingRewards") }}</text>
-            <text class="reward-value">{{ formattedPendingRewards }}</text>
-          </view>
-          <NeoButton
-            variant="primary"
-            size="md"
-            :disabled="pendingRewardsValue <= 0 || hasClaimed || isLoading"
-            :loading="isLoading"
-            @click="claimRewards"
-          >
-            {{ t("claimRewards") }}
-          </NeoButton>
-        </view>
-      </NeoCard>
-    </view>
+    <VoteTab
+      v-if="activeTab === 'vote'"
+      :status="status"
+      :current-epoch="currentEpoch"
+      :epoch-end-time="epochEndTime"
+      :epoch-total-votes="epochTotalVotes"
+      :current-strategy="currentStrategy"
+      v-model:voteWeight="voteWeight"
+      :is-loading="isLoading"
+      :pending-rewards-value="pendingRewardsValue"
+      :has-claimed="hasClaimed"
+      :candidates="candidates"
+      :selected-candidate="selectedCandidate"
+      :total-votes="totalNetworkVotes"
+      :candidates-loading="candidatesLoading"
+      :t="t as any"
+      @registerVote="registerVote"
+      @claimRewards="claimRewards"
+      @selectCandidate="selectCandidate"
+    />
 
     <!-- Info Tab -->
-    <view v-if="activeTab === 'info'" class="tab-content scrollable">
-      <NeoCard :title="t('networkInfo')" variant="default">
-        <NeoStats :stats="infoStats" />
-      </NeoCard>
-    </view>
+    <InfoTab
+      v-if="activeTab === 'info'"
+      :address="address"
+      :contract-hash="contractHash"
+      :epoch-end-time="epochEndTime"
+      :current-strategy="currentStrategy"
+      :t="t as any"
+    />
 
     <!-- Docs Tab -->
     <view v-if="activeTab === 'docs'" class="tab-content scrollable">
@@ -67,11 +47,16 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
-import { useWallet } from "@neo/uniapp-sdk";
+import { useWallet, useGovernance } from "@neo/uniapp-sdk";
+import type { Candidate } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
-import { formatNumber, formatAddress } from "@/shared/utils/format";
+import { formatNumber } from "@/shared/utils/format";
 import { parseInvokeResult } from "@/shared/utils/neo";
-import { AppLayout, NeoButton, NeoCard, NeoStats, NeoDoc, NeoInput, type StatItem } from "@/shared/components";
+import { AppLayout, NeoDoc } from "@/shared/components";
+import type { NavTab } from "@/shared/components/NavBar.vue";
+
+import VoteTab from "./components/VoteTab.vue";
+import InfoTab from "./components/InfoTab.vue";
 
 const translations = {
   vote: { en: "Vote", zh: "投票" },
@@ -123,6 +108,15 @@ const translations = {
   feature1Desc: { en: "Vote weights and rewards are stored on-chain.", zh: "投票权重与奖励都在链上记录。" },
   feature2Name: { en: "Proportional Rewards", zh: "比例奖励" },
   feature2Desc: { en: "Rewards scale with your registered vote weight.", zh: "奖励随投票权重按比例发放。" },
+  // Candidate selection translations
+  selectCandidate: { en: "Select Candidate", zh: "选择候选人" },
+  loadingCandidates: { en: "Loading candidates...", zh: "加载候选人中..." },
+  noCandidates: { en: "No candidates available", zh: "暂无候选人" },
+  votes: { en: "votes", zh: "票" },
+  totalNetworkVotes: { en: "Total Network Votes", zh: "全网总票数" },
+  votingFor: { en: "Voting for", zh: "投票给" },
+  selectCandidateFirst: { en: "Please select a candidate above", zh: "请先在上方选择候选人" },
+  noCandidateSelected: { en: "No candidate selected", zh: "未选择候选人" },
 };
 
 const t = createT(translations);
@@ -135,8 +129,9 @@ const docFeatures = computed(() => [
 
 const APP_ID = "miniapp-candidate-vote";
 const { address, connect, invokeRead, invokeContract, getContractHash } = useWallet();
+const { getCandidates } = useGovernance(APP_ID);
 
-const navTabs = [
+const navTabs: NavTab[] = [
   { id: "vote", icon: "checkbox", label: t("vote") },
   { id: "info", icon: "info", label: t("info") },
   { id: "docs", icon: "book", label: t("docs") },
@@ -155,68 +150,39 @@ const currentStrategy = ref("");
 const pendingRewardsValue = ref(0);
 const hasClaimed = ref(false);
 
+// Candidate state
+const candidates = ref<Candidate[]>([]);
+const selectedCandidate = ref<Candidate | null>(null);
+const totalNetworkVotes = ref("");
+const candidatesLoading = ref(false);
+
 const showStatus = (msg: string, type: string) => {
   status.value = { msg, type };
   setTimeout(() => (status.value = null), 5000);
 };
-
-const toMillis = (value: number) => (value > 1_000_000_000_000 ? value : value * 1000);
-
-const formatToken = (value: number, decimals = 4) => {
-  if (!Number.isFinite(value)) return "0";
-  const formatted = value.toFixed(decimals);
-  return formatted.replace(/\.?0+$/, "");
-};
-
-const formatNeo = (value: number) => formatNumber(value / 1e8, 2);
-
-const formatEpochEnd = (value: number) => {
-  if (!value) return "--";
-  const date = new Date(toMillis(value));
-  if (Number.isNaN(date.getTime())) return "--";
-  return date.toLocaleString();
-};
-
-const epochEndsIn = computed(() => {
-  if (!epochEndTime.value) return "--";
-  const diff = toMillis(epochEndTime.value) - Date.now();
-  if (diff <= 0) return t("epochEnded");
-  const days = Math.floor(diff / 86400000);
-  const hours = Math.floor((diff % 86400000) / 3600000);
-  const mins = Math.floor((diff % 3600000) / 60000);
-  if (days > 0) return `${days}d ${hours}h`;
-  if (hours > 0) return `${hours}h ${mins}m`;
-  return `${mins}m`;
-});
-
-const strategyLabel = computed(() => {
-  if (currentStrategy.value === "self") return t("strategySelf");
-  if (currentStrategy.value === "neoburger") return t("strategyNeoBurger");
-  return currentStrategy.value || "--";
-});
-
-const formattedPendingRewards = computed(() => `${formatToken(pendingRewardsValue.value)} GAS`);
-
-const epochStats = computed<StatItem[]>(() => [
-  { label: t("currentEpoch"), value: currentEpoch.value || "--" },
-  { label: t("epochEndsIn"), value: epochEndsIn.value, variant: "warning" },
-  { label: t("epochTotalVotes"), value: formatNeo(epochTotalVotes.value), variant: "accent" },
-  { label: t("currentStrategy"), value: strategyLabel.value },
-]);
-
-const infoStats = computed<StatItem[]>(() => [
-  { label: t("wallet"), value: address.value ? formatAddress(address.value) : "--" },
-  { label: t("contract"), value: contractHash.value ? formatAddress(contractHash.value) : "--" },
-  { label: t("epochEndsAt"), value: formatEpochEnd(epochEndTime.value) },
-  { label: t("currentStrategy"), value: strategyLabel.value },
-]);
 
 const readMethod = async (operation: string, args: any[] = []) => {
   const result = await invokeRead({ contractHash: (contractHash.value as string) || undefined, operation, args });
   return parseInvokeResult(result);
 };
 
+const EPOCH_CACHE_KEY = "candidate_vote_epoch_cache";
+const REWARDS_CACHE_KEY = "candidate_vote_rewards_cache";
+const CANDIDATES_CACHE_KEY = "candidate_vote_candidates_cache";
+
 const loadEpochData = async () => {
+  // Try cache first
+  try {
+    const cached = uni.getStorageSync(EPOCH_CACHE_KEY);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      currentEpoch.value = parsed.currentEpoch;
+      epochEndTime.value = parsed.epochEndTime;
+      epochTotalVotes.value = parsed.epochTotalVotes;
+      currentStrategy.value = parsed.currentStrategy;
+    }
+  } catch {}
+
   try {
     if (!contractHash.value) {
       contractHash.value = await getContractHash();
@@ -234,8 +200,18 @@ const loadEpochData = async () => {
     epochEndTime.value = Number(endValue || 0);
     epochTotalVotes.value = Number(totalValue || 0);
     currentStrategy.value = typeof strategyValue === "string" ? strategyValue : String(strategyValue || "");
+    
+    // Save to cache
+    uni.setStorageSync(EPOCH_CACHE_KEY, JSON.stringify({
+      currentEpoch: currentEpoch.value,
+      epochEndTime: epochEndTime.value,
+      epochTotalVotes: epochTotalVotes.value,
+      currentStrategy: currentStrategy.value
+    }));
   } catch (e: any) {
-    showStatus(e.message || t("failedToLoad"), "error");
+    if (currentEpoch.value === 0) {
+      showStatus(e.message || t("failedToLoad"), "error");
+    }
   }
 };
 
@@ -245,6 +221,20 @@ const loadRewards = async () => {
     hasClaimed.value = false;
     return;
   }
+  
+  // Try cache first
+  const cacheKey = `${REWARDS_CACHE_KEY}_${address.value}`;
+  try {
+    const cached = uni.getStorageSync(cacheKey);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed.epoch === currentEpoch.value - 1) {
+        pendingRewardsValue.value = parsed.pending;
+        hasClaimed.value = parsed.claimed;
+      }
+    }
+  } catch {}
+
   const epochId = currentEpoch.value - 1;
   try {
     const [pendingValue, claimedValue] = await Promise.all([
@@ -259,10 +249,52 @@ const loadRewards = async () => {
     ]);
     pendingRewardsValue.value = Number(pendingValue || 0) / 1e8;
     hasClaimed.value = Boolean(claimedValue);
+    
+    // Save to cache
+    uni.setStorageSync(cacheKey, JSON.stringify({
+      epoch: epochId,
+      pending: pendingRewardsValue.value,
+      claimed: hasClaimed.value
+    }));
   } catch {
-    pendingRewardsValue.value = 0;
-    hasClaimed.value = false;
+    if (pendingRewardsValue.value === 0) {
+      pendingRewardsValue.value = 0;
+      hasClaimed.value = false;
+    }
   }
+};
+
+const loadCandidates = async () => {
+  // Try cache first
+  try {
+    const cached = uni.getStorageSync(CANDIDATES_CACHE_KEY);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      candidates.value = parsed.candidates;
+      totalNetworkVotes.value = parsed.totalVotes;
+    }
+  } catch {}
+
+  candidatesLoading.value = true;
+  try {
+    const response = await getCandidates();
+    candidates.value = response.candidates;
+    totalNetworkVotes.value = response.totalVotes;
+    
+    // Save to cache
+    uni.setStorageSync(CANDIDATES_CACHE_KEY, JSON.stringify({
+      candidates: candidates.value,
+      totalVotes: totalNetworkVotes.value
+    }));
+  } catch (e: any) {
+    console.warn("[CandidateVote] Failed to load candidates:", e);
+  } finally {
+    candidatesLoading.value = false;
+  }
+};
+
+const selectCandidate = (candidate: Candidate) => {
+  selectedCandidate.value = candidate;
 };
 
 const registerVote = async () => {
@@ -354,7 +386,7 @@ const claimRewards = async () => {
 
 onMounted(async () => {
   await connect();
-  await loadEpochData();
+  await Promise.all([loadEpochData(), loadCandidates()]);
   await loadRewards();
 });
 </script>
@@ -364,44 +396,11 @@ onMounted(async () => {
 @import "@/shared/styles/variables.scss";
 
 .tab-content {
-  padding: $space-4;
+  padding: 20px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
-}
-
-.vote-form {
-  display: flex;
-  flex-direction: column;
-  gap: $space-4;
-}
-
-.rewards-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: $space-4;
-  background: white;
-  border: 2px solid black;
-  box-shadow: 4px 4px 0 black;
-}
-
-.reward-info {
-  display: flex;
-  flex-direction: column;
-}
-.reward-label {
-  font-size: 8px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  opacity: 0.6;
-}
-.reward-value {
-  font-size: 24px;
-  font-weight: $font-weight-black;
-  font-family: $font-mono;
-  color: var(--neo-green);
+  gap: 16px;
 }
 
 .scrollable {

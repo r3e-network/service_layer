@@ -1,0 +1,12 @@
+{
+  "category": "nft",
+  "name_zh": "时间胶囊",
+  "description": "Lock messages, media, or assets in blockchain time capsules that unlock at a future date. Create digital legacies, schedule surprises, or preserve memories for future generations.",
+  "description_zh": "锁定消息或资产，在未来日期解锁。",
+  "status": "active",
+  "contract_hash": "0x119763e1402d7190728191d83c95c5b8e995abcd",
+  "permissions": {
+    "payments": true,
+    "automation": true
+  }
+}

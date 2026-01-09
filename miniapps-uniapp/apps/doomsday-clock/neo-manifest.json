@@ -1,0 +1,12 @@
+{
+  "category": "governance",
+  "name_zh": "末日时钟",
+  "description": "A community-controlled countdown that resets when people contribute. If it hits zero, locked funds redistribute. Keep the clock alive or watch it all burn.",
+  "description_zh": "社区控制的倒计时，有人贡献时重置。",
+  "status": "active",
+  "contract_hash": "0xe4f386057d6308b83a5fd2e84bc3eb9149adc719",
+  "permissions": {
+    "payments": true,
+    "automation": true
+  }
+}

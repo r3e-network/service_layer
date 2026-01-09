@@ -1,0 +1,11 @@
+{
+  "category": "defi",
+  "name_zh": "NeoBurger",
+  "description": "Stake NEO to earn GAS rewards with liquid staking. Receive bNEO tokens representing your staked NEO, allowing you to earn staking rewards while maintaining liquidity for DeFi activities.",
+  "description_zh": "Neo 质押聚合器。质押 NEO 获取 bNEO，自动复投最大化收益。",
+  "status": "active",
+  "contract_hash": null,
+  "permissions": {
+    "payments": true
+  }
+}

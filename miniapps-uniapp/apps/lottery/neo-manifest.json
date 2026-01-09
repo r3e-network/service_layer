@@ -1,0 +1,13 @@
+{
+  "category": "gaming",
+  "name_zh": "Neo 彩票",
+  "description": "Experience the thrill of provably fair lottery draws powered by VRF randomness. Buy tickets with GAS and compete for massive jackpots with 100% transparent on-chain verification.",
+  "description_zh": "体验由 VRF 随机数驱动的公平彩票抽奖。使用 GAS 购买彩票，竞争巨额奖池，100% 链上透明验证。",
+  "status": "active",
+  "contract_hash": "0x3e330b4c396b40aa08d49912c0179319831b3a6e",
+  "permissions": {
+    "payments": true,
+    "randomness": true,
+    "automation": true
+  }
+}

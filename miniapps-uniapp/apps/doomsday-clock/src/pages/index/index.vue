@@ -6,97 +6,38 @@
       </NeoCard>
 
       <!-- Dramatic Countdown Display -->
-      <NeoCard variant="accent" :class="['doomsday-clock-card', dangerLevel]">
-        <view class="clock-header">
-          <text class="clock-label">{{ t("timeUntilEvent") }}</text>
-          <view :class="['danger-badge', dangerLevel]">
-            <text class="danger-text">{{ dangerLevelText }}</text>
-          </view>
-        </view>
-
-        <view class="clock-display">
-          <text :class="['clock-time', dangerLevel, { pulse: shouldPulse }]">{{ countdown }}</text>
-        </view>
-
-        <!-- Danger Level Meter -->
-        <view class="danger-meter">
-          <view class="meter-labels">
-            <text class="meter-label">{{ t("safe") }}</text>
-            <text class="meter-label">{{ t("critical") }}</text>
-          </view>
-          <view class="meter-bar">
-            <view :class="['meter-fill', dangerLevel]" :style="{ width: dangerProgress + '%' }"></view>
-            <view class="meter-indicator" :style="{ left: dangerProgress + '%' }"></view>
-          </view>
-        </view>
-
-        <!-- Event Description -->
-        <view class="event-description">
-          <text class="event-title">{{ t("nextEvent") }}</text>
-          <text class="event-text">{{ currentEventDescription }}</text>
-        </view>
-      </NeoCard>
+      <ClockFace
+        :danger-level="dangerLevel"
+        :danger-level-text="dangerLevelText"
+        :should-pulse="shouldPulse"
+        :countdown="countdown"
+        :danger-progress="dangerProgress"
+        :current-event-description="currentEventDescription"
+        :t="t as any"
+      />
 
       <!-- Stats Grid -->
-      <NeoCard>
-        <view class="stats-grid">
-          <NeoCard class="flex-1 text-center">
-            <text class="stat-value">{{ formatNum(totalPot) }}</text>
-            <text class="stat-label">{{ t("totalPot") }}</text>
-          </NeoCard>
-          <NeoCard class="flex-1 text-center">
-            <text class="stat-value">{{ userKeys }}</text>
-            <text class="stat-label">{{ t("yourKeys") }}</text>
-          </NeoCard>
-          <NeoCard class="flex-1 text-center">
-            <text class="stat-value">#{{ roundId }}</text>
-            <text class="stat-label">{{ t("round") }}</text>
-          </NeoCard>
-        </view>
-        <view class="stats-subgrid">
-          <view class="stat-row">
-            <text class="stat-row-label">{{ t("lastBuyer") }}</text>
-            <text class="stat-row-value">{{ lastBuyerLabel }}</text>
-          </view>
-          <view class="stat-row">
-            <text class="stat-row-label">{{ t("roundStatus") }}</text>
-            <text class="stat-row-value" :class="{ active: isRoundActive }">
-              {{ isRoundActive ? t("activeRound") : t("inactiveRound") }}
-            </text>
-          </view>
-        </view>
-      </NeoCard>
+      <GameStats
+        :total-pot="totalPot"
+        :user-keys="userKeys"
+        :round-id="roundId"
+        :last-buyer-label="lastBuyerLabel"
+        :is-round-active="isRoundActive"
+        :t="t as any"
+      />
 
       <!-- Buy Keys Section -->
-      <NeoCard>
-        <text class="card-title">{{ t("buyKeys") }}</text>
-        <NeoInput v-model="keyCount" type="number" :placeholder="t('keyCountPlaceholder')" suffix="Keys" />
-        <view class="cost-row">
-          <text class="cost-label">{{ t("estimatedCost") }}</text>
-          <text class="cost-value">{{ estimatedCost }} GAS</text>
-        </view>
-        <text class="hint-text">{{ t("keyPrice") }}</text>
-        <NeoButton variant="primary" size="lg" block @click="buyKeys" :disabled="isPaying">
-          {{ isPaying ? t("buying") : t("buyKeys") }}
-        </NeoButton>
-      </NeoCard>
+      <BuyKeysCard
+        v-model:keyCount="keyCount"
+        :estimated-cost="estimatedCost"
+        :is-paying="isPaying"
+        :t="t as any"
+        @buy="buyKeys"
+      />
     </view>
 
     <view v-if="activeTab === 'history'" class="tab-content scrollable">
-      <NeoCard :title="t('eventHistory')">
-        <view v-if="history.length === 0" class="empty-state">
-          <text>{{ t("noHistory") }}</text>
-        </view>
-        <view class="history-list">
-          <view v-for="event in history" :key="event.id" class="history-item">
-            <view class="history-header">
-              <text class="history-title">{{ event.title }}</text>
-              <text class="history-date">{{ event.date }}</text>
-            </view>
-            <text class="history-desc">{{ event.details }}</text>
-          </view>
-        </view>
-      </NeoCard>
+      <HistoryList :history="history" :t="t as any" />
     </view>
 
     <!-- Docs Tab -->
@@ -118,7 +59,13 @@ import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { formatNumber, formatAddress } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
 import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
-import { AppLayout, NeoButton, NeoCard, NeoInput, NeoDoc } from "@/shared/components";
+import { AppLayout, NeoCard, NeoDoc } from "@/shared/components";
+import type { NavTab } from "@/shared/components/NavBar.vue";
+
+import ClockFace from "./components/ClockFace.vue";
+import GameStats from "./components/GameStats.vue";
+import BuyKeysCard from "./components/BuyKeysCard.vue";
+import HistoryList, { type HistoryEvent } from "./components/HistoryList.vue";
 
 const translations = {
   title: { en: "Doomsday Clock", zh: "末日时钟" },
@@ -198,7 +145,7 @@ const translations = {
 
 const t = createT(translations);
 
-const navTabs = [
+const navTabs: NavTab[] = [
   { id: "game", icon: "game", label: t("game") },
   { id: "history", icon: "time", label: t("history") },
   { id: "docs", icon: "book", label: t("docs") },
@@ -219,13 +166,6 @@ const { address, connect, invokeRead, invokeContract, getContractHash } = useWal
 const { payGAS, isLoading: isPaying } = usePayments(APP_ID);
 const { list: listEvents } = useEvents();
 
-interface HistoryEvent {
-  id: number;
-  title: string;
-  details: string;
-  date: string;
-}
-
 const contractHash = ref<string | null>(null);
 const roundId = ref(0);
 const totalPot = ref(0);
@@ -239,7 +179,6 @@ const history = ref<HistoryEvent[]>([]);
 const now = ref(Date.now());
 const loading = ref(false);
 
-const formatNum = (value: number) => formatNumber(value, 2);
 const toGas = (value: any) => Number(value || 0) / 1e8;
 
 const timeRemainingSeconds = computed(() => {
@@ -484,75 +423,6 @@ onUnmounted(() => {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
-
-.doomsday-clock-card {
-  position: relative;
-  overflow: hidden;
-  border-width: 4px!important;
-  box-shadow: 12px 12px 0 black!important;
-  &.critical { border-color: var(--brutal-red)!important; box-shadow: 12px 12px 0 var(--brutal-red)!important; }
-}
-
-.clock-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: $space-6;
-}
-.clock-label { font-size: 12px; font-weight: $font-weight-black; text-transform: uppercase; border: 2px solid black; padding: 2px 8px; background: white; }
-
-.danger-badge {
-  padding: 4px 12px; border: 3px solid black; font-size: 12px; font-weight: $font-weight-black; text-transform: uppercase;
-  &.low { background: var(--neo-green); }
-  &.medium { background: var(--brutal-yellow); }
-  &.high { background: var(--brutal-orange); color: white; }
-  &.critical { background: var(--brutal-red); color: white; animation: pulse-red 0.5s infinite; }
-}
-
-@keyframes pulse-red { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-
-.clock-display { text-align: center; margin: $space-8 0; background: black; padding: $space-6; border: 3px solid black; box-shadow: inset 8px 8px 0 rgba(255,255,255,0.1); }
-.clock-time {
-  font-size: 56px; font-weight: $font-weight-black; font-family: $font-mono; line-height: 1; color: var(--brutal-green);
-  &.critical { color: var(--brutal-red); }
-  &.pulse { animation: time-pulse 0.5s infinite; }
-}
-
-@keyframes time-pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
-
-.danger-meter { margin-top: $space-6; }
-.meter-labels { display: flex; justify-content: space-between; margin-bottom: 8px; }
-.meter-label { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; }
-
-.meter-bar { height: 20px; background: #eee; border: 3px solid black; position: relative; overflow: hidden; padding: 2px; }
-.meter-fill {
-  height: 100%; transition: width 0.3s ease; background: black;
-  &.critical { background: var(--brutal-red); }
-  &.high { background: var(--brutal-orange); }
-}
-
-.event-description { margin-top: $space-6; padding: $space-4; background: var(--brutal-yellow); border: 2px solid black; box-shadow: 4px 4px 0 black; }
-.event-title { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; border-bottom: 2px solid black; margin-bottom: 4px; display: inline-block; }
-.event-text { font-size: 14px; font-weight: $font-weight-black; display: block; text-transform: uppercase; }
-
-.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: $space-4; }
-.stat-value { font-size: 18px; font-weight: $font-weight-black; font-family: $font-mono; display: block; border-bottom: 3px solid black; margin-bottom: 4px; }
-.stat-label { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; opacity: 0.6; }
-
-.stats-subgrid { margin-top: $space-6; display: flex; flex-direction: column; gap: $space-3; }
-.stat-row { display: flex; justify-content: space-between; padding: $space-3; background: white; border: 2px solid black; box-shadow: 4px 4px 0 black; }
-.stat-row-label { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; }
-.stat-row-value { font-size: 12px; font-weight: $font-weight-black; font-family: $font-mono; &.active { color: var(--neo-green); } }
-
-.cost-row { display: flex; justify-content: space-between; margin: $space-4 0; padding: $space-3; background: #eee; border: 2px solid black; }
-.cost-label { font-size: 12px; font-weight: $font-weight-black; text-transform: uppercase; }
-.cost-value { font-size: 18px; font-weight: $font-weight-black; font-family: $font-mono; }
-
-.history-list { display: flex; flex-direction: column; gap: $space-4; }
-.history-item { padding: $space-4; background: white; border: 3px solid black; box-shadow: 6px 6px 0 black; margin-bottom: $space-2; }
-.history-title { font-weight: $font-weight-black; text-transform: uppercase; font-size: 14px; border-bottom: 2px solid black; margin-bottom: 4px; display: inline-block; }
-.history-date { font-size: 10px; opacity: 0.6; font-weight: $font-weight-black; display: block; margin-bottom: 8px; }
-.history-desc { font-size: 12px; font-family: $font-mono; background: #f0f0f0; padding: 4px 8px; border: 1px solid black; }
 
 .scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 </style>

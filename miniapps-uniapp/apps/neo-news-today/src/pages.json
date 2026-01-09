@@ -1,0 +1,6 @@
+{
+  "pages": [{ "path": "pages/index/index" }],
+  "globalStyle": {
+    "navigationBarTitleText": "Neo News Today"
+  }
+}

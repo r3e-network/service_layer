@@ -1,72 +1,71 @@
 // ============================================
-// NEO BRUTALISM DESIGN TOKENS
-// Bold borders, hard shadows, high contrast
+// NEO MODERN GLASS DESIGN TOKENS
+// Smooth gradients, glassmorphism, soft shadows
 // ============================================
 
 // === COLORS ===
 
 // Brand Colors
 $neo-green: #00e599;
-$neo-purple: #6600ee;
-$neo-black: #000000;
+$neo-purple: #7000ff;
+$neo-black: #02040a; // Deep dark blue-black
 $neo-white: #ffffff;
 
-// Brutalist Accent Palette
-$brutal-yellow: #ffde59;
-$brutal-pink: #ff6b9d;
-$brutal-blue: #4ecdc4;
-$brutal-orange: #ff8c42;
-$brutal-red: #ff4757;
-$brutal-lime: #a8e6cf;
+// Modern Tech Palette (Neon Pastels)
+$brutal-yellow: #fde047;
+$brutal-pink: #f472b6;
+$brutal-blue: #22d3ee;
+$brutal-orange: #fb923c;
+$brutal-red: #ef4444;
+$brutal-lime: #a3e635;
 
-// Background Colors (Dark Theme) - Improved contrast
-$bg-primary: #0f0f0f;
-$bg-secondary: #1a1a1a;
-$bg-card: #262626;
-$bg-elevated: #333333;
+// Background Colors (Dark Theme)
+$bg-primary: #02040a;
+$bg-secondary: #0a0f1c;
+$bg-card: rgba(255, 255, 255, 0.02); // Glass base
+$bg-elevated: #1e293b;
 
 // Background Colors (Light Theme)
-$bg-primary-light: #f5f5f5;
-$bg-secondary-light: #e8e8e8;
+$bg-primary-light: #f8fafc;
+$bg-secondary-light: #f1f5f9;
 $bg-card-light: #ffffff;
-$bg-elevated-light: #fafafa;
+$bg-elevated-light: #ffffff;
 
 // Text Colors
 $text-primary: #ffffff;
-$text-secondary: #a0a0a0;
-$text-muted: #666666;
-$text-primary-light: #0a0a0a;
-$text-secondary-light: #555555;
+$text-secondary: rgba(255, 255, 255, 0.7);
+$text-muted: rgba(255, 255, 255, 0.5);
+$text-primary-light: #0f172a;
+$text-secondary-light: #475569;
 
 // Status Colors
 $status-success: #00e599;
-$status-error: #ff4757;
-$status-warning: #ffde59;
-$status-info: #4ecdc4;
+$status-error: #ef4444;
+$status-warning: #fde047;
+$status-info: #38bdf8;
 
 // === BORDERS ===
 
-$border-width-sm: 2px;
-$border-width-md: 3px;
-$border-width-lg: 4px;
-$border-color: $neo-black;
-$border-color-light: $neo-white;
+$border-width-sm: 1px;
+$border-width-md: 1px;
+$border-width-lg: 2px;
+$border-color: rgba(255, 255, 255, 0.05); // Glass border
+$border-color-light: #e2e8f0;
 
-// === SHADOWS (Hard/Offset) ===
+// === SHADOWS (Soft/Glow) ===
 
-$shadow-sm: 3px 3px 0 $neo-black;
-$shadow-md: 5px 5px 0 $neo-black;
-$shadow-lg: 8px 8px 0 $neo-black;
-$shadow-xl: 12px 12px 0 $neo-black;
+$shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+$shadow-md: 0 8px 16px rgba(0, 0, 0, 0.2);
+$shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.3);
+$shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.4);
 
-// Colored shadows
-$shadow-neo: 5px 5px 0 $neo-green;
-$shadow-purple: 5px 5px 0 $neo-purple;
-$shadow-yellow: 5px 5px 0 $brutal-yellow;
+// Colored shadows (Glows)
+$shadow-neo: 0 0 20px rgba(0, 229, 153, 0.3);
+$shadow-purple: 0 0 20px rgba(112, 0, 255, 0.3);
+$shadow-yellow: 0 0 20px rgba(253, 224, 71, 0.3);
 
 // === SPACING ===
 
-// Spacing (compact for MiniApp layout)
 $space-1: 2px;
 $space-2: 4px;
 $space-3: 6px;
@@ -78,50 +77,49 @@ $space-10: 24px;
 $space-12: 32px;
 
 // === BORDER RADIUS ===
-// Brutalism uses minimal or no radius
 
 $radius-none: 0;
-$radius-sm: 4px;
-$radius-md: 8px;
-$radius-lg: 12px;
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 16px;
+$radius-full: 9999px;
 
 // === TYPOGRAPHY ===
 
-@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
 
-$font-family:
-  "Outfit",
+$font-family: "Inter",
   -apple-system,
   BlinkMacSystemFont,
   "Segoe UI",
   sans-serif;
 $font-mono: "JetBrains Mono", "Fira Code", monospace;
 
-// Font sizes (aligned with host-app: text-xs=12px, text-sm=14px)
-$font-size-xs: 0.625rem; // 10px
-$font-size-sm: 0.75rem; // 12px (= host text-xs)
-$font-size-base: 0.8125rem; // 13px
-$font-size-lg: 0.875rem; // 14px (= host text-sm)
-$font-size-xl: 1rem; // 16px
-$font-size-2xl: 1.125rem; // 18px
-$font-size-3xl: 1.375rem; // 22px
-$font-size-4xl: 1.625rem; // 26px
+// Font sizes (aligned with host-app)
+$font-size-xs: 0.75rem; // 12px
+$font-size-sm: 0.875rem; // 14px
+$font-size-base: 1rem; // 16px
+$font-size-lg: 1.125rem; // 18px
+$font-size-xl: 1.25rem; // 20px
+$font-size-2xl: 1.5rem; // 24px
+$font-size-3xl: 1.875rem; // 30px
+$font-size-4xl: 2.25rem; // 36px
 
 $font-weight-normal: 400;
 $font-weight-medium: 500;
 $font-weight-semibold: 600;
 $font-weight-bold: 700;
-$font-weight-black: 900;
+$font-weight-black: 800;
 
-$line-height-tight: 1.2;
+$line-height-tight: 1.25;
 $line-height-normal: 1.5;
 $line-height-relaxed: 1.75;
 
 // === TRANSITIONS ===
 
-$transition-fast: 0.1s ease;
-$transition-normal: 0.2s ease;
-$transition-slow: 0.3s ease;
+$transition-fast: 0.15s ease-out;
+$transition-normal: 0.3s ease-out;
+$transition-slow: 0.5s ease-out;
 
 // === Z-INDEX ===
 

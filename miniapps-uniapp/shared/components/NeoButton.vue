@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "success" | "warning";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "success" | "warning" | "erobo";
 export type ButtonSize = "sm" | "md" | "lg";
 
 defineProps<{
@@ -39,107 +39,139 @@ defineEmits<{
   align-items: center;
   justify-content: center;
   gap: $space-2;
-  font-family: $font-family;
-  font-weight: $font-weight-bold;
+  font-family: "Inter", sans-serif;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
   cursor: pointer;
-  border: $border-width-md solid var(--border-color);
-  transition:
-    transform $transition-fast,
-    box-shadow $transition-fast;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
 
   &:active:not(:disabled) {
-    transform: translate(3px, 3px);
-    box-shadow: none !important;
+    transform: translateY(0);
   }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    filter: grayscale(0.5);
   }
 
   &--block {
     width: 100%;
+    display: flex;
   }
 
   // Sizes
   &--sm {
-    height: 36px;
-    padding: 0 $space-4;
-    font-size: $font-size-sm;
+    height: 32px;
+    padding: 0 16px;
+    font-size: 11px;
   }
 
   &--md {
-    height: 48px;
-    padding: 0 $space-6;
-    font-size: $font-size-base;
+    height: 44px;
+    padding: 0 24px;
+    font-size: 13px;
   }
 
   &--lg {
     height: 56px;
-    padding: 0 $space-8;
-    font-size: $font-size-lg;
+    padding: 0 32px;
+    font-size: 15px;
   }
 
   // Variants
   &--primary {
-    background: var(--neo-green);
-    color: $neo-black;
-    box-shadow: $shadow-md;
+    background: linear-gradient(135deg, #00e599 0%, #00bc7d 100%);
+    color: #000;
+    box-shadow: 0 4px 15px rgba(0, 229, 153, 0.4);
+    border: none;
 
     &:hover:not(:disabled) {
-      background: lighten($neo-green, 5%);
+      box-shadow: 0 6px 25px rgba(0, 229, 153, 0.6);
+      filter: brightness(1.1);
     }
   }
 
   &--secondary {
-    background: var(--bg-card);
-    color: var(--text-primary);
-    box-shadow: $shadow-md;
+    background: var(--bg-card, rgba(255, 255, 255, 0.05));
+    color: var(--text-primary, white);
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 10px var(--shadow-color, rgba(0, 0, 0, 0.1));
 
     &:hover:not(:disabled) {
-      background: var(--bg-elevated);
+      background: var(--bg-elevated, rgba(255, 255, 255, 0.1));
+      border-color: var(--border-color, rgba(255, 255, 255, 0.2));
+      box-shadow: 0 4px 15px var(--shadow-color, rgba(0, 0, 0, 0.2));
     }
   }
 
   &--ghost {
     background: transparent;
-    color: var(--text-primary);
+    color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+    border-color: transparent;
     box-shadow: none;
 
     &:hover:not(:disabled) {
-      background: var(--bg-secondary);
+      color: var(--text-primary, white);
+      background: var(--bg-card, rgba(255, 255, 255, 0.05));
     }
   }
 
   &--danger {
-    background: var(--brutal-red);
-    color: $neo-white;
-    box-shadow: 5px 5px 0 darken($brutal-red, 20%);
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+    border: none;
 
     &:hover:not(:disabled) {
-      background: lighten($brutal-red, 5%);
+      box-shadow: 0 6px 25px rgba(239, 68, 68, 0.6);
+      filter: brightness(1.1);
     }
   }
 
   &--success {
-    background: var(--status-success);
-    color: var(--text-on-success);
-    box-shadow: 5px 5px 0 darken($neo-green, 20%);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    border: none;
 
     &:hover:not(:disabled) {
-      background: lighten($neo-green, 5%);
+      box-shadow: 0 6px 25px rgba(16, 185, 129, 0.6);
+      filter: brightness(1.1);
     }
   }
 
   &--warning {
-    background: var(--status-warning);
-    color: var(--neo-black);
-    box-shadow: 5px 5px 0 darken($brutal-yellow, 20%);
+    background: linear-gradient(135deg, #fde047 0%, #eab308 100%);
+    color: #000;
+    box-shadow: 0 4px 15px rgba(253, 224, 71, 0.4);
+    border: none;
 
     &:hover:not(:disabled) {
-      background: lighten($brutal-yellow, 5%);
+      box-shadow: 0 6px 25px rgba(253, 224, 71, 0.6);
+      filter: brightness(1.1);
+    }
+  }
+
+  &--erobo {
+    background: var(--erobo-gradient, linear-gradient(135deg, #9f9df3 0%, #7b79d1 100%));
+    color: #fff;
+    box-shadow: var(--erobo-glow, 0 0 30px rgba(159, 157, 243, 0.4));
+    border: none;
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 0 40px rgba(159, 157, 243, 0.6);
+      filter: brightness(1.1);
     }
   }
 
@@ -147,7 +179,7 @@ defineEmits<{
   &__spinner {
     width: 20px;
     height: 20px;
-    border: 3px solid currentColor;
+    border: 2px solid currentColor;
     border-top-color: transparent;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;

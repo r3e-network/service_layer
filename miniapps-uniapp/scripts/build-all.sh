@@ -38,4 +38,10 @@ for app_dir in "$APPS_DIR"/*/; do
   fi
 done
 
+# Auto-discover and register miniapps
+echo ""
+echo "Auto-discovering miniapps..."
+node "$SCRIPT_DIR/auto-discover-miniapps.js"
+
+echo ""
 echo "Done! Built apps are in $OUTPUT_DIR"

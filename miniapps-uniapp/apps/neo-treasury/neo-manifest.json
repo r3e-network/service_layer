@@ -1,0 +1,11 @@
+{
+  "category": "utility",
+  "name_zh": "Neo 国库",
+  "description": "Track Neo co-founders Da Hongfei and Erik Zhang's wallet holdings in real-time. View NEO and GAS balances across 44 treasury addresses with live price data.",
+  "description_zh": "实时追踪 Neo 联合创始人达鸿飞和张铮文的钱包持有量。查看 44 个国库地址的 NEO 和 GAS 余额及实时价格。",
+  "status": "active",
+  "contract_hash": null,
+  "permissions": {
+    "datafeed": true
+  }
+}

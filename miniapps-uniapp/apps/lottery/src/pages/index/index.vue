@@ -11,7 +11,7 @@
           <text class="text-center font-bold">{{ status.msg }}</text>
         </NeoCard>
 
-        <NeoCard class="hero-card">
+        <NeoCard class="hero-card" variant="erobo-neo">
           <view class="countdown-container">
             <view class="countdown-circle">
               <svg class="countdown-ring" viewBox="0 0 220 220">
@@ -75,7 +75,7 @@
 
       <!-- Scrollable Buy Section -->
       <view class="buy-section">
-        <NeoCard :title="t('buyTickets')" variant="accent" class="ticket-purchase-card">
+        <NeoCard :title="t('buyTickets')" variant="erobo-neo" class="ticket-purchase-card">
           <!-- Ticket Selector -->
           <view class="ticket-selector">
             <NeoButton variant="secondary" @click="adjustTickets(-1)">−</NeoButton>
@@ -440,75 +440,324 @@ onUnmounted(() => clearInterval(timer));
 @import "@/shared/styles/variables.scss";
 
 .tab-content {
-  padding: $space-6;
+  padding: 20px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-6;
+  gap: 16px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
 .hero-fixed {
-  background: white; 
-  padding: $space-8; 
-  border: 4px solid black; 
-  box-shadow: 12px 12px 0 black; 
-  margin-bottom: $space-8;
+  background: none;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  margin-bottom: 24px;
   position: relative;
 }
 
-.countdown-container { display: flex; justify-content: center; margin-bottom: $space-8; }
+.hero-card {
+  padding: 20px;
+}
+
+.countdown-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
 .countdown-circle {
-  width: 160px; height: 160px; background: #ffde59; border: 6px solid black;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;
-  box-shadow: 8px 8px 0 black;
+  width: 180px;
+  height: 180px;
+  background: transparent;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: none;
 }
-.countdown-time { font-family: $font-mono; font-weight: $font-weight-black; font-size: 40px; color: black; border-bottom: 4px solid black; font-style: italic; }
-.countdown-label { font-size: 12px; font-weight: $font-weight-black; text-transform: uppercase; color: black; margin-top: 6px; letter-spacing: 1px; }
+.countdown-ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.countdown-ring-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.05);
+  stroke-width: 14;
+}
+.countdown-ring-progress {
+  fill: none;
+  stroke: #00E599;
+  stroke-width: 14;
+  stroke-linecap: round;
+  stroke-dasharray: 622;
+  transition: stroke-dashoffset 1s linear;
+  filter: drop-shadow(0 0 10px rgba(0, 229, 153, 0.3));
+}
+.countdown-text {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.countdown-time {
+  font-family: 'Inter', monospace;
+  font-weight: 800;
+  font-size: 36px;
+  color: white;
+  border-bottom: none;
+  font-style: normal;
+  text-shadow: 0 0 20px rgba(0, 229, 153, 0.3);
+}
+.countdown-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  margin-top: 4px;
+  letter-spacing: 0.1em;
+}
 
-.lottery-balls { display: flex; justify-content: center; gap: $space-4; margin-bottom: $space-8; }
+.lottery-balls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
 .lottery-ball {
-  width: 50px; height: 50px; background: white; border: 4px solid black;
-  display: flex; align-items: center; justify-content: center; font-family: $font-mono; font-weight: $font-weight-black; font-size: 20px;
-  box-shadow: 4px 4px 0 black;
-  &.active { background: #00E599; }
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', monospace;
+  font-weight: 700;
+  font-size: 18px;
+  color: white;
+  box-shadow: 0 0 15px rgba(0, 229, 153, 0.1);
+  transition: all 0.3s;
+  
+  &.active {
+    background: #00E599;
+    color: black;
+    box-shadow: 0 0 20px rgba(0, 229, 153, 0.4);
+  }
 }
 
-.prize-pool-display { 
-  text-align: center; 
-  background: black; 
-  padding: $space-6; 
-  border: 4px solid black; 
-  box-shadow: 8px 8px 0 #ffde59; 
+.prize-pool-display {
+  text-align: center;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
+  border-radius: 16px;
+  box-shadow: none;
 }
-.prize-label { font-size: 12px; font-weight: $font-weight-black; text-transform: uppercase; color: #ffde59; letter-spacing: 2px; font-style: italic; }
-.prize-amount { font-family: $font-mono; font-weight: $font-weight-black; font-size: 44px; color: #00E599; text-shadow: 3px 3px 0 rgba(255,255,255,0.1); }
-.prize-currency { font-size: 18px; font-weight: $font-weight-black; color: white; margin-left: 8px; }
+.prize-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #FFDE59;
+  letter-spacing: 0.1em;
+  font-style: normal;
+}
+.prize-amount-container {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+}
+.prize-amount {
+  font-family: 'Inter', monospace;
+  font-weight: 800;
+  font-size: 40px;
+  color: white;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+.prize-currency {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  margin-left: 8px;
+}
 
-.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: $space-4; margin-top: $space-4; }
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
 .stat-box {
-  padding: $space-4; background: white; border: 4px solid black; text-align: center; box-shadow: 6px 6px 0 black;
-  &.highlight { background: #ffde59; }
+  padding: 16px;
+  background: var(--bg-card, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: none;
+  
+  &.highlight {
+    background: rgba(0, 229, 153, 0.1);
+    border-color: #00E599;
+    box-shadow: 0 0 15px rgba(0, 229, 153, 0.1);
+  }
 }
-.stat-value { font-weight: $font-weight-black; font-family: $font-mono; font-size: 20px; border-bottom: 3px solid black; display: block; margin-bottom: 6px; font-style: italic; }
-.stat-label { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; color: black; }
+.stat-value {
+  font-weight: 700;
+  font-family: 'Inter', monospace;
+  font-size: 18px;
+  border-bottom: none;
+  display: block;
+  margin-bottom: 4px;
+  font-style: normal;
+  color: white;
+}
+.stat-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+}
 
-.ticket-selector { display: flex; align-items: center; justify-content: center; gap: $space-8; margin: $space-8 0; background: #fff; padding: $space-6; border: 4px solid black; box-shadow: 8px 8px 0 #00E599; }
-.ticket-display { display: flex; flex-direction: column; align-items: center; }
-.ticket-count { font-size: 48px; font-weight: $font-weight-black; font-family: $font-mono; color: black; font-style: italic; }
 
-.winners-list { display: flex; flex-direction: column; gap: $space-4; }
+.ticket-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin: 24px 0;
+  background: transparent;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+}
+.ticket-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.ticket-visual {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mini-ticket {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px;
+  border-radius: 8px;
+  color: white;
+}
+.ticket-count {
+  font-size: 40px;
+  font-weight: 800;
+  font-family: 'Inter', monospace;
+  color: white;
+  font-style: normal;
+}
+.ticket-overflow {
+  font-size: 12px;
+  color: #00E599;
+  font-weight: 700;
+  background: rgba(0, 229, 153, 0.2);
+  padding: 4px 8px;
+  border-radius: 99px;
+  margin-left: 8px;
+}
+
+.winners-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 .winner-item {
-  display: flex; justify-content: space-between; align-items: center; padding: $space-6; background: white; border: 4px solid black; box-shadow: 8px 8px 0 black;
-  transition: transform 0.2s;
-  &:hover { transform: translate(-3px, -3px); box-shadow: 11px 11px 0 black; }
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: var(--bg-card, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
+  border-radius: 16px;
+  box-shadow: none;
+  transition: background 0.2s;
+  
+  &:hover {
+    background: var(--bg-card, rgba(255, 255, 255, 0.05));
+    transform: none;
+    box-shadow: none;
+  }
 }
-.winner-medal { font-size: 32px; background: #f0f0f0; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border: 3px solid black; }
-.winner-info { display: flex; flex-direction: column; flex: 1; margin-left: $space-6; }
-.winner-round { font-size: 12px; font-weight: $font-weight-black; text-transform: uppercase; border-bottom: 2px solid black; display: inline-block; width: fit-content; font-style: italic; }
-.winner-addr { font-family: $font-mono; font-size: 14px; font-weight: $font-weight-black; margin-top: 6px; color: black; }
-.winner-prize { font-weight: $font-weight-black; font-family: $font-mono; color: black; background: #00E599; padding: 4px 14px; font-size: 18px; border: 3px solid black; box-shadow: 4px 4px 0 black; }
+.winner-medal {
+  font-size: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+}
+.winner-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  margin-left: 16px;
+}
+.winner-round {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-bottom: none;
+  display: block;
+  width: fit-content;
+  font-style: normal;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+}
+.winner-addr {
+  font-family: 'Inter', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 4px;
+  color: white;
+}
+.winner-prize {
+  font-weight: 700;
+  font-family: 'Inter', monospace;
+  color: #00E599;
+  background: transparent;
+  padding: 0;
+  font-size: 16px;
+  border: none;
+  box-shadow: none;
+}
 
-.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.empty {
+  text-align: center;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  font-size: 14px;
+  padding: 24px;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 24px;
+}
+.total-label { font-size: 14px; color: var(--text-secondary, rgba(255, 255, 255, 0.6)); }
+.total-value { font-size: 20px; font-weight: 700; color: white; font-family: 'Inter', monospace; }
+
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
 </style>

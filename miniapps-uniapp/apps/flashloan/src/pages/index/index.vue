@@ -13,198 +13,53 @@
       </NeoCard>
 
       <!-- Flash Loan Flow Visualization -->
-      <NeoCard variant="default" class="flow-card">
-        <view class="flow-header">
-          <text class="flow-title">⚡ {{ t("flashLoanFlow") }}</text>
-        </view>
-        <view class="flow-diagram">
-          <view class="flow-step">
-            <view class="flow-icon">💰</view>
-            <text class="flow-label">{{ t("borrow") }}</text>
-          </view>
-          <view class="flow-arrow">→</view>
-          <view class="flow-step">
-            <view class="flow-icon">🔄</view>
-            <text class="flow-label">{{ t("execute") }}</text>
-          </view>
-          <view class="flow-arrow">→</view>
-          <view class="flow-step">
-            <view class="flow-icon">✓</view>
-            <text class="flow-label">{{ t("repay") }}</text>
-          </view>
-        </view>
-        <view class="flow-note">
-          <text class="note-text">{{ t("flowNote") }}</text>
-        </view>
-      </NeoCard>
+      <FlowVisualization :t="t as any" />
 
       <!-- Liquidity Pool -->
-      <NeoCard variant="default" class="liquidity-card">
-        <view class="card-header">
-          <text class="card-title">{{ t("availableLiquidity") }}</text>
-          <view class="lightning-badge">⚡</view>
-        </view>
-        <view class="liquidity-grid">
-          <view class="liquidity-item">
-            <text class="token-label">GAS</text>
-            <text class="token-amount">{{ formatNum(gasLiquidity) }}</text>
-            <view class="liquidity-bar">
-              <view class="liquidity-fill" :style="{ width: '75%' }"></view>
-            </view>
-          </view>
-          <view class="liquidity-item">
-            <text class="token-label">NEO</text>
-            <text class="token-amount">{{ neoLiquidity }}</text>
-            <view class="liquidity-bar">
-              <view class="liquidity-fill neo" :style="{ width: '60%' }"></view>
-            </view>
-          </view>
-        </view>
-      </NeoCard>
+      <LiquidityPoolCard :gas-liquidity="gasLiquidity" :neo-liquidity="neoLiquidity" :t="t as any" />
 
       <!-- Loan Request Form -->
-      <NeoCard variant="default" class="loan-card">
-        <view class="card-header">
-          <text class="card-title">{{ t("requestFlashLoan") }}</text>
-          <view class="risk-indicator" :class="riskLevel">
-            <text class="risk-text">{{ t(riskLevel) }}</text>
-          </view>
-        </view>
-
-        <!-- Operation Type Selector -->
-        <view class="operation-section">
-          <text class="section-label">{{ t("selectOperation") }}</text>
-          <view class="operation-grid">
-            <view
-              v-for="op in operationTypes"
-              :key="op.id"
-              :class="['operation-btn', { active: selectedOperation === op.id }]"
-              @click="selectedOperation = op.id"
-            >
-              <text class="op-icon">{{ op.icon }}</text>
-              <text class="op-name">{{ (t as any)(op.id) }}</text>
-              <text class="op-desc">{{ (t as any)(op.id + "Desc") }}</text>
-            </view>
-          </view>
-        </view>
-
-        <view class="input-section">
-          <NeoInput v-model="loanAmount" type="number" :placeholder="t('amountPlaceholder')" suffix="GAS" />
-          <view class="amount-hints">
-            <text
-              v-for="hint in [1000, 5000, 10000]"
-              :key="hint"
-              class="hint-btn"
-              @click="loanAmount = hint.toString()"
-            >
-              {{ formatNum(hint) }}
-            </text>
-          </view>
-        </view>
-
-        <!-- Fee Calculator -->
-        <view class="fee-calculator">
-          <view class="calc-row">
-            <text class="calc-label">{{ t("loanAmount") }}</text>
-            <text class="calc-value">{{ formatNum(parseFloat(loanAmount || "0")) }} GAS</text>
-          </view>
-          <view class="calc-row">
-            <text class="calc-label">{{ t("fee") }}</text>
-            <text class="calc-value fee-highlight">{{ (parseFloat(loanAmount || "0") * 0.0009).toFixed(4) }} GAS</text>
-          </view>
-          <view class="calc-divider"></view>
-          <view class="calc-row total">
-            <text class="calc-label">{{ t("totalRepay") }}</text>
-            <text class="calc-value">{{ (parseFloat(loanAmount || "0") * 1.0009).toFixed(4) }} GAS</text>
-          </view>
-          <view class="calc-divider"></view>
-          <view class="calc-row profit">
-            <text class="calc-label">{{ t("estimatedProfit") }}</text>
-            <text class="calc-value profit-highlight">+{{ estimatedProfit.toFixed(4) }} GAS</text>
-          </view>
-        </view>
-
-        <!-- Risk Warning -->
-        <view v-if="parseFloat(loanAmount || '0') > gasLiquidity * 0.5" class="risk-warning">
-          <text class="warning-icon">⚠️</text>
-          <text class="warning-text">{{ t("highRiskWarning") }}</text>
-        </view>
-
-        <NeoButton variant="primary" size="lg" block :loading="isLoading" @click="requestLoan" class="execute-btn">
-          <text v-if="!isLoading">⚡ {{ t("executeLoan") }}</text>
-          <text v-else>{{ t("processing") }}</text>
-        </NeoButton>
-      </NeoCard>
+      <LoanRequestForm
+        v-model:loanAmount="loanAmount"
+        v-model:selectedOperation="selectedOperation"
+        :risk-level="riskLevel"
+        :operation-types="operationTypes"
+        :estimated-profit="estimatedProfit"
+        :gas-liquidity="gasLiquidity"
+        :is-loading="isLoading"
+        :t="t as any"
+        @request="requestLoan"
+      />
     </view>
 
     <!-- Stats Tab -->
     <view v-if="activeTab === 'stats'" class="tab-content scrollable">
       <!-- Statistics Overview -->
-      <NeoCard variant="default" class="stats-overview">
-        <text class="stats-title">📊 {{ t("statistics") }}</text>
-        <view class="stats-grid">
-          <NeoCard variant="default" class="flex-1 text-center">
-            <text class="stat-value">{{ stats.totalLoans }}</text>
-            <text class="stat-label">{{ t("totalLoans") }}</text>
-          </NeoCard>
-          <NeoCard variant="default" class="flex-1 text-center">
-            <text class="stat-value">{{ formatNum(stats.totalVolume) }}</text>
-            <text class="stat-label">{{ t("totalVolume") }}</text>
-          </NeoCard>
-          <NeoCard variant="default" class="flex-1 text-center">
-            <text class="stat-value">{{ stats.totalFees.toFixed(2) }}</text>
-            <text class="stat-label">{{ t("totalFees") }}</text>
-          </NeoCard>
-          <NeoCard variant="default" class="flex-1 text-center">
-            <text class="stat-value">{{
-              stats.totalLoans > 0 ? formatNum(stats.totalVolume / stats.totalLoans) : 0
-            }}</text>
-            <text class="stat-label">{{ t("avgLoanSize") }}</text>
-          </NeoCard>
-        </view>
-      </NeoCard>
+      <SimulationStats :stats="stats" :t="t as any" />
 
       <!-- Recent Loans Table -->
-      <NeoCard variant="default" class="history-card">
-        <text class="stats-title">📜 {{ t("recentLoans") }}</text>
-        <view v-if="recentLoans.length > 0" class="loans-table">
-          <view class="table-header">
-            <text class="th th-amount">{{ t("amount") }}</text>
-            <text class="th th-fee">{{ t("feeShort") }}</text>
-            <text class="th th-time">{{ t("time") }}</text>
-          </view>
-          <view v-for="(loan, idx) in recentLoans" :key="idx" class="table-row">
-            <text class="td td-amount">{{ formatNum(loan.amount) }} GAS</text>
-            <text class="td td-fee">{{ (loan.amount * 0.0009).toFixed(4) }}</text>
-            <text class="td td-time">{{ loan.timestamp }}</text>
-          </view>
-        </view>
-        <view v-else class="empty-state">
-          <text class="empty-icon">📭</text>
-          <text class="empty-text">{{ t("noHistory") }}</text>
-        </view>
-      </NeoCard>
+      <RecentLoansTable :recent-loans="recentLoans" :t="t as any" />
     </view>
 
     <!-- Docs Tab -->
     <view v-if="activeTab === 'docs'" class="tab-content scrollable">
-      <NeoDoc
-        :title="t('title')"
-        :subtitle="t('docSubtitle')"
-        :description="t('docDescription')"
-        :steps="docSteps"
-        :features="docFeatures"
-      />
+      <FlashloanDocs :t="t as any" />
     </view>
   </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { useWallet } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
-import { AppLayout, NeoButton, NeoInput, NeoCard, NeoDoc } from "@/shared/components";
+import { AppLayout, NeoCard, NeoDoc } from "@/shared/components";
+import FlowVisualization from "./components/FlowVisualization.vue";
+import LiquidityPoolCard from "./components/LiquidityPoolCard.vue";
+import LoanRequestForm from "./components/LoanRequestForm.vue";
+import SimulationStats from "./components/SimulationStats.vue";
+import RecentLoansTable from "./components/RecentLoansTable.vue";
+import FlashloanDocs from "./components/FlashloanDocs.vue";
 
 const translations = {
   title: { en: "Flash Loan Simulator", zh: "闪电贷模拟器" },
@@ -270,6 +125,36 @@ const translations = {
   feature1Desc: { en: "Practice flash loan strategies without real funds", zh: "无需真实资金即可练习闪电贷策略" },
   feature2Name: { en: "Real Scenarios", zh: "真实场景" },
   feature2Desc: { en: "Simulate arbitrage, liquidations, and collateral swaps", zh: "模拟套利、清算和抵押品交换" },
+  // Detailed docs translations
+  docTitle: { en: "Flash Loan Documentation", zh: "闪电贷文档" },
+  contractInfo: { en: "Contract Information", zh: "合约信息" },
+  contractName: { en: "Contract Name", zh: "合约名称" },
+  version: { en: "Version", zh: "版本" },
+  minLoan: { en: "Min Loan", zh: "最小贷款" },
+  maxLoan: { en: "Max Loan", zh: "最大贷款" },
+  cooldown: { en: "Cooldown", zh: "冷却时间" },
+  minutes: { en: "minutes", zh: "分钟" },
+  dailyLimit: { en: "Daily Limit", zh: "每日限制" },
+  loansPerDay: { en: "loans/day", zh: "笔/天" },
+  contractMethods: { en: "Contract Methods", zh: "合约方法" },
+  write: { en: "WRITE", zh: "写入" },
+  read: { en: "READ", zh: "读取" },
+  parameters: { en: "Parameters", zh: "参数" },
+  returns: { en: "Returns", zh: "返回" },
+  requestLoanDesc: { en: "Request a flash loan with callback verification", zh: "请求带回调验证的闪电贷" },
+  borrowerDesc: { en: "Your wallet address", zh: "你的钱包地址" },
+  amountDesc: { en: "Loan amount in GAS (8 decimals)", zh: "GAS 贷款金额（8位小数）" },
+  callbackContractDesc: { en: "Contract to receive and repay loan", zh: "接收和偿还贷款的合约" },
+  callbackMethodDesc: { en: "Method to call on callback contract", zh: "回调合约上调用的方法" },
+  getLoanDesc: { en: "Get loan details by ID", zh: "通过 ID 获取贷款详情" },
+  getPoolBalanceDesc: { en: "Get current liquidity pool balance", zh: "获取当前流动性池余额" },
+  depositDesc: { en: "Deposit liquidity to the flash loan pool", zh: "向闪电贷池存入流动性" },
+  events: { en: "Contract Events", zh: "合约事件" },
+  howToUse: { en: "How to Use Flash Loans", zh: "如何使用闪电贷" },
+  step5: {
+    en: "Ensure your callback contract repays loan + 0.09% fee atomically",
+    zh: "确保你的回调合约原子化偿还贷款 + 0.09% 手续费",
+  },
 };
 
 const t = createT(translations);
@@ -281,7 +166,6 @@ const navTabs = [
 ];
 
 const activeTab = ref("main");
-
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
@@ -291,16 +175,13 @@ const docFeatures = computed(() => [
 const APP_ID = "miniapp-flashloan";
 const { address, connect } = useWallet();
 
-// Simulation mode - no real payments
 const isLoading = ref(false);
 const dataLoading = ref(true);
-
 const gasLiquidity = ref(0);
 const neoLiquidity = ref(0);
 const loanAmount = ref("");
 const status = ref<{ msg: string; type: string } | null>(null);
 
-// Operation type for simulation
 type OperationType = "arbitrage" | "liquidation" | "collateralSwap";
 const selectedOperation = ref<OperationType>("arbitrage");
 
@@ -310,7 +191,6 @@ const operationTypes = computed(() => [
   { id: "collateralSwap" as OperationType, icon: "🔄", profit: 0.1 },
 ]);
 
-// Calculate estimated profit based on operation type
 const estimatedProfit = computed(() => {
   const amount = parseFloat(loanAmount.value || "0");
   const fee = amount * 0.0009;
@@ -340,10 +220,7 @@ const requestLoan = async () => {
     return;
   }
 
-  // Simulation mode - no real payment
   isLoading.value = true;
-
-  // Simulate processing delay
   await new Promise((resolve) => setTimeout(resolve, 1500));
 
   const fee = amount * 0.0009;
@@ -370,7 +247,6 @@ const requestLoan = async () => {
   isLoading.value = false;
 };
 
-// Fetch liquidity data from contract
 const fetchData = async () => {
   try {
     dataLoading.value = true;
@@ -413,10 +289,10 @@ onMounted(() => fetchData());
 .demo-banner {
   background: var(--brutal-yellow);
   padding: $space-3;
-  border: 3px solid black;
+  border: 3px solid var(--border-color, black);
   text-align: center;
   margin-bottom: $space-4;
-  box-shadow: 6px 6px 0 black;
+  box-shadow: 6px 6px 0 var(--shadow-color, black);
 }
 .demo-badge {
   font-weight: $font-weight-black;
@@ -431,210 +307,6 @@ onMounted(() => fetchData());
   font-weight: $font-weight-black;
   display: block;
   opacity: 1;
-}
-
-.flow-card {
-  border-left: 8px solid var(--neo-purple) !important;
-}
-.flow-diagram {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: $space-6 0;
-  background: #eee;
-  padding: $space-4;
-  border: 2px solid black;
-  box-shadow: inset 4px 4px 0 rgba(0, 0, 0, 0.1);
-}
-.flow-step {
-  text-align: center;
-  flex: 1;
-}
-.flow-icon {
-  font-size: 32px;
-  display: block;
-  margin-bottom: 4px;
-}
-.flow-label {
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-}
-.flow-arrow {
-  font-size: 24px;
-  font-weight: $font-weight-black;
-  color: var(--neo-purple);
-}
-.flow-note {
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  text-align: center;
-  border-top: 3px solid black;
-  padding-top: 8px;
-  margin-top: 4px;
-}
-
-.liquidity-item {
-  margin-bottom: $space-4;
-}
-.token-label {
-  font-size: 12px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  border: 1px solid black;
-  padding: 2px 6px;
-  background: white;
-}
-.token-amount {
-  font-family: $font-mono;
-  font-weight: $font-weight-black;
-  font-size: 24px;
-  color: black;
-  display: block;
-  margin-top: 4px;
-}
-.liquidity-bar {
-  height: 16px;
-  background: white;
-  border: 3px solid black;
-  margin-top: 8px;
-  padding: 2px;
-}
-.liquidity-fill {
-  height: 100%;
-  background: var(--neo-green);
-  &.neo {
-    background: var(--brutal-blue);
-  }
-}
-
-.operation-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: $space-3;
-  margin: $space-6 0;
-}
-.operation-btn {
-  padding: $space-4 $space-2;
-  background: white;
-  border: 3px solid black;
-  text-align: center;
-  box-shadow: 4px 4px 0 black;
-  transition: all $transition-fast;
-  &.active {
-    background: var(--brutal-yellow);
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 black;
-  }
-}
-.op-icon {
-  font-size: 24px;
-  display: block;
-  margin-bottom: 4px;
-}
-.op-name {
-  font-weight: $font-weight-black;
-  font-size: 10px;
-  text-transform: uppercase;
-  display: block;
-}
-
-.fee-calculator {
-  background: black;
-  color: white;
-  padding: $space-5;
-  border: 3px solid black;
-  margin-top: $space-6;
-  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.2);
-}
-.calc-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  margin-bottom: 8px;
-  &.total {
-    font-weight: $font-weight-black;
-    color: var(--brutal-green);
-    border-top: 1px solid #444;
-    padding-top: 8px;
-  }
-  &.profit {
-    color: var(--brutal-yellow);
-    font-weight: $font-weight-black;
-    margin-top: 8px;
-    border-top: 1px solid #444;
-    padding-top: 8px;
-  }
-}
-
-.risk-indicator {
-  padding: 4px 10px;
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  border: 2px solid black;
-  box-shadow: 3px 3px 0 black;
-  &.low {
-    background: var(--neo-green);
-  }
-  &.medium {
-    background: var(--brutal-yellow);
-  }
-  &.high {
-    background: var(--brutal-red);
-    color: white;
-  }
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: $space-4;
-}
-.stat-value {
-  font-weight: $font-weight-black;
-  font-family: $font-mono;
-  font-size: 18px;
-  display: block;
-  border-bottom: 3px solid black;
-  margin-bottom: 4px;
-}
-.stat-label {
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  opacity: 0.6;
-}
-
-.loans-table {
-  border: 3px solid black;
-  background: white;
-}
-.table-header {
-  display: flex;
-  background: black;
-  color: white;
-}
-.th {
-  flex: 1;
-  padding: $space-3;
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-}
-.table-row {
-  display: flex;
-  border-bottom: 2px solid black;
-  &:last-child {
-    border-bottom: none;
-  }
-}
-.td {
-  flex: 1;
-  padding: $space-3;
-  font-size: 12px;
-  font-family: $font-mono;
-  font-weight: $font-weight-black;
 }
 
 .scrollable {

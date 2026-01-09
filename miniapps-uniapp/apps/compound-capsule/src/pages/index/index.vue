@@ -281,6 +281,7 @@ const docFeatures = computed(() => [
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 const APP_ID = "miniapp-compound-capsule";
+const CONTRACT_HASH = "0x1234567890abcdef1234567890abcdef12345678"; // TODO: Update with deployed contract hash
 const { address, connect } = useWallet();
 
 const vault = ref<Vault>({ apy: 18.5, tvl: 125000, compoundFreq: "Every 6h" });
@@ -325,63 +326,86 @@ const projectedReturns = computed(() => {
   return returns.toFixed(4);
 });
 
-// Active capsules with countdown
-const activeCapsules = ref([
+// Active capsules - fetched from contract
+const activeCapsules = ref<
   {
-    amount: 50,
-    lockDays: 30,
-    progress: 65,
-    countdown: "10d 5h",
-    rewards: 0.8234,
-    status: "Locked",
-  },
-  {
-    amount: 25,
-    lockDays: 90,
-    progress: 22,
-    countdown: "70d 12h",
-    rewards: 1.2456,
-    status: "Locked",
-  },
-]);
+    amount: number;
+    lockDays: number;
+    progress: number;
+    countdown: string;
+    rewards: number;
+    status: string;
+  }[]
+>([]);
 
 const stats = ref({ totalDeposits: 0, totalCompounded: 0, avgAPY: 18.5, nextCompound: "5h 23m" });
 const recentActivity = ref<{ icon: string; amount: number; timestamp: string }[]>([]);
 
 const fmt = (n: number, d = 2) => formatNumber(n, d);
 
-// Fetch data and register automation for auto-compounding
+// Fetch capsules from smart contract
 const fetchData = async () => {
+  if (!address.value) return;
+
   try {
     const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
-    if (!sdk?.invoke) return;
-
-    // Fetch capsule data
-    const data = (await sdk.invoke("compoundCapsule.getData", { appId: APP_ID })) as {
-      capsules: typeof activeCapsules.value;
-      stats: typeof stats.value;
-    } | null;
-
-    if (data) {
-      activeCapsules.value = data.capsules || [];
-      stats.value = data.stats || stats.value;
+    if (!sdk?.invoke) {
+      console.warn("[CompoundCapsule] SDK not available");
+      return;
     }
 
-    // Register for auto-compound automation via Edge Function
-    await fetch("/api/automation/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        appId: APP_ID,
-        taskName: "autoCompound",
-        taskType: "scheduled",
-        payload: {
-          action: "custom",
-          handler: "compound:autoCompound",
-        },
-        schedule: { intervalSeconds: 6 * 60 * 60 }, // 6 hours
-      }),
+    // Get total capsules count from contract
+    const totalResult = await sdk.invoke("invokeRead", {
+      contract: CONTRACT_HASH,
+      method: "TotalCapsules",
+      args: [],
     });
+
+    const totalCapsules = parseInt(totalResult?.stack?.[0]?.value || "0");
+    const userCapsules: typeof activeCapsules.value = [];
+    let totalDeposited = 0;
+    let totalCompounded = 0;
+
+    // Find user's capsules
+    for (let i = 1; i <= totalCapsules; i++) {
+      const capsuleResult = await sdk.invoke("invokeRead", {
+        contract: CONTRACT_HASH,
+        method: "GetCapsule",
+        args: [{ type: "Integer", value: i.toString() }],
+      });
+
+      if (capsuleResult?.stack?.[0]) {
+        const data = capsuleResult.stack[0].value;
+        const owner = data?.owner;
+
+        if (owner === address.value) {
+          const principal = parseInt(data?.principal || "0");
+          const unlockTime = parseInt(data?.unlockTime || "0");
+          const compound = parseInt(data?.compound || "0") / 1e8;
+          const now = Date.now();
+          const lockDays = Math.ceil((unlockTime - now) / (24 * 60 * 60 * 1000));
+          const progress = unlockTime <= now ? 100 : Math.max(0, 100 - (lockDays / 90) * 100);
+
+          userCapsules.push({
+            amount: principal,
+            lockDays: Math.max(0, lockDays),
+            progress: Math.round(progress),
+            countdown: lockDays > 0 ? `${lockDays}d` : "Ready",
+            rewards: compound,
+            status: unlockTime <= now ? "Ready" : "Locked",
+          });
+
+          totalDeposited += principal;
+          totalCompounded += compound;
+        }
+      }
+    }
+
+    activeCapsules.value = userCapsules;
+    position.value.deposited = totalDeposited;
+    position.value.earned = totalCompounded;
+    stats.value.totalDeposits = userCapsules.length;
+    stats.value.totalCompounded = totalCompounded;
   } catch (e) {
     console.warn("[CompoundCapsule] Failed to fetch data:", e);
   }
@@ -425,56 +449,270 @@ const deposit = async (): Promise<void> => {
 @import "@/shared/styles/variables.scss";
 
 .tab-content {
-  padding: $space-4;
+  padding: 20px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: 16px;
 }
 
 .demo-banner {
-  background: var(--brutal-yellow); border: 2px solid black; padding: $space-2; text-align: center; box-shadow: 4px 4px 0 black;
+  background: rgba(255, 222, 89, 0.1);
+  border: 1px solid rgba(255, 222, 89, 0.3);
+  padding: 12px;
+  text-align: center;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  backdrop-filter: blur(5px);
 }
 
-.demo-badge { font-weight: $font-weight-black; text-transform: uppercase; font-size: 10px; display: block; }
-.demo-note { font-size: 8px; font-weight: $font-weight-black; opacity: 0.6; }
+.demo-badge {
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 11px;
+  display: block;
+  color: #FFDE59;
+  letter-spacing: 0.1em;
+}
+.demo-note {
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.8;
+  color: #FFDE59;
+}
 
-.capsule-container { display: flex; align-items: center; gap: $space-4; }
+.capsule-container {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
 .capsule-body {
-  width: 40px; height: 80px; background: white; border: 3px solid black; border-radius: 20px; position: relative; overflow: hidden;
+  width: 60px;
+  height: 100px;
+  background: var(--bg-card, rgba(255, 255, 255, 0.05));
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 30px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 229, 153, 0.2);
 }
 
-.capsule-fill { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--neo-green); border-top: 2px solid black; }
-.capsule-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
-.capsule-apy { font-weight: $font-weight-black; font-size: 10px; color: black; -webkit-text-stroke: 0.5px white; }
-.capsule-apy-label { font-size: 6px; font-weight: $font-weight-black; }
+.capsule-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(to top, #00E599, rgba(0, 229, 153, 0.3));
+  border-top: 1px solid rgba(255, 255, 255, 0.5);
+  transition: height 0.5s ease;
+}
+.capsule-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 2;
+}
+.capsule-apy {
+  font-weight: 800;
+  font-size: 14px;
+  color: white;
+  text-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+.capsule-apy-label {
+  font-size: 8px;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+}
 
-.vault-stats-grid { flex: 1; display: flex; flex-direction: column; gap: $space-2; }
-.stat-item { padding: $space-2; background: white; border: 2px solid black; box-shadow: 4px 4px 0 black; }
-.stat-label { font-size: 8px; font-weight: $font-weight-black; text-transform: uppercase; opacity: 0.6; }
-.stat-value { font-weight: $font-weight-black; font-family: $font-mono; font-size: 14px; }
+.vault-stats-grid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.stat-item {
+  padding: 12px;
+  background: var(--bg-card, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  border-radius: 12px;
+}
+.stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  letter-spacing: 0.1em;
+}
+.stat-value {
+  font-weight: 800;
+  font-family: 'Inter', monospace;
+  font-size: 16px;
+  color: white;
+}
+.stat-unit {
+    font-size: 10px;
+    color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+    margin-left: 4px;
+}
 
-.growth-chart { height: 100px; display: flex; align-items: flex-end; gap: $space-3; margin-bottom: $space-4; background: black; padding: $space-3; border: 2px solid black; box-shadow: 6px 6px 0 black; }
-.chart-bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
-.bar-fill { width: 100%; background: var(--neo-purple); border: 2px solid white; }
-.bar-label { font-size: 8px; font-weight: $font-weight-black; color: white; }
+.growth-chart {
+  height: 140px;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 24px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 16px;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
+  border-radius: 16px;
+}
+.chart-bars {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 100%;
+  gap: 8px;
+}
+.chart-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  justify-content: flex-end;
+}
+.bar-fill {
+  width: 100%;
+  background: linear-gradient(to top, var(--neo-purple), #a855f7);
+  border-radius: 4px 4px 0 0;
+  opacity: 0.8;
+  min-height: 4px;
+}
+.bar-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  margin-top: 4px;
+}
 
-.period-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: $space-2; margin: $space-2 0; }
+.position-row {
+    display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.position-row .label { font-size: 11px; color: var(--text-secondary, rgba(255, 255, 255, 0.5)); }
+.position-row .value { font-size: 13px; font-weight: 700; color: white; font-family: 'Inter', monospace; }
+.position-row.earned .value { color: #00E599; }
+
+.period-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 16px 0;
+}
 .period-option {
-  padding: $space-2; background: white; border: 2px solid black; text-align: center; cursor: pointer;
-  &.active { background: var(--brutal-yellow); box-shadow: 4px 4px 0 black; transform: translate(-2px, -2px); }
-  transition: all $transition-fast;
+  padding: 12px 8px;
+  background: var(--bg-card, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  &.active {
+    background: rgba(0, 229, 153, 0.1);
+    border-color: #00E599;
+    box-shadow: 0 0 15px rgba(0, 229, 153, 0.2);
+  }
 }
 
-.period-days { font-weight: $font-weight-black; font-size: 12px; display: block; }
-.period-bonus { font-size: 8px; color: var(--neo-green); font-weight: $font-weight-black; }
+.period-days {
+  font-weight: 700;
+  font-size: 13px;
+  color: white;
+  display: block;
+}
+.period-bonus {
+  font-size: 9px;
+  color: #00E599;
+  font-weight: 600;
+}
 
-.capsule-item { padding: $space-3; background: white; border: 2px solid black; margin-bottom: $space-3; border-left: 8px solid var(--neo-green); box-shadow: 4px 4px 0 black; }
-.progress-bar { height: 12px; background: #eee; margin: 8px 0; border: 2px solid black; }
-.progress-fill { height: 100%; background: var(--neo-green); border-right: 2px solid black; }
+.projected-returns {
+    background: var(--bg-card, rgba(255, 255, 255, 0.05)); padding: 12px; border-radius: 12px; margin-bottom: 16px; text-align: center;
+}
+.returns-label { font-size: 10px; color: var(--text-secondary, rgba(255, 255, 255, 0.5)); display: block; margin-bottom: 4px; }
+.returns-value { font-size: 20px; font-weight: 800; color: white; font-family: 'Inter', monospace; }
+.returns-unit { font-size: 12px; color: var(--text-secondary, rgba(255, 255, 255, 0.5)); margin-left: 4px; }
+.note { font-size: 10px; color: var(--text-muted, rgba(255, 255, 255, 0.4)); text-align: center; display: block; margin-top: 12px; }
 
-.stat-row { display: flex; justify-content: space-between; padding: $space-3 0; border-bottom: 2px dashed black; }
-.activity-history { font-size: 10px; font-weight: $font-weight-black; border-left: 3px solid black; padding-left: $space-2; margin-bottom: $space-2; }
+.capsule-item {
+  padding: 16px;
+  background: var(--bg-card, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
+  margin-bottom: 16px;
+  border-radius: 16px;
+}
+.capsule-header {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+}
+.capsule-icon { font-size: 24px; }
+.capsule-info { flex: 1; }
+.capsule-amount { font-size: 16px; font-weight: 700; color: white; display: block; }
+.capsule-period { font-size: 11px; color: var(--text-secondary, rgba(255, 255, 255, 0.5)); }
+.capsule-status { margin-left: auto; }
+.status-label { font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 4px 8px; border-radius: 99px; background: rgba(255, 255, 255, 0.1); color: white; }
 
-.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 8px 0;
+  border-radius: 99px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: #00E599;
+  border-radius: 99px;
+}
+.progress-text {
+    font-size: 10px; color: var(--text-secondary, rgba(255, 255, 255, 0.5)); font-weight: 600; text-align: right; display: block;
+}
+
+.capsule-footer {
+    display: flex; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+.countdown-label, .rewards-label { font-size: 10px; color: var(--text-secondary, rgba(255, 255, 255, 0.5)); display: block; }
+.countdown-value, .rewards-value { font-size: 12px; font-weight: 700; color: white; font-family: 'Inter', monospace; }
+.rewards-value { color: #00E599; }
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  &:last-child { border-bottom: none; }
+}
+.activity-history {
+  font-size: 11px;
+  font-weight: 500;
+  border-left: 2px solid rgba(255, 255, 255, 0.1);
+  padding-left: 12px;
+  margin-bottom: 8px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+  font-family: 'Inter', monospace;
+}
+.empty-text { font-size: 12px; color: var(--text-muted, rgba(255, 255, 255, 0.4)); text-align: center; display: block; padding: 20px; }
+
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
 </style>

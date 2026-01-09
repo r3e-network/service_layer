@@ -2,133 +2,33 @@
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab === 'search' || activeTab === 'history'" class="app-container">
       <!-- Network Stats Cards -->
-      <view class="stats-grid mb-6">
-        <NeoCard :title="t('mainnet')" variant="success" class="flex-1">
-          <NeoStats :stats="mainnetStats" />
-        </NeoCard>
-        <NeoCard :title="t('testnet')" variant="accent" class="flex-1">
-          <NeoStats :stats="testnetStats" />
-        </NeoCard>
-      </view>
+      <NetworkStats :mainnet-stats="mainnetStats" :testnet-stats="testnetStats" :t="t as any" />
 
       <!-- Status Message -->
       <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
-        <text class="status-text font-bold uppercase">{{ status.msg }}</text>
+        <text class="status-text">{{ status.msg }}</text>
       </NeoCard>
 
       <!-- Search Tab -->
       <view v-if="activeTab === 'search'" class="tab-content">
-        <NeoCard :title="t('search')" class="mb-6">
-          <view class="search-box-neo mb-4">
-            <NeoInput
-              v-model="searchQuery"
-              :placeholder="t('searchPlaceholder')"
-              @confirm="search"
-              class="flex-1 mb-2"
-            />
-            <NeoButton variant="primary" block @click="search" :loading="isLoading">
-              {{ t("search") }}
-            </NeoButton>
-          </view>
-
-          <view class="network-toggle flex gap-2">
-            <NeoButton
-              :variant="selectedNetwork === 'mainnet' ? 'success' : 'secondary'"
-              size="sm"
-              class="flex-1"
-              @click="selectedNetwork = 'mainnet'"
-            >
-              {{ t("mainnet") }}
-            </NeoButton>
-            <NeoButton
-              :variant="selectedNetwork === 'testnet' ? 'warning' : 'secondary'"
-              size="sm"
-              class="flex-1"
-              @click="selectedNetwork = 'testnet'"
-            >
-              {{ t("testnet") }}
-            </NeoButton>
-          </view>
-        </NeoCard>
+        <SearchPanel
+          v-model:searchQuery="searchQuery"
+          v-model:selectedNetwork="selectedNetwork"
+          :is-loading="isLoading"
+          :t="t as any"
+          @search="search"
+        />
 
         <view v-if="isLoading" class="loading">
           <text>{{ t("searching") }}</text>
         </view>
 
-        <view v-if="searchResult" class="result-section">
-          <text class="section-title-neo mb-4 font-bold uppercase">{{ t("searchResult") }}</text>
-
-          <NeoCard v-if="searchResult.type === 'transaction'" class="mb-6">
-            <template #header-extra>
-              <text :class="['vm-state-neo font-black', searchResult.data.vmState]">{{
-                searchResult.data.vmState
-              }}</text>
-            </template>
-
-            <view class="result-rows">
-              <view class="result-row-neo">
-                <text class="label-neo text-xs opacity-60 uppercase font-black">{{ t("hash") }}</text>
-                <text class="value-neo text-sm font-mono word-break">{{ searchResult.data.hash }}</text>
-              </view>
-              <view class="result-row-neo">
-                <text class="label-neo text-xs opacity-60 uppercase font-black">{{ t("block") }}</text>
-                <text class="value-neo text-sm font-bold">{{ searchResult.data.blockIndex }}</text>
-              </view>
-              <view class="result-row-neo">
-                <text class="label-neo text-xs opacity-60 uppercase font-black">{{ t("time") }}</text>
-                <text class="value-neo text-sm">{{ formatTime(searchResult.data.blockTime) }}</text>
-              </view>
-              <view class="result-row-neo">
-                <text class="label-neo text-xs opacity-60 uppercase font-black">{{ t("sender") }}</text>
-                <text class="value-neo text-sm font-mono word-break">{{ searchResult.data.sender }}</text>
-              </view>
-            </view>
-          </NeoCard>
-
-          <NeoCard v-else-if="searchResult.type === 'address'" :title="t('address')" class="mb-6">
-            <view class="result-rows mb-4">
-              <view class="result-row-neo">
-                <text class="label-neo text-xs opacity-60 uppercase font-black">Address:</text>
-                <text class="value-neo text-sm font-mono word-break">{{ searchResult.data.address }}</text>
-              </view>
-              <view class="result-row-neo">
-                <text class="label-neo text-xs opacity-60 uppercase font-black">Transactions:</text>
-                <text class="value-neo text-sm font-bold">{{ searchResult.data.txCount }}</text>
-              </view>
-            </view>
-
-            <view class="tx-list-neo" v-if="searchResult.data.transactions?.length">
-              <text class="list-title-neo text-xs uppercase opacity-60 font-black mb-2 block">{{
-                t("recentTransactions")
-              }}</text>
-              <view
-                v-for="tx in searchResult.data.transactions"
-                :key="tx.hash"
-                class="tx-item-neo mb-2"
-                @click="viewTx(tx.hash)"
-              >
-                <text class="tx-hash-neo text-sm font-mono">{{ truncateHash(tx.hash) }}</text>
-                <text class="tx-time text-xs opacity-60">{{ formatTime(tx.blockTime) }}</text>
-              </view>
-            </view>
-          </NeoCard>
-        </view>
+        <SearchResult :result="searchResult" :t="t as any" @viewTx="viewTx" />
       </view>
 
       <!-- History Tab -->
       <view v-if="activeTab === 'history'" class="tab-content">
-        <view v-if="recentTxs.length" class="recent-section">
-          <text class="section-title-neo mb-4 font-bold uppercase">{{ t("recentTransactions") }}</text>
-          <NeoCard v-for="tx in recentTxs" :key="tx.hash" class="mb-3" @click="viewTx(tx.hash)">
-            <view class="tx-item-content-neo flex justify-between items-center w-full">
-              <view class="tx-info flex items-center gap-2">
-                <text class="tx-hash-neo text-sm font-mono">{{ truncateHash(tx.hash) }}</text>
-                <text :class="['vm-state-small-neo text-xs font-black px-2 py-1', tx.vmState]">{{ tx.vmState }}</text>
-              </view>
-              <text class="tx-time text-xs opacity-60">{{ formatTime(tx.blockTime) }}</text>
-            </view>
-          </NeoCard>
-        </view>
+        <RecentTransactions :transactions="recentTxs" :t="t as any" @viewTx="viewTx" />
       </view>
     </view>
 
@@ -149,9 +49,14 @@
 import { ref, computed, onMounted } from "vue";
 import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
-import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard, NeoStats } from "@/shared/components";
+import { AppLayout, NeoDoc, NeoCard } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 import type { StatItem } from "@/shared/components/NeoStats.vue";
+
+import NetworkStats from "./components/NetworkStats.vue";
+import SearchPanel from "./components/SearchPanel.vue";
+import SearchResult from "./components/SearchResult.vue";
+import RecentTransactions from "./components/RecentTransactions.vue";
 
 const translations = {
   title: { en: "Neo Explorer", zh: "Neo 浏览器" },
@@ -214,17 +119,32 @@ const translations = {
     en: "Detailed transaction traces and contract state inspection.",
     zh: "详细的交易追踪和合约状态检查。",
   },
+  error: { en: "Error", zh: "错误" },
 };
 
 const t = createT(translations);
+const APP_ID = "miniapp-explorer";
+
+// Detect host URL for API calls (miniapp runs in iframe)
+const getApiBase = () => {
+  try {
+    if (window.parent !== window) {
+      // Running in iframe, use parent origin
+      const parentOrigin = document.referrer ? new URL(document.referrer).origin : "";
+      if (parentOrigin) return `${parentOrigin}/api/explorer`;
+    }
+  } catch {
+    // Fallback
+  }
+  return "/api/explorer";
+};
+const API_BASE = getApiBase();
 
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
-const APP_ID = "miniapp-explorer";
-const API_BASE = "/api/explorer";
 
 const activeTab = ref("search");
 const navTabs: NavTab[] = [
@@ -245,6 +165,8 @@ const stats = ref({
   testnet: { height: 0, txCount: 0 },
 });
 
+const formatNum = (n: number) => formatNumber(n, 0);
+
 const mainnetStats = computed<StatItem[]>(() => [
   { label: t("blockHeight"), value: formatNum(stats.value.mainnet.height), variant: "default" },
   { label: t("transactions"), value: formatNum(stats.value.mainnet.txCount), variant: "default" },
@@ -255,44 +177,61 @@ const testnetStats = computed<StatItem[]>(() => [
   { label: t("transactions"), value: formatNum(stats.value.testnet.txCount), variant: "default" },
 ]);
 
-const formatNum = (n: number) => formatNumber(n, 0);
-
-const formatTime = (time: string) => {
-  const d = new Date(time);
-  return d.toLocaleString();
-};
-
-const truncateHash = (hash: string) => {
-  if (!hash) return "";
-  return `${hash.slice(0, 10)}...${hash.slice(-8)}`;
-};
+const STATS_CACHE_KEY = "explorer_stats_cache";
+const TXS_CACHE_KEY = "explorer_txs_cache";
 
 // Fetch stats via SDK datafeed service
 const fetchStats = async () => {
+  // Try cache first
+  try {
+    const cached = uni.getStorageSync(STATS_CACHE_KEY);
+    if (cached) stats.value = JSON.parse(cached);
+  } catch {}
+
+  let freshStats = null;
+
+  // Try SDK first
   try {
     const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
     if (sdk?.invoke) {
-      const data = (await sdk.invoke("datafeed.getNetworkStats", { appId: APP_ID })) as typeof stats.value | null;
-      if (data) {
-        stats.value = data;
-        return;
-      }
-    }
-    // Fallback to REST API
-    const res = await uni.request({
-      url: `${API_BASE}/stats`,
-      method: "GET",
-    });
-    if (res.statusCode === 200 && res.data) {
-      stats.value = res.data as any;
+      freshStats = (await sdk.invoke("datafeed.getNetworkStats", { appId: APP_ID })) as typeof stats.value | null;
     }
   } catch (e) {
-    console.error("Failed to fetch stats:", e);
+    console.warn("[Explorer] SDK stats fetch failed, falling back to API:", e);
+  }
+    
+  // Fallback to REST API if SDK failed or returned null
+  if (!freshStats) {
+    try {
+      const res = await uni.request({
+        url: `${API_BASE}/stats`,
+        method: "GET",
+      });
+      if (res.statusCode === 200 && res.data) {
+        freshStats = res.data as any;
+      }
+    } catch (e) {
+      console.error("[Explorer] API stats fetch failed:", e);
+    }
+  }
+
+  if (freshStats) {
+    stats.value = freshStats;
+    uni.setStorageSync(STATS_CACHE_KEY, JSON.stringify(freshStats));
   }
 };
 
 // Fetch recent transactions via SDK datafeed service
 const fetchRecentTxs = async () => {
+  // Try cache first
+  try {
+    const cached = uni.getStorageSync(TXS_CACHE_KEY);
+    if (cached) recentTxs.value = JSON.parse(cached);
+  } catch {}
+
+  let freshTxs = null;
+
+  // Try SDK first
   try {
     const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
     if (sdk?.invoke) {
@@ -301,21 +240,30 @@ const fetchRecentTxs = async () => {
         network: selectedNetwork.value,
         limit: 10,
       })) as { transactions: any[] } | null;
-      if (data?.transactions) {
-        recentTxs.value = data.transactions;
-        return;
-      }
-    }
-    // Fallback to REST API
-    const res = await uni.request({
-      url: `${API_BASE}/recent?network=${selectedNetwork.value}&limit=10`,
-      method: "GET",
-    });
-    if (res.statusCode === 200 && res.data) {
-      recentTxs.value = (res.data as any).transactions || [];
+      if (data?.transactions) freshTxs = data.transactions;
     }
   } catch (e) {
-    console.error("Failed to fetch recent txs:", e);
+    console.warn("[Explorer] SDK tx fetch failed, falling back to API:", e);
+  }
+    
+  // Fallback to REST API
+  if (!freshTxs) {
+    try {
+      const res = await uni.request({
+        url: `${API_BASE}/recent?network=${selectedNetwork.value}&limit=10`,
+        method: "GET",
+      });
+      if (res.statusCode === 200 && res.data) {
+        freshTxs = (res.data as any).transactions || [];
+      }
+    } catch (e) {
+      console.error("[Explorer] API tx fetch failed:", e);
+    }
+  }
+
+  if (freshTxs) {
+    recentTxs.value = freshTxs;
+    uni.setStorageSync(TXS_CACHE_KEY, JSON.stringify(freshTxs));
   }
 };
 
@@ -366,46 +314,31 @@ onMounted(() => {
 @import "@/shared/styles/variables.scss";
 
 .app-container {
-  padding: $space-4;
+  padding: 20px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: 16px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-.tab-content { display: flex; flex-direction: column; gap: $space-4; }
-.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: $space-4; }
-
-.section-title-neo { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; margin-bottom: 8px; background: black; color: white; padding: 2px 8px; display: inline-block; }
-
-.vm-state-neo, .vm-state-small-neo {
-  padding: 4px 10px; font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; border: 2px solid black; box-shadow: 2px 2px 0 black;
-  &.HALT { background: var(--neo-green); color: black; }
-  &.FAULT { background: var(--brutal-red); color: white; }
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.result-rows { display: flex; flex-direction: column; gap: $space-3; }
-.result-row-neo { padding: $space-3; background: #f8f8f8; border: 2px solid black; box-shadow: 4px 4px 0 black; margin-bottom: $space-2; }
-
-.label-neo { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; color: black; margin-bottom: 4px; display: block; }
-.value-neo { font-family: $font-mono; font-size: 12px; word-break: break-all; font-weight: $font-weight-black; color: black; }
-
-.tx-list-neo { margin-top: $space-6; border-top: 4px solid black; padding-top: $space-4; }
-.tx-item-neo {
-  padding: $space-3; background: white; border: 2px solid black;
-  margin-bottom: $space-2; display: flex; justify-content: space-between; align-items: center;
-  box-shadow: 4px 4px 0 black;
-  &:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 black; }
+.status-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  text-align: center;
 }
 
-.tx-hash-neo { font-family: $font-mono; font-size: 12px; font-weight: $font-weight-black; color: black; }
-.tx-time { font-size: 10px; opacity: 0.6; font-weight: $font-weight-black; }
-
-.network-toggle { margin-top: $space-4; border-top: 3px solid black; padding-top: $space-4; display: grid; grid-template-columns: 1fr 1fr; gap: $space-2; }
-
-.status-text { font-family: $font-mono; font-size: 12px; font-weight: $font-weight-black; }
-
-.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
 </style>

@@ -1,0 +1,12 @@
+{
+  "category": "governance",
+  "name_zh": "候选人投票",
+  "description": "Vote for platform candidates and earn GAS rewards. Participate in governance by staking your tokens and supporting your preferred candidates with transparent on-chain voting.",
+  "description_zh": "为 Neo 共识节点候选人投票。参与网络治理，支持您信任的节点。",
+  "status": "active",
+  "contract_hash": null,
+  "permissions": {
+    "governance": true,
+    "payments": true
+  }
+}

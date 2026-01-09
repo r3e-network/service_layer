@@ -1,0 +1,11 @@
+{
+  "category": "defi",
+  "name_zh": "闪电贷",
+  "description": "Access instant uncollateralized loans that must be repaid within a single transaction. Perfect for arbitrage, liquidations, and complex DeFi strategies.",
+  "description_zh": "无抵押即时借贷。在单笔交易内借入、使用、归还，实现套利和清算。",
+  "status": "active",
+  "contract_hash": "0xee51e5b399f7727267b7d296ff34ec6bb9283131",
+  "permissions": {
+    "payments": true
+  }
+}

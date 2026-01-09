@@ -446,8 +446,8 @@ watch(address, async () => {
 }
 
 .pixel-map-wrapper {
-  background: white;
-  border: 4px solid black;
+  background: var(--bg-card, white);
+  border: 4px solid var(--border-color, black);
   padding: $space-8;
   display: flex;
   justify-content: center;
@@ -465,9 +465,9 @@ watch(address, async () => {
 .pixel {
   width: 32px;
   height: 32px;
-  border: 2px solid black;
+  border: 2px solid var(--border-color, black);
   cursor: pointer;
-  background: white;
+  background: var(--bg-card, white);
   transition: all 0.2s;
   &.has-selection {
     z-index: 10;
@@ -497,8 +497,9 @@ watch(address, async () => {
   grid-template-columns: repeat(3, 1fr);
   gap: $space-2;
   padding: $space-3;
-  background: #f0f0f0;
-  border: 2px solid black;
+  background: var(--bg-elevated, #f0f0f0);
+  border: 2px solid var(--border-color, black);
+  color: var(--text-primary, black);
 }
 
 .legend-item {
@@ -509,10 +510,10 @@ watch(address, async () => {
 .legend-color {
   width: 16px;
   height: 16px;
-  border: 2px solid black;
+  border: 2px solid var(--border-color, black);
 }
 .legend-available {
-  background: white;
+  background: var(--bg-card, white);
 }
 .legend-yours {
   background: var(--neo-green);
@@ -531,9 +532,10 @@ watch(address, async () => {
   flex-direction: column;
   gap: $space-3;
   margin-bottom: $space-4;
-  background: white;
+  background: var(--bg-card, white);
   padding: $space-4;
-  border: 2px solid black;
+  border: 2px solid var(--border-color, black);
+  color: var(--text-primary, black);
 }
 
 .info-row {
@@ -563,7 +565,7 @@ watch(address, async () => {
   font-size: 24px;
   font-weight: $font-weight-black;
   font-family: $font-mono;
-  color: black;
+  color: var(--text-primary, black);
   line-height: 1;
 }
 .stat-label {

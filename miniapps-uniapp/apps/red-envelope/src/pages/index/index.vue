@@ -1,104 +1,35 @@
 <template>
   <AppLayout :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab === 'create' || activeTab === 'claim'" class="app-container">
-      <view class="header-brutal">
-        <text class="title-brutal">{{ t("title") }}</text>
-        <view class="subtitle-wrap">
-          <text class="subtitle-brutal">{{ t("subtitle") }}</text>
-        </view>
-        <view class="decorations-brutal">
-          <view class="decoration-item rotate-[-15deg]"><AppIcon name="sparkle" :size="32" class="text-yellow" /></view>
-          <view class="decoration-item rotate-[10deg]"><AppIcon name="gift" :size="32" class="text-white" /></view>
-          <view class="decoration-item rotate-[-5deg]"><AppIcon name="sparkle" :size="32" class="text-yellow" /></view>
-        </view>
-      </view>
+      <EnvelopeHeader :t="t as any" />
 
-      <!-- Lucky Message Display -->
-      <view v-if="luckyMessage" class="lucky-overlay-brutal" @click="luckyMessage = null">
-        <view class="lucky-card-brutal">
-          <text class="lucky-header-brutal">🎉 {{ t("congratulations") }} 🎉</text>
-          <view class="lucky-amount-box">
-            <text class="lucky-amount-brutal">{{ luckyMessage.amount }}</text>
-            <text class="lucky-currency-brutal">GAS</text>
-          </view>
-          <text class="lucky-from-brutal">{{ t("from").replace("{0}", luckyMessage.from) }}</text>
-          <view class="coins-rain">
-            <view v-for="i in 12" :key="i" class="coin-brutal" :style="{ animationDelay: `${i * 0.15}s`, left: `${Math.random() * 100}%` }">
-              <AppIcon name="money" :size="24" class="text-yellow" />
-            </view>
-          </view>
-          <NeoButton variant="primary" size="lg" block class="mt-8 border-4 border-black shadow-brutal-sm">
-            <text class="font-black italic uppercase">{{ t("confirm") || "OK" }}</text>
-          </NeoButton>
-        </view>
-      </view>
+      <LuckyOverlay
+        :lucky-message="luckyMessage"
+        :t="t as any"
+        @close="luckyMessage = null"
+      />
 
-      <NeoCard v-if="status" :variant="status.type === 'success' ? 'success' : 'danger'" class="status-card">
-        <text class="status-text">{{ status.msg }}</text>
-      </NeoCard>
+      <AppStatus :status="status" />
 
       <view v-if="activeTab === 'create'" class="tab-content">
-        <NeoCard :title="t('createEnvelope')" variant="accent" class="create-card">
-          <view class="input-group">
-            <NeoInput v-model="amount" type="number" :placeholder="t('totalGasPlaceholder')" suffix="GAS" />
-            <NeoInput v-model="count" type="number" :placeholder="t('packetsPlaceholder')" />
-            <NeoInput v-model="expiryHours" type="number" :placeholder="t('expiryPlaceholder')" suffix="h" />
-          </view>
-          <NeoButton variant="primary" size="lg" block :loading="isLoading" @click="create" class="send-button">
-            <view class="btn-content">
-              <AppIcon name="envelope" :size="24" />
-              <text class="button-text">{{ t("sendRedEnvelope") }}</text>
-            </view>
-          </NeoButton>
-        </NeoCard>
+        <CreateEnvelopeForm
+          v-model:amount="amount"
+          v-model:count="count"
+          v-model:expiryHours="expiryHours"
+          :is-loading="isLoading"
+          :t="t as any"
+          @create="create"
+        />
       </view>
 
       <view v-if="activeTab === 'claim'" class="tab-content">
-        <NeoCard :title="t('availableEnvelopes')" variant="default">
-          <view v-if="loadingEnvelopes" class="empty-state">{{ t("loadingEnvelopes") }}</view>
-          <view v-else-if="!envelopes.length" class="empty-state">{{ t("noEnvelopes") }}</view>
-          <view v-else class="envelope-list">
-            <view
-              v-for="env in envelopes"
-              :key="env.id"
-              class="hongbao-wrapper"
-              :class="{ disabled: !env.canClaim }"
-              @click="claim(env)"
-            >
-              <view class="hongbao-card" :class="{ 'hongbao-opening': openingId === env.id }">
-                <view class="hongbao-front">
-                  <view class="hongbao-top">
-                    <text class="hongbao-pattern">福</text>
-                  </view>
-                  <view class="hongbao-seal">
-                    <AppIcon name="money" :size="20" class="text-yellow" />
-                  </view>
-                  <view class="hongbao-info">
-                    <text class="hongbao-from">{{ env.from }}</text>
-                    <text class="hongbao-remaining">
-                      {{ t("remaining").replace("{0}", String(env.remaining)).replace("{1}", String(env.total)) }}
-                    </text>
-                    <text
-                      class="hongbao-status"
-                      :class="{
-                        'status-ready': env.canClaim,
-                        'status-pending': !env.ready && !env.expired,
-                        'status-expired': env.expired,
-                      }"
-                    >
-                      {{ env.expired ? t("expired") : env.ready ? t("ready") : t("notReady") }}
-                    </text>
-                  </view>
-                  <view class="sparkles">
-                    <view class="sparkle"><AppIcon name="sparkle" :size="16" /></view>
-                    <view class="sparkle"><AppIcon name="sparkle" :size="16" /></view>
-                    <view class="sparkle"><AppIcon name="sparkle" :size="16" /></view>
-                  </view>
-                </view>
-              </view>
-            </view>
-          </view>
-        </NeoCard>
+        <EnvelopeList
+          :envelopes="envelopes"
+          :loading-envelopes="loadingEnvelopes"
+          :opening-id="openingId"
+          :t="t as any"
+          @claim="claim"
+        />
       </view>
     </view>
 
@@ -120,7 +51,12 @@ import { ref, computed, onMounted, watch } from "vue";
 import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
-import { AppLayout, NeoButton, NeoInput, NeoCard, NeoDoc, AppIcon } from "@/shared/components";
+import { AppLayout, NeoDoc } from "@/shared/components";
+import EnvelopeHeader from "./components/EnvelopeHeader.vue";
+import LuckyOverlay from "./components/LuckyOverlay.vue";
+import AppStatus from "./components/AppStatus.vue";
+import CreateEnvelopeForm from "./components/CreateEnvelopeForm.vue";
+import EnvelopeList from "./components/EnvelopeList.vue";
 
 const translations = {
   title: { en: "Red Envelope", zh: "红包" },
@@ -485,251 +421,18 @@ watch(activeTab, async (tab) => {
 @import "@/shared/styles/variables.scss";
 
 .app-container {
-  padding: $space-6;
+  padding: 20px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-6;
-  background-color: white;
+  gap: 16px;
 }
 
-.header-brutal {
-  text-align: center;
-  margin-bottom: $space-8;
-  background: var(--brutal-red);
-  border: 6px solid black;
-  padding: $space-10 $space-6;
-  box-shadow: 12px 12px 0 black;
-  position: relative;
-  overflow: hidden;
-  rotate: -1deg;
-}
-
-.title-brutal {
-  font-size: 48px;
-  font-weight: 900;
-  text-transform: uppercase;
-  color: white;
-  line-height: 0.85;
-  margin-bottom: $space-4;
-  display: block;
-  font-style: italic;
-  letter-spacing: -2px;
-}
-
-.subtitle-wrap {
-  display: inline-block;
-  background: var(--brutal-yellow);
-  padding: 4px 12px;
-  border: 4px solid black;
-  rotate: 2deg;
-}
-
-.subtitle-brutal {
-  font-size: 14px;
-  font-weight: 900;
-  color: black;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.decorations-brutal {
-  display: flex;
-  justify-content: center;
-  gap: $space-8;
-  margin-top: $space-6;
-}
-
-.lucky-overlay-brutal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.95);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.lucky-card-brutal {
-  background: var(--brutal-red);
-  border: 8px solid black;
-  padding: $space-12 $space-8;
-  text-align: center;
-  box-shadow: 18px 18px 0 var(--brutal-yellow);
-  width: 85%;
-  max-width: 360px;
-  position: relative;
-  rotate: 1deg;
-}
-
-.lucky-header-brutal {
-  font-size: 20px;
-  font-weight: 900;
-  color: var(--brutal-yellow);
-  display: block;
-  text-transform: uppercase;
-  margin-bottom: $space-6;
-  background: black;
-  padding: 8px;
-  border: 3px solid black;
-}
-
-.lucky-amount-box {
-  margin: $space-8 0;
+.tab-content {
   display: flex;
   flex-direction: column;
-  align-items: center;
-}
-
-.lucky-amount-brutal {
-  font-size: 80px;
-  font-weight: 900;
-  color: white;
-  font-family: $font-mono;
-  line-height: 0.8;
-  font-style: italic;
-}
-
-.lucky-currency-brutal {
-  font-size: 24px;
-  font-weight: 900;
-  color: var(--brutal-yellow);
-  text-transform: uppercase;
-  margin-top: 8px;
-}
-
-.lucky-from-brutal {
-  font-size: 14px;
-  font-weight: 900;
-  color: white;
-  background: black;
-  padding: 6px 12px;
-  border: 2px solid black;
-  display: inline-block;
-}
-
-.create-card {
-  border: 6px solid black;
-  box-shadow: 12px 12px 0 black;
-  background: white;
-  padding: $space-6;
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: $space-6;
-  margin-bottom: $space-8;
-}
-
-.envelope-list {
-  display: flex;
-  flex-direction: column;
-  gap: $space-6;
-}
-
-.hongbao-wrapper {
-  background: white;
-  border: 4px solid black;
-  padding: $space-6;
-  cursor: pointer;
-  box-shadow: 8px 8px 0 black;
-  transition: all $transition-fast;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: 4px 4px 0 black;
-  }
-  &.disabled {
-    opacity: 0.5;
-    filter: grayscale(1);
-    box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
-  }
-}
-
-.hongbao-card {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  gap: $space-4;
-}
-
-.hongbao-pattern {
-  font-size: 36px;
-  font-weight: 900;
-  color: white;
-  border: 3px solid black;
-  width: 64px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--brutal-red);
-  flex-shrink: 0;
-  box-shadow: 4px 4px 0 black;
-  rotate: -3deg;
-}
-
-.hongbao-info {
   flex: 1;
-  padding: 0 $space-4;
-}
-.hongbao-from {
-  font-weight: $font-weight-black;
-  font-family: $font-mono;
-  font-size: 12px;
-  display: block;
-  border-left: 4px solid black;
-  padding-left: 8px;
-  margin-bottom: 4px;
-}
-.hongbao-remaining {
-  font-size: 12px;
-  font-weight: $font-weight-black;
-  background: #eee;
-  padding: 2px 6px;
-}
-
-.hongbao-status {
-  padding: 4px 10px;
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  border: 2px solid black;
-  box-shadow: 3px 3px 0 black;
-  &.status-ready {
-    background: var(--brutal-green);
-  }
-  &.status-pending {
-    background: var(--brutal-yellow);
-  }
-  &.status-expired {
-    background: var(--brutal-red);
-    color: white;
-  }
-}
-
-.status-card {
-  text-align: center;
-  border: 4px solid black;
-  box-shadow: 8px 8px 0 black;
-}
-.status-text {
-  font-weight: $font-weight-black;
-  font-size: 12px;
-  text-transform: uppercase;
-}
-
-.empty-state {
-  text-align: center;
-  padding: $space-10;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  opacity: 0.5;
-  border: 2px dashed black;
+  min-height: 0;
 }
 
 .scrollable {

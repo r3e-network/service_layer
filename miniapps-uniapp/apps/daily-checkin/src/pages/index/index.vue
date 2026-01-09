@@ -6,59 +6,18 @@
         <text class="text-center font-bold">{{ status.msg }}</text>
       </NeoCard>
 
-      <!-- Countdown Hero -->
-      <view class="countdown-hero">
-        <view class="countdown-circle">
-          <svg class="countdown-ring" viewBox="0 0 220 220">
-            <circle class="countdown-ring-bg" cx="110" cy="110" r="99" />
-            <circle
-              class="countdown-ring-progress"
-              cx="110"
-              cy="110"
-              r="99"
-              :style="{ strokeDashoffset: countdownProgress }"
-            />
-          </svg>
-          <view class="countdown-text">
-            <text class="countdown-time">{{ countdownLabel }}</text>
-            <text class="countdown-label">{{ canCheckIn ? t("ready") : t("nextCheckin") }}</text>
-          </view>
-        </view>
-      </view>
+      <CountdownHero
+        :countdown-progress="countdownProgress"
+        :countdown-label="countdownLabel"
+        :can-check-in="canCheckIn"
+        :utc-time-display="utcTimeDisplay"
+        :t="t as any"
+      />
 
-      <!-- Streak Display -->
-      <view class="streak-display">
-        <view class="streak-flames">
-          <text v-for="i in Math.min(currentStreak, 7)" :key="i" class="flame">🔥</text>
-          <text v-if="currentStreak === 0" class="flame-empty">💤</text>
-        </view>
-        <text class="streak-count">{{ currentStreak }} {{ t("dayStreak") }}</text>
-        <text class="streak-best">{{ t("bestStreak") }}: {{ highestStreak }} {{ t("days") }}</text>
-      </view>
+      <StreakDisplay :current-streak="currentStreak" :highest-streak="highestStreak" :t="t as any" />
 
-      <!-- Reward Progress -->
-      <NeoCard :title="t('rewardProgress')" class="reward-card">
-        <view class="reward-milestones">
-          <view
-            v-for="milestone in milestones"
-            :key="milestone.day"
-            class="milestone"
-            :class="{
-              reached: currentStreak >= milestone.day,
-              next: currentStreak < milestone.day && currentStreak >= milestone.day - 7,
-            }"
-          >
-            <view class="milestone-icon">
-              <text>{{ currentStreak >= milestone.day ? "✅" : "🎯" }}</text>
-            </view>
-            <text class="milestone-day">{{ t("day") }} {{ milestone.day }}</text>
-            <text class="milestone-reward">+{{ milestone.reward }} GAS</text>
-            <text class="milestone-cumulative">({{ milestone.cumulative }} {{ t("total") }})</text>
-          </view>
-        </view>
-      </NeoCard>
+      <RewardProgress :milestones="milestones" :current-streak="currentStreak" :t="t as any" />
 
-      <!-- Check-in Button -->
       <NeoButton
         variant="primary"
         size="lg"
@@ -74,74 +33,23 @@
         </view>
       </NeoButton>
 
-      <!-- User Rewards -->
-      <NeoCard :title="t('yourRewards')" variant="accent" class="mt-4">
-        <view class="rewards-grid">
-          <view class="reward-item">
-            <text class="reward-value">{{ formatGas(unclaimedRewards) }}</text>
-            <text class="reward-label">{{ t("unclaimed") }}</text>
-          </view>
-          <view class="reward-item">
-            <text class="reward-value">{{ formatGas(totalClaimed) }}</text>
-            <text class="reward-label">{{ t("totalClaimed") }}</text>
-          </view>
-        </view>
-        <NeoButton
-          v-if="unclaimedRewards > 0"
-          variant="success"
-          size="md"
-          block
-          :loading="isClaiming"
-          @click="claimRewards"
-          class="mt-4"
-        >
-          {{ t("claimRewards") }} ({{ formatGas(unclaimedRewards) }} GAS)
-        </NeoButton>
-      </NeoCard>
+      <UserRewards
+        :unclaimed-rewards="unclaimedRewards"
+        :total-claimed="totalClaimed"
+        :is-claiming="isClaiming"
+        :t="t as any"
+        @claim="claimRewards"
+      />
     </view>
 
     <!-- Stats Tab -->
-    <view v-if="activeTab === 'stats'" class="tab-content scrollable">
-      <NeoCard :title="t('globalStats')">
-        <view class="global-stats">
-          <view class="stat-item">
-            <text class="stat-icon">👥</text>
-            <text class="stat-value">{{ globalStats.totalUsers }}</text>
-            <text class="stat-label">{{ t("totalUsers") }}</text>
-          </view>
-          <view class="stat-item">
-            <text class="stat-icon">✅</text>
-            <text class="stat-value">{{ globalStats.totalCheckins }}</text>
-            <text class="stat-label">{{ t("totalCheckins") }}</text>
-          </view>
-          <view class="stat-item">
-            <text class="stat-icon">💰</text>
-            <text class="stat-value">{{ formatGas(globalStats.totalRewarded) }}</text>
-            <text class="stat-label">{{ t("totalRewarded") }}</text>
-          </view>
-        </view>
-      </NeoCard>
-
-      <NeoCard :title="t('yourStats')" class="mt-4">
-        <NeoStats :stats="userStats" />
-      </NeoCard>
-
-      <NeoCard :title="t('recentCheckins')" class="mt-4">
-        <view v-if="checkinHistory.length === 0" class="empty-state">
-          <text>{{ t("noCheckins") }}</text>
-        </view>
-        <view v-else class="history-list">
-          <view v-for="(item, idx) in checkinHistory" :key="idx" class="history-item">
-            <view class="history-icon">🔥</view>
-            <view class="history-info">
-              <text class="history-day">{{ t("day") }} {{ item.streak }}</text>
-              <text class="history-time">{{ item.time }}</text>
-            </view>
-            <text v-if="item.reward > 0" class="history-reward">+{{ formatGas(item.reward) }} GAS</text>
-          </view>
-        </view>
-      </NeoCard>
-    </view>
+    <StatsTab
+      v-if="activeTab === 'stats'"
+      :global-stats="globalStats"
+      :user-stats="userStats"
+      :checkin-history="checkinHistory"
+      :t="t as any"
+    />
 
     <!-- Docs Tab -->
     <view v-if="activeTab === 'docs'" class="tab-content scrollable">
@@ -161,7 +69,12 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
-import { AppLayout, NeoButton, NeoCard, NeoDoc, NeoStats, type StatItem } from "@/shared/components";
+import { AppLayout, NeoButton, NeoCard, NeoDoc, type StatItem } from "@/shared/components";
+import CountdownHero from "./components/CountdownHero.vue";
+import StreakDisplay from "./components/StreakDisplay.vue";
+import RewardProgress from "./components/RewardProgress.vue";
+import UserRewards from "./components/UserRewards.vue";
+import StatsTab from "./components/StatsTab.vue";
 
 const translations = {
   title: { en: "Daily Check-in", zh: "每日签到" },
@@ -202,23 +115,25 @@ const translations = {
     zh: "每天签到累积连续天数。连续签到7天可获得1 GAS，之后每连续7天可额外获得1.5 GAS。错过一天连续天数将重置！",
   },
   step1: { en: "Connect your Neo wallet", zh: "连接你的 Neo 钱包" },
-  step2: { en: "Check in once every 24 hours", zh: "每24小时签到一次" },
+  step2: { en: "Check in once per UTC day", zh: "每个 UTC 日签到一次" },
   step3: { en: "Build your streak to earn rewards", zh: "累积连续天数获得奖励" },
   step4: { en: "Claim your GAS rewards anytime", zh: "随时领取你的 GAS 奖励" },
-  feature1Name: { en: "Rolling 24h Window", zh: "滚动24小时" },
+  feature1Name: { en: "UTC Day Reset", zh: "UTC 日重置" },
   feature1Desc: {
-    en: "Check in anytime, countdown resets from your last check-in",
-    zh: "随时签到，倒计时从上次签到开始",
+    en: "Global countdown to UTC 00:00, same for all users",
+    zh: "全局倒计时至 UTC 00:00，所有用户相同",
   },
   feature2Name: { en: "Streak Rewards", zh: "连续奖励" },
   feature2Desc: { en: "Day 7: 1 GAS, Day 14+: +1.5 GAS every 7 days", zh: "第7天: 1 GAS，第14天起: 每7天+1.5 GAS" },
+  notCheckedIn: { en: "Not checked in today", zh: "今日未签到" },
+  checkedInToday: { en: "Checked in today!", zh: "今日已签到!" },
 };
 
 const t = createT(translations);
 
 const APP_ID = "miniapp-dailycheckin";
 const CHECK_IN_FEE = 0.001;
-const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+const MS_PER_DAY = 24 * 60 * 60 * 1000; // milliseconds per day
 
 const { address, connect, invokeContract, invokeRead, getContractHash } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
@@ -240,7 +155,7 @@ const docFeatures = computed(() => [
 // User state
 const currentStreak = ref(0);
 const highestStreak = ref(0);
-const lastCheckInTime = ref(0);
+const lastCheckInDay = ref(0); // UTC day number (not timestamp)
 const unclaimedRewards = ref(0);
 const totalClaimed = ref(0);
 const totalUserCheckins = ref(0);
@@ -270,30 +185,33 @@ const milestones = [
   { day: 28, reward: 1.5, cumulative: 5.5 },
 ];
 
-const nextCheckInTime = computed(() => {
-  if (lastCheckInTime.value === 0) return 0;
-  return lastCheckInTime.value + TWENTY_FOUR_HOURS;
-});
+// Global UTC countdown (same for all users)
+const currentUtcDay = computed(() => Math.floor(now.value / MS_PER_DAY));
+
+const nextUtcMidnight = computed(() => (currentUtcDay.value + 1) * MS_PER_DAY);
 
 const canCheckIn = computed(() => {
-  if (lastCheckInTime.value === 0) return true;
-  return now.value >= nextCheckInTime.value;
+  if (lastCheckInDay.value === 0) return true;
+  return currentUtcDay.value > lastCheckInDay.value;
 });
 
 const remainingMs = computed(() => {
-  if (canCheckIn.value) return 0;
-  return Math.max(0, nextCheckInTime.value - now.value);
+  return Math.max(0, nextUtcMidnight.value - now.value);
 });
 
+// Always calculate countdown progress (circle fills as time passes toward next UTC midnight)
 const countdownProgress = computed(() => {
-  const circumference = 2 * Math.PI * 99;
-  if (canCheckIn.value) return 0;
-  const progress = remainingMs.value / TWENTY_FOUR_HOURS;
-  return circumference * progress;
+  const circumference = 2 * Math.PI * 99; // 622
+  // Calculate how much of the day has passed (0 = start of day, 1 = end of day)
+  const elapsed = MS_PER_DAY - remainingMs.value;
+  const elapsedRatio = elapsed / MS_PER_DAY;
+  // Stroke offset: 0 = full circle visible, circumference = circle hidden
+  // We want circle to fill up as time passes, so offset decreases as time passes
+  return circumference * (1 - elapsedRatio);
 });
 
+// Always calculate countdown time to next UTC midnight
 const countdownLabel = computed(() => {
-  if (canCheckIn.value) return "00:00:00";
   const totalSeconds = Math.floor(remainingMs.value / 1000);
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -301,11 +219,20 @@ const countdownLabel = computed(() => {
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 });
 
+const utcTimeDisplay = computed(() => {
+  const utcDate = new Date(now.value);
+  const h = String(utcDate.getUTCHours()).padStart(2, "0");
+  const m = String(utcDate.getUTCMinutes()).padStart(2, "0");
+  const s = String(utcDate.getUTCSeconds()).padStart(2, "0");
+  return `${h}:${m}:${s}`;
+});
+
 const userStats = computed<StatItem[]>(() => [
   { label: t("currentStreak"), value: `${currentStreak.value} ${t("days")}`, variant: "accent" },
   { label: t("highestStreak"), value: `${highestStreak.value} ${t("days")}`, variant: "success" },
   { label: t("totalUserCheckins"), value: totalUserCheckins.value },
   { label: t("totalClaimed"), value: `${formatGas(totalClaimed.value)} GAS` },
+  { label: t("unclaimed"), value: `${formatGas(unclaimedRewards.value)} GAS` },
 ]);
 
 const formatGas = (value: number) => {
@@ -345,7 +272,7 @@ const loadUserStats = async () => {
     if (Array.isArray(data)) {
       currentStreak.value = Number(data[0] ?? 0);
       highestStreak.value = Number(data[1] ?? 0);
-      lastCheckInTime.value = Number(data[2] ?? 0) * 1000;
+      lastCheckInDay.value = Number(data[2] ?? 0);
       unclaimedRewards.value = Number(data[3] ?? 0);
       totalClaimed.value = Number(data[4] ?? 0);
       totalUserCheckins.value = Number(data[5] ?? 0);
@@ -485,280 +412,30 @@ onUnmounted(() => {
 @import "@/shared/styles/variables.scss";
 
 .tab-content {
-  padding: $space-4;
+  padding: 20px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
-}
-
-.countdown-hero {
-  display: flex;
-  justify-content: center;
-  padding: $space-6;
-  background: var(--bg-card);
-  border: 4px solid var(--border-color);
-  box-shadow: 10px 10px 0 var(--shadow-color);
-}
-
-.countdown-circle {
-  position: relative;
-  width: 200px;
-  height: 200px;
-}
-
-.countdown-ring {
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
-}
-
-.countdown-ring-bg {
-  fill: none;
-  stroke: var(--border-color);
-  stroke-width: 12;
-}
-
-.countdown-ring-progress {
-  fill: none;
-  stroke: var(--neo-green);
-  stroke-width: 12;
-  stroke-linecap: round;
-  stroke-dasharray: 622;
-  transition: stroke-dashoffset 1s linear;
-}
-
-.countdown-text {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.countdown-time {
-  font-family: $font-mono;
-  font-size: 32px;
-  font-weight: $font-weight-black;
-  color: var(--text-primary);
-}
-
-.countdown-label {
-  font-size: 12px;
-  font-weight: $font-weight-bold;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-}
-
-.streak-display {
-  text-align: center;
-  padding: $space-4;
-  background: var(--bg-card);
-  border: 4px solid var(--border-color);
-  box-shadow: 8px 8px 0 var(--shadow-color);
-}
-
-.streak-flames {
-  font-size: 32px;
-  margin-bottom: $space-2;
-}
-
-.flame-empty {
-  opacity: 0.5;
-}
-
-.streak-count {
-  display: block;
-  font-size: 24px;
-  font-weight: $font-weight-black;
-  color: var(--text-primary);
-}
-
-.streak-best {
-  display: block;
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-top: $space-1;
-}
-
-.reward-milestones {
-  display: flex;
-  justify-content: space-between;
-  gap: $space-2;
-}
-
-.milestone {
-  flex: 1;
-  text-align: center;
-  padding: $space-3;
-  background: var(--bg-secondary);
-  border: 2px solid var(--border-color);
-  opacity: 0.5;
-
-  &.reached {
-    opacity: 1;
-    background: var(--neo-green);
-    border-color: var(--neo-green);
-  }
-
-  &.next {
-    opacity: 1;
-    border-color: var(--brutal-yellow);
-  }
-}
-
-.milestone-icon {
-  font-size: 20px;
-}
-
-.milestone-day {
-  display: block;
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-}
-
-.milestone-reward {
-  display: block;
-  font-size: 12px;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
-}
-
-.milestone-cumulative {
-  display: block;
-  font-size: 9px;
-  color: var(--text-secondary);
-  margin-top: 2px;
+  gap: 16px;
 }
 
 .checkin-btn {
-  margin-top: $space-4;
+  margin-top: 24px;
+  box-shadow: 0 0 20px rgba(0, 229, 153, 0.4);
 }
 
 .btn-content {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: $space-2;
+  gap: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
 }
 
 .btn-icon {
-  font-size: 20px;
-}
-
-.rewards-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: $space-4;
-}
-
-.reward-item {
-  text-align: center;
-  padding: $space-3;
-  background: var(--bg-secondary);
-  border: 2px solid var(--border-color);
-}
-
-.reward-value {
-  display: block;
-  font-family: $font-mono;
   font-size: 24px;
-  font-weight: $font-weight-black;
-  color: var(--neo-green);
-}
-
-.reward-label {
-  display: block;
-  font-size: 10px;
-  font-weight: $font-weight-bold;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-}
-
-.global-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: $space-3;
-}
-
-.stat-item {
-  text-align: center;
-  padding: $space-3;
-  background: var(--bg-secondary);
-  border: 2px solid var(--border-color);
-}
-
-.stat-icon {
-  font-size: 24px;
-  display: block;
-  margin-bottom: $space-1;
-}
-
-.stat-value {
-  display: block;
-  font-family: $font-mono;
-  font-size: 18px;
-  font-weight: $font-weight-black;
-  color: var(--text-primary);
-}
-
-.stat-label {
-  display: block;
-  font-size: 9px;
-  font-weight: $font-weight-bold;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-}
-
-.empty-state {
-  text-align: center;
-  padding: $space-6;
-  color: var(--text-secondary);
-  font-weight: $font-weight-bold;
-}
-
-.history-list {
-  display: flex;
-  flex-direction: column;
-  gap: $space-2;
-}
-
-.history-item {
-  display: flex;
-  align-items: center;
-  gap: $space-3;
-  padding: $space-3;
-  background: var(--bg-secondary);
-  border: 2px solid var(--border-color);
-}
-
-.history-icon {
-  font-size: 20px;
-}
-
-.history-info {
-  flex: 1;
-}
-
-.history-day {
-  display: block;
-  font-weight: $font-weight-black;
-  font-size: 12px;
-}
-
-.history-time {
-  display: block;
-  font-size: 10px;
-  color: var(--text-secondary);
-}
-
-.history-reward {
-  font-family: $font-mono;
-  font-weight: $font-weight-black;
-  font-size: 12px;
-  color: var(--neo-green);
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
 }
 
 .scrollable {

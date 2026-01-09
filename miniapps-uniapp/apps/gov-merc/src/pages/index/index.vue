@@ -336,33 +336,98 @@ onMounted(() => fetchData());
   -webkit-overflow-scrolling: touch;
 }
 
-.form-group-neo { display: flex; flex-direction: column; gap: $space-4; }
-.duration-row-neo { display: flex; gap: $space-3; }
-
-.section-title-neo { font-size: 12px; font-weight: $font-weight-black; text-transform: uppercase; margin-bottom: 8px; background: black; color: white; padding: 2px 10px; display: inline-block; }
-
-.delegate-avatar-neo {
-  background: white; border: 3px solid black; box-shadow: 4px 4px 0 black;
-  &.elite { background: var(--brutal-yellow); }
+.form-group-neo {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+.duration-row-neo {
+  display: flex;
+  gap: $space-3;
 }
 
-.delegate-name-neo { font-weight: $font-weight-black; font-size: 20px; border-bottom: 2px solid black; }
-.delegate-address-neo { font-family: $font-mono; font-size: 10px; opacity: 1; font-weight: $font-weight-black; margin-top: 4px; }
+.section-title-neo {
+  font-size: 12px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  background: black;
+  color: white;
+  padding: 2px 10px;
+  display: inline-block;
+}
+
+.delegate-avatar-neo {
+  background: var(--bg-card, white);
+  border: 3px solid var(--border-color, black);
+  box-shadow: 4px 4px 0 var(--shadow-color, black);
+  color: var(--text-primary, black);
+  &.elite {
+    background: var(--brutal-yellow);
+  }
+}
+
+.delegate-name-neo {
+  font-weight: $font-weight-black;
+  font-size: 20px;
+  border-bottom: 2px solid black;
+}
+.delegate-address-neo {
+  font-family: $font-mono;
+  font-size: 10px;
+  opacity: 1;
+  font-weight: $font-weight-black;
+  margin-top: 4px;
+}
 
 .elite-badge-neo {
-  background: black; color: var(--brutal-yellow); font-size: 10px; font-weight: $font-weight-black;
-  padding: 4px 10px; border: 2px solid black; box-shadow: 4px 4px 0 var(--brutal-yellow);
+  background: black;
+  color: var(--brutal-yellow);
+  font-size: 10px;
+  font-weight: $font-weight-black;
+  padding: 4px 10px;
+  border: 2px solid black;
+  box-shadow: 4px 4px 0 var(--brutal-yellow);
 }
 
 .delegate-metrics-neo {
-  background: #eee; padding: $space-4; border: 2px solid black;
-  display: flex; gap: $space-4; box-shadow: inset 4px 4px 0 rgba(0,0,0,0.05);
+  background: var(--bg-elevated, #eee);
+  padding: $space-4;
+  border: 2px solid var(--border-color, black);
+  display: flex;
+  gap: $space-4;
+  box-shadow: inset 4px 4px 0 var(--shadow-color, rgba(0, 0, 0, 0.05));
+  color: var(--text-primary, black);
 }
-.metric-label-neo { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; color: #666; }
-.metric-value-neo { font-family: $font-mono; font-weight: $font-weight-black; font-size: 14px; color: black; }
+.metric-label-neo {
+  font-size: 10px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  color: var(--text-secondary, #666);
+}
+.metric-value-neo {
+  font-family: $font-mono;
+  font-weight: $font-weight-black;
+  font-size: 14px;
+  color: var(--text-primary, black);
+}
 
-.empty-neo { font-family: $font-mono; font-size: 14px; font-weight: $font-weight-black; background: #eee; border: 2px dashed black; }
-.status-text { font-family: $font-mono; font-size: 12px; font-weight: $font-weight-black; }
+.empty-neo {
+  font-family: $font-mono;
+  font-size: 14px;
+  font-weight: $font-weight-black;
+  background: var(--bg-elevated, #eee);
+  border: 2px dashed var(--border-color, black);
+  color: var(--text-primary, black);
+}
+.status-text {
+  font-family: $font-mono;
+  font-size: 12px;
+  font-weight: $font-weight-black;
+}
 
-.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
 </style>

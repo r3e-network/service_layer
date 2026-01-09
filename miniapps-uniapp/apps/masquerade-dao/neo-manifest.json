@@ -1,0 +1,11 @@
+{
+  "category": "governance",
+  "name_zh": "假面 DAO",
+  "description": "Participate in governance wearing a digital mask. Propose and vote anonymously while still proving membership, enabling honest discourse without social pressure.",
+  "description_zh": "戴着数字面具匿名参与治理。",
+  "status": "active",
+  "contract_hash": "0x36873ae952147150e065ad2ba8d23731ffd00d5a",
+  "permissions": {
+    "governance": true
+  }
+}

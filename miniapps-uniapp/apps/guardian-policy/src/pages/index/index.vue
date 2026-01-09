@@ -7,112 +7,40 @@
       </NeoCard>
 
       <!-- Security Level Dashboard -->
-      <NeoCard class="security-dashboard">
-        <view class="shield-icon">🛡️</view>
-        <view class="security-info">
-          <text class="security-label">{{ t("securityLevel") }}</text>
-          <text :class="['security-value', securityLevelClass]">{{ securityLevel }}</text>
-        </view>
-        <view class="security-meter">
-          <view class="meter-bar" :style="{ width: securityPercentage + '%' }"></view>
-        </view>
-      </NeoCard>
+      <SecurityDashboard
+        :security-level="securityLevel"
+        :security-level-class="securityLevelClass"
+        :security-percentage="securityPercentage"
+        :t="t as any"
+      />
 
       <!-- Guardians Status -->
-      <!-- Guardians Status -->
-      <NeoCard :title="'👥 ' + t('guardians')" class="guardians-card">
-        <view v-for="guardian in guardians" :key="guardian.id" class="guardian-row">
-          <view class="guardian-avatar">{{ guardian.avatar }}</view>
-          <view class="guardian-info">
-            <text class="guardian-name">{{ guardian.name }}</text>
-            <text class="guardian-role">{{ guardian.role }}</text>
-          </view>
-          <view :class="['guardian-status', guardian.active ? 'active' : 'inactive']">
-            <text class="status-dot">●</text>
-            <text class="status-text">{{ guardian.active ? t("active") : t("inactive") }}</text>
-          </view>
-        </view>
-      </NeoCard>
+      <GuardiansList :guardians="guardians" :t="t as any" />
 
       <!-- Policy Rules -->
-      <!-- Policy Rules -->
-      <NeoCard :title="'📋 ' + t('activePolicies')" class="policies-card">
-        <view v-for="policy in policies" :key="policy.id" class="policy-row">
-          <view class="policy-header">
-            <view class="policy-icon" :class="'level-' + policy.level">🔒</view>
-            <view class="policy-info">
-              <text class="policy-name">{{ policy.name }}</text>
-              <text class="policy-desc">{{ policy.description }}</text>
-            </view>
-          </view>
-          <view class="policy-controls">
-            <text :class="['policy-level', 'level-' + policy.level]">{{ getLevelText(policy.level) }}</text>
-            <NeoButton :variant="policy.enabled ? 'primary' : 'secondary'" size="sm" @click="togglePolicy(policy.id)">
-              {{ policy.enabled ? "ON" : "OFF" }}
-            </NeoButton>
-          </view>
-        </view>
-      </NeoCard>
+      <PoliciesList :policies="policies" :t="t as any" @toggle="togglePolicy" />
 
       <!-- Create New Policy -->
-      <!-- Create New Policy -->
-      <NeoCard :title="'➕ ' + t('createPolicy')" class="create-card">
-        <NeoInput v-model="policyName" :placeholder="t('policyName')" class="input" />
-        <NeoInput v-model="policyRule" :placeholder="t('policyRule')" class="input" />
-        <view class="level-selector">
-          <text class="selector-label">{{ t("securityLevel") }}:</text>
-          <view class="level-options">
-            <view
-              v-for="level in LEVELS"
-              :key="level"
-              :class="['level-option', { selected: newPolicyLevel === level }]"
-              @click="newPolicyLevel = level"
-            >
-              <text>{{ getLevelText(level) }}</text>
-            </view>
-          </view>
-        </view>
-        <NeoButton variant="primary" size="lg" block @click="createPolicy">
-          {{ t("createPolicy") }}
-        </NeoButton>
-      </NeoCard>
+      <CreatePolicyForm
+        v-model:policyName="policyName"
+        v-model:policyRule="policyRule"
+        v-model:newPolicyLevel="newPolicyLevel"
+        :t="t as any"
+        @create="createPolicy"
+      />
     </view>
 
     <!-- Stats Tab -->
     <view v-if="activeTab === 'stats'" class="tab-content scrollable">
-      <NeoCard :title="'📊 ' + t('statistics')" class="stats-card">
-        <view class="stat-row">
-          <text class="stat-label">{{ t("totalPolicies") }}</text>
-          <text class="stat-value">{{ stats.totalPolicies }}</text>
-        </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("activePoliciesCount") }}</text>
-          <text class="stat-value">{{ stats.activePolicies }}</text>
-        </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("inactivePolicies") }}</text>
-          <text class="stat-value">{{ stats.inactivePolicies }}</text>
-        </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("totalGuardians") }}</text>
-          <text class="stat-value">{{ guardians.length }}</text>
-        </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("activeGuardians") }}</text>
-          <text class="stat-value">{{ guardians.filter((g) => g.active).length }}</text>
-        </view>
-      </NeoCard>
+      <StatsCard
+        :stats="stats"
+        :total-guardians="guardians.length"
+        :active-guardians="guardians.filter((g) => g.active).length"
+        :t="t as any"
+      />
 
       <!-- Action History -->
-      <NeoCard :title="'📜 ' + t('actionHistory')" class="history-card">
-        <view v-for="action in actionHistory" :key="action.id" class="history-item">
-          <view class="history-icon" :class="action.type">{{ getActionIcon(action.type) }}</view>
-          <view class="history-content">
-            <text class="history-action">{{ action.action }}</text>
-            <text class="history-time">{{ action.time }}</text>
-          </view>
-        </view>
-      </NeoCard>
+      <ActionHistory :action-history="actionHistory" :t="t as any" />
     </view>
 
     <!-- Docs Tab -->
@@ -131,7 +59,15 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { createT } from "@/shared/utils/i18n";
-import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard } from "@/shared/components";
+import { AppLayout, NeoCard, NeoDoc } from "@/shared/components";
+import type { NavTab } from "@/shared/components/NavBar.vue";
+
+import SecurityDashboard from "./components/SecurityDashboard.vue";
+import GuardiansList, { type Guardian } from "./components/GuardiansList.vue";
+import PoliciesList, { type Policy, type Level } from "./components/PoliciesList.vue";
+import CreatePolicyForm from "./components/CreatePolicyForm.vue";
+import StatsCard from "./components/StatsCard.vue";
+import ActionHistory, { type ActionHistoryItem } from "./components/ActionHistory.vue";
 
 const translations = {
   title: { en: "Guardian Policy", zh: "守护策略" },
@@ -200,7 +136,7 @@ const translations = {
 
 const t = createT(translations);
 
-const navTabs = [
+const navTabs: NavTab[] = [
   { id: "main", icon: "wallet", label: t("main") },
   { id: "stats", icon: "chart", label: t("stats") },
   { id: "docs", icon: "book", label: t("docs") },
@@ -213,33 +149,6 @@ const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
-const APP_ID = "miniapp-guardianpolicy";
-
-const LEVELS = ["low", "medium", "high", "critical"] as const;
-type Level = (typeof LEVELS)[number];
-
-interface Policy {
-  id: string;
-  name: string;
-  description: string;
-  enabled: boolean;
-  level: Level;
-}
-
-interface Guardian {
-  id: string;
-  name: string;
-  role: string;
-  avatar: string;
-  active: boolean;
-}
-
-interface ActionHistoryItem {
-  id: string;
-  action: string;
-  time: string;
-  type: "create" | "enable" | "disable" | "update";
-}
 
 const policies = ref<Policy[]>([
   { id: "1", name: "Rate Limit", description: "Max 10 tx/min", enabled: true, level: "medium" },
@@ -342,27 +251,6 @@ const createPolicy = () => {
   policyRule.value = "";
   newPolicyLevel.value = "medium";
 };
-
-// Helper functions
-const getLevelText = (level: string) => {
-  const levelMap: Record<string, string> = {
-    low: t("levelLow"),
-    medium: t("levelMedium"),
-    high: t("levelHigh"),
-    critical: t("levelCritical"),
-  };
-  return levelMap[level] || level;
-};
-
-const getActionIcon = (type: string) => {
-  const iconMap: Record<string, string> = {
-    create: "➕",
-    enable: "✅",
-    disable: "❌",
-    update: "🔄",
-  };
-  return iconMap[type] || "📝";
-};
 </script>
 
 <style lang="scss" scoped>
@@ -379,236 +267,5 @@ const getActionIcon = (type: string) => {
   -webkit-overflow-scrolling: touch;
 }
 
-.security-dashboard {
-  background: black;
-  padding: $space-8;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: $space-4;
-  border: 4px solid black;
-  box-shadow: 12px 12px 0 var(--brutal-yellow);
-}
-.shield-icon {
-  font-size: 64px;
-}
-.security-label {
-  color: white;
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  letter-spacing: 4px;
-  border: 1px solid white;
-  padding: 2px 10px;
-}
-.security-value {
-  font-size: 40px;
-  font-weight: $font-weight-black;
-  color: var(--brutal-yellow);
-  text-transform: uppercase;
-  text-shadow: 4px 4px 0 black;
-}
-.security-meter {
-  width: 100%;
-  height: 24px;
-  background: #333;
-  border: 3px solid white;
-  position: relative;
-  padding: 2px;
-}
-.meter-bar {
-  height: 100%;
-  background: var(--neo-green);
-  border-right: 3px solid white;
-  transition: width $transition-normal;
-}
-
-.guardian-row {
-  display: flex;
-  align-items: center;
-  gap: $space-4;
-  padding: $space-4;
-  background: white;
-  border: 3px solid black;
-  margin-bottom: $space-4;
-  transition: all $transition-fast;
-  box-shadow: 6px 6px 0 black;
-  &:hover {
-    transform: translate(2px, 2px);
-    box-shadow: 4px 4px 0 black;
-  }
-}
-.guardian-avatar {
-  width: 50px;
-  height: 50px;
-  background: #eee;
-  border: 3px solid black;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32px;
-}
-.guardian-name {
-  font-weight: $font-weight-black;
-  font-size: 16px;
-  display: block;
-  border-bottom: 2px solid black;
-}
-.guardian-role {
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  opacity: 1;
-  color: #666;
-}
-.guardian-status {
-  margin-left: auto;
-  padding: 4px 12px;
-  border: 2px solid black;
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  box-shadow: 3px 3px 0 black;
-  &.active {
-    background: var(--neo-green);
-    color: black;
-  }
-  &.inactive {
-    background: #bbb;
-    color: black;
-  }
-}
-
-.policy-row {
-  padding: $space-4;
-  background: white;
-  border: 3px solid black;
-  margin-bottom: $space-4;
-  box-shadow: 5px 5px 0 black;
-}
-.policy-header {
-  display: flex;
-  align-items: center;
-  gap: $space-4;
-  margin-bottom: $space-4;
-}
-.policy-icon {
-  width: 40px;
-  height: 40px;
-  border: 3px solid black;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  &.level-low { background: var(--brutal-yellow); }
-  &.level-medium { background: var(--neo-cyan); }
-  &.level-high { background: var(--neo-green); }
-  &.level-critical { background: var(--brutal-red); }
-}
-.policy-name {
-  font-weight: $font-weight-black;
-  font-size: 16px;
-  text-transform: uppercase;
-}
-.policy-desc {
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  opacity: 0.6;
-}
-.policy-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #eee;
-  padding: $space-2 $space-4;
-  border: 2px solid black;
-}
-.policy-level {
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  background: white;
-  padding: 2px 10px;
-  border: 1px solid black;
-}
-
-.level-options {
-  display: flex;
-  gap: $space-3;
-  margin-bottom: $space-6;
-}
-.level-option {
-  flex: 1;
-  padding: $space-3;
-  border: 3px solid black;
-  text-align: center;
-  font-size: 12px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  cursor: pointer;
-  background: white;
-  transition: all $transition-fast;
-  &.selected {
-    background: var(--brutal-yellow);
-    box-shadow: 4px 4px 0 black;
-    transform: translate(2px, 2px);
-  }
-}
-
-.stat-row {
-  display: flex;
-  justify-content: space-between;
-  padding: $space-3 0;
-  border-bottom: 2px solid black;
-}
-.stat-label {
-  font-size: 12px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-}
-.stat-value {
-  font-family: $font-mono;
-  font-weight: $font-weight-black;
-  font-size: 18px;
-  background: black;
-  color: white;
-  padding: 0 8px;
-}
-
-.history-item {
-  display: flex;
-  align-items: center;
-  gap: $space-4;
-  padding: $space-4;
-  border-bottom: 2px solid black;
-  background: white;
-  margin-bottom: $space-2;
-  box-shadow: 3px 3px 0 black;
-}
-.history-icon {
-  width: 36px;
-  height: 36px;
-  border: 2px solid black;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  background: #eee;
-}
-.history-action {
-  font-size: 12px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-}
-.history-time {
-  font-size: 10px;
-  opacity: 0.6;
-  font-weight: $font-weight-black;
-  display: block;
-}
-
-.scrollable {
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
+.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 </style>

@@ -1,0 +1,11 @@
+{
+  "category": "social",
+  "name_zh": "Neo 名人堂",
+  "description": "Vote for Neo legends, communities, and developers using GAS volume. Pay to win ranking system.",
+  "description_zh": "使用 GAS 交易量为 Neo 传奇人物、社区和开发者投票。通过付费赢得排名的系统。",
+  "status": "active",
+  "contract_hash": null,
+  "permissions": {
+    "payments": true
+  }
+}

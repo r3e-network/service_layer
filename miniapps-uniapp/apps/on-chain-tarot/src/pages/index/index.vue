@@ -10,91 +10,28 @@
         <text class="moon-decoration">🌙</text>
       </view>
 
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text>{{ status.msg }}</text>
-      </view>
+      <AppStatus :status="status" />
 
-      <NeoCard :title="t('drawYourCards')" variant="accent" class="mystical-card">
-        <view class="question-input">
-          <NeoInput v-model="question" :placeholder="t('questionPlaceholder')" />
-        </view>
-        <view class="card-spread-container">
-          <view class="spread-labels">
-            <text class="spread-label">{{ t("past") }}</text>
-            <text class="spread-label">{{ t("present") }}</text>
-            <text class="spread-label">{{ t("future") }}</text>
-          </view>
+      <GameArea
+        v-model:question="question"
+        :drawn="drawn"
+        :has-drawn="hasDrawn"
+        :is-loading="isLoading"
+        :t="t as any"
+        @draw="draw"
+        @reset="reset"
+        @flip="flipCard"
+      />
 
-          <view class="cards-row">
-            <view
-              v-for="(card, i) in drawn"
-              :key="i"
-              :class="['tarot-card', { flipped: card.flipped, 'card-glow': card.flipped }]"
-              @click="flipCard(i)"
-            >
-              <view class="card-inner">
-                <!-- Card Front (Revealed) -->
-                <view v-if="card.flipped" class="card-front">
-                  <view class="card-border-decoration">
-                    <text class="corner-star top-left">✦</text>
-                    <text class="corner-star top-right">✦</text>
-                    <text class="corner-star bottom-left">✦</text>
-                    <text class="corner-star bottom-right">✦</text>
-                  </view>
-                  <text class="card-face">{{ card.icon }}</text>
-                  <text class="card-name">{{ card.name }}</text>
-                </view>
-
-                <!-- Card Back (Hidden) -->
-                <view v-else class="card-back">
-                  <view class="card-back-pattern">
-                    <text class="pattern-moon">🌙</text>
-                    <text class="pattern-stars">✨</text>
-                    <text class="pattern-center">🔮</text>
-                    <text class="pattern-stars">✨</text>
-                  </view>
-                </view>
-              </view>
-            </view>
-          </view>
-        </view>
-
-        <view class="action-buttons">
-          <NeoButton v-if="!hasDrawn" variant="primary" size="lg" block :loading="isLoading" @click="draw">
-            {{ t("drawCards") }}
-          </NeoButton>
-          <NeoButton v-else variant="secondary" size="lg" block @click="reset">
-            {{ t("drawAgain") }}
-          </NeoButton>
-        </view>
-      </NeoCard>
-
-      <NeoCard v-if="hasDrawn && allFlipped" :title="t('yourReading')" variant="default" class="reading-card">
-        <view class="fortune-container">
-          <text class="fortune-icon">🔮</text>
-          <text class="reading-text">{{ getReading() }}</text>
-          <view class="mystical-divider">
-            <text>✦ ✦ ✦</text>
-          </view>
-        </view>
-      </NeoCard>
+      <ReadingDisplay
+        v-if="hasDrawn && allFlipped"
+        :title="t('yourReading')"
+        :reading="getReading()"
+      />
     </view>
 
     <view v-if="activeTab === 'stats'" class="tab-content scrollable">
-      <NeoCard :title="t('statistics')" variant="default">
-        <view class="stat-row">
-          <text class="stat-label">{{ t("totalGames") }}</text>
-          <text class="stat-value">{{ readingsCount }}</text>
-        </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("cardsDrawnCount") }}</text>
-          <text class="stat-value">{{ readingsCount * 3 }}</text>
-        </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("totalSpent") }}</text>
-          <text class="stat-value">{{ (readingsCount * 0.05).toFixed(2) }} GAS</text>
-        </view>
-      </NeoCard>
+      <StatisticsTab :readings-count="readingsCount" :t="t as any" />
     </view>
 
     <!-- Docs Tab -->
@@ -115,11 +52,14 @@ import { ref, computed, onMounted } from "vue";
 import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import { parseStackItem } from "@/shared/utils/neo";
-import AppLayout from "@/shared/components/AppLayout.vue";
-import NeoDoc from "@/shared/components/NeoDoc.vue";
-import NeoButton from "@/shared/components/NeoButton.vue";
-import NeoCard from "@/shared/components/NeoCard.vue";
-import NeoInput from "@/shared/components/NeoInput.vue";
+import { AppLayout, NeoDoc } from "@/shared/components";
+import type { NavTab } from "@/shared/components/NavBar.vue";
+
+import AppStatus from "./components/AppStatus.vue";
+import GameArea from "./components/GameArea.vue";
+import ReadingDisplay from "./components/ReadingDisplay.vue";
+import StatisticsTab from "./components/StatisticsTab.vue";
+import type { Card } from "./components/TarotCard.vue";
 
 const translations = {
   title: { en: "On-Chain Tarot", zh: "链上塔罗" },
@@ -178,7 +118,7 @@ const translations = {
 
 const t = createT(translations);
 
-const navTabs = [
+const navTabs: NavTab[] = [
   { id: "game", icon: "game", label: t("game") },
   { id: "stats", icon: "chart", label: t("stats") },
   { id: "docs", icon: "book", label: t("docs") },
@@ -195,92 +135,85 @@ const { address, connect, invokeContract, getContractHash } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
 const { list: listEvents } = useEvents();
 
-interface Card {
-  id: number;
-  name: string;
-  icon: string;
-  flipped: boolean;
-}
-
-const tarotDeck: Card[] = [
-  { id: 0, name: "The Fool", icon: "🃏", flipped: false },
-  { id: 1, name: "The Magician", icon: "🎩", flipped: false },
-  { id: 2, name: "The High Priestess", icon: "🔮", flipped: false },
-  { id: 3, name: "The Empress", icon: "👑", flipped: false },
-  { id: 4, name: "The Emperor", icon: "⚔️", flipped: false },
-  { id: 5, name: "The Hierophant", icon: "📜", flipped: false },
-  { id: 6, name: "The Lovers", icon: "💕", flipped: false },
-  { id: 7, name: "The Chariot", icon: "🏇", flipped: false },
-  { id: 8, name: "Strength", icon: "🦁", flipped: false },
-  { id: 9, name: "The Hermit", icon: "🕯️", flipped: false },
-  { id: 10, name: "Wheel of Fortune", icon: "☸️", flipped: false },
-  { id: 11, name: "Justice", icon: "⚖️", flipped: false },
-  { id: 12, name: "The Hanged Man", icon: "🙃", flipped: false },
-  { id: 13, name: "Death", icon: "💀", flipped: false },
-  { id: 14, name: "Temperance", icon: "🍷", flipped: false },
-  { id: 15, name: "The Devil", icon: "😈", flipped: false },
-  { id: 16, name: "The Tower", icon: "🗼", flipped: false },
-  { id: 17, name: "The Star", icon: "⭐", flipped: false },
-  { id: 18, name: "The Moon", icon: "🌙", flipped: false },
-  { id: 19, name: "The Sun", icon: "☀️", flipped: false },
-  { id: 20, name: "Judgement", icon: "📯", flipped: false },
-  { id: 21, name: "The World", icon: "🌍", flipped: false },
-  { id: 22, name: "Ace of Wands", icon: "🔥", flipped: false },
-  { id: 23, name: "Two of Wands", icon: "🔥", flipped: false },
-  { id: 24, name: "Three of Wands", icon: "🔥", flipped: false },
-  { id: 25, name: "Four of Wands", icon: "🔥", flipped: false },
-  { id: 26, name: "Five of Wands", icon: "🔥", flipped: false },
-  { id: 27, name: "Six of Wands", icon: "🔥", flipped: false },
-  { id: 28, name: "Seven of Wands", icon: "🔥", flipped: false },
-  { id: 29, name: "Eight of Wands", icon: "🔥", flipped: false },
-  { id: 30, name: "Nine of Wands", icon: "🔥", flipped: false },
-  { id: 31, name: "Ten of Wands", icon: "🔥", flipped: false },
-  { id: 32, name: "Page of Wands", icon: "🔥", flipped: false },
-  { id: 33, name: "Knight of Wands", icon: "🔥", flipped: false },
-  { id: 34, name: "Queen of Wands", icon: "🔥", flipped: false },
-  { id: 35, name: "King of Wands", icon: "🔥", flipped: false },
-  { id: 36, name: "Ace of Cups", icon: "💧", flipped: false },
-  { id: 37, name: "Two of Cups", icon: "💧", flipped: false },
-  { id: 38, name: "Three of Cups", icon: "💧", flipped: false },
-  { id: 39, name: "Four of Cups", icon: "💧", flipped: false },
-  { id: 40, name: "Five of Cups", icon: "💧", flipped: false },
-  { id: 41, name: "Six of Cups", icon: "💧", flipped: false },
-  { id: 42, name: "Seven of Cups", icon: "💧", flipped: false },
-  { id: 43, name: "Eight of Cups", icon: "💧", flipped: false },
-  { id: 44, name: "Nine of Cups", icon: "💧", flipped: false },
-  { id: 45, name: "Ten of Cups", icon: "💧", flipped: false },
-  { id: 46, name: "Page of Cups", icon: "💧", flipped: false },
-  { id: 47, name: "Knight of Cups", icon: "💧", flipped: false },
-  { id: 48, name: "Queen of Cups", icon: "💧", flipped: false },
-  { id: 49, name: "King of Cups", icon: "💧", flipped: false },
-  { id: 50, name: "Ace of Swords", icon: "⚔️", flipped: false },
-  { id: 51, name: "Two of Swords", icon: "⚔️", flipped: false },
-  { id: 52, name: "Three of Swords", icon: "⚔️", flipped: false },
-  { id: 53, name: "Four of Swords", icon: "⚔️", flipped: false },
-  { id: 54, name: "Five of Swords", icon: "⚔️", flipped: false },
-  { id: 55, name: "Six of Swords", icon: "⚔️", flipped: false },
-  { id: 56, name: "Seven of Swords", icon: "⚔️", flipped: false },
-  { id: 57, name: "Eight of Swords", icon: "⚔️", flipped: false },
-  { id: 58, name: "Nine of Swords", icon: "⚔️", flipped: false },
-  { id: 59, name: "Ten of Swords", icon: "⚔️", flipped: false },
-  { id: 60, name: "Page of Swords", icon: "⚔️", flipped: false },
-  { id: 61, name: "Knight of Swords", icon: "⚔️", flipped: false },
-  { id: 62, name: "Queen of Swords", icon: "⚔️", flipped: false },
-  { id: 63, name: "King of Swords", icon: "⚔️", flipped: false },
-  { id: 64, name: "Ace of Pentacles", icon: "🪙", flipped: false },
-  { id: 65, name: "Two of Pentacles", icon: "🪙", flipped: false },
-  { id: 66, name: "Three of Pentacles", icon: "🪙", flipped: false },
-  { id: 67, name: "Four of Pentacles", icon: "🪙", flipped: false },
-  { id: 68, name: "Five of Pentacles", icon: "🪙", flipped: false },
-  { id: 69, name: "Six of Pentacles", icon: "🪙", flipped: false },
-  { id: 70, name: "Seven of Pentacles", icon: "🪙", flipped: false },
-  { id: 71, name: "Eight of Pentacles", icon: "🪙", flipped: false },
-  { id: 72, name: "Nine of Pentacles", icon: "🪙", flipped: false },
-  { id: 73, name: "Ten of Pentacles", icon: "🪙", flipped: false },
-  { id: 74, name: "Page of Pentacles", icon: "🪙", flipped: false },
-  { id: 75, name: "Knight of Pentacles", icon: "🪙", flipped: false },
-  { id: 76, name: "Queen of Pentacles", icon: "🪙", flipped: false },
-  { id: 77, name: "King of Pentacles", icon: "🪙", flipped: false },
+const tarotDeck: Omit<Card, "flipped">[] = [
+  { id: 0, name: "The Fool", icon: "🃏" },
+  { id: 1, name: "The Magician", icon: "🎩" },
+  { id: 2, name: "The High Priestess", icon: "🔮" },
+  { id: 3, name: "The Empress", icon: "👑" },
+  { id: 4, name: "The Emperor", icon: "⚔️" },
+  { id: 5, name: "The Hierophant", icon: "📜" },
+  { id: 6, name: "The Lovers", icon: "💕" },
+  { id: 7, name: "The Chariot", icon: "🏇" },
+  { id: 8, name: "Strength", icon: "🦁" },
+  { id: 9, name: "The Hermit", icon: "🕯️" },
+  { id: 10, name: "Wheel of Fortune", icon: "☸️" },
+  { id: 11, name: "Justice", icon: "⚖️" },
+  { id: 12, name: "The Hanged Man", icon: "🙃" },
+  { id: 13, name: "Death", icon: "💀" },
+  { id: 14, name: "Temperance", icon: "🍷" },
+  { id: 15, name: "The Devil", icon: "😈" },
+  { id: 16, name: "The Tower", icon: "🗼" },
+  { id: 17, name: "The Star", icon: "⭐" },
+  { id: 18, name: "The Moon", icon: "🌙" },
+  { id: 19, name: "The Sun", icon: "☀️" },
+  { id: 20, name: "Judgement", icon: "📯" },
+  { id: 21, name: "The World", icon: "🌍" },
+  { id: 22, name: "Ace of Wands", icon: "🔥" },
+  { id: 23, name: "Two of Wands", icon: "🔥" },
+  { id: 24, name: "Three of Wands", icon: "🔥" },
+  { id: 25, name: "Four of Wands", icon: "🔥" },
+  { id: 26, name: "Five of Wands", icon: "🔥" },
+  { id: 27, name: "Six of Wands", icon: "🔥" },
+  { id: 28, name: "Seven of Wands", icon: "🔥" },
+  { id: 29, name: "Eight of Wands", icon: "🔥" },
+  { id: 30, name: "Nine of Wands", icon: "🔥" },
+  { id: 31, name: "Ten of Wands", icon: "🔥" },
+  { id: 32, name: "Page of Wands", icon: "🔥" },
+  { id: 33, name: "Knight of Wands", icon: "🔥" },
+  { id: 34, name: "Queen of Wands", icon: "🔥" },
+  { id: 35, name: "King of Wands", icon: "🔥" },
+  { id: 36, name: "Ace of Cups", icon: "💧" },
+  { id: 37, name: "Two of Cups", icon: "💧" },
+  { id: 38, name: "Three of Cups", icon: "💧" },
+  { id: 39, name: "Four of Cups", icon: "💧" },
+  { id: 40, name: "Five of Cups", icon: "💧" },
+  { id: 41, name: "Six of Cups", icon: "💧" },
+  { id: 42, name: "Seven of Cups", icon: "💧" },
+  { id: 43, name: "Eight of Cups", icon: "💧" },
+  { id: 44, name: "Nine of Cups", icon: "💧" },
+  { id: 45, name: "Ten of Cups", icon: "💧" },
+  { id: 46, name: "Page of Cups", icon: "💧" },
+  { id: 47, name: "Knight of Cups", icon: "💧" },
+  { id: 48, name: "Queen of Cups", icon: "💧" },
+  { id: 49, name: "King of Cups", icon: "💧" },
+  { id: 50, name: "Ace of Swords", icon: "⚔️" },
+  { id: 51, name: "Two of Swords", icon: "⚔️" },
+  { id: 52, name: "Three of Swords", icon: "⚔️" },
+  { id: 53, name: "Four of Swords", icon: "⚔️" },
+  { id: 54, name: "Five of Swords", icon: "⚔️" },
+  { id: 55, name: "Six of Swords", icon: "⚔️" },
+  { id: 56, name: "Seven of Swords", icon: "⚔️" },
+  { id: 57, name: "Eight of Swords", icon: "⚔️" },
+  { id: 58, name: "Nine of Swords", icon: "⚔️" },
+  { id: 59, name: "Ten of Swords", icon: "⚔️" },
+  { id: 60, name: "Page of Swords", icon: "⚔️" },
+  { id: 61, name: "Knight of Swords", icon: "⚔️" },
+  { id: 62, name: "Queen of Swords", icon: "⚔️" },
+  { id: 63, name: "King of Swords", icon: "⚔️" },
+  { id: 64, name: "Ace of Pentacles", icon: "🪙" },
+  { id: 65, name: "Two of Pentacles", icon: "🪙" },
+  { id: 66, name: "Three of Pentacles", icon: "🪙" },
+  { id: 67, name: "Four of Pentacles", icon: "🪙" },
+  { id: 68, name: "Five of Pentacles", icon: "🪙" },
+  { id: 69, name: "Six of Pentacles", icon: "🪙" },
+  { id: 70, name: "Seven of Pentacles", icon: "🪙" },
+  { id: 71, name: "Eight of Pentacles", icon: "🪙" },
+  { id: 72, name: "Nine of Pentacles", icon: "🪙" },
+  { id: 73, name: "Ten of Pentacles", icon: "🪙" },
+  { id: 74, name: "Page of Pentacles", icon: "🪙" },
+  { id: 75, name: "Knight of Pentacles", icon: "🪙" },
+  { id: 76, name: "Queen of Pentacles", icon: "🪙" },
+  { id: 77, name: "King of Pentacles", icon: "🪙" },
 ];
 
 const drawn = ref<Card[]>([]);
@@ -411,13 +344,19 @@ onMounted(async () => {
 @import "@/shared/styles/variables.scss";
 
 .tab-content {
-  padding: $space-6;
+  padding: 20px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-6;
+  gap: 16px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: transparent;
+}
+
+.mystical-bg {
+  min-height: 100%;
   position: relative;
-  background: #fff;
 }
 
 .cosmic-stars {
@@ -427,203 +366,32 @@ onMounted(async () => {
   right: 0;
   bottom: 0;
   pointer-events: none;
-  opacity: 0.1;
+  opacity: 0.3;
   overflow: hidden;
 }
 
 .star {
   position: absolute;
   font-size: 24px;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+  animation: twinkle 3s infinite;
 }
-.star-1 { top: 10%; left: 15%; }
-.star-2 { top: 20%; right: 20%; }
-.star-3 { bottom: 10%; left: 10%; }
-.star-4 { bottom: 15%; right: 15%; }
+.star-1 { top: 10%; left: 15%; animation-delay: 0s; }
+.star-2 { top: 20%; right: 20%; animation-delay: 1s; }
+.star-3 { bottom: 10%; left: 10%; animation-delay: 2s; }
+.star-4 { bottom: 15%; right: 15%; animation-delay: 1.5s; }
+
 .moon-decoration {
   position: absolute;
   top: 5%;
   right: 10%;
   font-size: 60px;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.2));
 }
 
-.status-msg {
-  text-align: center;
-  padding: $space-4;
-  font-size: 14px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  border: 4px solid black;
-  box-shadow: 8px 8px 0 black;
-  font-style: italic;
-  &.success {
-    background: var(--neo-green);
-    color: black;
-  }
-  &.error {
-    background: #ff7e7e;
-    color: black;
-  }
-  &.loading {
-    background: #ffde59;
-    color: black;
-  }
-}
-
-.mystical-card {
-  border: 4px solid black;
-  box-shadow: 12px 12px 0 black;
-  background: white;
-  padding: $space-4;
-}
-
-.question-input {
-  margin-bottom: $space-6;
-}
-
-.spread-labels {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: $space-4;
-}
-
-.spread-label {
-  font-size: 12px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  background: black;
-  color: white;
-  padding: 4px 12px;
-  border: 2px solid black;
-  font-style: italic;
-  transform: skew(-10deg);
-}
-
-.cards-row {
-  display: flex;
-  justify-content: center;
-  gap: $space-4;
-  margin-bottom: $space-8;
-}
-
-.tarot-card {
-  width: 100px;
-  height: 160px;
-  background: #f0f0f0;
-  border: 4px solid black;
-  cursor: pointer;
-  position: relative;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 6px 6px 0 black;
-
-  &.flipped {
-    background: white;
-    border-color: black;
-    box-shadow: 10px 10px 0 #cc99ff;
-    transform: translateY(-8px);
-  }
-  &:not(.flipped):hover {
-    transform: scale(1.05) rotate(2deg);
-    background: #e0e0e0;
-  }
-}
-
-.card-inner {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.card-back-pattern {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-.pattern-center {
-  font-size: 44px;
-}
-
-.card-face {
-  font-size: 60px;
-  display: block;
-}
-.card-name {
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  text-align: center;
-  color: black;
-  padding: 6px;
-  background: #cc99ff;
-  border-top: 3px solid black;
-  border-bottom: 3px solid black;
-  width: 100%;
-  margin-top: 8px;
-  font-style: italic;
-}
-
-.reading-card {
-  border: 4px solid black;
-  box-shadow: 12px 12px 0 black;
-  background: #cc99ff;
-}
-.fortune-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: $space-6;
-  padding: $space-6;
-}
-.fortune-icon {
-  font-size: 64px;
-}
-.reading-text {
-  font-family: $font-mono;
-  font-size: 16px;
-  font-weight: $font-weight-black;
-  text-align: center;
-  display: block;
-  line-height: 1.4;
-  text-transform: uppercase;
-}
-
-.mystical-divider {
-  color: black;
-  font-weight: $font-weight-black;
-  letter-spacing: 6px;
-  font-size: 20px;
-}
-
-.stat-row {
-  display: flex;
-  justify-content: space-between;
-  padding: $space-6 0;
-  border-bottom: 4px solid black;
-  align-items: center;
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-.stat-label {
-  font-size: 14px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  color: black;
-}
-.stat-value {
-  font-weight: $font-weight-black;
-  font-family: $font-mono;
-  font-size: 18px;
-  color: black;
-  background: #ffde59;
-  padding: 4px 12px;
-  border: 3px solid black;
-  box-shadow: 4px 4px 0 black;
-  font-style: italic;
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.1); }
 }
 
 .scrollable {

@@ -4,161 +4,90 @@
       <text class="status-text">{{ statusMessage }}</text>
     </NeoCard>
 
-    <!-- Hero APY Card with Burger Theme -->
-    <NeoCard variant="accent" class="hero-apy-card mb-6 text-center">
-      <view class="burger-icon"><AppIcon name="burger" :size="64" /></view>
-      <text class="hero-label">{{ t("currentApy") }}</text>
-      <text class="hero-value">{{ animatedApy }}%</text>
-      <text class="hero-subtitle">{{ t("liquidStaking") }}</text>
-    </NeoCard>
+    <view v-if="activeTab === 'stake' || activeTab === 'unstake'" class="app-container">
+      <!-- Hero APY Card -->
+      <NeoBurgerHero :animated-apy="animatedApy" :t="t as any" />
 
-    <!-- Stats Dashboard -->
-    <NeoCard class="mb-6">
-      <NeoStats :stats="statsData" />
-    </NeoCard>
+      <!-- Stats Dashboard -->
+      <NeoCard class="mb-6">
+        <NeoStats :stats="statsData" />
+      </NeoCard>
 
-    <!-- Rewards Card -->
-    <NeoCard :title="t('estimatedRewards')" variant="success" class="mb-6">
-      <template #header-extra>
-        <view class="rewards-badge">{{ t("daily") }}</view>
-      </template>
-      <view class="rewards-body">
-        <text class="rewards-amount">+{{ dailyRewards }} NEO</text>
-        <text class="rewards-usd">≈ ${{ dailyRewardsUsd }}</text>
-      </view>
-      <view class="rewards-progress-container">
-        <view class="rewards-progress-bar" :style="{ width: rewardsProgress + '%' }"></view>
-      </view>
-    </NeoCard>
+      <!-- Rewards Summary Card -->
+      <RewardsSummaryCard
+        :daily-rewards="dailyRewards"
+        :daily-rewards-usd="dailyRewardsUsd"
+        :rewards-progress="rewardsProgress"
+        :t="t as any"
+      />
 
-    <!-- Stake Panel -->
-    <NeoCard v-if="activeTab === 'stake'" :title="t('stakeNeoTitle')" class="mb-6">
-      <text class="panel-subtitle mb-4 text-center block">{{ t("stakeSubtitle") }}</text>
+      <!-- Stake Panel -->
+      <StakePanel
+        v-if="activeTab === 'stake'"
+        v-model:stakeAmount="stakeAmount"
+        :neo-balance="neoBalance"
+        :estimated-bneo="estimatedBneo"
+        :yearly-return="yearlyReturn"
+        :can-stake="canStake"
+        :loading="loading"
+        :t="t as any"
+        @setAmount="setStakeAmount"
+        @stake="handleStake"
+      />
 
-      <view class="input-group">
-        <view class="input-header">
-          <text class="input-label">{{ t("amountToStake") }}</text>
-          <text class="balance-hint">{{ t("balance") }}: {{ formatAmount(neoBalance) }} NEO</text>
-        </view>
-
-        <NeoInput v-model="stakeAmount" type="number" placeholder="0.00" class="mb-4">
-          <template #suffix>
-            <text class="token-symbol">NEO</text>
-          </template>
-        </NeoInput>
-
-        <view class="quick-amounts mb-4">
-          <NeoButton variant="secondary" size="sm" @click="setStakeAmount(0.25)">25%</NeoButton>
-          <NeoButton variant="secondary" size="sm" @click="setStakeAmount(0.5)">50%</NeoButton>
-          <NeoButton variant="secondary" size="sm" @click="setStakeAmount(0.75)">75%</NeoButton>
-          <NeoButton variant="secondary" size="sm" @click="setStakeAmount(1)">MAX</NeoButton>
-        </view>
-      </view>
-
-      <view class="conversion-card-neo mb-6">
-        <view class="conversion-row">
-          <text class="conversion-label">{{ t("youWillReceive") }}</text>
-          <text class="conversion-value">{{ estimatedBneo }} bNEO</text>
-        </view>
-        <view class="conversion-row">
-          <text class="conversion-label">{{ t("exchangeRate") }}</text>
-          <text class="conversion-value">1 NEO = 0.99 bNEO</text>
-        </view>
-        <view class="conversion-row">
-          <text class="conversion-label">{{ t("yearlyReturn") }}</text>
-          <text class="conversion-value highlight">+{{ yearlyReturn }} NEO</text>
-        </view>
-      </view>
-
-      <NeoButton variant="primary" size="lg" block :disabled="!canStake" :loading="loading" @click="handleStake">
-        {{ loading ? t("processing") : t("stakeNeo") }}
-      </NeoButton>
-    </NeoCard>
-
-    <!-- Unstake Panel -->
-    <NeoCard v-if="activeTab === 'unstake'" :title="t('unstakeBneoTitle')" class="mb-6">
-      <text class="panel-subtitle mb-4 text-center block">{{ t("unstakeSubtitle") }}</text>
-
-      <view class="input-group">
-        <view class="input-header">
-          <text class="input-label">{{ t("amountToUnstake") }}</text>
-          <text class="balance-hint">{{ t("balance") }}: {{ formatAmount(bNeoBalance) }} bNEO</text>
-        </view>
-
-        <NeoInput v-model="unstakeAmount" type="number" placeholder="0.00" class="mb-4">
-          <template #suffix>
-            <text class="token-symbol">bNEO</text>
-          </template>
-        </NeoInput>
-
-        <view class="quick-amounts mb-4">
-          <NeoButton variant="secondary" size="sm" @click="setUnstakeAmount(0.25)">25%</NeoButton>
-          <NeoButton variant="secondary" size="sm" @click="setUnstakeAmount(0.5)">50%</NeoButton>
-          <NeoButton variant="secondary" size="sm" @click="setUnstakeAmount(0.75)">75%</NeoButton>
-          <NeoButton variant="secondary" size="sm" @click="setUnstakeAmount(1)">MAX</NeoButton>
-        </view>
-      </view>
-
-      <view class="conversion-card-neo mb-6">
-        <view class="conversion-row">
-          <text class="conversion-label">{{ t("youWillReceive") }}</text>
-          <text class="conversion-value">{{ estimatedNeo }} NEO</text>
-        </view>
-        <view class="conversion-row">
-          <text class="conversion-label">{{ t("exchangeRate") }}</text>
-          <text class="conversion-value">1 bNEO = 1.01 NEO</text>
-        </view>
-      </view>
-
-      <NeoButton variant="danger" size="lg" block :disabled="!canUnstake" :loading="loading" @click="handleUnstake">
-        {{ loading ? t("processing") : t("unstakeBneo") }}
-      </NeoButton>
-    </NeoCard>
+      <!-- Unstake Panel -->
+      <UnstakePanel
+        v-if="activeTab === 'unstake'"
+        v-model:unstakeAmount="unstakeAmount"
+        :b-neo-balance="bNeoBalance"
+        :estimated-neo="estimatedNeo"
+        :can-unstake="canUnstake"
+        :loading="loading"
+        :t="t as any"
+        @setAmount="setUnstakeAmount"
+        @unstake="handleUnstake"
+      />
+    </view>
 
     <!-- Rewards Tab -->
-    <view v-if="activeTab === 'rewards'" class="tab-content">
-      <NeoCard class="rewards-panel-card">
-        <view class="rewards-summary text-center mb-6">
-          <text class="summary-title block mb-2">{{ t("totalRewards") }}</text>
-          <text class="summary-value block mb-1">{{ formatAmount(totalRewards) }} NEO</text>
-          <text class="summary-usd block">≈ ${{ totalRewardsUsd }}</text>
-        </view>
+    <RewardsTab
+      v-if="activeTab === 'rewards'"
+      :total-rewards="totalRewards"
+      :total-rewards-usd="totalRewardsUsd"
+      :b-neo-balance="bNeoBalance"
+      :daily-rewards="dailyRewards"
+      :weekly-rewards="weeklyRewards"
+      :monthly-rewards="monthlyRewards"
+      :t="t as any"
+      @claim="handleClaimRewards"
+    />
 
-        <view class="rewards-breakdown mb-6">
-          <view class="breakdown-item">
-            <text class="breakdown-label">{{ t("stakedAmount") }}</text>
-            <text class="breakdown-value">{{ formatAmount(bNeoBalance) }} bNEO</text>
-          </view>
-          <view class="breakdown-item">
-            <text class="breakdown-label">{{ t("dailyRewards") }}</text>
-            <text class="breakdown-value">+{{ dailyRewards }} NEO</text>
-          </view>
-          <view class="breakdown-item">
-            <text class="breakdown-label">{{ t("weeklyRewards") }}</text>
-            <text class="breakdown-value">+{{ weeklyRewards }} NEO</text>
-          </view>
-          <view class="breakdown-item">
-            <text class="breakdown-label">{{ t("monthlyRewards") }}</text>
-            <text class="breakdown-value">+{{ monthlyRewards }} NEO</text>
-          </view>
-        </view>
-
-        <NeoButton variant="success" size="lg" block :disabled="totalRewards <= 0" @click="handleClaimRewards">
-          {{ t("claimRewards") }}
-        </NeoButton>
-      </NeoCard>
+    <!-- Docs Tab -->
+    <view v-if="activeTab === 'docs'" class="tab-content scrollable">
+      <NeoDoc
+        :title="t('title')"
+        :subtitle="t('docSubtitle')"
+        :description="t('docDescription')"
+        :steps="docSteps"
+        :features="docFeatures"
+      />
     </view>
   </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useWallet } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
-import { AppLayout, AppIcon, NeoButton, NeoDoc, NeoInput, NeoCard, NeoStats } from "@/shared/components";
+import { AppLayout, NeoCard, NeoStats, NeoDoc } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 import type { StatItem } from "@/shared/components/NeoStats.vue";
 import { getPrices, type PriceData } from "@/shared/utils/price";
+import NeoBurgerHero from "./components/NeoBurgerHero.vue";
+import RewardsSummaryCard from "./components/RewardsSummaryCard.vue";
+import StakePanel from "./components/StakePanel.vue";
+import UnstakePanel from "./components/UnstakePanel.vue";
+import RewardsTab from "./components/RewardsTab.vue";
 
 const APP_ID = "miniapp-neoburger";
 const BNEO_CONTRACT = "0x48c40d4666f93408be1bef038b6722404d9a4c2a";
@@ -238,6 +167,7 @@ const translations = {
     en: "Rewards are automatically compounded, increasing your bNEO value over time.",
     zh: "奖励自动复利，随时间增加您的 bNEO 价值。",
   },
+  error: { en: "Error", zh: "错误" },
 };
 
 const t = createT(translations);
@@ -465,8 +395,21 @@ async function handleClaimRewards() {
 
   loading.value = true;
   try {
-    // Mock claim rewards - implement actual contract call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    // Call NeoBurger contract to claim rewards
+    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
+    if (!sdk?.invoke) {
+      throw new Error("SDK not available");
+    }
+
+    // NeoBurger contract hash on mainnet
+    const NEOBURGER_CONTRACT = "0x48c40d4666f93408be1bef038b6722404d9a4c2a";
+
+    await sdk.invoke("invokeFunction", {
+      contract: NEOBURGER_CONTRACT,
+      method: "claim",
+      args: [],
+    });
+
     showStatus(t("claimSuccess"), "success");
     await loadBalances();
   } catch (e: any) {
@@ -495,185 +438,24 @@ onMounted(() => {
 @import "@/shared/styles/tokens.scss";
 @import "@/shared/styles/variables.scss";
 
-.hero-apy-card {
-  background: var(--brutal-yellow) !important;
-  color: black !important;
-  border: 4px solid black;
-  box-shadow: 10px 10px 0 black;
-  .hero-label {
-    display: block;
-    font-size: 10px;
-    font-weight: $font-weight-black;
-    text-transform: uppercase;
-    margin-bottom: $space-2;
-  }
-  .hero-value {
-    display: block;
-    font-size: 48px;
-    font-weight: $font-weight-black;
-    line-height: 1;
-    margin-bottom: $space-2;
-  }
-  .hero-subtitle {
-    display: block;
-    font-size: 8px;
-    font-weight: $font-weight-black;
-    text-transform: uppercase;
-    opacity: 0.6;
-  }
-}
-
-.burger-icon {
-  margin-bottom: $space-4;
-  color: black;
-}
-
-.rewards-badge {
-  background: black;
-  color: white;
-  padding: 2px 8px;
-  font-size: 8px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  border: 2px solid black;
-}
-.rewards-body {
-  text-align: center;
-  margin-bottom: $space-4;
-}
-.rewards-amount {
-  display: block;
-  font-size: 32px;
-  font-weight: $font-weight-black;
-  color: var(--neo-green);
-  font-family: $font-mono;
-}
-.rewards-usd {
-  display: block;
-  font-size: 12px;
-  font-weight: $font-weight-bold;
-  opacity: 0.6;
-}
-
-.rewards-progress-container {
-  background: white;
-  border: 2px solid black;
-  height: 12px;
-  overflow: hidden;
-  margin-top: $space-2;
-}
-.rewards-progress-bar {
-  height: 100%;
-  background: var(--neo-green);
-  border-right: 2px solid black;
-}
-
-.conversion-card-neo {
-  background: #f0f0f0;
-  border: 2px solid black;
-  padding: $space-4;
-}
-.conversion-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: $space-2;
-  &:last-child {
-    margin-bottom: 0;
-  }
-}
-.conversion-label {
-  font-size: 8px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  opacity: 0.6;
-}
-.conversion-value {
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  font-family: $font-mono;
-  &.highlight {
-    color: var(--neo-purple);
-  }
-}
-
-.input-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: $space-2;
-}
-.input-label {
-  font-size: 8px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-}
-.balance-hint {
-  font-size: 8px;
-  font-weight: $font-weight-bold;
-  opacity: 0.6;
-}
-
-.quick-amounts {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: $space-2;
-}
-
-.rewards-panel-card {
-  border: 4px solid black;
-  box-shadow: 10px 10px 0 black;
-}
-.summary-title {
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  opacity: 0.6;
-}
-.summary-value {
-  font-size: 36px;
-  font-weight: $font-weight-black;
-  font-family: $font-mono;
-  color: var(--neo-green);
-}
-.summary-usd {
-  font-size: 14px;
-  font-weight: $font-weight-bold;
-  opacity: 0.6;
-}
-
-.breakdown-item {
-  display: flex;
-  justify-content: space-between;
-  padding: $space-2 0;
-  border-bottom: 1px dashed black;
-  &:last-child {
-    border-bottom: none;
-  }
-}
-.breakdown-label {
-  font-size: 8px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  opacity: 0.6;
-}
-.breakdown-value {
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  font-family: $font-mono;
-}
-
-.tab-content {
-  padding: $space-4;
+.app-container {
+  padding: 20px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: 20px;
+}
+
+.scrollable {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
 .status-text {
-  font-weight: $font-weight-black;
+  font-weight: 700;
   text-transform: uppercase;
-  font-size: 12px;
+  font-size: 13px;
+  text-align: center;
+  letter-spacing: 0.05em;
 }
 </style>

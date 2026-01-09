@@ -1,0 +1,12 @@
+{
+  "category": "governance",
+  "name_zh": "议会治理",
+  "description": "Create and vote on governance proposals as a council member. Submit text proposals or policy parameter changes, collect signatures, and execute approved decisions with multi-sig verification.",
+  "description_zh": "作为议会成员创建和投票治理提案。提交文本提案或策略参数变更，收集签名，执行已批准的决议。",
+  "status": "active",
+  "contract_hash": null,
+  "permissions": {
+    "governance": true,
+    "payments": true
+  }
+}

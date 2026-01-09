@@ -1,0 +1,12 @@
+{
+  "category": "defi",
+  "name_zh": "复利胶囊",
+  "description": "Maximize your yields with automatic compounding. Deposit once and watch your earnings grow exponentially as rewards are reinvested continuously.",
+  "description_zh": "通过自动复投最大化您的收益。",
+  "status": "active",
+  "contract_hash": "0xba302bebace6c2bd0f610228b56bd3d3de07dbd7",
+  "permissions": {
+    "payments": true,
+    "automation": true
+  }
+}

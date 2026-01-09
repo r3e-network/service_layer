@@ -1,0 +1,12 @@
+{
+  "category": "nft",
+  "name_zh": "Neo 花园",
+  "description": "Cultivate your own virtual garden where plants grow based on your blockchain activity. Rare seeds, seasonal events, and cross-pollination create unique botanical NFTs.",
+  "description_zh": "培育虚拟花园，植物根据区块链活动生长。",
+  "status": "active",
+  "contract_hash": "0xdb52b284d97973b01fed431dd6d143a4d04d9fa7",
+  "permissions": {
+    "payments": true,
+    "automation": true
+  }
+}

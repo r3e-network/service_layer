@@ -1,0 +1,11 @@
+{
+  "category": "utility",
+  "name_zh": "Neo 域名服务",
+  "description": "Register and manage human-readable .neo domain names for your wallet. Search availability, register domains, and manage your digital identity on Neo.",
+  "description_zh": "为您的钱包注册人类可读的 .neo 域名。",
+  "status": "active",
+  "contract_hash": null,
+  "permissions": {
+    "payments": true
+  }
+}

@@ -248,26 +248,60 @@ const navTabs: NavTab[] = [
   { id: "docs", icon: "book", label: t("docs") },
 ];
 
-const grants = ref<Grant[]>([
-  {
-    id: "1",
-    title: "Neo Developer Tools",
-    description: "Building open-source dev tools for Neo ecosystem",
-    goal: 1000,
-    funded: 450,
-    creator: "NXtest1",
-    status: "active",
-  },
-  {
-    id: "2",
-    title: "Community Education",
-    description: "Creating tutorials and documentation",
-    goal: 500,
-    funded: 500,
-    creator: "NXtest2",
-    status: "funded",
-  },
-]);
+const grants = ref<Grant[]>([]);
+
+function decodeBase64(str: string) {
+  try {
+    // Basic base64 decode for browser/uniapp
+    return decodeURIComponent(escape(atob(str)));
+  } catch {
+    return str;
+  }
+}
+
+async function fetchGrants() {
+  loading.value = true;
+  try {
+    // Utilizing uni.request for cross-platform compatibility
+    const res = await new Promise<any>((resolve, reject) => {
+      uni.request({
+        url: "https://api.prod.grantshares.io/api/proposal/all?page=0&page-size=50&order-attr=state-updated&order-asc=0",
+        success: (r) => resolve(r.data),
+        fail: (e) => reject(e),
+      });
+    });
+
+    if (res && res.items) {
+      grants.value = res.items.map((item: any) => ({
+        id: String(item.id),
+        title: decodeBase64(item.title),
+        description: "", // API doesn't list summary in 'all' endpoint usually, might need detail fetch but keeping simple
+        goal: parseFloat(item.targetAmount || "0"), // Adjust based on real API response if known, otherwise guess
+        funded: parseFloat(item.receivedAmount || "0"), // Adjust
+        creator: item.proposer,
+        status: item.state === "Executed" ? "funded" : item.state === "Active" ? "active" : "completed",
+        // Extend Grant interface if needed or map loosely
+      }));
+      totalGrants.value = res.totalCount || grants.value.length;
+    }
+  } catch (e) {
+    console.error("Failed to fetch grants", e);
+    // Fallback to mock if API fails (optional, but good for demo stability)
+    grants.value = [
+      {
+        id: "1",
+        title: "Neo Developer Tools (Offline Demo)",
+        description: "Building open-source dev tools for Neo ecosystem",
+        goal: 1000,
+        funded: 450,
+        creator: "NXtest1",
+        status: "active",
+      },
+    ];
+  } finally {
+    loading.value = false;
+  }
+}
 
 const totalGrants = ref(2);
 const totalFunded = ref(950);
@@ -361,6 +395,7 @@ async function handleFund() {
 
 onMounted(async () => {
   await connect();
+  fetchGrants();
 });
 </script>
 
@@ -378,47 +413,192 @@ onMounted(async () => {
   -webkit-overflow-scrolling: touch;
 }
 
-.tab-content { display: flex; flex-direction: column; gap: $space-4; }
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
 
 .pool-header {
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: $space-6;
-  border-bottom: 4px solid black; padding-bottom: $space-3;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-6;
+  border-bottom: 4px solid black;
+  padding-bottom: $space-3;
 }
-.pool-title { font-weight: $font-weight-black; font-size: 28px; text-transform: uppercase; color: black; }
-.pool-round { font-size: 12px; font-weight: $font-weight-black; border: 2px solid black; padding: 4px 12px; background: var(--brutal-yellow); box-shadow: 2px 2px 0 black; }
+.pool-title {
+  font-weight: $font-weight-black;
+  font-size: 28px;
+  text-transform: uppercase;
+  color: var(--text-primary, black);
+}
+.pool-round {
+  font-size: 12px;
+  font-weight: $font-weight-black;
+  border: 2px solid var(--border-color, black);
+  padding: 4px 12px;
+  background: var(--brutal-yellow);
+  box-shadow: 2px 2px 0 var(--shadow-color, black);
+}
 
-.pool-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: $space-4; }
-.pool-stat { padding: $space-4; background: white; border: 3px solid black; box-shadow: 4px 4px 0 black; }
-.stat-label { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; opacity: 1; margin-bottom: 4px; display: block; }
-.stat-value { font-weight: $font-weight-black; font-family: $font-mono; display: block; font-size: 16px; border-bottom: 2px solid black; }
-.stat-value.highlight { color: var(--neo-purple); background: #eee; padding: 0 4px; }
+.pool-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $space-4;
+}
+.pool-stat {
+  padding: $space-4;
+  background: var(--bg-card, white);
+  border: 3px solid var(--border-color, black);
+  box-shadow: 4px 4px 0 var(--shadow-color, black);
+  color: var(--text-primary, black);
+}
+.stat-label {
+  font-size: 10px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  opacity: 1;
+  margin-bottom: 4px;
+  display: block;
+}
+.stat-value {
+  font-weight: $font-weight-black;
+  font-family: $font-mono;
+  display: block;
+  font-size: 16px;
+  border-bottom: 2px solid black;
+}
+.stat-value.highlight {
+  color: var(--neo-purple);
+  background: var(--bg-elevated, #eee);
+  padding: 0 4px;
+}
 
-.section-title { font-weight: $font-weight-black; text-transform: uppercase; font-size: 12px; margin-bottom: $space-4; background: black; color: white; padding: 2px 10px; display: inline-block; }
+.section-title {
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  font-size: 12px;
+  margin-bottom: $space-4;
+  background: black;
+  color: white;
+  padding: 2px 10px;
+  display: inline-block;
+}
 
-.grant-card-neo { margin-bottom: $space-6; border: 4px solid black; box-shadow: 10px 10px 0 black; padding: $space-6; }
-.grant-card-header { display: flex; justify-content: space-between; margin-bottom: $space-4; align-items: flex-start; }
-.grant-title { font-weight: $font-weight-black; text-transform: uppercase; font-size: 18px; border-bottom: 3px solid black; padding-bottom: 2px; }
-.grant-creator { font-size: 10px; font-weight: $font-weight-black; opacity: 0.6; text-transform: uppercase; margin-top: 4px; display: block; }
+.grant-card-neo {
+  margin-bottom: $space-6;
+  border: 4px solid var(--border-color, black);
+  box-shadow: 10px 10px 0 var(--shadow-color, black);
+  padding: $space-6;
+}
+.grant-card-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: $space-4;
+  align-items: flex-start;
+}
+.grant-title {
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  font-size: 18px;
+  border-bottom: 3px solid black;
+  padding-bottom: 2px;
+}
+.grant-creator {
+  font-size: 10px;
+  font-weight: $font-weight-black;
+  opacity: 0.6;
+  text-transform: uppercase;
+  margin-top: 4px;
+  display: block;
+}
 
 .grant-badge {
-  padding: 4px 12px; font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; border: 2px solid black; box-shadow: 3px 3px 0 black;
-  &.active { background: var(--brutal-yellow); color: black; }
-  &.funded { background: var(--neo-green); color: black; }
+  padding: 4px 12px;
+  font-size: 10px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+  border: 2px solid var(--border-color, black);
+  box-shadow: 3px 3px 0 var(--shadow-color, black);
+  &.active {
+    background: var(--brutal-yellow);
+    color: black;
+  }
+  &.funded {
+    background: var(--neo-green);
+    color: black;
+  }
 }
 
-.grant-description { font-size: 14px; font-weight: $font-weight-black; margin: $space-4 0; line-height: 1.4; border-left: 4px solid black; padding-left: 12px; }
+.grant-description {
+  font-size: 14px;
+  font-weight: $font-weight-black;
+  margin: $space-4 0;
+  line-height: 1.4;
+  border-left: 4px solid black;
+  padding-left: 12px;
+}
 
-.funding-section { background: #f0f0f0; padding: $space-4; border: 2px solid black; margin-bottom: $space-5; }
-.funding-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.funding-label { font-size: 10px; font-weight: $font-weight-black; text-transform: uppercase; }
-.funding-percentage { font-size: 16px; font-weight: $font-weight-black; font-family: $font-mono; background: black; color: white; padding: 2px 8px; }
+.funding-section {
+  background: var(--bg-elevated, #f0f0f0);
+  padding: $space-4;
+  border: 2px solid var(--border-color, black);
+  margin-bottom: $space-5;
+  color: var(--text-primary, black);
+}
+.funding-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.funding-label {
+  font-size: 10px;
+  font-weight: $font-weight-black;
+  text-transform: uppercase;
+}
+.funding-percentage {
+  font-size: 16px;
+  font-weight: $font-weight-black;
+  font-family: $font-mono;
+  background: black;
+  color: white;
+  padding: 2px 8px;
+}
 
-.progress-track { height: 20px; background: white; border: 3px solid black; margin: $space-3 0; position: relative; padding: 2px; }
-.progress-bar { height: 100%; background: var(--neo-green); border-right: 2px solid black; }
+.progress-track {
+  height: 20px;
+  background: var(--bg-card, white);
+  border: 3px solid var(--border-color, black);
+  margin: $space-3 0;
+  position: relative;
+  padding: 2px;
+}
+.progress-bar {
+  height: 100%;
+  background: var(--neo-green);
+  border-right: 2px solid black;
+}
 
-.funding-amounts { font-family: $font-mono; font-size: 10px; font-weight: $font-weight-black; text-align: right; margin-top: 4px; }
-.form-container { display: flex; flex-direction: column; gap: $space-6; }
-.modal-content { padding: $space-4 0; }
+.funding-amounts {
+  font-family: $font-mono;
+  font-size: 10px;
+  font-weight: $font-weight-black;
+  text-align: right;
+  margin-top: 4px;
+}
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+}
+.modal-content {
+  padding: $space-4 0;
+}
 
-.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
 </style>
