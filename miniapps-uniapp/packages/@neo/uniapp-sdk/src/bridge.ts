@@ -1,8 +1,11 @@
 /**
  * SDK Bridge - Connects uni-app to Neo MiniApp SDK
+ *
+ * Refactored with centralized origin validation (SOLID: Single Responsibility)
  */
 
 import type { MiniAppSDK, NeoSDKConfig } from "./types";
+import { SDK_TIMEOUTS, PRODUCTION_ORIGINS, DEV_ORIGINS } from "./config";
 
 declare global {
   interface Window {
@@ -10,25 +13,133 @@ declare global {
   }
 }
 
-/**
- * Allowed origins for SDK communication
- */
-const ALLOWED_ORIGINS = [
-  "https://miniapp.neo.org",
-  "https://testnet.miniapp.neo.org",
-  ...(process.env.NODE_ENV === "development"
-    ? [
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://localhost:3002",
-        "http://localhost:3003",
-        "http://localhost:3004",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:3001",
-        "http://127.0.0.1:3002",
-      ]
-    : []),
-];
+// ============================================================================
+// OriginValidator - Centralized origin validation (SOLID: Single Responsibility)
+// ============================================================================
+
+class OriginValidator {
+  private readonly baseOrigins: Set<string>;
+  private readonly dynamicOrigins: Set<string> = new Set();
+
+  constructor() {
+    this.baseOrigins = new Set([...PRODUCTION_ORIGINS, ...(process.env.NODE_ENV === "development" ? DEV_ORIGINS : [])]);
+  }
+
+  /** Get self origin safely */
+  getSelfOrigin(): string | null {
+    if (typeof window === "undefined") return null;
+    try {
+      const url = new URL(window.location.href);
+      if (url.origin === "null") return null;
+      if (url.protocol === "http:" || url.protocol === "https:") {
+        return url.origin;
+      }
+    } catch {
+      // ignore invalid URLs (e.g., about:blank)
+    }
+    return null;
+  }
+
+  /** Get referrer origin safely */
+  getReferrerOrigin(): string | null {
+    if (typeof document === "undefined" || !document.referrer) return null;
+    try {
+      return new URL(document.referrer).origin;
+    } catch {
+      return null;
+    }
+  }
+
+  /** Get all valid origins (base + dynamic + contextual) */
+  getAllowedOrigins(): Set<string> {
+    const allowed = new Set(this.baseOrigins);
+
+    // Add dynamic origins
+    this.dynamicOrigins.forEach((o) => allowed.add(o));
+
+    // Add referrer origin if valid
+    const referrer = this.getReferrerOrigin();
+    if (referrer) allowed.add(referrer);
+
+    // Add self origin
+    const self = this.getSelfOrigin();
+    if (self) allowed.add(self);
+
+    // Add localhost origin in dev
+    if (typeof window !== "undefined") {
+      const host = window.location.hostname;
+      if (host === "localhost" || host === "127.0.0.1") {
+        allowed.add(window.location.origin);
+      }
+    }
+
+    return allowed;
+  }
+
+  /** Check if origin is valid */
+  isValid(origin: string): boolean {
+    if (!origin || origin === "null") return false;
+    return this.getAllowedOrigins().has(origin);
+  }
+
+  /** Get target origin for postMessage */
+  getTargetOrigin(): string {
+    // 1. Try referrer origin
+    const referrer = this.getReferrerOrigin();
+    if (referrer && this.baseOrigins.has(referrer)) {
+      return referrer;
+    }
+
+    // 2. Try ancestor origins (iframe context)
+    try {
+      if (typeof window !== "undefined" && window.parent !== window && window.location.ancestorOrigins?.length > 0) {
+        const ancestor = window.location.ancestorOrigins[0];
+        if (this.baseOrigins.has(ancestor)) {
+          return ancestor;
+        }
+      }
+    } catch {
+      // Cross-origin access blocked
+    }
+
+    // 3. Fall back to self origin
+    const self = this.getSelfOrigin();
+    if (self) return self;
+
+    // 4. Check localhost
+    if (typeof window !== "undefined") {
+      const host = window.location.hostname;
+      if (host === "localhost" || host === "127.0.0.1") {
+        return window.location.origin;
+      }
+    }
+
+    // 5. Fallback to production
+    return PRODUCTION_ORIGINS[0];
+  }
+
+  /** Get safe target origin (throws if unknown) */
+  getSafeTargetOrigin(): string {
+    const target = this.getTargetOrigin();
+    if (!target || target === "null") {
+      // In production, reject unknown origins for security
+      // Fall back to first production origin as last resort
+      console.warn("[Neo SDK] Could not determine target origin, using production fallback");
+      return PRODUCTION_ORIGINS[0];
+    }
+    return target;
+  }
+
+  /** Add dynamic origin (for runtime additions) */
+  addDynamicOrigin(origin: string): void {
+    if (origin && origin !== "null") {
+      this.dynamicOrigins.add(origin);
+    }
+  }
+}
+
+// Singleton instance
+const originValidator = new OriginValidator();
 
 /**
  * Validate SDK injection to prevent tampering
@@ -47,7 +158,7 @@ function validateSDK(sdk: MiniAppSDK): boolean {
  * Create a postMessage-based SDK proxy for cross-origin iframes
  */
 function createPostMessageSDK(): MiniAppSDK {
-  const targetOrigin = getTargetOrigin();
+  const safeTargetOrigin = originValidator.getSafeTargetOrigin();
   let requestId = 0;
 
   const invoke = (method: string, ...args: unknown[]): Promise<unknown> => {
@@ -55,11 +166,13 @@ function createPostMessageSDK(): MiniAppSDK {
       const id = `sdk-${++requestId}-${Date.now()}`;
       const timer = setTimeout(() => {
         window.removeEventListener("message", handler);
-        reject(new Error("SDK timeout"));
-      }, 10000);
+        reject(new Error("SDK invoke timeout"));
+      }, SDK_TIMEOUTS.INVOKE);
 
       const handler = (event: MessageEvent) => {
-        if (!isValidOrigin(event.origin)) return;
+        // Use centralized origin validation
+        if (!originValidator.isValid(event.origin)) return;
+        if (event.source !== window.parent) return;
         if (event.data?.type !== "neo_miniapp_sdk_response") return;
         if (event.data?.id !== id) return;
 
@@ -74,7 +187,7 @@ function createPostMessageSDK(): MiniAppSDK {
       };
 
       window.addEventListener("message", handler);
-      window.parent.postMessage({ type: "neo_miniapp_sdk_request", id, method, params: args }, targetOrigin);
+      window.parent.postMessage({ type: "neo_miniapp_sdk_request", id, method, params: args }, safeTargetOrigin);
     });
   };
 
@@ -116,7 +229,7 @@ function createPostMessageSDK(): MiniAppSDK {
 /**
  * Wait for SDK to be ready
  */
-export function waitForSDK(timeout = 5000): Promise<MiniAppSDK> {
+export function waitForSDK(timeout = SDK_TIMEOUTS.SDK_INIT): Promise<MiniAppSDK> {
   return new Promise((resolve, reject) => {
     // Check if SDK is already injected
     if (window.MiniAppSDK) {
@@ -177,49 +290,6 @@ export function getSDKSync(): MiniAppSDK | null {
 }
 
 /**
- * Get target origin for postMessage
- */
-function getTargetOrigin(): string {
-  // First, try to detect parent origin from referrer (works in both dev and prod)
-  try {
-    const parentOrigin = document.referrer ? new URL(document.referrer).origin : null;
-    if (parentOrigin && ALLOWED_ORIGINS.includes(parentOrigin)) {
-      return parentOrigin;
-    }
-  } catch (e) {
-    // Ignore URL parsing errors
-  }
-
-  // Second, check if we're in an iframe and try to get parent origin
-  try {
-    if (window.parent !== window && window.location.ancestorOrigins?.length > 0) {
-      const ancestorOrigin = window.location.ancestorOrigins[0];
-      if (ALLOWED_ORIGINS.includes(ancestorOrigin)) {
-        return ancestorOrigin;
-      }
-    }
-  } catch (e) {
-    // Cross-origin access blocked, ignore
-  }
-
-  // Third, check if running on localhost (dev environment)
-  if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-    // Use same port as current page for local dev
-    return window.location.origin;
-  }
-
-  // Fallback to production domain
-  return ALLOWED_ORIGINS[0];
-}
-
-/**
- * Validate message origin
- */
-function isValidOrigin(origin: string): boolean {
-  return ALLOWED_ORIGINS.includes(origin);
-}
-
-/**
  * Wallet state from host app
  */
 export interface HostWalletState {
@@ -256,12 +326,9 @@ export function initWalletStateListener(): void {
   if (typeof window === "undefined") return;
 
   const handler = (event: MessageEvent) => {
-    // Validate origin - allow parent origin in iframe context
-    const parentOrigin = document.referrer ? new URL(document.referrer).origin : null;
-    const validOrigins = [...ALLOWED_ORIGINS];
-    if (parentOrigin) validOrigins.push(parentOrigin);
-
-    if (!validOrigins.includes(event.origin)) return;
+    if (event.source !== window.parent) return;
+    // Use centralized origin validation
+    if (!originValidator.isValid(event.origin)) return;
 
     const data = event.data;
     if (!data || typeof data !== "object") return;
@@ -291,10 +358,10 @@ export function initWalletStateListener(): void {
  */
 function notifyHostReady(): void {
   if (typeof window === "undefined") return;
-  const targetOrigin = getTargetOrigin();
+  const safeTargetOrigin = originValidator.getSafeTargetOrigin();
   try {
-    window.parent.postMessage({ type: "neo_miniapp_ready" }, targetOrigin);
-  } catch (e) {
+    window.parent.postMessage({ type: "neo_miniapp_ready" }, safeTargetOrigin);
+  } catch {
     // Ignore if not in iframe
   }
 }
@@ -304,7 +371,7 @@ if (typeof window !== "undefined") {
   initWalletStateListener();
   // Notify host that MiniApp is ready after a short delay
   // to ensure all listeners are set up
-  setTimeout(notifyHostReady, 100);
+  setTimeout(notifyHostReady, SDK_TIMEOUTS.READY_NOTIFY);
 }
 
 /**
@@ -316,14 +383,15 @@ export async function callBridge(method: string, params?: Record<string, unknown
     throw new Error("SDK not available");
   }
 
-  const targetOrigin = getTargetOrigin();
+  const safeTargetOrigin = originValidator.getSafeTargetOrigin();
 
   // Use postMessage to communicate with host
   return new Promise((resolve, reject) => {
     const id = `${method}-${Date.now()}`;
     const handler = (event: MessageEvent) => {
       // CRITICAL: Validate origin before processing message
-      if (!isValidOrigin(event.origin)) {
+      if (event.source !== window.parent) return;
+      if (!originValidator.isValid(event.origin)) {
         console.warn("[Neo SDK] Rejected message from invalid origin:", event.origin);
         return;
       }
@@ -338,12 +406,11 @@ export async function callBridge(method: string, params?: Record<string, unknown
       }
     };
     window.addEventListener("message", handler);
-    // FIXED: Use specific origin instead of wildcard "*"
-    window.parent.postMessage({ type: "bridge", method, params, id }, targetOrigin);
-    // Timeout after 5s
+    window.parent.postMessage({ type: "bridge", method, params, id }, safeTargetOrigin);
+    // Timeout using centralized config
     setTimeout(() => {
       window.removeEventListener("message", handler);
-      reject(new Error("Bridge timeout"));
-    }, 5000);
+      reject(new Error("Bridge call timeout"));
+    }, SDK_TIMEOUTS.BRIDGE);
   });
 }
