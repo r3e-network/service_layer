@@ -5,9 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@intlify/core-base': '>=9.1.11'
+  '@intlify/core-base': '>=9.14.0'
   '@intlify/message-resolver': '>=9.1.11'
-  '@intlify/shared': '>=9.1.11'
+  '@intlify/shared': '>=9.14.0'
   qs: '>=6.13.0'
   esbuild: '>=0.25.0'
 
@@ -112,40 +112,6 @@ importers:
         version: 5.4.21(@types/node@25.0.3)(sass@1.97.1)(terser@5.44.1)
 
   apps/candidate-vote:
-    dependencies:
-      '@dcloudio/uni-app':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@dcloudio/uni-components':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@dcloudio/uni-h5':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@neo/uniapp-sdk':
-        specifier: file:../../packages/@neo/uniapp-sdk
-        version: file:packages/@neo/uniapp-sdk(vue@3.5.26(typescript@5.9.3))
-      vue:
-        specifier: ^3.4.21
-        version: 3.5.26(typescript@5.9.3)
-    devDependencies:
-      '@dcloudio/uni-cli-shared':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@dcloudio/vite-plugin-uni':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vite@5.4.21(@types/node@25.0.3)(sass@1.97.1)(terser@5.44.1))(vue@3.5.26(typescript@5.9.3))
-      sass:
-        specifier: ^1.77.0
-        version: 1.97.1
-      typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
-      vite:
-        specifier: ^5.2.8
-        version: 5.4.21(@types/node@25.0.3)(sass@1.97.1)(terser@5.44.1)
-
-  apps/canvas:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
@@ -284,40 +250,6 @@ importers:
         specifier: ^5.2.8
         version: 5.4.21(@types/node@25.0.3)(sass@1.97.1)(terser@5.44.1)
 
-  apps/crypto-riddle:
-    dependencies:
-      '@dcloudio/uni-app':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@dcloudio/uni-components':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@dcloudio/uni-h5':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@neo/uniapp-sdk':
-        specifier: file:../../packages/@neo/uniapp-sdk
-        version: file:packages/@neo/uniapp-sdk(vue@3.5.26(typescript@5.9.3))
-      vue:
-        specifier: ^3.4.21
-        version: 3.5.26(typescript@5.9.3)
-    devDependencies:
-      '@dcloudio/uni-cli-shared':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@dcloudio/vite-plugin-uni':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vite@5.4.21(@types/node@25.0.3)(sass@1.97.1)(terser@5.44.1))(vue@3.5.26(typescript@5.9.3))
-      sass:
-        specifier: ^1.77.0
-        version: 1.97.1
-      typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
-      vite:
-        specifier: ^5.2.8
-        version: 5.4.21(@types/node@25.0.3)(sass@1.97.1)(terser@5.44.1)
-
   apps/daily-checkin:
     dependencies:
       '@dcloudio/uni-app':
@@ -353,40 +285,6 @@ importers:
         version: 5.4.21(@types/node@25.0.3)(sass@1.97.1)(terser@5.44.1)
 
   apps/dev-tipping:
-    dependencies:
-      '@dcloudio/uni-app':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@dcloudio/uni-components':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@dcloudio/uni-h5':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@neo/uniapp-sdk':
-        specifier: file:../../packages/@neo/uniapp-sdk
-        version: file:packages/@neo/uniapp-sdk(vue@3.5.26(typescript@5.9.3))
-      vue:
-        specifier: ^3.4.21
-        version: 3.5.26(typescript@5.9.3)
-    devDependencies:
-      '@dcloudio/uni-cli-shared':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@dcloudio/vite-plugin-uni':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vite@5.4.21(@types/node@25.0.3)(sass@1.97.1)(terser@5.44.1))(vue@3.5.26(typescript@5.9.3))
-      sass:
-        specifier: ^1.77.0
-        version: 1.97.1
-      typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
-      vite:
-        specifier: ^5.2.8
-        version: 5.4.21(@types/node@25.0.3)(sass@1.97.1)(terser@5.44.1)
-
-  apps/dice-game:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
@@ -591,40 +489,6 @@ importers:
         version: 5.4.21(@types/node@25.0.3)(sass@1.97.1)(terser@5.44.1)
 
   apps/gas-sponsor:
-    dependencies:
-      '@dcloudio/uni-app':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@dcloudio/uni-components':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@dcloudio/uni-h5':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@neo/uniapp-sdk':
-        specifier: file:../../packages/@neo/uniapp-sdk
-        version: file:packages/@neo/uniapp-sdk(vue@3.5.26(typescript@5.9.3))
-      vue:
-        specifier: ^3.4.21
-        version: 3.5.26(typescript@5.9.3)
-    devDependencies:
-      '@dcloudio/uni-cli-shared':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@dcloudio/vite-plugin-uni':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vite@5.4.21(@types/node@25.0.3)(sass@1.97.1)(terser@5.44.1))(vue@3.5.26(typescript@5.9.3))
-      sass:
-        specifier: ^1.77.0
-        version: 1.97.1
-      typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
-      vite:
-        specifier: ^5.2.8
-        version: 5.4.21(@types/node@25.0.3)(sass@1.97.1)(terser@5.44.1)
-
-  apps/gov-booster:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
@@ -964,7 +828,7 @@ importers:
         specifier: ^5.2.8
         version: 5.4.21(@types/node@25.0.3)(sass@1.97.1)(terser@5.44.1)
 
-  apps/neo-crash:
+  apps/neo-news-today:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
@@ -1172,74 +1036,6 @@ importers:
         version: 5.4.21(@types/node@25.0.3)(sass@1.97.1)(terser@5.44.1)
 
   apps/red-envelope:
-    dependencies:
-      '@dcloudio/uni-app':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@dcloudio/uni-components':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@dcloudio/uni-h5':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@neo/uniapp-sdk':
-        specifier: file:../../packages/@neo/uniapp-sdk
-        version: file:packages/@neo/uniapp-sdk(vue@3.5.26(typescript@5.9.3))
-      vue:
-        specifier: ^3.4.21
-        version: 3.5.26(typescript@5.9.3)
-    devDependencies:
-      '@dcloudio/uni-cli-shared':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@dcloudio/vite-plugin-uni':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vite@5.4.21(@types/node@25.0.3)(sass@1.97.1)(terser@5.44.1))(vue@3.5.26(typescript@5.9.3))
-      sass:
-        specifier: ^1.77.0
-        version: 1.97.1
-      typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
-      vite:
-        specifier: ^5.2.8
-        version: 5.4.21(@types/node@25.0.3)(sass@1.97.1)(terser@5.44.1)
-
-  apps/scratch-card:
-    dependencies:
-      '@dcloudio/uni-app':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@dcloudio/uni-components':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@dcloudio/uni-h5':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@neo/uniapp-sdk':
-        specifier: file:../../packages/@neo/uniapp-sdk
-        version: file:packages/@neo/uniapp-sdk(vue@3.5.26(typescript@5.9.3))
-      vue:
-        specifier: ^3.4.21
-        version: 3.5.26(typescript@5.9.3)
-    devDependencies:
-      '@dcloudio/uni-cli-shared':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
-      '@dcloudio/vite-plugin-uni':
-        specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vite@5.4.21(@types/node@25.0.3)(sass@1.97.1)(terser@5.44.1))(vue@3.5.26(typescript@5.9.3))
-      sass:
-        specifier: ^1.77.0
-        version: 1.97.1
-      typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
-      vite:
-        specifier: ^5.2.8
-        version: 5.4.21(@types/node@25.0.3)(sass@1.97.1)(terser@5.44.1)
-
-  apps/secret-poker:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
