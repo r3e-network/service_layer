@@ -4,8 +4,7 @@
  */
 import { ref, onMounted, onUnmounted } from "vue";
 import { getSDKSync, waitForSDK, subscribeToWalletState, getWalletState } from "../bridge";
-
-const API_BASE = import.meta.env.VITE_API_BASE || "https://api.neo-service-layer.io";
+import { apiGet } from "../api";
 
 export interface RequireConnectionOptions {
   /** Show prompt instead of throwing error (default: true) */
@@ -99,15 +98,7 @@ export function useWallet() {
     isLoading.value = true;
     error.value = null;
     try {
-      const res = await fetch(`${API_BASE}/wallet-balance`, {
-        method: "GET",
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error?.message || "Failed to get balance");
-      }
-      const data = await res.json();
+      const data = await apiGet<{ balances: WalletBalances }>("/wallet-balance");
       balances.value = data.balances;
 
       if (token) {
@@ -126,15 +117,7 @@ export function useWallet() {
     isLoading.value = true;
     error.value = null;
     try {
-      const res = await fetch(`${API_BASE}/wallet-transactions?limit=${limit}`, {
-        method: "GET",
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error?.message || "Failed to get transactions");
-      }
-      const data = await res.json();
+      const data = await apiGet<{ transactions: WalletTransaction[] }>(`/wallet-transactions?limit=${limit}`);
       return data.transactions;
     } catch (e) {
       error.value = e as Error;
@@ -209,6 +192,7 @@ export function useWallet() {
       } else {
         address.value = null;
         isConnected.value = false;
+        balances.value = { GAS: "0", NEO: "0" };
       }
     });
 
@@ -221,7 +205,9 @@ export function useWallet() {
           address.value = addr;
           isConnected.value = true;
         })
-        .catch(() => {});
+        .catch((e) => {
+          console.debug("[Neo SDK] Fallback wallet connection failed:", e?.message || e);
+        });
     }
   });
 

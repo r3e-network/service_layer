@@ -67,8 +67,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
-import { createT } from "@/shared/utils/i18n";
-import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
+import { createT } from "@shared/utils/i18n";
+import { parseInvokeResult, parseStackItem } from "@shared/utils/neo";
 import { AppLayout, NeoButton, NeoCard, NeoDoc, type StatItem } from "@/shared/components";
 import CountdownHero from "./components/CountdownHero.vue";
 import StreakDisplay from "./components/StreakDisplay.vue";
@@ -140,11 +140,11 @@ const { payGAS, isLoading } = usePayments(APP_ID);
 const { list: listEvents } = useEvents();
 
 const activeTab = ref("checkin");
-const navTabs = [
+const navTabs = computed(() => [
   { id: "checkin", icon: "check", label: t("checkin") },
   { id: "stats", icon: "chart", label: t("stats") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
@@ -249,14 +249,15 @@ const ensureContractHash = async () => {
   return contractHash.value;
 };
 
-const waitForEvent = async (txid: string, eventName: string) => {
+const waitForEvent = async (txid: string, eventName: string): Promise<{ event: any; pending: boolean }> => {
   for (let attempt = 0; attempt < 20; attempt++) {
     const res = await listEvents({ app_id: APP_ID, event_name: eventName, limit: 25 });
     const match = res.events.find((evt) => evt.tx_hash === txid);
-    if (match) return match;
+    if (match) return { event: match, pending: false };
     await sleep(1500);
   }
-  return null;
+  // Return pending status instead of null - transaction may still succeed
+  return { event: null, pending: true };
 };
 
 const loadUserStats = async () => {
@@ -304,12 +305,14 @@ const loadGlobalStats = async () => {
 };
 
 const loadHistory = async () => {
+  if (!address.value) return; // Guard against null address
   try {
     const res = await listEvents({ app_id: APP_ID, event_name: "CheckedIn", limit: 10 });
+    const currentAddress = address.value; // Capture current address for comparison
     checkinHistory.value = res.events
       .filter((evt) => {
         const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
-        return String(values[0] ?? "") === address.value;
+        return String(values[0] ?? "") === currentAddress;
       })
       .map((evt) => {
         const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
@@ -349,10 +352,15 @@ const doCheckIn = async () => {
     });
 
     const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
-    const evt = txid ? await waitForEvent(txid, "CheckedIn") : null;
-    if (!evt) throw new Error("Check-in pending");
+    const result = txid ? await waitForEvent(txid, "CheckedIn") : { event: null, pending: true };
 
-    status.value = { msg: t("checkinSuccess"), type: "success" };
+    if (result.pending) {
+      // Transaction submitted but event not yet indexed - show pending status
+      status.value = { msg: t("checkinSuccess") + " (pending confirmation)", type: "success" };
+    } else {
+      status.value = { msg: t("checkinSuccess"), type: "success" };
+    }
+
     await loadUserStats();
     await loadGlobalStats();
     await loadHistory();
@@ -377,10 +385,14 @@ const claimRewards = async () => {
     });
 
     const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
-    const evt = txid ? await waitForEvent(txid, "RewardsClaimed") : null;
-    if (!evt) throw new Error("Claim pending");
+    const result = txid ? await waitForEvent(txid, "RewardsClaimed") : { event: null, pending: true };
 
-    status.value = { msg: t("claimSuccess"), type: "success" };
+    if (result.pending) {
+      status.value = { msg: t("claimSuccess") + " (pending confirmation)", type: "success" };
+    } else {
+      status.value = { msg: t("claimSuccess"), type: "success" };
+    }
+
     await loadUserStats();
     await loadGlobalStats();
   } catch (e: any) {

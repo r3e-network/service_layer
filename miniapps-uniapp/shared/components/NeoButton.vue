@@ -7,6 +7,8 @@
       { 'neo-btn--block': block, 'neo-btn--loading': loading },
     ]"
     :disabled="disabled || loading"
+    :aria-busy="loading"
+    :aria-disabled="disabled || loading"
     @click="$emit('click', $event)"
   >
     <view v-if="loading" class="neo-btn__spinner" />
@@ -18,13 +20,22 @@
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "success" | "warning" | "erobo";
 export type ButtonSize = "sm" | "md" | "lg";
 
-defineProps<{
-  variant?: ButtonVariant;
-  size?: ButtonSize;
-  block?: boolean;
-  disabled?: boolean;
-  loading?: boolean;
-}>();
+withDefaults(
+  defineProps<{
+    variant?: ButtonVariant;
+    size?: ButtonSize;
+    block?: boolean;
+    disabled?: boolean;
+    loading?: boolean;
+  }>(),
+  {
+    variant: "primary",
+    size: "md",
+    block: false,
+    disabled: false,
+    loading: false,
+  },
+);
 
 defineEmits<{
   (e: "click", event: MouseEvent): void;
@@ -39,13 +50,13 @@ defineEmits<{
   align-items: center;
   justify-content: center;
   gap: $space-2;
-  font-family: "Inter", sans-serif;
+  font-family: $font-family;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   cursor: pointer;
   border: 1px solid transparent;
-  border-radius: 12px;
+  border-radius: 999px;
   position: relative;
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -90,13 +101,13 @@ defineEmits<{
 
   // Variants
   &--primary {
-    background: linear-gradient(135deg, #00e599 0%, #00bc7d 100%);
-    color: #000;
-    box-shadow: 0 4px 15px rgba(0, 229, 153, 0.4);
+    background: linear-gradient(135deg, #9f9df3 0%, #f7aac7 100%);
+    color: #1b1b2f;
+    box-shadow: 0 12px 30px rgba(159, 157, 243, 0.35);
     border: none;
 
     &:hover:not(:disabled) {
-      box-shadow: 0 6px 25px rgba(0, 229, 153, 0.6);
+      box-shadow: 0 18px 40px rgba(159, 157, 243, 0.45);
       filter: brightness(1.1);
     }
   }
@@ -104,7 +115,7 @@ defineEmits<{
   &--secondary {
     background: var(--bg-card, rgba(255, 255, 255, 0.05));
     color: var(--text-primary, white);
-    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    border: 1px solid var(--border-color, rgba(159, 157, 243, 0.18));
     backdrop-filter: blur(10px);
     box-shadow: 0 2px 10px var(--shadow-color, rgba(0, 0, 0, 0.1));
 
@@ -164,13 +175,13 @@ defineEmits<{
   }
 
   &--erobo {
-    background: var(--erobo-gradient, linear-gradient(135deg, #9f9df3 0%, #7b79d1 100%));
+    background: #1b1b2f;
     color: #fff;
-    box-shadow: var(--erobo-glow, 0 0 30px rgba(159, 157, 243, 0.4));
+    box-shadow: 0 20px 50px rgba(27, 27, 47, 0.35);
     border: none;
 
     &:hover:not(:disabled) {
-      box-shadow: 0 0 40px rgba(159, 157, 243, 0.6);
+      box-shadow: 0 28px 65px rgba(27, 27, 47, 0.45);
       filter: brightness(1.1);
     }
   }

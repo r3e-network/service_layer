@@ -1,9 +1,9 @@
 /**
  * useGasSponsor - Gas Sponsor composable for uni-app
+ * Refactored to use useAsyncAction and apiFetch (DRY principle)
  */
-import { ref } from "vue";
-
-const API_BASE = import.meta.env.VITE_API_BASE || "https://api.neo-service-layer.io";
+import { useAsyncAction } from "./useAsyncAction";
+import { apiGet, apiPost } from "../api";
 
 export interface GasSponsorStatus {
   eligible: boolean;
@@ -22,52 +22,26 @@ export interface GasSponsorRequest {
 }
 
 export function useGasSponsor() {
-  const isLoading = ref(false);
-  const error = ref<Error | null>(null);
+  const eligibilityAction = useAsyncAction(async (): Promise<GasSponsorStatus> => {
+    return apiGet<GasSponsorStatus>("/gas-sponsor-check");
+  });
 
-  const checkEligibility = async (): Promise<GasSponsorStatus> => {
-    isLoading.value = true;
-    error.value = null;
-    try {
-      const res = await fetch(`${API_BASE}/gas-sponsor-check`, {
-        method: "GET",
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error?.message || "Check failed");
-      }
-      return await res.json();
-    } catch (e) {
-      error.value = e as Error;
-      throw e;
-    } finally {
-      isLoading.value = false;
+  const sponsorshipAction = useAsyncAction(async (amount: string): Promise<GasSponsorRequest> => {
+    const numAmount = parseFloat(amount);
+    if (Number.isNaN(numAmount) || numAmount <= 0) {
+      throw new Error("Invalid amount: must be a positive number");
     }
-  };
+    return apiPost<GasSponsorRequest>("/gas-sponsor-request", { amount });
+  });
 
-  const requestSponsorship = async (amount: string): Promise<GasSponsorRequest> => {
-    isLoading.value = true;
-    error.value = null;
-    try {
-      const res = await fetch(`${API_BASE}/gas-sponsor-request`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ amount }),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error?.message || "Request failed");
-      }
-      return await res.json();
-    } catch (e) {
-      error.value = e as Error;
-      throw e;
-    } finally {
-      isLoading.value = false;
-    }
+  return {
+    // Eligibility check
+    isCheckingEligibility: eligibilityAction.isLoading,
+    eligibilityError: eligibilityAction.error,
+    checkEligibility: eligibilityAction.execute,
+    // Sponsorship request
+    isRequestingSponsorship: sponsorshipAction.isLoading,
+    sponsorshipError: sponsorshipAction.error,
+    requestSponsorship: sponsorshipAction.execute,
   };
-
-  return { isLoading, error, checkEligibility, requestSponsorship };
 }

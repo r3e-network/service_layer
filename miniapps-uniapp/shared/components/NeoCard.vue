@@ -27,12 +27,20 @@ export type CardVariant =
   | "erobo-neo"
   | "erobo-bitcoin";
 
-defineProps<{
-  title?: string;
-  variant?: CardVariant;
-  hoverable?: boolean;
-  flat?: boolean;
-}>();
+withDefaults(
+  defineProps<{
+    title?: string;
+    variant?: CardVariant;
+    hoverable?: boolean;
+    flat?: boolean;
+  }>(),
+  {
+    title: undefined,
+    variant: "default",
+    hoverable: false,
+    flat: false,
+  },
+);
 
 defineEmits<{
   (e: "click", event: MouseEvent): void;
@@ -64,9 +72,9 @@ defineEmits<{
     cursor: pointer;
     &:hover {
       transform: translateY(-4px);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-      border-color: rgba(255, 255, 255, 0.1);
-      background: rgba(255, 255, 255, 0.04);
+      box-shadow: 0 20px 50px rgba(27, 27, 47, 0.18);
+      border-color: rgba(159, 157, 243, 0.35);
+      background: rgba(255, 255, 255, 0.08);
     }
     &:active {
       transform: translateY(-1px);
@@ -149,7 +157,7 @@ defineEmits<{
     color: var(--text-primary, rgba(255, 255, 255, 0.9));
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    font-family: "Inter", sans-serif;
+    font-family: $font-family;
   }
 
   &__body {

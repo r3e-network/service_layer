@@ -1,13 +1,13 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab === 'game'" class="tab-content">
+      <!-- Error Message -->
+      <view v-if="errorMessage" class="error-banner">
+        <text>{{ errorMessage }}</text>
+      </view>
+
       <!-- Coin Arena -->
-      <CoinArena
-        :display-outcome="displayOutcome"
-        :is-flipping="isFlipping"
-        :result="result"
-        :t="t as any"
-      />
+      <CoinArena :display-outcome="displayOutcome" :is-flipping="isFlipping" :result="result" :t="t as any" />
 
       <!-- Bet Controls -->
       <BetControls
@@ -20,12 +20,7 @@
       />
 
       <!-- Result Modal -->
-      <ResultOverlay
-        :visible="showWinOverlay"
-        :win-amount="winAmount"
-        :t="t as any"
-        @close="showWinOverlay = false"
-      />
+      <ResultOverlay :visible="showWinOverlay" :win-amount="winAmount" :t="t as any" @close="showWinOverlay = false" />
     </view>
 
     <!-- Stats Tab -->
@@ -49,15 +44,10 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { usePayments, useWallet, useEvents } from "@neo/uniapp-sdk";
-import { formatNumber } from "@/shared/utils/format";
-import { parseStackItem } from "@/shared/utils/neo";
-import { createT } from "@/shared/utils/i18n";
-import {
-  AppLayout,
-  NeoStats,
-  NeoDoc,
-  type StatItem,
-} from "@/shared/components";
+import { formatNumber } from "@shared/utils/format";
+import { parseStackItem } from "@shared/utils/neo";
+import { createT } from "@shared/utils/i18n";
+import { AppLayout, NeoStats, NeoDoc, type StatItem } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
 import CoinArena, { type GameResult } from "./components/CoinArena.vue";
@@ -107,11 +97,11 @@ const translations = {
 };
 const t = createT(translations);
 
-const navTabs: NavTab[] = [
+const navTabs = computed<NavTab[]>(() => [
   { id: "game", icon: "game", label: t("game") },
   { id: "stats", icon: "chart", label: t("stats") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 const activeTab = ref("game");
 
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
@@ -136,6 +126,7 @@ const displayOutcome = ref<"heads" | "tails" | null>(null);
 const showWinOverlay = ref(false);
 const winAmount = ref("0");
 const contractHash = ref<string | null>(null);
+const errorMessage = ref<string | null>(null);
 
 const formatNum = (n: number) => formatNumber(n, 2);
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -169,9 +160,11 @@ const waitForResolved = async (betId: string) => {
   return null;
 };
 
+const MAX_BET = 100; // Maximum bet amount in GAS
+
 const canBet = computed(() => {
   const n = parseFloat(betAmount.value);
-  return n >= 0.05;
+  return n >= 0.05 && n <= MAX_BET;
 });
 
 const gameStats = computed<StatItem[]>(() => [
@@ -259,7 +252,12 @@ const flip = async () => {
     }
   } catch (e: any) {
     console.error(e);
+    errorMessage.value = e?.message || t("error");
     isFlipping.value = false;
+    // Auto-clear error after 5 seconds
+    setTimeout(() => {
+      errorMessage.value = null;
+    }, 5000);
   }
 };
 </script>
@@ -279,5 +277,17 @@ const flip = async () => {
 .scrollable {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.error-banner {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.15) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  text-align: center;
+  color: #fca5a5;
+  font-size: 14px;
+  font-weight: 500;
 }
 </style>

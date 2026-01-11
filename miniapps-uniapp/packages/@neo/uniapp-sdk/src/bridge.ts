@@ -57,9 +57,11 @@ class OriginValidator {
     // Add dynamic origins
     this.dynamicOrigins.forEach((o) => allowed.add(o));
 
-    // Add referrer origin if valid
+    // Add referrer origin only if it's in baseOrigins (security fix)
     const referrer = this.getReferrerOrigin();
-    if (referrer) allowed.add(referrer);
+    if (referrer && this.baseOrigins.has(referrer)) {
+      allowed.add(referrer);
+    }
 
     // Add self origin
     const self = this.getSelfOrigin();
@@ -163,7 +165,7 @@ function createPostMessageSDK(): MiniAppSDK {
 
   const invoke = (method: string, ...args: unknown[]): Promise<unknown> => {
     return new Promise((resolve, reject) => {
-      const id = `sdk-${++requestId}-${Date.now()}`;
+      const id = `sdk-${++requestId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const timer = setTimeout(() => {
         window.removeEventListener("message", handler);
         reject(new Error("SDK invoke timeout"));
@@ -191,9 +193,22 @@ function createPostMessageSDK(): MiniAppSDK {
     });
   };
 
+  // Cache for config fetched from host
+  let cachedConfig: { appId: string; contractHash: string | null; debug: boolean } | null = null;
+
   return {
     invoke,
-    getConfig: () => ({ appId: "", contractHash: null, debug: false }),
+    getConfig: () => {
+      // Return cached config or fetch from host
+      if (cachedConfig) return cachedConfig;
+      // Try to get config synchronously from window if available
+      if (typeof window !== "undefined" && (window as any).__NEO_MINIAPP_CONFIG__) {
+        cachedConfig = (window as any).__NEO_MINIAPP_CONFIG__;
+        return cachedConfig;
+      }
+      // Return default config (will be updated async)
+      return { appId: "", contractHash: null, debug: false };
+    },
     getAddress: () => invoke("getAddress") as Promise<string>,
     wallet: {
       getAddress: () => invoke("wallet.getAddress") as Promise<string>,
@@ -387,7 +402,7 @@ export async function callBridge(method: string, params?: Record<string, unknown
 
   // Use postMessage to communicate with host
   return new Promise((resolve, reject) => {
-    const id = `${method}-${Date.now()}`;
+    const id = `${method}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const handler = (event: MessageEvent) => {
       // CRITICAL: Validate origin before processing message
       if (event.source !== window.parent) return;
