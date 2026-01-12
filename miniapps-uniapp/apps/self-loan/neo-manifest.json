@@ -1,10 +1,23 @@
 {
-  "category": "defi",
+  "app_id": "miniapp-self-loan",
+  "name": "Self Loan",
   "name_zh": "自助贷款",
   "description": "Borrow against your own collateral with zero liquidation risk. Lock your assets, borrow up to 50%, and repay on your own schedule.",
   "description_zh": "用自己的抵押品借款，零清算风险。",
+  "category": "defi",
   "status": "active",
-  "contract_hash": "0x5ed7d8c85f24f4aa16b328aca776e09be5241296",
+  "supportedChains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
+  "contracts": {
+    "neo-n3-mainnet": {
+      "address": "0xb7522afccd80ad5b3cbc112033c22b3d8f2d120c"
+    },
+    "neo-n3-testnet": {
+      "address": "0xb7522afccd80ad5b3cbc112033c22b3d8f2d120c"
+    }
+  },
   "permissions": {
     "payments": true
   }

@@ -105,12 +105,12 @@ const truncateAddress = (addr: string) => {
   font-weight: 700;
   font-size: 16px;
   color: white;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
 }
 
 .candidate-key {
   font-size: 11px;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   color: var(--text-secondary, rgba(255, 255, 255, 0.6));
 }
 

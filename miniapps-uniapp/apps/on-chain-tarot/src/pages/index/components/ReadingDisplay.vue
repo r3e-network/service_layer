@@ -46,7 +46,7 @@ defineProps<{
 }
 
 .reading-text {
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-size: 16px;
   font-weight: 700;
   text-align: center;

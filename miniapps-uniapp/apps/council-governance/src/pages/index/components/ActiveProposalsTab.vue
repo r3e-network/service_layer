@@ -190,7 +190,7 @@ const getQuorumPercent = (p: any) => {
 }
 
 .soft-loading-text {
-  font-family: "Inter", monospace;
+  font-family: $font-mono;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -294,7 +294,7 @@ const getQuorumPercent = (p: any) => {
 .power-value {
   font-size: 32px;
   font-weight: 800;
-  font-family: "Inter", sans-serif;
+  font-family: $font-family;
   color: #00e599;
   text-shadow: 0 0 20px rgba(0, 229, 153, 0.4);
   line-height: 1;
@@ -322,7 +322,7 @@ const getQuorumPercent = (p: any) => {
 
 .proposal-id-neo {
   font-size: 12px;
-  font-family: "Inter", monospace;
+  font-family: $font-mono;
   opacity: 0.6;
   display: block;
   margin-bottom: 4px;
@@ -334,7 +334,7 @@ const getQuorumPercent = (p: any) => {
 }
 
 .proposal-countdown-neo {
-  font-family: "Inter", monospace;
+  font-family: $font-mono;
   font-size: 11px;
   font-weight: 600;
   color: white;
@@ -377,7 +377,7 @@ const getQuorumPercent = (p: any) => {
   justify-content: space-between;
   font-size: 12px;
   font-weight: 700;
-  font-family: "Inter", monospace;
+  font-family: $font-mono;
 }
 .stat-group {
   display: flex;

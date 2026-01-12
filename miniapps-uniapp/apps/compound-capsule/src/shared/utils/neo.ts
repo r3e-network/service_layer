@@ -1,95 +1,174 @@
-type StackItem = {
-  type: string;
-  value: any;
-};
+import { hexToBytes, bytesToHex } from "./format";
 
-const textDecoder = new TextDecoder("utf-8", { fatal: false });
+const BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
-const isPrintable = (value: string) => /^[\x20-\x7E]*$/.test(value);
+/** Neo VM stack item types */
+export type StackItemType =
+  | "Integer"
+  | "Boolean"
+  | "ByteArray"
+  | "ByteString"
+  | "String"
+  | "Hash160"
+  | "Hash256"
+  | "Array"
+  | "Struct"
+  | "Map"
+  | "Any"
+  | "Pointer"
+  | "Buffer"
+  | "InteropInterface";
 
-const base64ToBytes = (value: string) => {
-  const binary = atob(value);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i += 1) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes;
-};
+/** Raw Neo VM stack item from RPC response */
+export interface RawStackItem {
+  type?: string;
+  Type?: string;
+  value?: unknown;
+  Value?: unknown;
+}
 
-const bytesToHex = (bytes: Uint8Array) =>
-  Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+/** Parsed stack item value */
+export type ParsedStackValue =
+  | string
+  | boolean
+  | number
+  | ParsedStackValue[]
+  | Record<string, ParsedStackValue>
+  | null
+  | undefined;
 
-const base58Alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-
-const base58Decode = (value: string) => {
-  let num = 0n;
+function base58Decode(value: string): Uint8Array {
+  const bytes: number[] = [0];
   for (const char of value) {
-    const index = base58Alphabet.indexOf(char);
-    if (index < 0) {
-      return "";
+    const digit = BASE58_ALPHABET.indexOf(char);
+    if (digit < 0) {
+      throw new Error("Invalid base58 character");
     }
-    num = num * 58n + BigInt(index);
+    for (let i = 0; i < bytes.length; i += 1) {
+      bytes[i] *= 58;
+    }
+    bytes[0] += digit;
+    let carry = 0;
+    for (let i = 0; i < bytes.length; i += 1) {
+      bytes[i] += carry;
+      carry = bytes[i] >> 8;
+      bytes[i] &= 0xff;
+    }
+    while (carry) {
+      bytes.push(carry & 0xff);
+      carry >>= 8;
+    }
   }
-  return num.toString(16).padStart(50, "0");
-};
+  for (const char of value) {
+    if (char === "1") {
+      bytes.push(0);
+    } else {
+      break;
+    }
+  }
+  return Uint8Array.from(bytes.reverse());
+}
 
-export const addressToScriptHash = (address: string) => {
-  const hex = base58Decode(address.trim());
-  if (!hex || hex.length < 42) return "";
-  return hex.slice(2, 42).toLowerCase();
-};
+export function normalizeScriptHash(value: string): string {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) return "";
+  return trimmed.replace(/^0x/i, "").toLowerCase();
+}
 
-export const normalizeScriptHash = (value: string) => {
-  const clean = String(value || "").trim().toLowerCase();
-  return clean.startsWith("0x") ? clean.slice(2) : clean;
-};
+export function addressToScriptHash(address: string): string {
+  const trimmed = String(address || "").trim();
+  if (!trimmed) return "";
+  if (/^(0x)?[0-9a-fA-F]{40}$/.test(trimmed)) {
+    return normalizeScriptHash(trimmed);
+  }
+  const decoded = base58Decode(trimmed);
+  if (decoded.length < 21) {
+    return "";
+  }
+  const payloadLength = decoded.length >= 25 ? decoded.length - 4 : decoded.length - 3;
+  const payload = decoded.slice(0, payloadLength);
+  const scriptHash = payload.slice(1);
+  return bytesToHex(Uint8Array.from(scriptHash).reverse());
+}
 
-const decodeByteString = (value: string) => {
-  if (!value) return "";
-  const bytes = base64ToBytes(value);
-  const text = textDecoder.decode(bytes);
-  if (isPrintable(text)) return text;
-  return `0x${bytesToHex(bytes)}`;
-};
+function decodeHexToText(hex: string): string | null {
+  try {
+    const bytes = hexToBytes(hex);
+    if (!bytes.length) return "";
+    const decoder = new TextDecoder("utf-8", { fatal: false });
+    const decoded = decoder.decode(bytes);
+    return decoded.includes("\uFFFD") ? null : decoded;
+  } catch {
+    return null;
+  }
+}
 
-export const parseStackItem = (item: StackItem | null): any => {
-  if (!item) return null;
-  switch (item.type) {
+export function parseStackItem(item: RawStackItem | unknown): ParsedStackValue {
+  if (!item || typeof item !== "object") return item as ParsedStackValue;
+  const rawItem = item as RawStackItem;
+  const type = String(rawItem.type || rawItem.Type || "");
+  const value = rawItem.value ?? rawItem.Value;
+
+  switch (type) {
     case "Integer":
-      return item.value;
+      return value ?? "0";
     case "Boolean":
-      return Boolean(item.value);
-    case "ByteString":
-      return decodeByteString(item.value);
-    case "Hash160":
-      return item.value;
-    case "String":
-      return String(item.value ?? "");
-    case "Array":
-      return Array.isArray(item.value) ? item.value.map((entry: StackItem) => parseStackItem(entry)) : [];
-    case "Struct":
-      return Array.isArray(item.value) ? item.value.map((entry: StackItem) => parseStackItem(entry)) : [];
-    case "Map": {
-      const out: Record<string, any> = {};
-      if (Array.isArray(item.value)) {
-        item.value.forEach((entry: { key: StackItem; value: StackItem }) => {
-          const key = String(parseStackItem(entry.key));
-          out[key] = parseStackItem(entry.value);
-        });
-      }
-      return out;
+      return value === true || value === "true" || value === 1 || value === "1";
+    case "ByteArray":
+    case "ByteString": {
+      const raw = String(value ?? "");
+      const cleaned = raw.replace(/^0x/i, "");
+      const asText = decodeHexToText(cleaned);
+      return asText !== null ? asText : cleaned;
     }
-    case "Any":
-      return null;
+    case "String":
+      return String(value ?? "");
+    case "Hash160":
+    case "Hash256":
+      return normalizeScriptHash(String(value ?? ""));
+    case "Array":
+    case "Struct":
+      return Array.isArray(value) ? value.map(parseStackItem) : [];
+    case "Map":
+      if (Array.isArray(value)) {
+        const obj: Record<string, ParsedStackValue> = {};
+        for (const entry of value) {
+          const key = parseStackItem(entry?.key);
+          const val = parseStackItem(entry?.value);
+          obj[String(key)] = val;
+        }
+        return obj;
+      }
+      return {};
     default:
-      return item.value ?? null;
+      return value as ParsedStackValue;
   }
-};
+}
 
-export const parseInvokeResult = (result: any) => {
-  const stack = result?.stack;
-  if (!Array.isArray(stack) || stack.length === 0) return null;
-  return parseStackItem(stack[0]);
-};
+/** Raw invoke result from RPC response */
+interface RawInvokeResult {
+  stack?: unknown[];
+  result?: { stack?: unknown[]; state?: unknown[] };
+  state?: unknown[];
+  value?: unknown;
+  type?: string;
+}
+
+export function parseInvokeResult(payload: RawInvokeResult | unknown[] | unknown): ParsedStackValue {
+  if (!payload) return null;
+  if (Array.isArray(payload)) return payload.map(parseStackItem);
+
+  const result = payload as RawInvokeResult;
+  const stack = result.stack || result.result?.stack || result.state || result.result?.state || result.value || null;
+
+  if (Array.isArray(stack)) {
+    const parsed = stack.map(parseStackItem);
+    return parsed.length === 1 ? parsed[0] : parsed;
+  }
+
+  if (result.type) {
+    return parseStackItem(payload);
+  }
+
+  return payload as ParsedStackValue;
+}

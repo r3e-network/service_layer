@@ -55,7 +55,7 @@ const getRankIcon = (rank: number): string => {
 .stat-value {
   font-size: 24px;
   font-weight: 800;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   color: white;
   display: block;
   margin-bottom: 2px;

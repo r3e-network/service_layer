@@ -56,10 +56,20 @@ async function fetchArticles() {
   loading.value = true;
   try {
     // Fetch from NNT RSS or API
-    const res = await fetch("/api/nnt/articles");
+    const res = await fetch("/api/nnt-news?limit=20");
     if (res.ok) {
       const data = await res.json();
-      articles.value = data.articles || [];
+      const rawArticles = Array.isArray(data.articles) ? data.articles : [];
+      articles.value = rawArticles
+        .map((article: any) => ({
+          id: String(article.id || ""),
+          title: String(article.title || ""),
+          excerpt: String(article.summary || article.excerpt || ""),
+          date: String(article.pubDate || article.date || ""),
+          image: article.imageUrl || article.image || undefined,
+          url: String(article.link || article.url || ""),
+        }))
+        .filter((article: Article) => article.id && article.title && article.url);
     }
   } catch (err) {
     console.error("Failed to fetch articles:", err);
@@ -78,7 +88,8 @@ function formatDate(dateStr: string): string {
 }
 
 function openArticle(article: Article) {
-  window.open(article.url, "_blank");
+  const popup = window.open(article.url, "_blank", "noopener,noreferrer");
+  if (popup) popup.opener = null;
 }
 </script>
 

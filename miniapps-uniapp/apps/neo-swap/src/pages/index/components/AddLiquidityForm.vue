@@ -95,7 +95,7 @@ defineEmits(["update:amountA", "update:amountB", "calculateA", "calculateB", "ad
 .balance-label {
   font-size: 11px;
   font-weight: 500;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   color: var(--text-secondary, rgba(255, 255, 255, 0.5));
 }
 

@@ -45,6 +45,7 @@
       :address="address"
       :is-candidate="isCandidate"
       :has-voted="!!hasVotedMap[selectedProposal.id]"
+      :is-voting="isVoting"
       :t="t as any"
       @close="selectedProposal = null"
       @vote="castVote"
@@ -95,6 +96,7 @@ const translations = {
   loadingProposals: { en: "Loading proposals...", zh: "加载提案中..." },
   failedToLoadProposals: { en: "Failed to load proposals", zh: "加载提案失败" },
   failedToLoadCandidates: { en: "Failed to load council candidates", zh: "加载议会候选人失败" },
+  contractUnavailable: { en: "Contract not configured", zh: "合约未配置" },
   yourVotingPower: { en: "Your Voting Power", zh: "您的投票权重" },
   councilMember: { en: "Council Member", zh: "议会成员" },
   quorum: { en: "Quorum", zh: "法定人数" },
@@ -192,6 +194,7 @@ const candidateLoaded = ref(false);
 const isCandidate = ref(false);
 const votingPower = ref(0);
 const hasVotedMap = ref<Record<number, boolean>>({});
+const isVoting = ref(false);
 const createTabRef = ref<any>(null);
 const currentNetwork = ref<"mainnet" | "testnet">("testnet");
 
@@ -246,6 +249,28 @@ const showStatus = (msg: string, type: "success" | "error" | "info" = "info") =>
   }, 4000);
 };
 
+const ensureContractHash = async (showMessage = true) => {
+  if (!contractHash.value) {
+    contractHash.value = await getContractHash();
+  }
+  if (!contractHash.value) {
+    if (showMessage) {
+      showStatus(t("contractUnavailable"), "error");
+    }
+    return false;
+  }
+  return true;
+};
+
+const readMethod = async (operation: string, args: any[] = []) => {
+  const hasHash = await ensureContractHash(false);
+  if (!hasHash) {
+    throw new Error(t("contractUnavailable"));
+  }
+  const result = await invokeRead({ contractHash: contractHash.value as string, operation, args });
+  return parseInvokeResult(result);
+};
+
 const hasVoted = (proposalId: number) => Boolean(hasVotedMap.value[proposalId]);
 
 const selectProposal = async (p: Proposal) => {
@@ -256,6 +281,7 @@ const selectProposal = async (p: Proposal) => {
 };
 
 const castVote = async (proposalId: number, voteType: VoteChoice) => {
+  if (isVoting.value) return;
   const proposal = activeProposals.value.find((p) => p.id === proposalId);
   if (!proposal || resolveStatus(proposal) !== STATUS_ACTIVE) return;
   const voter = address.value;
@@ -271,12 +297,11 @@ const castVote = async (proposalId: number, voteType: VoteChoice) => {
     showStatus(t("alreadyVoted"), "error");
     return;
   }
-  if (!contractHash.value) {
-    showStatus(t("failedToLoadProposals"), "error");
-    return;
-  }
+  const hasHash = await ensureContractHash();
+  if (!hasHash) return;
 
   try {
+    isVoting.value = true;
     const support = voteType === "for";
     await invokeContract({
       scriptHash: contractHash.value as string,
@@ -293,6 +318,8 @@ const castVote = async (proposalId: number, voteType: VoteChoice) => {
     selectedProposal.value = null;
   } catch (e: any) {
     showStatus(e.message || t("error"), "error");
+  } finally {
+    isVoting.value = false;
   }
 };
 
@@ -325,10 +352,8 @@ const createProposal = async (proposalData: any) => {
     showStatus(t("notCandidate"), "error");
     return;
   }
-  if (!contractHash.value) {
-    showStatus(t("failedToLoadProposals"), "error");
-    return;
-  }
+  const hasHash = await ensureContractHash();
+  if (!hasHash) return;
 
   const policyDataS =
     proposalData.type === 1 ? JSON.stringify({ method: proposalData.policyMethod, value: policyValueNumber }) : "";
@@ -353,7 +378,7 @@ const createProposal = async (proposalData: any) => {
     await loadProposals();
     activeTab.value = "active";
   } catch (e: any) {
-    showStatus(e.message || t("proposalSubmitted"), "error");
+    showStatus(e.message || t("error"), "error");
   }
 };
 
@@ -388,10 +413,8 @@ const parseProposal = (data: Record<string, any>): Proposal => {
 const CACHE_KEY = "council_proposals_cache";
 
 const loadProposals = async () => {
-  if (!contractHash.value) {
-    contractHash.value = await getContractHash();
-  }
-  if (!contractHash.value) return;
+  const hasHash = await ensureContractHash();
+  if (!hasHash) return;
 
   // 1. Load from cache first
   try {
@@ -405,18 +428,12 @@ const loadProposals = async () => {
 
   try {
     loadingProposals.value = true;
-    const countRes = await invokeRead({ contractHash: contractHash.value, operation: "GetProposalCount" });
-    const count = Number(parseInvokeResult(countRes) || 0);
+    const count = Number((await readMethod("GetProposalCount")) || 0);
     const list: Proposal[] = [];
-    
+
     // Process in parallel to speed up initial load if many proposals exist
     const fetchProposal = async (id: number) => {
-      const proposalRes = await invokeRead({
-        contractHash: contractHash.value!,
-        operation: "GetProposal",
-        args: [{ type: "Integer", value: id }],
-      });
-      const proposalData = parseInvokeResult(proposalRes);
+      const proposalData = await readMethod("GetProposal", [{ type: "Integer", value: id }]);
       if (proposalData) {
         return parseProposal(proposalData);
       }
@@ -424,13 +441,11 @@ const loadProposals = async () => {
     };
 
     // Parallel fetch for fresh data
-    const results = await Promise.all(
-      Array.from({ length: count }, (_, i) => i + 1).map(fetchProposal)
-    );
-    
-    list.push(...(results.filter(p => p !== null) as Proposal[]));
+    const results = await Promise.all(Array.from({ length: count }, (_, i) => i + 1).map(fetchProposal));
+
+    list.push(...(results.filter((p) => p !== null) as Proposal[]));
     proposals.value = list.sort((a, b) => b.id - a.id);
-    
+
     // 2. Save to cache
     uni.setStorageSync(CACHE_KEY, JSON.stringify(proposals.value));
   } catch (e: any) {
@@ -474,9 +489,11 @@ const refreshCandidateStatus = async () => {
 };
 
 const refreshHasVoted = async (proposalIds?: number[]) => {
-  if (!address.value || !contractHash.value) return;
+  if (!address.value) return;
+  const hasHash = await ensureContractHash(false);
+  if (!hasHash) return;
   const currentAddress = address.value;
-  const currentHash = contractHash.value;
+  const currentHash = contractHash.value as string;
   const ids = proposalIds ?? proposals.value.map((p) => p.id);
   const updates: Record<number, boolean> = { ...hasVotedMap.value };
   await Promise.all(
@@ -497,7 +514,7 @@ const refreshHasVoted = async (proposalIds?: number[]) => {
 
 onMounted(async () => {
   detectNetwork();
-  contractHash.value = await getContractHash();
+  await ensureContractHash(false);
   await loadProposals();
   await refreshCandidateStatus();
   await refreshHasVoted();

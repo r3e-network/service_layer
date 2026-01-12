@@ -50,7 +50,6 @@ import { ref, onMounted, computed } from "vue";
 import { useWallet, useGovernance } from "@neo/uniapp-sdk";
 import type { Candidate } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
-import { formatNumber } from "@/shared/utils/format";
 import { parseInvokeResult } from "@/shared/utils/neo";
 import { AppLayout, NeoDoc } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
@@ -87,6 +86,7 @@ const translations = {
   invalidWeight: { en: "Enter at least 1 NEO", zh: "请输入不少于 1 NEO" },
   connectWallet: { en: "Connect wallet first", zh: "请先连接钱包" },
   failedToLoad: { en: "Failed to load data", zh: "加载数据失败" },
+  contractUnavailable: { en: "Contract not configured", zh: "合约未配置" },
   networkInfo: { en: "Network Info", zh: "网络信息" },
   wallet: { en: "Wallet", zh: "钱包" },
   contract: { en: "Contract", zh: "合约" },
@@ -161,8 +161,25 @@ const showStatus = (msg: string, type: string) => {
   setTimeout(() => (status.value = null), 5000);
 };
 
+const ensureContractHash = async (showMessage = true) => {
+  if (!contractHash.value) {
+    contractHash.value = await getContractHash();
+  }
+  if (!contractHash.value) {
+    if (showMessage) {
+      showStatus(t("contractUnavailable"), "error");
+    }
+    return false;
+  }
+  return true;
+};
+
 const readMethod = async (operation: string, args: any[] = []) => {
-  const result = await invokeRead({ contractHash: (contractHash.value as string) || undefined, operation, args });
+  const hasHash = await ensureContractHash(false);
+  if (!hasHash) {
+    throw new Error(t("contractUnavailable"));
+  }
+  const result = await invokeRead({ contractHash: contractHash.value as string, operation, args });
   return parseInvokeResult(result);
 };
 
@@ -184,9 +201,8 @@ const loadEpochData = async () => {
   } catch {}
 
   try {
-    if (!contractHash.value) {
-      contractHash.value = await getContractHash();
-    }
+    const hasHash = await ensureContractHash();
+    if (!hasHash) return;
     const epochValue = await readMethod("CurrentEpoch");
     const epochNumber = Number(epochValue || 0);
     currentEpoch.value = epochNumber;
@@ -200,14 +216,17 @@ const loadEpochData = async () => {
     epochEndTime.value = Number(endValue || 0);
     epochTotalVotes.value = Number(totalValue || 0);
     currentStrategy.value = typeof strategyValue === "string" ? strategyValue : String(strategyValue || "");
-    
+
     // Save to cache
-    uni.setStorageSync(EPOCH_CACHE_KEY, JSON.stringify({
-      currentEpoch: currentEpoch.value,
-      epochEndTime: epochEndTime.value,
-      epochTotalVotes: epochTotalVotes.value,
-      currentStrategy: currentStrategy.value
-    }));
+    uni.setStorageSync(
+      EPOCH_CACHE_KEY,
+      JSON.stringify({
+        currentEpoch: currentEpoch.value,
+        epochEndTime: epochEndTime.value,
+        epochTotalVotes: epochTotalVotes.value,
+        currentStrategy: currentStrategy.value,
+      }),
+    );
   } catch (e: any) {
     if (currentEpoch.value === 0) {
       showStatus(e.message || t("failedToLoad"), "error");
@@ -221,7 +240,7 @@ const loadRewards = async () => {
     hasClaimed.value = false;
     return;
   }
-  
+
   // Try cache first
   const cacheKey = `${REWARDS_CACHE_KEY}_${address.value}`;
   try {
@@ -249,13 +268,16 @@ const loadRewards = async () => {
     ]);
     pendingRewardsValue.value = Number(pendingValue || 0) / 1e8;
     hasClaimed.value = Boolean(claimedValue);
-    
+
     // Save to cache
-    uni.setStorageSync(cacheKey, JSON.stringify({
-      epoch: epochId,
-      pending: pendingRewardsValue.value,
-      claimed: hasClaimed.value
-    }));
+    uni.setStorageSync(
+      cacheKey,
+      JSON.stringify({
+        epoch: epochId,
+        pending: pendingRewardsValue.value,
+        claimed: hasClaimed.value,
+      }),
+    );
   } catch {
     if (pendingRewardsValue.value === 0) {
       pendingRewardsValue.value = 0;
@@ -280,12 +302,15 @@ const loadCandidates = async () => {
     const response = await getCandidates();
     candidates.value = response.candidates;
     totalNetworkVotes.value = response.totalVotes;
-    
+
     // Save to cache
-    uni.setStorageSync(CANDIDATES_CACHE_KEY, JSON.stringify({
-      candidates: candidates.value,
-      totalVotes: totalNetworkVotes.value
-    }));
+    uni.setStorageSync(
+      CANDIDATES_CACHE_KEY,
+      JSON.stringify({
+        candidates: candidates.value,
+        totalVotes: totalNetworkVotes.value,
+      }),
+    );
   } catch (e: any) {
     console.warn("[CandidateVote] Failed to load candidates:", e);
   } finally {
@@ -306,13 +331,8 @@ const registerVote = async () => {
     showStatus(t("connectWallet"), "error");
     return;
   }
-  if (!contractHash.value) {
-    contractHash.value = await getContractHash();
-  }
-  if (!contractHash.value) {
-    showStatus(t("failedToLoad"), "error");
-    return;
-  }
+  const hasHash = await ensureContractHash();
+  if (!hasHash) return;
 
   const weight = parseFloat(voteWeight.value);
   if (!Number.isFinite(weight) || weight < 1) {
@@ -356,13 +376,8 @@ const claimRewards = async () => {
     showStatus(t("noRewards"), "error");
     return;
   }
-  if (!contractHash.value) {
-    contractHash.value = await getContractHash();
-  }
-  if (!contractHash.value) {
-    showStatus(t("failedToLoad"), "error");
-    return;
-  }
+  const hasHash = await ensureContractHash();
+  if (!hasHash) return;
 
   const epochId = currentEpoch.value - 1;
   try {

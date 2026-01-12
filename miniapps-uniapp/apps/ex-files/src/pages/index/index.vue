@@ -300,7 +300,7 @@ const createRecord = async () => {
         { type: "Hash160", value: address.value as string },
         { type: "ByteArray", value: hashHex },
         { type: "Integer", value: rating },
-        { type: "Integer", value: Number(receiptId) },
+        { type: "Integer", value: String(receiptId) },
       ],
     });
     showStatus(t("recordCreated"), "success");
@@ -347,7 +347,7 @@ const queryRecord = async () => {
       args: [
         { type: "Hash160", value: address.value as string },
         { type: "ByteArray", value: hashHex },
-        { type: "Integer", value: Number(receiptId) },
+        { type: "Integer", value: String(receiptId) },
       ],
     });
     const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");

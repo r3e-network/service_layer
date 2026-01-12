@@ -154,7 +154,7 @@ defineProps<{
 }
 
 .clock-time {
-  font-family: "Inter", monospace;
+  font-family: $font-mono;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary, white);
@@ -206,7 +206,7 @@ defineProps<{
 }
 
 .time-remaining {
-  font-family: "Inter", monospace;
+  font-family: $font-mono;
   font-size: 32px;
   font-weight: 700;
   color: var(--text-primary, white);

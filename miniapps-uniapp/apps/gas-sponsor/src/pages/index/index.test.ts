@@ -8,13 +8,16 @@ vi.mock("@neo/uniapp-sdk", () => ({
     connect: vi.fn().mockResolvedValue(true),
   }),
   useGasSponsor: () => ({
-    isLoading: false,
+    isCheckingEligibility: ref(false),
+    eligibilityError: ref(null),
     checkEligibility: vi.fn().mockResolvedValue({
       gas_balance: "0.05",
       used_today: "0.02",
       daily_limit: "0.1",
       resets_at: new Date(Date.now() + 3600000 * 5).toISOString(),
     }),
+    isRequestingSponsorship: ref(false),
+    sponsorshipError: ref(null),
     requestSponsorship: vi.fn().mockResolvedValue({ success: true }),
   }),
   usePayments: () => ({

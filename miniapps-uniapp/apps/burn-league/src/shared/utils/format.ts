@@ -1,45 +1,66 @@
-/**
- * Common formatters for MiniApps
- */
-
-export function formatNumber(num: number, decimals = 2): string {
-  if (num >= 1000000) return (num / 1000000).toFixed(decimals) + "M";
-  if (num >= 1000) return (num / 1000).toFixed(decimals) + "K";
-  return num.toFixed(decimals);
+export function formatNumber(value: number | string, decimals = 2): string {
+  const num = typeof value === "number" ? value : Number.parseFloat(value);
+  if (!Number.isFinite(num)) {
+    return "0";
+  }
+  try {
+    return new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    }).format(num);
+  } catch {
+    return num.toFixed(decimals);
+  }
 }
 
-export function formatAddress(addr: string, chars = 6): string {
-  if (!addr || addr.length < chars * 2) return addr;
-  return `${addr.slice(0, chars)}...${addr.slice(-chars)}`;
+export function formatAddress(address?: string, head = 6, tail = 4): string {
+  const value = (address ?? "").trim();
+  if (!value) return "--";
+  if (value.length <= head + tail + 3) return value;
+  return `${value.slice(0, head)}...${value.slice(-tail)}`;
 }
 
-export function formatTime(ms: number): string {
-  const mins = Math.floor(ms / 60000);
-  const secs = Math.floor((ms % 60000) / 1000);
-  return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+export function formatCountdown(targetSeconds: number): string {
+  if (!Number.isFinite(targetSeconds)) return "--";
+  const targetMs = targetSeconds > 1e12 ? targetSeconds : targetSeconds * 1000;
+  const diff = Math.max(0, targetMs - Date.now());
+  if (diff <= 0) return "Ended";
+
+  const totalSeconds = Math.floor(diff / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
 }
 
 export function hexToBytes(hex: string): Uint8Array {
-  const clean = hex.startsWith("0x") ? hex.slice(2) : hex;
-  const bytes = new Uint8Array(clean.length / 2);
-  for (let i = 0; i < bytes.length; i++) {
-    bytes[i] = parseInt(clean.substr(i * 2, 2), 16);
+  const cleaned = hex.replace(/^0x/i, "").trim();
+  if (!cleaned) return new Uint8Array();
+  const normalized = cleaned.length % 2 === 0 ? cleaned : `0${cleaned}`;
+  const bytes = new Uint8Array(normalized.length / 2);
+  for (let i = 0; i < bytes.length; i += 1) {
+    bytes[i] = Number.parseInt(normalized.slice(i * 2, i * 2 + 2), 16);
   }
   return bytes;
 }
 
-export function randomIntFromBytes(bytes: Uint8Array, offset: number, max: number): number {
-  if (bytes.length < offset + 2) return 0;
-  const val = (bytes[offset] << 8) | bytes[offset + 1];
-  return val % max;
+export function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export function formatCountdown(endTimeInMillis: number): string {
-  const diff = endTimeInMillis - Date.now();
-  if (diff <= 0) return "Expired";
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  if (days > 0) return `${days}d ${hours}h`;
-  return `${hours}h ${minutes}m`;
+export function randomIntFromBytes(bytes: Uint8Array, max?: number): number {
+  if (!bytes.length) return 0;
+  let value = 0n;
+  for (const byte of bytes) {
+    value = (value << 8n) + BigInt(byte);
+  }
+  const safeMax = BigInt(Number.MAX_SAFE_INTEGER);
+  const safeValue = value % safeMax;
+  if (typeof max === "number" && Number.isFinite(max) && max > 0) {
+    return Number(safeValue % BigInt(Math.floor(max)));
+  }
+  return Number(safeValue);
 }

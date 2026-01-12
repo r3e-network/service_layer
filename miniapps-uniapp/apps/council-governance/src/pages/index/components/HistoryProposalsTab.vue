@@ -118,7 +118,7 @@ const getStatusText = (status: number) => {
 }
 
 .proposal-id-neo {
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-size: 12px;
   color: var(--text-muted, rgba(255, 255, 255, 0.4));
 }
@@ -137,7 +137,7 @@ const getStatusText = (status: number) => {
   justify-content: space-between;
   font-size: 11px;
   font-weight: 700;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
 }
 
 .stat-text {

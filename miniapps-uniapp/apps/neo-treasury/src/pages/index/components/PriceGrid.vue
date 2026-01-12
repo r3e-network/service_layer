@@ -66,7 +66,7 @@ defineProps<{
 .price-val {
   font-size: 32px;
   font-weight: 800;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   color: white;
   letter-spacing: -0.02em;
   text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);

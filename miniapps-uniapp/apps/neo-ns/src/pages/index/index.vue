@@ -330,7 +330,7 @@ onMounted(async () => {
 }
 .result-domain {
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   font-size: 24px;
   text-shadow: 0 0 15px rgba(0, 229, 153, 0.3);
   color: white;
@@ -393,7 +393,7 @@ onMounted(async () => {
 .price-value {
   font-weight: 700;
   font-size: 48px;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   color: white;
   text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
   
@@ -456,7 +456,7 @@ onMounted(async () => {
 }
 .domain-name {
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   font-size: 20px;
   display: block;
   text-transform: uppercase;

@@ -210,6 +210,7 @@ const translations = {
   depositedAmount: { en: "Simulation: {amount} GAS deposited scenario", zh: "模拟：{amount} GAS 存款场景" },
   mockDepositFee: { en: "Simulation deposit fee: {fee} GAS", zh: "模拟存款费用：{fee} GAS" },
   simulationError: { en: "Simulation error", zh: "模拟错误" },
+  contractUnavailable: { en: "Contract unavailable", zh: "合约不可用" },
   main: { en: "Simulate", zh: "模拟" },
   stats: { en: "Stats", zh: "统计" },
   activeCapsules: { en: "Active Capsules", zh: "活跃胶囊" },
@@ -281,8 +282,16 @@ const docFeatures = computed(() => [
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 const APP_ID = "miniapp-compound-capsule";
-const CONTRACT_HASH = "0x1234567890abcdef1234567890abcdef12345678"; // TODO: Update with deployed contract hash
-const { address, connect } = useWallet();
+const { address, connect, getContractHash } = useWallet();
+const contractHash = ref<string | null>(null);
+
+const ensureContractHash = async () => {
+  if (!contractHash.value) {
+    contractHash.value = await getContractHash();
+  }
+  if (!contractHash.value) throw new Error(t("contractUnavailable"));
+  return contractHash.value;
+};
 
 const vault = ref<Vault>({ apy: 18.5, tvl: 125000, compoundFreq: "Every 6h" });
 const position = ref<Position>({ deposited: 100, earned: 1.2345, est30d: 1.54 });
@@ -348,6 +357,7 @@ const fetchData = async () => {
   if (!address.value) return;
 
   try {
+    const contract = await ensureContractHash();
     const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
     if (!sdk?.invoke) {
       console.warn("[CompoundCapsule] SDK not available");
@@ -356,7 +366,7 @@ const fetchData = async () => {
 
     // Get total capsules count from contract
     const totalResult = await sdk.invoke("invokeRead", {
-      contract: CONTRACT_HASH,
+      contract,
       method: "TotalCapsules",
       args: [],
     });
@@ -369,7 +379,7 @@ const fetchData = async () => {
     // Find user's capsules
     for (let i = 1; i <= totalCapsules; i++) {
       const capsuleResult = await sdk.invoke("invokeRead", {
-        contract: CONTRACT_HASH,
+        contract,
         method: "GetCapsule",
         args: [{ type: "Integer", value: i.toString() }],
       });
@@ -471,14 +481,14 @@ const deposit = async (): Promise<void> => {
   text-transform: uppercase;
   font-size: 11px;
   display: block;
-  color: #FFDE59;
+  color: #ffde59;
   letter-spacing: 0.1em;
 }
 .demo-note {
   font-size: 10px;
   font-weight: 600;
   opacity: 0.8;
-  color: #FFDE59;
+  color: #ffde59;
 }
 
 .capsule-container {
@@ -502,7 +512,7 @@ const deposit = async (): Promise<void> => {
   bottom: 0;
   left: 0;
   width: 100%;
-  background: linear-gradient(to top, #00E599, rgba(0, 229, 153, 0.3));
+  background: linear-gradient(to top, #00e599, rgba(0, 229, 153, 0.3));
   border-top: 1px solid rgba(255, 255, 255, 0.5);
   transition: height 0.5s ease;
 }
@@ -518,7 +528,7 @@ const deposit = async (): Promise<void> => {
   font-weight: 800;
   font-size: 14px;
   color: white;
-  text-shadow: 0 0 5px rgba(0,0,0,0.5);
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
 }
 .capsule-apy-label {
   font-size: 8px;
@@ -548,14 +558,14 @@ const deposit = async (): Promise<void> => {
 }
 .stat-value {
   font-weight: 800;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-size: 16px;
   color: white;
 }
 .stat-unit {
-    font-size: 10px;
-    color: var(--text-secondary, rgba(255, 255, 255, 0.5));
-    margin-left: 4px;
+  font-size: 10px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  margin-left: 4px;
 }
 
 .growth-chart {
@@ -601,11 +611,24 @@ const deposit = async (): Promise<void> => {
 }
 
 .position-row {
-    display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
-.position-row .label { font-size: 11px; color: var(--text-secondary, rgba(255, 255, 255, 0.5)); }
-.position-row .value { font-size: 13px; font-weight: 700; color: white; font-family: 'Inter', monospace; }
-.position-row.earned .value { color: #00E599; }
+.position-row .label {
+  font-size: 11px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+}
+.position-row .value {
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  font-family: $font-mono;
+}
+.position-row.earned .value {
+  color: #00e599;
+}
 
 .period-options {
   display: grid;
@@ -621,14 +644,14 @@ const deposit = async (): Promise<void> => {
   text-align: center;
   cursor: pointer;
   transition: all 0.2s;
-  
+
   &:hover {
     background: rgba(255, 255, 255, 0.1);
   }
-  
+
   &.active {
     background: rgba(0, 229, 153, 0.1);
-    border-color: #00E599;
+    border-color: #00e599;
     box-shadow: 0 0 15px rgba(0, 229, 153, 0.2);
   }
 }
@@ -641,17 +664,41 @@ const deposit = async (): Promise<void> => {
 }
 .period-bonus {
   font-size: 9px;
-  color: #00E599;
+  color: #00e599;
   font-weight: 600;
 }
 
 .projected-returns {
-    background: var(--bg-card, rgba(255, 255, 255, 0.05)); padding: 12px; border-radius: 12px; margin-bottom: 16px; text-align: center;
+  background: var(--bg-card, rgba(255, 255, 255, 0.05));
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  text-align: center;
 }
-.returns-label { font-size: 10px; color: var(--text-secondary, rgba(255, 255, 255, 0.5)); display: block; margin-bottom: 4px; }
-.returns-value { font-size: 20px; font-weight: 800; color: white; font-family: 'Inter', monospace; }
-.returns-unit { font-size: 12px; color: var(--text-secondary, rgba(255, 255, 255, 0.5)); margin-left: 4px; }
-.note { font-size: 10px; color: var(--text-muted, rgba(255, 255, 255, 0.4)); text-align: center; display: block; margin-top: 12px; }
+.returns-label {
+  font-size: 10px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  display: block;
+  margin-bottom: 4px;
+}
+.returns-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: white;
+  font-family: $font-mono;
+}
+.returns-unit {
+  font-size: 12px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  margin-left: 4px;
+}
+.note {
+  font-size: 10px;
+  color: var(--text-muted, rgba(255, 255, 255, 0.4));
+  text-align: center;
+  display: block;
+  margin-top: 12px;
+}
 
 .capsule-item {
   padding: 16px;
@@ -661,14 +708,39 @@ const deposit = async (): Promise<void> => {
   border-radius: 16px;
 }
 .capsule-header {
-    display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
 }
-.capsule-icon { font-size: 24px; }
-.capsule-info { flex: 1; }
-.capsule-amount { font-size: 16px; font-weight: 700; color: white; display: block; }
-.capsule-period { font-size: 11px; color: var(--text-secondary, rgba(255, 255, 255, 0.5)); }
-.capsule-status { margin-left: auto; }
-.status-label { font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 4px 8px; border-radius: 99px; background: rgba(255, 255, 255, 0.1); color: white; }
+.capsule-icon {
+  font-size: 24px;
+}
+.capsule-info {
+  flex: 1;
+}
+.capsule-amount {
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  display: block;
+}
+.capsule-period {
+  font-size: 11px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+}
+.capsule-status {
+  margin-left: auto;
+}
+.status-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
 
 .progress-bar {
   height: 6px;
@@ -679,26 +751,49 @@ const deposit = async (): Promise<void> => {
 }
 .progress-fill {
   height: 100%;
-  background: #00E599;
+  background: #00e599;
   border-radius: 99px;
 }
 .progress-text {
-    font-size: 10px; color: var(--text-secondary, rgba(255, 255, 255, 0.5)); font-weight: 600; text-align: right; display: block;
+  font-size: 10px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  font-weight: 600;
+  text-align: right;
+  display: block;
 }
 
 .capsule-footer {
-    display: flex; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
-.countdown-label, .rewards-label { font-size: 10px; color: var(--text-secondary, rgba(255, 255, 255, 0.5)); display: block; }
-.countdown-value, .rewards-value { font-size: 12px; font-weight: 700; color: white; font-family: 'Inter', monospace; }
-.rewards-value { color: #00E599; }
+.countdown-label,
+.rewards-label {
+  font-size: 10px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  display: block;
+}
+.countdown-value,
+.rewards-value {
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  font-family: $font-mono;
+}
+.rewards-value {
+  color: #00e599;
+}
 
 .stat-row {
   display: flex;
   justify-content: space-between;
   padding: 12px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  &:last-child { border-bottom: none; }
+  &:last-child {
+    border-bottom: none;
+  }
 }
 .activity-history {
   font-size: 11px;
@@ -707,9 +802,15 @@ const deposit = async (): Promise<void> => {
   padding-left: 12px;
   margin-bottom: 8px;
   color: var(--text-secondary, rgba(255, 255, 255, 0.7));
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
 }
-.empty-text { font-size: 12px; color: var(--text-muted, rgba(255, 255, 255, 0.4)); text-align: center; display: block; padding: 20px; }
+.empty-text {
+  font-size: 12px;
+  color: var(--text-muted, rgba(255, 255, 255, 0.4));
+  text-align: center;
+  display: block;
+  padding: 20px;
+}
 
 .scrollable {
   overflow-y: auto;

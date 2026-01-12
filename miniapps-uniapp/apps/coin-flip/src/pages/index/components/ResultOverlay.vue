@@ -37,7 +37,7 @@ defineEmits(["close"]);
 }
 
 .win-amount {
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-weight: 800;
   font-size: 36px;
   color: #00E599;

@@ -68,7 +68,7 @@ function formatAmount(amount: number): string {
 .summary-value {
   font-size: 40px;
   font-weight: 800;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   color: #00E599;
   text-shadow: 0 0 20px rgba(0, 229, 153, 0.3);
   letter-spacing: -0.02em;
@@ -102,7 +102,7 @@ function formatAmount(amount: number): string {
 .breakdown-value {
   font-size: 13px;
   font-weight: 700;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   color: white;
 }
 

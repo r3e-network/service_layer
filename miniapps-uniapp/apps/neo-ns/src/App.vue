@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { initTheme, listenForThemeChanges } from "./shared/utils/theme";
+import { initTheme, listenForThemeChanges } from "@/shared/utils/theme";
 import { onMounted, onUnmounted } from "vue";
 
 let cleanup: (() => void) | undefined;

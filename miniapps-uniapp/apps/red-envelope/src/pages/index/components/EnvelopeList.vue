@@ -113,7 +113,7 @@ defineEmits(["claim"]);
 .envelope-info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
 
 .envelope-from {
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-size: 14px;
   font-weight: 600;
   color: white;
@@ -156,7 +156,7 @@ defineEmits(["claim"]);
   text-align: center;
   padding: 40px;
   font-weight: 500;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   color: var(--text-muted, rgba(255, 255, 255, 0.4));
   border: 1px dashed rgba(255, 255, 255, 0.1);
   border-radius: 16px;

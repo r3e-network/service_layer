@@ -144,7 +144,7 @@ const truncateHash = (hash: string) => {
 }
 
 .value-neo {
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-size: 13px;
   font-weight: 600;
   color: white;
@@ -187,7 +187,7 @@ const truncateHash = (hash: string) => {
 }
 
 .tx-hash-neo {
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-size: 13px;
   font-weight: 600;
   color: white;

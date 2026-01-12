@@ -67,8 +67,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
-import { createT } from "@shared/utils/i18n";
-import { parseInvokeResult, parseStackItem } from "@shared/utils/neo";
+import { createT } from "@/shared/utils/i18n";
+import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 import { AppLayout, NeoButton, NeoCard, NeoDoc, type StatItem } from "@/shared/components";
 import CountdownHero from "./components/CountdownHero.vue";
 import StreakDisplay from "./components/StreakDisplay.vue";
@@ -347,7 +347,7 @@ const doCheckIn = async () => {
       operation: "CheckIn",
       args: [
         { type: "Hash160", value: address.value },
-        { type: "Integer", value: Number(receiptId) },
+        { type: "Integer", value: String(receiptId) },
       ],
     });
 

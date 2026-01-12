@@ -66,6 +66,7 @@ const translations = {
   enterAmount: { en: "Enter 1-{max}", zh: "请输入 1-{max}" },
   loanApproved: { en: "Loan approved: {amount} GAS borrowed", zh: "贷款批准：已借 {amount} GAS" },
   paymentFailed: { en: "Transaction failed", zh: "交易失败" },
+  contractUnavailable: { en: "Contract unavailable", zh: "合约不可用" },
   main: { en: "Borrow", zh: "借款" },
   stats: { en: "Stats", zh: "统计" },
   statistics: { en: "Statistics", zh: "统计数据" },
@@ -145,9 +146,17 @@ const docFeatures = computed(() => [
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 const APP_ID = "miniapp-self-loan";
-const CONTRACT_HASH = "0x1234567890abcdef1234567890abcdef12345678"; // TODO: Update with deployed contract hash
-const { address, connect } = useWallet();
+const { address, connect, getContractHash, invokeRead } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
+const contractHash = ref<string | null>(null);
+
+const ensureContractHash = async () => {
+  if (!contractHash.value) {
+    contractHash.value = await getContractHash();
+  }
+  if (!contractHash.value) throw new Error(t("contractUnavailable"));
+  return contractHash.value;
+};
 
 const terms = ref<Terms>({ maxBorrow: 5000, interestRate: 8.5, repaymentSchedule: "Monthly" });
 const loan = ref<Loan>({ borrowed: 0, collateralLocked: 0, nextPayment: 0, nextPaymentDue: "N/A" });
@@ -220,6 +229,7 @@ const fetchData = async () => {
   if (!address.value) return;
 
   try {
+    const contract = await ensureContractHash();
     const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
     if (!sdk?.invoke) {
       console.warn("[SelfLoan] SDK not available");
@@ -228,7 +238,7 @@ const fetchData = async () => {
 
     // Get total loans count from contract
     const totalResult = await sdk.invoke("invokeRead", {
-      contract: CONTRACT_HASH,
+      contract,
       method: "TotalLoans",
       args: [],
     });
@@ -238,7 +248,7 @@ const fetchData = async () => {
     // Find user's active loan
     for (let i = 1; i <= totalLoans; i++) {
       const loanResult = await sdk.invoke("invokeRead", {
-        contract: CONTRACT_HASH,
+        contract,
         method: "GetLoan",
         args: [{ type: "Integer", value: i.toString() }],
       });

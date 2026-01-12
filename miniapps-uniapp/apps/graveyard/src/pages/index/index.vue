@@ -4,11 +4,7 @@
     <view v-if="activeTab === 'destroy'" class="tab-content">
       <StatusMessage :status="status" />
 
-      <GraveyardHero
-        :total-destroyed="totalDestroyed"
-        :gas-reclaimed="gasReclaimed"
-        :t="t as any"
-      />
+      <GraveyardHero :total-destroyed="totalDestroyed" :gas-reclaimed="gasReclaimed" :t="t as any" />
 
       <DestructionChamber
         v-model:assetHash="assetHash"
@@ -28,11 +24,7 @@
     </view>
 
     <!-- History Tab -->
-    <HistoryTab
-      v-if="activeTab === 'history'"
-      :history="history"
-      :t="t as any"
-    />
+    <HistoryTab v-if="activeTab === 'history'" :history="history" :t="t as any" />
 
     <!-- Docs Tab -->
     <view v-if="activeTab === 'docs'" class="tab-content scrollable">
@@ -198,7 +190,7 @@ const executeDestroy = async () => {
       args: [
         { type: "Hash160", value: address.value as string },
         { type: "String", value: assetHash.value },
-        { type: "Integer", value: Number(receiptId) },
+        { type: "Integer", value: String(receiptId) },
       ],
     });
 

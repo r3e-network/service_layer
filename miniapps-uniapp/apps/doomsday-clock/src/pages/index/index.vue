@@ -379,7 +379,7 @@ const buyKeys = async () => {
       args: [
         { type: "Hash160", value: address.value as string },
         { type: "Integer", value: count },
-        { type: "Integer", value: Number(receiptId) },
+        { type: "Integer", value: String(receiptId) },
       ],
     });
     keyCount.value = "1";
@@ -424,5 +424,8 @@ onUnmounted(() => {
   -webkit-overflow-scrolling: touch;
 }
 
-.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
 </style>

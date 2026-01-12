@@ -92,7 +92,7 @@ const priceImpactClass = computed(() => {
 .rate-value {
   font-weight: 700;
   font-size: 13px;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   color: white;
 }
 

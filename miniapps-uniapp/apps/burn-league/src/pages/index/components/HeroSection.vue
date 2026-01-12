@@ -90,7 +90,7 @@ const formatNum = (n: number) => {
 .hero-value {
   font-size: 48px;
   font-weight: 800;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   background: linear-gradient(135deg, #FF6B6B 0%, #FFD93D 100%);
   -webkit-background-clip: text;
   background-clip: text;

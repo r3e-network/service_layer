@@ -83,7 +83,7 @@ const formatGas = (value: number) => {
 .stat-icon { font-size: 24px; display: block; margin-bottom: 4px; }
 .stat-value {
   display: block;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-size: 18px;
   font-weight: 700;
   color: white;
@@ -118,7 +118,7 @@ const formatGas = (value: number) => {
 .history-day { display: block; font-weight: 600; font-size: 13px; color: white; }
 .history-time { display: block; font-size: 11px; color: var(--text-secondary, rgba(255, 255, 255, 0.5)); }
 .history-reward {
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-weight: 700;
   font-size: 12px;
   color: #00E599;

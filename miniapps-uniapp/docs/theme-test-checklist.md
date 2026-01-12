@@ -19,11 +19,13 @@ For each app, test: `?theme=light` and `?theme=dark`
 Run in DevTools console:
 
 ```javascript
+const hostOrigin = document.referrer ? new URL(document.referrer).origin : window.location.origin;
+
 // Switch to light theme
-window.postMessage({ type: "theme-change", theme: "light" }, "*");
+window.parent.postMessage({ type: "theme-change", theme: "light" }, hostOrigin);
 
 // Switch to dark theme
-window.postMessage({ type: "theme-change", theme: "dark" }, "*");
+window.parent.postMessage({ type: "theme-change", theme: "dark" }, hostOrigin);
 ```
 
 ### 3. System Preference Test

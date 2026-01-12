@@ -1,10 +1,23 @@
 {
-  "category": "social",
+  "app_id": "miniapp-breakupcontract",
+  "name": "Breakup Contract",
   "name_zh": "分手合约",
   "description": "Create immutable relationship agreements on-chain. Define terms for shared assets, responsibilities, and exit conditions with smart contract enforcement.",
   "description_zh": "在链上创建不可变的关系协议，智能合约执行。",
+  "category": "social",
   "status": "active",
-  "contract_hash": "0x84a3864028b7b71e9f420056e1eae2e3e3113a0c",
+  "supportedChains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
+  "contracts": {
+    "neo-n3-mainnet": {
+      "address": "0x20ebda5a9ed93e3ae29489e2ad329a29cdd5ba6f"
+    },
+    "neo-n3-testnet": {
+      "address": "0x20ebda5a9ed93e3ae29489e2ad329a29cdd5ba6f"
+    }
+  },
   "permissions": {
     "payments": true
   }

@@ -48,7 +48,7 @@ defineProps<{
   font-weight: 800;
   color: white;
   margin-bottom: 4px;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   text-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
 }
 

@@ -64,7 +64,7 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   font-size: 16px;
   font-weight: 800;
   color: #7000FF;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
 }
 
 .quota-bar-container {
@@ -96,7 +96,7 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
 
 .quota-text {
   font-size: 11px;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   text-align: center;
   display: block;
   margin-top: 12px;
@@ -125,7 +125,7 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
 .info-value {
   font-size: 13px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   color: white;
 
   &.highlight {

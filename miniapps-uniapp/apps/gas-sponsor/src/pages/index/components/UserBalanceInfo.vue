@@ -63,11 +63,11 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
 .info-value {
   font-size: 13px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   color: white;
 
   &.mono {
-    font-family: 'Inter', monospace;
+    font-family: $font-mono;
     opacity: 0.8;
   }
 

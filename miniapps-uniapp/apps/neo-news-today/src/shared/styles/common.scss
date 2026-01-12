@@ -1,0 +1,109 @@
+@import "./theme.scss";
+
+// Base container - fixed height, no page scroll
+// Content areas use overflow-y: auto for scrollable lists
+.app-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  color: var(--text-primary);
+  padding: $spacing-lg;
+  font-family:
+    "Outfit",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  transition:
+    background 0.3s ease,
+    color 0.3s ease;
+}
+
+// Scrollable content area (for lists, etc.)
+.scrollable-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+// Header
+.header {
+  text-align: center;
+  margin-bottom: $spacing-2xl;
+}
+
+.title {
+  font-size: $font-3xl;
+  font-weight: bold;
+  color: var(--text-primary);
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: $font-sm;
+  margin-top: $spacing-sm;
+}
+
+// Design System Utilities
+.neo-gradient-text {
+  background: linear-gradient(to right, $color-neo, $color-electric-purple);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-radius: $radius-xl;
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: rgba($color-neo, 0.3);
+  }
+}
+
+.neo-glow {
+  box-shadow: 0 0 20px rgba($color-neo, 0.3);
+}
+
+.purple-glow {
+  box-shadow: 0 0 20px rgba($color-electric-purple, 0.3);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, $color-neo 0%, $color-electric-purple 100%);
+  color: #000;
+  border-radius: $radius-lg;
+  padding: $spacing-md $spacing-xl;
+  font-weight: bold;
+  border: none;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+// Status messages
+.status-msg {
+  text-align: center;
+  padding: $spacing-md;
+  border-radius: $radius-sm;
+  margin-bottom: $spacing-lg;
+
+  &.success {
+    background: rgba($color-success, 0.15);
+    color: $color-success;
+  }
+
+  &.error {
+    background: rgba($color-error, 0.15);
+    color: $color-error;
+  }
+}

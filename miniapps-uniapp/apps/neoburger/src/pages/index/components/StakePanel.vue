@@ -139,7 +139,7 @@ function formatAmount(amount: number): string {
 .conversion-value {
   font-size: 14px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   color: white;
 
   &.highlight {

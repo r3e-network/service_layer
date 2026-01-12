@@ -166,8 +166,28 @@ async function loadBalances() {
 }
 
 async function fetchExchangeRate() {
-  const rate = fromToken.value.symbol === "NEO" ? "8.5" : "0.118";
-  exchangeRate.value = rate;
+  try {
+    // Try to fetch real exchange rate from datafeed API
+    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
+    if (sdk?.datafeed?.getPrice) {
+      const fromPrice = await sdk.datafeed.getPrice(`${fromToken.value.symbol}-USD`);
+      const toPrice = await sdk.datafeed.getPrice(`${toToken.value.symbol}-USD`);
+      if (fromPrice?.price && toPrice?.price) {
+        const rate = parseFloat(fromPrice.price) / parseFloat(toPrice.price);
+        exchangeRate.value = rate.toFixed(6);
+        return;
+      }
+    }
+  } catch (e) {
+    console.warn("[SwapTab] Failed to fetch real exchange rate, using fallback:", e);
+  }
+  // Fallback to approximate rates if API unavailable
+  const fallbackRates: Record<string, string> = {
+    "NEO-GAS": "8.5",
+    "GAS-NEO": "0.118",
+  };
+  const key = `${fromToken.value.symbol}-${toToken.value.symbol}`;
+  exchangeRate.value = fallbackRates[key] || "1";
 }
 
 function onFromAmountChange(val: string) {
@@ -223,6 +243,13 @@ async function executeSwap() {
     const decimals = fromToken.value.decimals;
     const amountInt = Math.floor(amount * Math.pow(10, decimals));
 
+    // Calculate minimum output with slippage protection (0.5% default)
+    const expectedOutput = parseFloat(toAmount.value) || 0;
+    const slippageTolerance = 0.005; // 0.5%
+    const minOutputAmount = expectedOutput * (1 - slippageTolerance);
+    const toDecimals = toToken.value.decimals;
+    const minOutputInt = Math.floor(minOutputAmount * Math.pow(10, toDecimals));
+
     await invokeContract({
       scriptHash: SWAP_ROUTER,
       operation: "swap",
@@ -231,7 +258,7 @@ async function executeSwap() {
         { type: "Hash160", value: fromToken.value.hash },
         { type: "Hash160", value: toToken.value.hash },
         { type: "Integer", value: amountInt },
-        { type: "Integer", value: 0 },
+        { type: "Integer", value: minOutputInt },
       ],
     });
 
@@ -274,37 +301,37 @@ onMounted(() => {
 }
 
 .swap-direction-container {
-  display: flex; 
-  justify-content: center; 
-  margin: 4px 0; 
-  position: relative; 
+  display: flex;
+  justify-content: center;
+  margin: 4px 0;
+  position: relative;
   z-index: 2;
 }
 
 .swap-direction-btn {
-  width: 44px; 
-  height: 44px; 
+  width: 44px;
+  height: 44px;
   background: rgba(0, 29, 30, 0.6); // Darker glass
   border: 1px solid rgba(159, 157, 243, 0.3);
-  border-radius: 50%; 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  cursor: pointer; 
-  backdrop-filter: blur(10px); 
-  transition: all 0.3s ease; 
-  box-shadow: 0 0 15px rgba(159, 157, 243, 0.1); 
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(159, 157, 243, 0.1);
   color: #9f9df3;
 
   &:hover {
-    background: #9f9df3; 
-    color: white; 
-    box-shadow: 0 0 20px rgba(159, 157, 243, 0.4); 
+    background: #9f9df3;
+    color: white;
+    box-shadow: 0 0 20px rgba(159, 157, 243, 0.4);
     transform: scale(1.1) rotate(180deg);
   }
-  
+
   &.rotating {
-      transform: rotate(180deg);
+    transform: rotate(180deg);
   }
 }
 </style>

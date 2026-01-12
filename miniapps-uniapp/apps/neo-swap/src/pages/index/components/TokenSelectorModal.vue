@@ -128,7 +128,7 @@ function formatAmount(amount: number): string {
   font-size: 12px;
   opacity: 0.6;
   color: white;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   display: block;
 }
 

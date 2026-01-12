@@ -35,7 +35,7 @@ defineProps<{
   color: white;
   margin-bottom: 4px;
   display: block;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   letter-spacing: -1px;
   text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
 }

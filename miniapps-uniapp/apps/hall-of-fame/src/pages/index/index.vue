@@ -109,6 +109,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
+import { initTheme, listenForThemeChanges } from "@/shared/utils/theme";
 import { AppLayout, NeoButton, NeoCard, NeoDoc } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
@@ -211,11 +212,14 @@ const fetchLeaderboard = async () => {
     const response = await fetch("/api/hall-of-fame/leaderboard");
     if (response.ok) {
       const data = await response.json();
-      entrants.value = data.entrants || [];
+      const apiEntries = Array.isArray(data.entrants) ? data.entrants : [];
+      entrants.value = apiEntries.length > 0 ? apiEntries : mockData;
+      return;
     }
+    entrants.value = mockData;
   } catch (e) {
     console.warn("[HallOfFame] Failed to fetch leaderboard:", e);
-    // Fallback to empty array - no mock data
+    entrants.value = mockData;
   } finally {
     isLoading.value = false;
   }
@@ -280,21 +284,8 @@ async function handleVote(entrant: Entrant) {
 }
 
 onMounted(async () => {
-  // Theme handling
-  const query = new URLSearchParams(window.location.search);
-  const paramTheme = query.get("theme");
-  const systemDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const initialTheme = paramTheme || (systemDark ? "dark" : "light");
-
-  if (initialTheme) {
-    document.documentElement.setAttribute("data-theme", initialTheme);
-  }
-
-  window.addEventListener("message", (e) => {
-    if (e.data?.type === "theme-change") {
-      document.documentElement.setAttribute("data-theme", e.data.theme);
-    }
-  });
+  initTheme();
+  listenForThemeChanges();
 
   await connect();
   await fetchLeaderboard();

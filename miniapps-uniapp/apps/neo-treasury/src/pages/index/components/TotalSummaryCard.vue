@@ -83,7 +83,7 @@ const formatTime = (ts: number): string => {
 .usd-amount {
   font-size: 48px;
   font-weight: 800;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   color: white;
   line-height: 1;
   text-shadow: 0 0 40px rgba(0, 229, 153, 0.4);
@@ -126,7 +126,7 @@ const formatTime = (ts: number): string => {
 .token-value {
   font-size: 20px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   color: white;
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
 }

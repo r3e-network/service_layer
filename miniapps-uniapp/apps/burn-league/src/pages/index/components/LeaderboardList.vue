@@ -94,12 +94,12 @@ const getMedalIcon = (rank: number): string => {
   font-size: 13px;
   font-weight: 800;
   color: white;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
 }
 
 .leader-addr {
   font-size: 11px;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   color: var(--text-primary, rgba(255, 255, 255, 0.8));
   flex: 1;
   padding: 0 12px;
@@ -119,7 +119,7 @@ const getMedalIcon = (rank: number): string => {
 .leader-burned {
   font-size: 14px;
   font-weight: 700;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   color: white;
 }
 

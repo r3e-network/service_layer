@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { initTheme, listenForThemeChanges } from "./shared/utils/theme";
+import { initTheme, listenForThemeChanges } from "@/shared/utils/theme";
 import { onLaunch, onShow } from "@dcloudio/uni-app";
 
 let cleanup: (() => void) | undefined;

@@ -10,7 +10,7 @@ All MiniApps use the **UniversalMiniApp** contract - developers only need to foc
 miniapps-uniapp/
 ├── apps/                    # MiniApp applications
 │   ├── lottery/
-│   │   ├── neo-manifest.json  # MiniApp config (auto-registration)
+│   │   ├── neo-manifest.json  # MiniApp config (auto-registration + permissions)
 │   │   └── src/
 │   │       ├── pages/         # Vue components
 │   │       ├── static/        # Assets (icon.svg, banner.svg)
@@ -54,11 +54,13 @@ node scripts/auto-discover-miniapps.js
 mkdir -p apps/my-app/src
 ```
 
-2. Add `neo-manifest.json` in the app root:
+2. Add `neo-manifest.json` in the app root (source of truth):
 
 ```json
 {
+  "app_id": "miniapp-my-app",
   "category": "gaming",
+  "name": "My App",
   "name_zh": "我的应用",
   "description": "My awesome MiniApp",
   "description_zh": "我的精彩小程序",
@@ -70,13 +72,24 @@ mkdir -p apps/my-app/src
 }
 ```
 
-3. Run auto-discover to register:
+Permissions are **deny-by-default**. Only the keys you set to `true` are enabled.
+Keep `app_id` aligned with the `APP_ID` constant used in your MiniApp code so
+payments, events, and SDK scoping all target the same app.
+If your MiniApp calls on-chain functions, set `contract_hash` to the deployed
+contract hash for your network. Auto-discovery will backfill `contract_hash`
+when a matching entry exists in `deploy/config/testnet_contracts.json`.
+
+3. Auto-discover to register (already runs during host-app dev/build):
 
 ```bash
 node scripts/auto-discover-miniapps.js
 ```
 
 That's it! Your MiniApp will be automatically registered.
+
+**Auto-registration:** The host app runs `scripts/export_host_miniapps.sh` on `predev` and `prebuild`,
+which copies built MiniApps and runs auto-discovery. You can still call
+`node scripts/auto-discover-miniapps.js` directly if you need to refresh the registry.
 
 **Note:** The `build-all.sh` script automatically runs auto-discover after building, so you don't need to run it manually when building.
 
@@ -134,7 +147,7 @@ const { emit, list } = useEvents();
 | Social     | red-envelope, dev-tipping, breakup-contract, grant-share, hall-of-fame                    |
 | NFT        | on-chain-tarot, time-capsule, heritage-trust, garden-of-neo, graveyard                    |
 | Governance | burn-league, doomsday-clock, masquerade-dao, gov-merc, candidate-vote, council-governance |
-| Utility    | neo-ns, explorer, guardian-policy, unbreakable-vault, neo-treasury, daily-checkin         |
+| Utility    | neo-ns, neo-news-today, explorer, guardian-policy, unbreakable-vault, neo-treasury, daily-checkin |
 
 ## UniversalMiniApp Contract
 
@@ -160,6 +173,12 @@ All MiniApps use a unified E-Robo inspired design system with:
 :root {
   --erobo-purple: #9f9df3;
   --erobo-purple-dark: #7b79d1;
+  --erobo-pink: #f7aac7;
+  --erobo-peach: #f8d7c2;
+  --erobo-mint: #d8f2e2;
+  --erobo-sky: #d9ecff;
+  --erobo-ink: #1b1b2f;
+  --erobo-ink-soft: #4a4a63;
   --erobo-gradient: linear-gradient(135deg, #9f9df3 0%, #7b79d1 100%);
   --erobo-glow: 0 0 30px rgba(159, 157, 243, 0.4);
   --card-radius: 20px;

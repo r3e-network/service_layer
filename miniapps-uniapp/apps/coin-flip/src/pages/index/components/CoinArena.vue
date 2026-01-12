@@ -42,7 +42,7 @@ defineProps<{
 }
 
 .status-text {
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-weight: 800;
   text-transform: uppercase;
   color: #9f9df3;

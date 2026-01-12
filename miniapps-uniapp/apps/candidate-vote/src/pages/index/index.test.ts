@@ -4,7 +4,11 @@ import { ref } from "vue";
 // Mock @neo/uniapp-sdk
 vi.mock("@neo/uniapp-sdk", () => ({
   useGovernance: vi.fn(() => ({
-    isLoading: ref(false),
+    isVoting: ref(false),
+    voteError: ref(null),
+    vote: vi.fn().mockResolvedValue({ tx_id: "vote-tx-123" }),
+    isLoadingCandidates: ref(false),
+    candidatesError: ref(null),
     getCandidates: vi.fn().mockResolvedValue({
       candidates: [
         { address: "NXV7ZhHiyM1aHXwpVsRZC6BN3y4gABn6", name: "Alice", votes: "1000", active: true },
@@ -13,7 +17,6 @@ vi.mock("@neo/uniapp-sdk", () => ({
       totalVotes: "1500",
       blockHeight: 12345,
     }),
-    vote: vi.fn().mockResolvedValue({ tx_id: "vote-tx-123" }),
   })),
 }));
 

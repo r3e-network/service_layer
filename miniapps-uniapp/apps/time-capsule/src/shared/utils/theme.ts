@@ -1,71 +1,76 @@
-/**
- * Theme detection utility for MiniApps
- * Detects theme from URL parameters or system preference
- */
+import { readQueryParam } from "./url";
 
-export type Theme = "dark" | "light";
+export type Theme = "light" | "dark";
 
-/**
- * Get theme from URL parameter (passed by host app)
- */
-export function getThemeFromUrl(): Theme | null {
-  if (typeof window === "undefined") return null;
-  const params = new URLSearchParams(window.location.search);
-  const theme = params.get("theme");
-  if (theme === "light" || theme === "dark") {
-    return theme;
-  }
+function normalizeTheme(value?: string | null): Theme | null {
+  if (!value) return null;
+  const trimmed = value.toLowerCase();
+  if (trimmed === "light") return "light";
+  if (trimmed === "dark") return "dark";
   return null;
 }
 
-/**
- * Get theme from system preference
- */
-export function getSystemTheme(): Theme {
-  if (typeof window === "undefined") return "dark";
-  return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+export function getTheme(): Theme {
+  const fromQuery = normalizeTheme(readQueryParam("theme"));
+  if (fromQuery) return fromQuery;
+  if (typeof document !== "undefined") {
+    const attr = document.documentElement.getAttribute("data-theme");
+    const fromAttr = normalizeTheme(attr);
+    if (fromAttr) return fromAttr;
+  }
+  if (typeof window !== "undefined") {
+    const stored = normalizeTheme(window.localStorage?.getItem("theme"));
+    if (stored) return stored;
+    if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+      return "light";
+    }
+  }
+  return "dark";
 }
 
-/**
- * Get current theme (URL param > system preference > default dark)
- */
-export function getCurrentTheme(): Theme {
-  return getThemeFromUrl() || getSystemTheme();
-}
-
-/**
- * Apply theme to document
- */
-export function applyTheme(theme: Theme): void {
+export function setTheme(theme: Theme): void {
   if (typeof document === "undefined") return;
   document.documentElement.setAttribute("data-theme", theme);
-  document.documentElement.classList.remove("theme-light", "theme-dark");
-  document.documentElement.classList.add(`theme-${theme}`);
+  document.documentElement.classList.toggle("theme-dark", theme === "dark");
+  document.documentElement.classList.toggle("theme-light", theme === "light");
+  if (typeof window !== "undefined") {
+    window.localStorage?.setItem("theme", theme);
+  }
 }
 
-/**
- * Initialize theme detection and apply
- */
 export function initTheme(): Theme {
-  const theme = getCurrentTheme();
-  applyTheme(theme);
+  const theme = getTheme();
+  setTheme(theme);
   return theme;
 }
 
-/**
- * Listen for theme changes from host app via postMessage
- */
-export function listenForThemeChanges(callback?: (theme: Theme) => void): () => void {
+export function listenForThemeChanges(): () => void {
   if (typeof window === "undefined") return () => {};
 
-  const handler = (event: MessageEvent) => {
-    if (event.data?.type === "theme-change" && event.data?.theme) {
-      const theme = event.data.theme as Theme;
-      applyTheme(theme);
-      callback?.(theme);
+  // Get expected origin from parent (for iframe context) or self
+  const expectedOrigin = (() => {
+    try {
+      if (window.parent !== window && document.referrer) {
+        return new URL(document.referrer).origin;
+      }
+    } catch {
+      // Ignore cross-origin errors
     }
-  };
+    return window.location.origin;
+  })();
 
+  const handler = (event: MessageEvent) => {
+    // Validate origin to prevent cross-site scripting attacks
+    if (event.origin !== expectedOrigin && event.origin !== window.location.origin) {
+      return;
+    }
+    const data = event?.data;
+    if (!data || typeof data !== "object") return;
+    if (data.type !== "theme-change") return;
+    const next = normalizeTheme((data as { theme?: string }).theme);
+    if (!next) return;
+    setTheme(next);
+  };
   window.addEventListener("message", handler);
   return () => window.removeEventListener("message", handler);
 }

@@ -45,9 +45,9 @@ const APP_CONFIGS = {
   "guardian-policy": { category: "utility", payments: true },
   "unbreakable-vault": { category: "utility", payments: true },
   "doomsday-clock": { category: "utility", payments: true },
-  "burn-league": { category: "utility", payments: true },
+  "burn-league": { category: "governance", payments: true },
   "daily-checkin": { category: "utility", payments: true },
-  "hall-of-fame": { category: "utility", payments: false },
+  "hall-of-fame": { category: "social", payments: true },
 };
 
 function generateNeoManifest(appDir) {
@@ -56,6 +56,8 @@ function generateNeoManifest(appDir) {
   if (!fs.existsSync(manifestPath)) return null;
   const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
   return {
+    app_id: `miniapp-${appDir}`,
+    name: manifest.name,
     name_zh: manifest.name,
     description: manifest.description || `${manifest.name} - Neo MiniApp`,
     description_zh: `${manifest.name} - Neo 小程序`,

@@ -145,7 +145,7 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
 .pump-amount {
   font-size: 48px;
   font-weight: 800;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   color: #00E599;
   display: block;
   line-height: 1;

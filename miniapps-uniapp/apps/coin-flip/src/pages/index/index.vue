@@ -42,11 +42,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onUnmounted } from "vue";
 import { usePayments, useWallet, useEvents } from "@neo/uniapp-sdk";
-import { formatNumber } from "@shared/utils/format";
-import { parseStackItem } from "@shared/utils/neo";
-import { createT } from "@shared/utils/i18n";
+import { formatNumber } from "@/shared/utils/format";
+import { parseStackItem } from "@/shared/utils/neo";
+import { createT } from "@/shared/utils/i18n";
 import { AppLayout, NeoStats, NeoDoc, type StatItem } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
@@ -127,6 +127,9 @@ const showWinOverlay = ref(false);
 const winAmount = ref("0");
 const contractHash = ref<string | null>(null);
 const errorMessage = ref<string | null>(null);
+
+// Timer tracking for cleanup
+let errorClearTimer: ReturnType<typeof setTimeout> | null = null;
 
 const formatNum = (n: number) => formatNumber(n, 2);
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -210,7 +213,7 @@ const flip = async () => {
         { type: "Hash160", value: address.value as string },
         { type: "Integer", value: amountInt },
         { type: "Boolean", value: choice.value === "heads" },
-        { type: "Integer", value: Number(receiptId) },
+        { type: "Integer", value: String(receiptId) },
       ],
     });
 
@@ -255,11 +258,21 @@ const flip = async () => {
     errorMessage.value = e?.message || t("error");
     isFlipping.value = false;
     // Auto-clear error after 5 seconds
-    setTimeout(() => {
+    if (errorClearTimer) clearTimeout(errorClearTimer);
+    errorClearTimer = setTimeout(() => {
       errorMessage.value = null;
+      errorClearTimer = null;
     }, 5000);
   }
 };
+
+// Cleanup on unmount
+onUnmounted(() => {
+  if (errorClearTimer) {
+    clearTimeout(errorClearTimer);
+    errorClearTimer = null;
+  }
+});
 </script>
 
 <style lang="scss" scoped>

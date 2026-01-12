@@ -158,8 +158,17 @@ const docFeatures = computed(() => [
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 const APP_ID = "miniapp-heritage-trust";
-const { address, connect } = useWallet();
+const { address, connect, getContractHash } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
+const contractHash = ref<string | null>(null);
+
+const ensureContractHash = async () => {
+  if (!contractHash.value) {
+    contractHash.value = await getContractHash();
+  }
+  if (!contractHash.value) throw new Error(t("error"));
+  return contractHash.value;
+};
 
 const trusts = ref<Trust[]>([]);
 const newTrust = ref({ name: "", beneficiary: "", gasValue: "", neoValue: "" });
@@ -173,15 +182,13 @@ const stats = computed(() => ({
   activeTrusts: trusts.value.length,
 }));
 
-// Contract hash for HeritageTrust
-const CONTRACT_HASH = "0x1234567890abcdef1234567890abcdef12345678"; // TODO: Update with deployed contract hash
-
 // Fetch trusts data from smart contract
 const fetchData = async () => {
   if (!address.value) return;
 
   isLoadingData.value = true;
   try {
+    const contract = await ensureContractHash();
     const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
     if (!sdk?.invoke) {
       console.warn("[HeritageTrust] SDK not available");
@@ -190,7 +197,7 @@ const fetchData = async () => {
 
     // Get total trusts count from contract
     const totalResult = await sdk.invoke("invokeRead", {
-      contract: CONTRACT_HASH,
+      contract,
       method: "totalTrusts",
       args: [],
     });
@@ -201,7 +208,7 @@ const fetchData = async () => {
     // Iterate through all trusts and find ones owned by current user
     for (let i = 1; i <= totalTrusts; i++) {
       const trustResult = await sdk.invoke("invokeRead", {
-        contract: CONTRACT_HASH,
+        contract,
         method: "getTrust",
         args: [{ type: "Integer", value: i.toString() }],
       });

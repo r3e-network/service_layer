@@ -1,10 +1,23 @@
 {
-  "category": "utility",
+  "app_id": "miniapp-neo-treasury",
+  "name": "Neo Treasury",
   "name_zh": "Neo 国库",
   "description": "Track Neo co-founders Da Hongfei and Erik Zhang's wallet holdings in real-time. View NEO and GAS balances across 44 treasury addresses with live price data.",
   "description_zh": "实时追踪 Neo 联合创始人达鸿飞和张铮文的钱包持有量。查看 44 个国库地址的 NEO 和 GAS 余额及实时价格。",
+  "category": "utility",
   "status": "active",
-  "contract_hash": null,
+  "supportedChains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
+  "contracts": {
+    "neo-n3-mainnet": {
+      "address": null
+    },
+    "neo-n3-testnet": {
+      "address": null
+    }
+  },
   "permissions": {
     "datafeed": true
   }

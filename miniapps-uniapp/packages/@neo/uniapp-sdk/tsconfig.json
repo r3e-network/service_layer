@@ -14,6 +14,6 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": true
   },
-  "include": ["src/bridge.ts", "src/types.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "src/components", "src/composables/useI18n.ts"]
 }

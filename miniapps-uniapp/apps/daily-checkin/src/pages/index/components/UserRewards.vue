@@ -57,7 +57,7 @@ const formatGas = (value: number) => {
 
 .reward-value {
   display: block;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-size: 24px;
   font-weight: 700;
   color: #00E599;

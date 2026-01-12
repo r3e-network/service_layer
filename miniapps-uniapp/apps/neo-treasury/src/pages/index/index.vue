@@ -256,7 +256,7 @@ onMounted(() => {
 }
 
 .soft-loading-text {
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -304,7 +304,7 @@ onMounted(() => {
 
 .loading-label,
 .error-label {
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-size: 14px;
   font-weight: 700;
   text-transform: uppercase;
@@ -313,7 +313,7 @@ onMounted(() => {
 }
 
 .status-text {
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;

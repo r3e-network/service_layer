@@ -99,12 +99,14 @@ export function useWallet() {
     error.value = null;
     try {
       const data = await apiGet<{ balances: WalletBalances }>("/wallet-balance");
-      balances.value = data.balances;
+      // Safely handle missing or invalid balances
+      const safeBalances = data?.balances ?? { GAS: "0", NEO: "0" };
+      balances.value = safeBalances;
 
       if (token) {
-        return data.balances[token] || "0";
+        return safeBalances[token] || "0";
       }
-      return data.balances;
+      return safeBalances;
     } catch (e) {
       error.value = e as Error;
       throw e;
@@ -117,7 +119,9 @@ export function useWallet() {
     isLoading.value = true;
     error.value = null;
     try {
-      const data = await apiGet<{ transactions: WalletTransaction[] }>(`/wallet-transactions?limit=${limit}`);
+      // Validate limit parameter
+      const validLimit = Number.isNaN(limit) || limit < 1 ? 20 : Math.min(limit, 100);
+      const data = await apiGet<{ transactions: WalletTransaction[] }>(`/wallet-transactions?limit=${validLimit}`);
       return data.transactions;
     } catch (e) {
       error.value = e as Error;
@@ -196,14 +200,19 @@ export function useWallet() {
       }
     });
 
-    // Fallback: try SDK directly
+    // Fallback: try SDK directly (only if not already connected via host state)
+    // Use a flag to prevent race condition with subscription updates
     const sdk = getSDKSync();
     if (sdk && !isConnected.value) {
+      const wasConnectedBefore = isConnected.value;
       sdk.wallet
         .getAddress()
         .then((addr) => {
-          address.value = addr;
-          isConnected.value = true;
+          // Only update if state hasn't changed since we started
+          if (!wasConnectedBefore && !isConnected.value) {
+            address.value = addr;
+            isConnected.value = true;
+          }
         })
         .catch((e) => {
           console.debug("[Neo SDK] Fallback wallet connection failed:", e?.message || e);

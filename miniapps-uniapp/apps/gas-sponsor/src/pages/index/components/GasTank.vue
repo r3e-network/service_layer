@@ -114,7 +114,7 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
 .gauge-value {
   font-size: 24px;
   font-weight: 800;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   color: white;
   text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }

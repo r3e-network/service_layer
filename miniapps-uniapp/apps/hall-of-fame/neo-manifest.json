@@ -1,10 +1,23 @@
 {
-  "category": "social",
+  "app_id": "miniapp-hall-of-fame",
+  "name": "Neo Hall of Fame",
   "name_zh": "Neo 名人堂",
   "description": "Vote for Neo legends, communities, and developers using GAS volume. Pay to win ranking system.",
   "description_zh": "使用 GAS 交易量为 Neo 传奇人物、社区和开发者投票。通过付费赢得排名的系统。",
+  "category": "social",
   "status": "active",
-  "contract_hash": null,
+  "supportedChains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
+  "contracts": {
+    "neo-n3-mainnet": {
+      "address": null
+    },
+    "neo-n3-testnet": {
+      "address": null
+    }
+  },
   "permissions": {
     "payments": true
   }

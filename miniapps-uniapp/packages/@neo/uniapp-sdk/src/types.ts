@@ -104,6 +104,15 @@ export interface InvocationIntent {
   args?: unknown[];
 }
 
+/** App usage statistics */
+export interface AppUsageStats {
+  app_id: string;
+  date: string;
+  transactions: number;
+  volume_gas: string;
+  unique_users: number;
+}
+
 export interface MiniAppSDK {
   invoke(method: string, params?: Record<string, unknown>): Promise<unknown>;
   getConfig(): NeoSDKConfig;
@@ -129,6 +138,9 @@ export interface MiniAppSDK {
   };
   transactions?: {
     list(params?: TransactionsListParams): Promise<TransactionsListResponse>;
+  };
+  stats?: {
+    getMyUsage(appId: string, date?: string): Promise<AppUsageStats>;
   };
 }
 

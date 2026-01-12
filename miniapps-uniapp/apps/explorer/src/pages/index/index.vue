@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
 import { AppLayout, NeoDoc, NeoCard } from "@/shared/components";
@@ -165,6 +165,9 @@ const stats = ref({
   testnet: { height: 0, txCount: 0 },
 });
 
+// Timer tracking for cleanup
+let statsInterval: ReturnType<typeof setInterval> | null = null;
+
 const formatNum = (n: number) => formatNumber(n, 0);
 
 const mainnetStats = computed<StatItem[]>(() => [
@@ -199,7 +202,7 @@ const fetchStats = async () => {
   } catch (e) {
     console.warn("[Explorer] SDK stats fetch failed, falling back to API:", e);
   }
-    
+
   // Fallback to REST API if SDK failed or returned null
   if (!freshStats) {
     try {
@@ -245,7 +248,7 @@ const fetchRecentTxs = async () => {
   } catch (e) {
     console.warn("[Explorer] SDK tx fetch failed, falling back to API:", e);
   }
-    
+
   // Fallback to REST API
   if (!freshTxs) {
     try {
@@ -305,7 +308,14 @@ const viewTx = (hash: string) => {
 onMounted(() => {
   fetchStats();
   fetchRecentTxs();
-  setInterval(fetchStats, 15000);
+  statsInterval = setInterval(fetchStats, 15000);
+});
+
+onUnmounted(() => {
+  if (statsInterval) {
+    clearInterval(statsInterval);
+    statsInterval = null;
+  }
 });
 </script>
 
@@ -330,7 +340,7 @@ onMounted(() => {
 }
 
 .status-text {
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   font-size: 13px;
   font-weight: 600;
   color: white;

@@ -61,7 +61,7 @@ const formatNum = (n: number) => {
 .reward-value {
   font-size: 14px;
   font-weight: 800;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   color: #F97316;
   text-shadow: 0 0 10px rgba(249, 115, 22, 0.3);
 }

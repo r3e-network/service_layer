@@ -225,7 +225,7 @@ const getRankClass = (index: number) => {
 .votes-value {
   display: block;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   font-feature-settings: "tnum";
   font-size: 14px;
   color: white;
@@ -273,7 +273,7 @@ const getRankClass = (index: number) => {
 
 .total-value {
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   font-feature-settings: "tnum";
   color: white;
   font-size: 14px;

@@ -71,7 +71,7 @@ defineProps<{
     background-clip: text;
     -webkit-text-fill-color: transparent;
     filter: drop-shadow(0 0 20px rgba(251, 191, 36, 0.4));
-    font-family: 'Inter', sans-serif;
+    font-family: $font-family;
   }
 
   .hero-subtitle {

@@ -1,41 +1,40 @@
 /**
  * useGovernance - Governance composable for uni-app
+ * Refactored to expose separate state for each action (SOLID: Single Responsibility)
  */
-import { ref } from "vue";
 import { waitForSDK } from "../bridge";
+import { useAsyncAction } from "./useAsyncAction";
 import type { VoteBNEOResponse, CandidatesResponse } from "../types";
 
 export function useGovernance(appId: string) {
-  const isLoading = ref(false);
-  const error = ref<Error | null>(null);
-
-  const vote = async (proposalId: string, amount: string, support?: boolean): Promise<VoteBNEOResponse> => {
-    isLoading.value = true;
-    error.value = null;
-    try {
+  const voteAction = useAsyncAction(
+    async (proposalId: string, amount: string, support?: boolean): Promise<VoteBNEOResponse> => {
+      // Validate parameters
+      if (!proposalId || typeof proposalId !== "string") {
+        throw new Error("Invalid proposalId: must be a non-empty string");
+      }
+      const numAmount = parseFloat(amount);
+      if (Number.isNaN(numAmount) || numAmount <= 0) {
+        throw new Error("Invalid amount: must be a positive number");
+      }
       const sdk = await waitForSDK();
       return await sdk.governance.vote(appId, proposalId, amount, support);
-    } catch (e) {
-      error.value = e as Error;
-      throw e;
-    } finally {
-      isLoading.value = false;
-    }
-  };
+    },
+  );
 
-  const getCandidates = async (): Promise<CandidatesResponse> => {
-    isLoading.value = true;
-    error.value = null;
-    try {
-      const sdk = await waitForSDK();
-      return await sdk.governance.getCandidates();
-    } catch (e) {
-      error.value = e as Error;
-      throw e;
-    } finally {
-      isLoading.value = false;
-    }
-  };
+  const candidatesAction = useAsyncAction(async (): Promise<CandidatesResponse> => {
+    const sdk = await waitForSDK();
+    return await sdk.governance.getCandidates();
+  });
 
-  return { isLoading, error, vote, getCandidates };
+  return {
+    // Vote action
+    isVoting: voteAction.isLoading,
+    voteError: voteAction.error,
+    vote: voteAction.execute,
+    // Candidates action
+    isLoadingCandidates: candidatesAction.isLoading,
+    candidatesError: candidatesAction.error,
+    getCandidates: candidatesAction.execute,
+  };
 }

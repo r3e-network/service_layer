@@ -2,6 +2,8 @@
 // Used across all uni-app MiniApps
 // Supports light/dark mode via CSS custom properties
 
+@import "./tokens.scss";
+
 // ============================================
 // Global Layout Settings (Critical for iframe)
 // ============================================
@@ -40,19 +42,24 @@ body {
 
 :root {
   // Default to dark theme - Primary variables (short names)
-  --bg-primary: #02040a;
-  --bg-secondary: #0b1121;
-  --bg-card: rgba(20, 30, 50, 0.6);
-  --bg-elevated: #1e293b;
-  --text-primary: #ffffff;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --border-color: rgba(255, 255, 255, 0.1);
-  --shadow-color: rgba(0, 0, 0, 0.2);
+  --bg-primary: #05060d;
+  --bg-secondary: #0b0c16;
+  --bg-card: rgba(12, 13, 22, 0.8);
+  --bg-elevated: #121322;
+  --text-primary: #f8f8ff;
+  --text-secondary: rgba(231, 232, 246, 0.72);
+  --text-muted: rgba(196, 197, 219, 0.6);
+  --border-color: rgba(159, 157, 243, 0.18);
+  --shadow-color: rgba(0, 0, 0, 0.35);
 
   // E-Robo Wallet Style CSS Variables
   --erobo-purple: #9f9df3;
   --erobo-purple-dark: #7b79d1;
+  --erobo-pink: #f7aac7;
+  --erobo-peach: #f8d7c2;
+  --erobo-mint: #d8f2e2;
+  --erobo-sky: #d9ecff;
+  --erobo-ink: #1b1b2f;
   --erobo-gradient: linear-gradient(135deg, #9f9df3 0%, #7b79d1 100%);
   --erobo-glow: 0 0 30px rgba(159, 157, 243, 0.4);
   --card-radius: 20px;
@@ -69,40 +76,38 @@ body {
   --color-shadow: var(--shadow-color);
 }
 
+// Light theme mixin (DRY - used in both explicit and system preference)
+@mixin light-theme-vars {
+  --bg-primary: #f8f8ff;
+  --bg-secondary: #f2f3fb;
+  --bg-card: rgba(255, 255, 255, 0.92);
+  --bg-elevated: #ffffff;
+  --text-primary: #1b1b2f;
+  --text-secondary: #4a4a63;
+  --text-muted: #7a7a96;
+  --border-color: rgba(159, 157, 243, 0.2);
+  --shadow-color: rgba(27, 27, 47, 0.08);
+  --erobo-purple: #7c7ab8;
+  --erobo-purple-dark: #5a58a3;
+  --erobo-pink: #f1a1c1;
+  --erobo-peach: #f6d0ba;
+  --erobo-mint: #d5efe0;
+  --erobo-sky: #d3e8ff;
+  --erobo-ink: #1b1b2f;
+  --erobo-gradient: linear-gradient(135deg, #7c7ab8 0%, #5a58a3 100%);
+  --erobo-glow: 0 0 20px rgba(124, 122, 184, 0.3);
+}
+
 // Light theme - WCAG AA compliant contrast
 [data-theme="light"],
 .theme-light {
-  --bg-primary: #f8fafc;
-  --bg-secondary: #f1f5f9;
-  --bg-card: #ffffff;
-  --bg-elevated: #ffffff;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
-  --border-color: rgba(0, 0, 0, 0.1);
-  --shadow-color: rgba(0, 0, 0, 0.08);
-
-  // E-Robo colors for light theme
-  --erobo-purple: #7c7ab8;
-  --erobo-purple-dark: #5a58a3;
-  --erobo-gradient: linear-gradient(135deg, #7c7ab8 0%, #5a58a3 100%);
-  --erobo-glow: 0 0 20px rgba(124, 122, 184, 0.3);
+  @include light-theme-vars;
 }
 
 // System preference detection
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]):not(.theme-dark) {
-    --bg-primary: #f8fafc;
-    --bg-secondary: #f1f5f9;
-    --bg-card: #ffffff;
-    --bg-elevated: #ffffff;
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-muted: #64748b;
-    --border-color: rgba(0, 0, 0, 0.1);
-    --shadow-color: rgba(0, 0, 0, 0.08);
-    --erobo-purple: #7c7ab8;
-    --erobo-purple-dark: #5a58a3;
+    @include light-theme-vars;
   }
 }
 
@@ -111,10 +116,10 @@ body {
 // ============================================
 
 // Base colors (dark theme defaults)
-$color-bg-primary: #020617;
-$color-bg-secondary: #0f172a;
-$color-bg-card: rgba(15, 23, 42, 0.8);
-$color-border: rgba(255, 255, 255, 0.1);
+$color-bg-primary: #05060d;
+$color-bg-secondary: #0b0c16;
+$color-bg-card: rgba(12, 13, 22, 0.85);
+$color-border: rgba(159, 157, 243, 0.18);
 
 // Brand Colors
 $color-neo: #00e599;
@@ -149,31 +154,6 @@ $color-success: #00e599;
 $color-error: #ef4444;
 $color-warning: #f59e0b;
 $color-info: #3b82f6;
-
-// Spacing
-$spacing-xs: 4px;
-$spacing-sm: 8px;
-$spacing-md: 12px;
-$spacing-lg: 16px;
-$spacing-xl: 20px;
-$spacing-2xl: 24px;
-
-// Border radius
-$radius-sm: 8px;
-$radius-md: 12px;
-$radius-lg: 16px;
-$radius-xl: 1rem;
-$radius-2xl: 1.5rem;
-$radius-3xl: 2rem;
-
-// Font sizes
-$font-xs: 0.75rem;
-$font-sm: 0.875rem;
-$font-base: 1rem;
-$font-lg: 1.125rem;
-$font-xl: 1.25rem;
-$font-2xl: 1.5rem;
-$font-3xl: 1.875rem;
 
 // ============================================
 // E-Robo Animation System

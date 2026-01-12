@@ -17,6 +17,15 @@ function isValidLocale(value: unknown): value is Locale {
 const currentLocale = ref<Locale>("en");
 let initialized = false;
 
+/**
+ * Reset i18n state - useful for testing and HMR scenarios
+ * @internal
+ */
+export function resetI18nState(): void {
+  initialized = false;
+  currentLocale.value = "en";
+}
+
 export function useI18n(appId: string) {
   // Get locale from host platform
   const initLocale = async () => {
@@ -29,10 +38,12 @@ export function useI18n(appId: string) {
         currentLocale.value = result.locale;
       }
     } catch {
-      // Fallback to localStorage with validation
-      const stored = localStorage.getItem("lang");
-      if (isValidLocale(stored)) {
-        currentLocale.value = stored;
+      // Fallback to localStorage with validation (SSR-safe)
+      if (typeof localStorage !== "undefined") {
+        const stored = localStorage.getItem("lang");
+        if (isValidLocale(stored)) {
+          currentLocale.value = stored;
+        }
       }
     }
   };
@@ -46,7 +57,9 @@ export function useI18n(appId: string) {
 
   const setLocale = async (newLocale: Locale) => {
     currentLocale.value = newLocale;
-    localStorage.setItem("lang", newLocale);
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("lang", newLocale);
+    }
     try {
       await callBridge("setLocale", { appId, locale: newLocale });
     } catch {

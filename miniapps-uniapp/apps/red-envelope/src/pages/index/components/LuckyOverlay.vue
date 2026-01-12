@@ -78,7 +78,7 @@ defineEmits(["close"]);
   font-size: 64px;
   font-weight: 800;
   color: white;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   line-height: 1;
   text-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }

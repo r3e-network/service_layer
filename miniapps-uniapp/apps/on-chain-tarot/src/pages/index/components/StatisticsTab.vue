@@ -47,7 +47,7 @@ defineProps<{
 
 .stat-value {
   font-weight: 700;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-size: 16px;
   color: #9f9df3;
   text-shadow: 0 0 10px rgba(159, 157, 243, 0.3);

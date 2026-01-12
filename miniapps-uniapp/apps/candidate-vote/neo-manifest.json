@@ -1,10 +1,23 @@
 {
-  "category": "governance",
+  "app_id": "miniapp-candidate-vote",
+  "name": "Candidate Vote",
   "name_zh": "候选人投票",
   "description": "Vote for platform candidates and earn GAS rewards. Participate in governance by staking your tokens and supporting your preferred candidates with transparent on-chain voting.",
   "description_zh": "为 Neo 共识节点候选人投票。参与网络治理，支持您信任的节点。",
+  "category": "governance",
   "status": "active",
-  "contract_hash": null,
+  "supportedChains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
+  "contracts": {
+    "neo-n3-mainnet": {
+      "address": null
+    },
+    "neo-n3-testnet": {
+      "address": null
+    }
+  },
   "permissions": {
     "governance": true,
     "payments": true

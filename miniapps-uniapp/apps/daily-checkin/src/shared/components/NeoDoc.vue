@@ -42,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import { createT } from '../utils/i18n';
+import { createT } from "@/shared/utils/i18n";
 
 interface Feature {
   name: string;

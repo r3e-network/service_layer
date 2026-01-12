@@ -401,7 +401,7 @@ const purchaseTile = async () => {
         { type: "Hash160", value: address.value as string },
         { type: "Integer", value: String(tile.x) },
         { type: "Integer", value: String(tile.y) },
-        { type: "Integer", value: Number(receiptId) },
+        { type: "Integer", value: String(receiptId) },
       ],
     });
     const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");

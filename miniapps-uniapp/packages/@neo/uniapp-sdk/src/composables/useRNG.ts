@@ -1,27 +1,23 @@
 /**
  * useRNG - Random Number Generator composable
  */
-import { ref } from "vue";
 import { waitForSDK } from "../bridge";
+import { useAsyncAction } from "./useAsyncAction";
 import type { RNGResponse } from "../types";
 
 export function useRNG(appId: string) {
-  const isLoading = ref(false);
-  const error = ref<Error | null>(null);
+  if (!appId || typeof appId !== "string") {
+    throw new Error("useRNG: appId is required and must be a non-empty string");
+  }
 
-  const requestRandom = async (): Promise<RNGResponse> => {
-    isLoading.value = true;
-    error.value = null;
-    try {
-      const sdk = await waitForSDK();
-      return await sdk.rng.requestRandom(appId);
-    } catch (e) {
-      error.value = e as Error;
-      throw e;
-    } finally {
-      isLoading.value = false;
-    }
-  };
+  const {
+    isLoading,
+    error,
+    execute: requestRandom,
+  } = useAsyncAction(async (): Promise<RNGResponse> => {
+    const sdk = await waitForSDK();
+    return await sdk.rng.requestRandom(appId);
+  });
 
   return { isLoading, error, requestRandom };
 }

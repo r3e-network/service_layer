@@ -76,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useWallet } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import { AppLayout, NeoCard, NeoStats, NeoDoc } from "@/shared/components";
@@ -196,6 +196,10 @@ const animatedApy = ref("0.0");
 const loadingApy = ref(true);
 const priceData = ref<PriceData | null>(null);
 
+// Timer tracking for cleanup
+let apyAnimationTimer: ReturnType<typeof setInterval> | null = null;
+let statusTimer: ReturnType<typeof setTimeout> | null = null;
+
 const statsData = computed<StatItem[]>(() => [
   { label: t("yourNeo"), value: formatAmount(neoBalance.value), unit: "NEO", variant: "default" },
   { label: t("yourBneo"), value: formatAmount(bNeoBalance.value), unit: "bNEO", variant: "accent" },
@@ -284,7 +288,12 @@ function setUnstakeAmount(percentage: number) {
 function showStatus(message: string, type: "success" | "error") {
   statusMessage.value = message;
   statusType.value = type;
-  setTimeout(() => (statusMessage.value = ""), 5000);
+  // Clear previous timer if exists
+  if (statusTimer) clearTimeout(statusTimer);
+  statusTimer = setTimeout(() => {
+    statusMessage.value = "";
+    statusTimer = null;
+  }, 5000);
 }
 
 // Animate APY counter
@@ -296,14 +305,20 @@ function animateApy() {
   let current = 0;
   let step = 0;
 
-  const timer = setInterval(() => {
+  // Clear previous animation if exists
+  if (apyAnimationTimer) clearInterval(apyAnimationTimer);
+
+  apyAnimationTimer = setInterval(() => {
     current += increment;
     step++;
     animatedApy.value = current.toFixed(1);
 
     if (step >= steps) {
       animatedApy.value = target.toFixed(1);
-      clearInterval(timer);
+      if (apyAnimationTimer) {
+        clearInterval(apyAnimationTimer);
+        apyAnimationTimer = null;
+      }
     }
   }, duration / steps);
 }
@@ -315,8 +330,9 @@ async function loadBalances() {
 
     const neo = await getBalance("NEO");
     const bneo = await getBalance(BNEO_CONTRACT);
-    neoBalance.value = typeof neo === "number" ? neo : 0;
-    bNeoBalance.value = typeof bneo === "number" ? bneo : 0;
+    // Handle both string and number return types
+    neoBalance.value = typeof neo === "string" ? parseFloat(neo) || 0 : typeof neo === "number" ? neo : 0;
+    bNeoBalance.value = typeof bneo === "string" ? parseFloat(bneo) || 0 : typeof bneo === "number" ? bneo : 0;
   } catch (e) {
     console.error("Failed to load balances:", e);
   }
@@ -431,6 +447,18 @@ onMounted(() => {
   loadBalances();
   loadApy();
   loadPrices();
+});
+
+onUnmounted(() => {
+  // Clean up timers to prevent memory leaks
+  if (apyAnimationTimer) {
+    clearInterval(apyAnimationTimer);
+    apyAnimationTimer = null;
+  }
+  if (statusTimer) {
+    clearTimeout(statusTimer);
+    statusTimer = null;
+  }
 });
 </script>
 

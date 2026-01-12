@@ -1,12 +1,12 @@
 {
-  "name": "Burn League",
-  "appid": "miniapp-burn-league",
-  "description": "Burn League - Neo MiniApp",
+  "name": "Neo Hall of Fame",
+  "appid": "miniapp-hall-of-fame",
+  "description": "Neo Hall of Fame - Neo MiniApp",
   "versionName": "1.0.0",
   "versionCode": "100",
   "transformPx": false,
   "h5": {
-    "title": "Burn League",
+    "title": "Neo Hall of Fame",
     "router": {
       "mode": "hash"
     },

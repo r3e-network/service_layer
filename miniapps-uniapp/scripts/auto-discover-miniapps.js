@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 /**
- * Auto-discover and register miniapps
+ * Auto-discover and register MiniApps
  *
  * This script scans the apps directory and automatically generates
  * the miniapps.json registry file for the host-app.
  *
  * Usage: node scripts/auto-discover-miniapps.js
  *
- * Each miniapp should have:
- * - package.json with name and neo config
- * - src/manifest.json with app metadata
- * - Optional: neo-manifest.json for permissions/contract info
+ * Each MiniApp is self-contained under its app folder:
+ * - neo-manifest.json (recommended, source of truth for permissions + metadata)
+ * - src/manifest.json (fallback for name/description/appid)
+ * - package.json (fallback for name/appid)
  */
 
 const fs = require("fs");
@@ -18,6 +18,23 @@ const path = require("path");
 
 const APPS_DIR = path.join(__dirname, "../apps");
 const OUTPUT_FILE = path.join(__dirname, "../../platform/host-app/data/miniapps.json");
+const CONTRACTS_CONFIG = path.join(__dirname, "../../deploy/config/testnet_contracts.json");
+
+let contractHashMap = {};
+try {
+  if (fs.existsSync(CONTRACTS_CONFIG)) {
+    const config = JSON.parse(fs.readFileSync(CONTRACTS_CONFIG, "utf-8"));
+    const entries = Object.values(config?.miniapp_contracts || {});
+    contractHashMap = entries.reduce((acc, entry) => {
+      if (entry?.app_id && entry?.hash) {
+        acc[entry.app_id] = entry.hash;
+      }
+      return acc;
+    }, {});
+  }
+} catch (e) {
+  console.warn("  Warning: Could not parse testnet_contracts.json for contract hashes");
+}
 
 // Category detection based on app name patterns
 const CATEGORY_PATTERNS = {
@@ -39,6 +56,18 @@ function detectCategory(appName) {
   return "utility";
 }
 
+function toTitleCase(value) {
+  return value
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+function toString(value) {
+  if (value === undefined || value === null) return "";
+  return String(value).trim();
+}
+
 function readJsonSafe(filePath) {
   try {
     if (fs.existsSync(filePath)) {
@@ -48,6 +77,27 @@ function readJsonSafe(filePath) {
     console.warn(`  Warning: Could not parse ${filePath}`);
   }
   return null;
+}
+
+function normalizePermissions(raw) {
+  const permissions = raw && typeof raw === "object" ? raw : {};
+  return {
+    payments: Boolean(permissions.payments),
+    governance: Boolean(permissions.governance),
+    randomness: Boolean(permissions.randomness ?? permissions.rng),
+    datafeed: Boolean(permissions.datafeed),
+    automation: Boolean(permissions.automation),
+  };
+}
+
+function resolveAppId(appDir, manifest, neoManifest, packageJson) {
+  const candidates = [
+    toString(neoManifest?.app_id ?? neoManifest?.appId),
+    toString(manifest?.appid),
+    toString(packageJson?.name),
+  ].filter(Boolean);
+
+  return candidates[0] || `miniapp-${appDir}`;
 }
 
 function discoverMiniapp(appDir) {
@@ -62,37 +112,45 @@ function discoverMiniapp(appDir) {
   const manifest = readJsonSafe(path.join(appPath, "src/manifest.json"));
   const neoManifest = readJsonSafe(path.join(appPath, "neo-manifest.json"));
 
-  if (!packageJson) {
-    console.log(`  [SKIP] ${appDir}: no package.json`);
+  if (!packageJson && !manifest && !neoManifest) {
+    console.log(`  [SKIP] ${appDir}: no package.json, src/manifest.json, or neo-manifest.json`);
     return null;
   }
 
-  // Extract app info
-  const appId = packageJson.name || `miniapp-${appDir}`;
-  const name =
-    manifest?.name ||
-    appDir
-      .split("-")
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(" ");
+  const appId = resolveAppId(appDir, manifest, neoManifest, packageJson);
+  const fallbackName = toTitleCase(appDir);
+  const name = toString(neoManifest?.name) || toString(manifest?.name) || fallbackName;
+  const category = (toString(neoManifest?.category) || detectCategory(appDir)).toLowerCase();
 
-  const category = neoManifest?.category || detectCategory(appDir);
+  const description =
+    toString(neoManifest?.description) || toString(manifest?.description) || `${name} - Neo MiniApp`;
+
+  const descriptionZh =
+    toString(neoManifest?.description_zh) || toString(neoManifest?.descriptionZh) || `${name} - Neo 小程序`;
+
+  const icon = toString(neoManifest?.icon) || `/miniapps/${appDir}/static/icon.svg`;
+  const entryUrl = toString(neoManifest?.entry_url) || `/miniapps/${appDir}/index.html`;
+  let contractHash = toString(neoManifest?.contract_hash ?? neoManifest?.contractHash);
+  if (!contractHash && contractHashMap[appId]) {
+    contractHash = contractHashMap[appId];
+  }
+  const permissions = normalizePermissions(neoManifest?.permissions);
 
   return {
     app_id: appId,
-    name: name,
-    name_zh: neoManifest?.name_zh || manifest?.name || name,
-    description: neoManifest?.description || manifest?.description || `${name} - Neo MiniApp`,
-    description_zh: neoManifest?.description_zh || `${name} - Neo 小程序`,
-    icon: `/miniapps/${appDir}/static/icon.svg`,
-    entry_url: `/miniapps/${appDir}/index.html`,
-    status: neoManifest?.status || "active",
-    contract_hash: neoManifest?.contract_hash || null,
-    permissions: neoManifest?.permissions || {
-      payments: true,
-      governance: category === "governance",
-      automation: false,
-    },
+    name,
+    name_zh: toString(neoManifest?.name_zh) || toString(neoManifest?.nameZh) || toString(manifest?.name) || name,
+    description,
+    description_zh: descriptionZh,
+    icon,
+    entry_url: entryUrl,
+    category,
+    status: toString(neoManifest?.status) || "active",
+    contract_hash: contractHash || null,
+    permissions,
+    limits: neoManifest?.limits ?? null,
+    stats_display: neoManifest?.stats_display ?? null,
+    news_integration: typeof neoManifest?.news_integration === "boolean" ? neoManifest.news_integration : null,
   };
 }
 
@@ -114,11 +172,16 @@ function main() {
   for (const appDir of appDirs) {
     const app = discoverMiniapp(appDir);
     if (app) {
-      const category = detectCategory(appDir);
-      registry[category].push(app);
-      console.log(`  [OK] ${appDir} -> ${category}`);
+      const normalizedCategory = registry[app.category] ? app.category : "utility";
+      registry[normalizedCategory].push(app);
+      console.log(`  [OK] ${appDir} -> ${normalizedCategory}`);
       discovered++;
     }
+  }
+
+  // Sort apps in each category by name for stable output
+  for (const category of Object.keys(registry)) {
+    registry[category].sort((a, b) => a.name.localeCompare(b.name));
   }
 
   // Ensure output directory exists
@@ -134,4 +197,8 @@ function main() {
   console.log(`Registry written to: ${OUTPUT_FILE}`);
 }
 
-main();
+if (require.main === module) {
+  main();
+}
+
+module.exports = { discoverMiniapp };

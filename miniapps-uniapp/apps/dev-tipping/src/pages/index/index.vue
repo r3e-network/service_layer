@@ -378,7 +378,7 @@ const sendTip = async () => {
         { type: "Integer", value: toFixed8(tipAmount.value) },
         { type: "String", value: tipMessage.value || "" },
         { type: "String", value: tipperName.value || "" },
-        { type: "Integer", value: Number(receiptId) },
+        { type: "Integer", value: String(receiptId) },
       ],
     });
     const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");

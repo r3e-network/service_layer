@@ -144,7 +144,7 @@ const formatNum = (n: number, decimals = 0): string => {
 .total-usd {
   font-size: 20px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   color: white;
   text-shadow: 0 0 20px rgba(0, 229, 153, 0.3);
   letter-spacing: -0.02em;
@@ -176,7 +176,7 @@ const formatNum = (n: number, decimals = 0): string => {
 .b-val {
   font-size: 15px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   color: white;
 }
 

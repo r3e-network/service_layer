@@ -81,7 +81,7 @@ defineProps<{
   font-weight: 700;
   color: white;
   margin: 4px 0;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
 }
 
 .milestone-cumulative {

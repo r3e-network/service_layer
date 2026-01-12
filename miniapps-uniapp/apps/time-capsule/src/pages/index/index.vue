@@ -122,8 +122,17 @@ const docFeatures = computed(() => [
 ]);
 
 const APP_ID = "miniapp-time-capsule";
-const { address, connect } = useWallet();
+const { address, connect, getContractHash } = useWallet();
 const { payGAS, isLoading } = usePayments(APP_ID);
+const contractHash = ref<string | null>(null);
+
+const ensureContractHash = async () => {
+  if (!contractHash.value) {
+    contractHash.value = await getContractHash();
+  }
+  if (!contractHash.value) throw new Error(t("error"));
+  return contractHash.value;
+};
 
 const activeTab = ref("capsules");
 const navTabs: NavTab[] = [
@@ -134,9 +143,6 @@ const navTabs: NavTab[] = [
 
 const capsules = ref<Capsule[]>([]);
 const isLoadingData = ref(false);
-
-// Contract hash for TimeCapsule
-const CONTRACT_HASH = "0x1234567890abcdef1234567890abcdef12345678"; // TODO: Update with deployed contract hash
 
 const newCapsule = ref({ name: "", content: "", days: "30" });
 const status = ref<{ msg: string; type: string } | null>(null);
@@ -170,6 +176,7 @@ const fetchData = async () => {
 
   isLoadingData.value = true;
   try {
+    const contract = await ensureContractHash();
     const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
     if (!sdk?.invoke) {
       console.warn("[TimeCapsule] SDK not available");
@@ -178,7 +185,7 @@ const fetchData = async () => {
 
     // Get total capsules count from contract
     const totalResult = await sdk.invoke("invokeRead", {
-      contract: CONTRACT_HASH,
+      contract,
       method: "TotalCapsules",
       args: [],
     });
@@ -189,7 +196,7 @@ const fetchData = async () => {
     // Iterate through all capsules and find ones owned by current user
     for (let i = 1; i <= totalCapsules; i++) {
       const capsuleResult = await sdk.invoke("invokeRead", {
-        contract: CONTRACT_HASH,
+        contract,
         method: "GetCapsule",
         args: [{ type: "Integer", value: i.toString() }],
       });

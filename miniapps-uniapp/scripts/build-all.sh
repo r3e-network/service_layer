@@ -28,7 +28,9 @@ for app_dir in "$APPS_DIR"/*/; do
   fi
 
   # Build H5
-  pnpm build:h5 || npm run build:h5
+  if ! pnpm build:h5; then
+    pnpm build || npm run build || npm run build:h5
+  fi
 
   # Copy to output
   if [ -d "dist/build/h5" ]; then

@@ -1,14 +1,14 @@
-const bytesToHex = (bytes: Uint8Array) =>
-  Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+import { bytesToHex } from "./format";
 
-export const sha256Hex = async (input: string) => {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(input);
-  if (globalThis.crypto?.subtle?.digest) {
-    const digest = await globalThis.crypto.subtle.digest("SHA-256", data);
+export async function sha256Hex(value: string): Promise<string> {
+  if (typeof value !== "string") {
+    value = String(value ?? "");
+  }
+  if (typeof window !== "undefined" && window.crypto?.subtle) {
+    const data = new TextEncoder().encode(value);
+    const digest = await window.crypto.subtle.digest("SHA-256", data);
     return bytesToHex(new Uint8Array(digest));
   }
-  throw new Error("SHA-256 not available");
-};
+  const { createHash } = await import("crypto");
+  return createHash("sha256").update(value, "utf8").digest("hex");
+}

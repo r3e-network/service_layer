@@ -70,7 +70,7 @@ function formatAmount(amount: number): string {
   font-size: 11px;
   font-weight: 500;
   color: var(--text-secondary, rgba(255, 255, 255, 0.5));
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
 }
 
 .token-input-row {
@@ -127,7 +127,7 @@ function formatAmount(amount: number): string {
   }
   ::v-deep .uni-easyinput__content-input {
     font-size: 28px !important;
-    font-family: 'Inter', sans-serif !important;
+    font-family: $font-family !important;
     font-weight: 600 !important;
     color: white !important;
     text-align: right !important;

@@ -25,11 +25,10 @@
       <!-- Your Position -->
       <NeoCard :title="t('yourPosition')">
         <view class="position-info">
-             <text class="lp-amount">0.0000</text>
-             <text class="lp-label">NEO/GAS LP {{ t("poolShare") }}</text>
+          <text class="lp-amount">0.0000</text>
+          <text class="lp-label">NEO/GAS LP {{ t("poolShare") }}</text>
         </view>
       </NeoCard>
-
     </view>
   </view>
 </template>
@@ -56,32 +55,32 @@ const poolStats = computed<StatItem[]>(() => [
 ]);
 
 function calculateB() {
-    const val = parseFloat(amountA.value);
-    if (!isNaN(val)) {
-        amountB.value = (val * rate).toFixed(4);
-    } else {
-        amountB.value = "";
-    }
+  const val = parseFloat(amountA.value);
+  if (!Number.isNaN(val)) {
+    amountB.value = (val * rate).toFixed(4);
+  } else {
+    amountB.value = "";
+  }
 }
 
 function calculateA() {
-    const val = parseFloat(amountB.value);
-    if (!isNaN(val)) {
-        amountA.value = (val / rate).toFixed(4);
-    } else {
-        amountA.value = "";
-    }
+  const val = parseFloat(amountB.value);
+  if (!Number.isNaN(val)) {
+    amountA.value = (val / rate).toFixed(4);
+  } else {
+    amountA.value = "";
+  }
 }
 
 function addLiquidity() {
-    if (!amountA.value || !amountB.value) return;
-    loading.value = true;
-    setTimeout(() => {
-        loading.value = false;
-        amountA.value = "";
-        amountB.value = "";
-        // In a real app, this would show a toast if we had a toast component exposed
-    }, 1500);
+  if (!amountA.value || !amountB.value) return;
+  loading.value = true;
+  setTimeout(() => {
+    loading.value = false;
+    amountA.value = "";
+    amountB.value = "";
+    // In a real app, this would show a toast if we had a toast component exposed
+  }, 1500);
 }
 </script>
 
@@ -136,7 +135,7 @@ function addLiquidity() {
   font-size: 36px;
   font-weight: 800;
   margin-bottom: 8px;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   color: white;
   text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
 }

@@ -68,7 +68,7 @@ const formattedPendingRewards = computed(() => `${formatToken(props.pendingRewar
 .reward-value {
   font-size: 28px;
   font-weight: 800;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   color: #00E599;
   text-shadow: 0 0 20px rgba(0, 229, 153, 0.4);
   letter-spacing: -0.02em;

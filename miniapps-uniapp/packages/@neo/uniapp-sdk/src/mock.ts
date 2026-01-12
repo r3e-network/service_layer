@@ -13,6 +13,15 @@ import type {
 const generateId = () => `mock-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 export const mockSDK: MiniAppSDK = {
+  // New interface methods
+  async invoke(method: string, ...args: unknown[]) {
+    console.log("[MockSDK] invoke:", method, args);
+    return {};
+  },
+  getConfig() {
+    return { appId: "mock-app", contractHash: null, debug: true };
+  },
+  // Legacy interface
   wallet: {
     async getAddress() {
       console.log("[MockSDK] getAddress called");
@@ -27,8 +36,10 @@ export const mockSDK: MiniAppSDK = {
     async payGAS(appId, amount, memo): Promise<PayGASResponse> {
       console.log("[MockSDK] payGAS:", { appId, amount, memo });
       await new Promise((r) => setTimeout(r, 800));
+      const id = generateId();
       return {
-        request_id: generateId(),
+        request_id: id,
+        receipt_id: id, // MiniApps expect receipt_id
         user_id: "mock-user",
         intent: "payments",
         constraints: { settlement: "GAS_ONLY" },
@@ -120,6 +131,42 @@ export const mockSDK: MiniAppSDK = {
         decimals: 8,
         timestamp: new Date().toISOString(),
         sources: ["mock"],
+      };
+    },
+  },
+  events: {
+    async list(params: { app_id?: string; event_name?: string; limit?: number } = {}) {
+      console.log("[MockSDK] events.list:", params);
+      await new Promise((r) => setTimeout(r, 300));
+      const eventId = generateId();
+      return {
+        events: [
+          {
+            id: eventId,
+            app_id: params.app_id || "mock-app",
+            event_name: params.event_name || "MockEvent",
+            contract_hash: "0x0000000000000000000000000000000000000000",
+            tx_hash: `0x${generateId()}`,
+            block_index: 1234567,
+            state: [] as unknown[],
+            created_at: new Date().toISOString(),
+          },
+        ],
+        has_more: false,
+        last_id: eventId,
+      };
+    },
+  },
+  stats: {
+    async getMyUsage(appId: string, date?: string) {
+      console.log("[MockSDK] stats.getMyUsage:", { appId, date });
+      await new Promise((r) => setTimeout(r, 300));
+      return {
+        app_id: appId,
+        date: date || new Date().toISOString().split("T")[0],
+        transactions: 42,
+        volume_gas: "123.45",
+        unique_users: 10,
       };
     },
   },

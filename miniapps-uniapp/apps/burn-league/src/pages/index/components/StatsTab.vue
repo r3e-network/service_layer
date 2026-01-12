@@ -67,7 +67,7 @@ const formatNum = (n: number) => {
 .stat-value {
   font-size: 14px;
   font-weight: 700;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   color: #9f9df3;
   text-shadow: 0 0 10px rgba(159, 157, 243, 0.3);
 }

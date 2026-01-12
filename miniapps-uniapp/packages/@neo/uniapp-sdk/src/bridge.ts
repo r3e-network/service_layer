@@ -246,6 +246,12 @@ function createPostMessageSDK(): MiniAppSDK {
  */
 export function waitForSDK(timeout = SDK_TIMEOUTS.SDK_INIT): Promise<MiniAppSDK> {
   return new Promise((resolve, reject) => {
+    // SSR guard
+    if (typeof window === "undefined") {
+      reject(new Error("SDK not available in SSR"));
+      return;
+    }
+
     // Check if SDK is already injected
     if (window.MiniAppSDK) {
       if (!validateSDK(window.MiniAppSDK)) {
@@ -301,6 +307,7 @@ export function createH5Bridge(config: NeoSDKConfig): Promise<MiniAppSDK> {
  * Get SDK instance (sync, may be null)
  */
 export function getSDKSync(): MiniAppSDK | null {
+  if (typeof window === "undefined") return null;
   return window.MiniAppSDK ?? null;
 }
 
@@ -316,6 +323,8 @@ export interface HostWalletState {
 type WalletStateListener = (state: HostWalletState) => void;
 const walletStateListeners: Set<WalletStateListener> = new Set();
 let currentWalletState: HostWalletState = { connected: false, address: null, balance: null };
+let walletStateHandler: ((event: MessageEvent) => void) | null = null;
+let walletStateInitialized = false;
 
 /**
  * Subscribe to wallet state changes from host
@@ -336,11 +345,17 @@ export function getWalletState(): HostWalletState {
 
 /**
  * Initialize wallet state listener (call once on app startup)
+ * Returns cleanup function to remove the listener
  */
-export function initWalletStateListener(): void {
-  if (typeof window === "undefined") return;
+export function initWalletStateListener(): (() => void) | null {
+  if (typeof window === "undefined") return null;
 
-  const handler = (event: MessageEvent) => {
+  // Prevent duplicate initialization
+  if (walletStateInitialized && walletStateHandler) {
+    return () => cleanupWalletStateListener();
+  }
+
+  walletStateHandler = (event: MessageEvent) => {
     if (event.source !== window.parent) return;
     // Use centralized origin validation
     if (!originValidator.isValid(event.origin)) return;
@@ -365,7 +380,22 @@ export function initWalletStateListener(): void {
     });
   };
 
-  window.addEventListener("message", handler);
+  window.addEventListener("message", walletStateHandler);
+  walletStateInitialized = true;
+
+  return () => cleanupWalletStateListener();
+}
+
+/**
+ * Cleanup wallet state listener (for testing/HMR)
+ */
+export function cleanupWalletStateListener(): void {
+  if (typeof window === "undefined") return;
+  if (walletStateHandler) {
+    window.removeEventListener("message", walletStateHandler);
+    walletStateHandler = null;
+  }
+  walletStateInitialized = false;
 }
 
 /**

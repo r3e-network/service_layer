@@ -171,7 +171,7 @@ const translations = {
 const t = createT(translations);
 
 const { address, connect } = useWallet();
-const { isLoading: isRequesting, checkEligibility, requestSponsorship: apiRequest } = useGasSponsor();
+const { isRequestingSponsorship: isRequesting, checkEligibility, requestSponsorship: apiRequest } = useGasSponsor();
 
 const ELIGIBILITY_THRESHOLD = 0.1;
 
@@ -240,7 +240,7 @@ const requestSponsorship = async () => {
   if (!isEligible.value || remainingQuota.value <= 0) return;
 
   const amount = parseFloat(requestAmount.value);
-  if (isNaN(amount) || amount <= 0 || amount > remainingQuota.value) {
+  if (Number.isNaN(amount) || amount <= 0 || amount > remainingQuota.value) {
     showStatus("Invalid amount", "error");
     return;
   }
@@ -288,7 +288,7 @@ const docFeatures = computed(() => [
 .status-text {
   font-weight: 700;
   text-transform: uppercase;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-size: 12px;
 }
 

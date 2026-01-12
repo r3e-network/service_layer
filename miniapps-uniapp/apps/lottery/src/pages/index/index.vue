@@ -340,7 +340,7 @@ const buyTickets = async () => {
       args: [
         { type: "Hash160", value: address.value as string },
         { type: "Integer", value: String(tickets.value) },
-        { type: "Integer", value: Number(receiptId) },
+        { type: "Integer", value: String(receiptId) },
       ],
     });
 
@@ -384,7 +384,8 @@ const fetchLotteryData = async () => {
     drawPending.value = pendingValue;
 
     const winnersRes = await listEvents({ app_id: APP_ID, event_name: "WinnerDrawn", limit: 10 });
-    winners.value = winnersRes.events.map((evt) => {
+    const winnerEvents = Array.isArray(winnersRes?.events) ? winnersRes.events : [];
+    winners.value = winnerEvents.map((evt) => {
       const values = Array.isArray((evt as any).state) ? (evt as any).state.map(parseStackItem) : [];
       const winnerRaw = values[0];
       const prizeRaw = values[1];
@@ -407,8 +408,9 @@ const fetchLotteryData = async () => {
       return;
     }
     const purchases = await listEvents({ app_id: APP_ID, event_name: "TicketPurchased", limit: 200 });
+    const purchaseEvents = Array.isArray(purchases?.events) ? purchases.events : [];
     let userCount = 0;
-    purchases.events.forEach((evt) => {
+    purchaseEvents.forEach((evt) => {
       const values = Array.isArray((evt as any).state) ? (evt as any).state.map(parseStackItem) : [];
       const playerRaw = normalizeScriptHash(String(values[0] || ""));
       const countRaw = Number(values[1] || 0);
@@ -491,7 +493,7 @@ onUnmounted(() => clearInterval(timer));
 }
 .countdown-ring-progress {
   fill: none;
-  stroke: #00E599;
+  stroke: #00e599;
   stroke-width: 14;
   stroke-linecap: round;
   stroke-dasharray: 622;
@@ -505,7 +507,7 @@ onUnmounted(() => clearInterval(timer));
   align-items: center;
 }
 .countdown-time {
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-weight: 800;
   font-size: 36px;
   color: white;
@@ -537,15 +539,15 @@ onUnmounted(() => clearInterval(timer));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-weight: 700;
   font-size: 18px;
   color: white;
   box-shadow: 0 0 15px rgba(0, 229, 153, 0.1);
   transition: all 0.3s;
-  
+
   &.active {
-    background: #00E599;
+    background: #00e599;
     color: black;
     box-shadow: 0 0 20px rgba(0, 229, 153, 0.4);
   }
@@ -563,7 +565,7 @@ onUnmounted(() => clearInterval(timer));
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
-  color: #FFDE59;
+  color: #ffde59;
   letter-spacing: 0.1em;
   font-style: normal;
 }
@@ -573,7 +575,7 @@ onUnmounted(() => clearInterval(timer));
   justify-content: center;
 }
 .prize-amount {
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-weight: 800;
   font-size: 40px;
   color: white;
@@ -599,16 +601,16 @@ onUnmounted(() => clearInterval(timer));
   border-radius: 16px;
   text-align: center;
   box-shadow: none;
-  
+
   &.highlight {
     background: rgba(0, 229, 153, 0.1);
-    border-color: #00E599;
+    border-color: #00e599;
     box-shadow: 0 0 15px rgba(0, 229, 153, 0.1);
   }
 }
 .stat-value {
   font-weight: 700;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-size: 18px;
   border-bottom: none;
   display: block;
@@ -622,7 +624,6 @@ onUnmounted(() => clearInterval(timer));
   text-transform: uppercase;
   color: var(--text-secondary, rgba(255, 255, 255, 0.5));
 }
-
 
 .ticket-selector {
   display: flex;
@@ -656,13 +657,13 @@ onUnmounted(() => clearInterval(timer));
 .ticket-count {
   font-size: 40px;
   font-weight: 800;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   color: white;
   font-style: normal;
 }
 .ticket-overflow {
   font-size: 12px;
-  color: #00E599;
+  color: #00e599;
   font-weight: 700;
   background: rgba(0, 229, 153, 0.2);
   padding: 4px 8px;
@@ -685,7 +686,7 @@ onUnmounted(() => clearInterval(timer));
   border-radius: 16px;
   box-shadow: none;
   transition: background 0.2s;
-  
+
   &:hover {
     background: var(--bg-card, rgba(255, 255, 255, 0.05));
     transform: none;
@@ -720,7 +721,7 @@ onUnmounted(() => clearInterval(timer));
   color: var(--text-secondary, rgba(255, 255, 255, 0.5));
 }
 .winner-addr {
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-size: 14px;
   font-weight: 600;
   margin-top: 4px;
@@ -728,8 +729,8 @@ onUnmounted(() => clearInterval(timer));
 }
 .winner-prize {
   font-weight: 700;
-  font-family: 'Inter', monospace;
-  color: #00E599;
+  font-family: $font-mono;
+  color: #00e599;
   background: transparent;
   padding: 0;
   font-size: 16px;
@@ -753,8 +754,16 @@ onUnmounted(() => clearInterval(timer));
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   margin-bottom: 24px;
 }
-.total-label { font-size: 14px; color: var(--text-secondary, rgba(255, 255, 255, 0.6)); }
-.total-value { font-size: 20px; font-weight: 700; color: white; font-family: 'Inter', monospace; }
+.total-label {
+  font-size: 14px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+}
+.total-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+  font-family: $font-mono;
+}
 
 .scrollable {
   overflow-y: auto;

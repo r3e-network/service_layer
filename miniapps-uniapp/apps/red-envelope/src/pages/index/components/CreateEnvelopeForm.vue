@@ -51,5 +51,5 @@ defineEmits(["update:amount", "update:count", "update:expiryHours", "create"]);
 
 .input-group { display: flex; flex-direction: column; gap: 24px; margin-bottom: 32px; }
 .btn-content { display: flex; align-items: center; justify-content: center; gap: 8px; }
-.button-text { font-weight: 700; text-transform: uppercase; font-family: 'Inter', sans-serif; }
+.button-text { font-weight: 700; text-transform: uppercase; font-family: $font-family; }
 </style>

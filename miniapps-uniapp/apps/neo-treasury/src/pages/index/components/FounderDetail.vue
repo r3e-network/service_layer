@@ -165,7 +165,7 @@ function toggleWallet(idx: number) {
   display: block;
   font-size: 40px;
   font-weight: 800;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   text-shadow: 0 0 30px rgba(0, 229, 153, 0.4);
   color: white;
   margin-top: 8px;
@@ -202,7 +202,7 @@ function toggleWallet(idx: number) {
 .token-val {
   font-size: 20px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: $font-family;
   color: white;
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
 }
@@ -282,14 +282,14 @@ function toggleWallet(idx: number) {
 .idx {
   font-size: 10px;
   font-weight: 700;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   color: var(--text-muted, rgba(255, 255, 255, 0.3));
 }
 
 .addr {
   font-size: 14px;
   font-weight: 600;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   color: white;
 }
 
@@ -302,7 +302,7 @@ function toggleWallet(idx: number) {
 .addr-usd {
   font-size: 15px;
   font-weight: 700;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   color: #00E599;
 }
 
@@ -347,7 +347,7 @@ function toggleWallet(idx: number) {
 }
 
 .d-value-long {
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   font-size: 12px;
   color: var(--text-secondary, rgba(255, 255, 255, 0.7));
   word-break: break-all;
@@ -380,7 +380,7 @@ function toggleWallet(idx: number) {
 .b-amt {
   font-size: 16px;
   font-weight: 700;
-  font-family: 'Inter', monospace;
+  font-family: $font-mono;
   color: white;
   margin-bottom: 2px;
 }
