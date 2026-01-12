@@ -1,0 +1,25 @@
+{
+  "app_id": "miniapp-council-governance",
+  "name": "council-governance",
+  "name_zh": "议会治理",
+  "description": "Create and vote on governance proposals as a council member. Submit text proposals or policy parameter changes, collect signatures, and execute approved decisions with multi-sig verification.",
+  "description_zh": "作为议会成员创建和投票治理提案。提交文本提案或策略参数变更，收集签名，执行已批准的决议。",
+  "category": "governance",
+  "status": "active",
+  "supportedChains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
+  "contracts": {
+    "neo-n3-mainnet": {
+      "address": null
+    },
+    "neo-n3-testnet": {
+      "address": null
+    }
+  },
+  "permissions": {
+    "governance": true,
+    "payments": true
+  }
+}

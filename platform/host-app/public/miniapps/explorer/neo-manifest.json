@@ -1,0 +1,24 @@
+{
+  "app_id": "miniapp-explorer",
+  "name": "Neo Explorer",
+  "name_zh": "区块浏览器",
+  "description": "Explore the Neo N3 blockchain with real-time stats for both Mainnet and Testnet. Search transactions, addresses, and contracts with detailed execution traces.",
+  "description_zh": "探索 Neo 区块链。查看交易、区块、地址和智能合约详情。",
+  "category": "utility",
+  "status": "active",
+  "supportedChains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
+  "contracts": {
+    "neo-n3-mainnet": {
+      "address": null
+    },
+    "neo-n3-testnet": {
+      "address": null
+    }
+  },
+  "permissions": {
+    "datafeed": true
+  }
+}

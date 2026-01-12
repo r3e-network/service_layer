@@ -1,0 +1,24 @@
+{
+  "app_id": "miniapp-burn-league",
+  "name": "Burn League",
+  "name_zh": "销毁联盟",
+  "description": "Compete in token burning competitions where communities race to reduce supply. Climb leaderboards, earn burn badges, and prove your commitment to deflation.",
+  "description_zh": "参与代币销毁竞赛，减少供应量。",
+  "category": "governance",
+  "status": "active",
+  "supportedChains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
+  "contracts": {
+    "neo-n3-mainnet": {
+      "address": "0x8db1b8c67b52e02592d2ee7ceb47dea908ab0e46"
+    },
+    "neo-n3-testnet": {
+      "address": "0x8db1b8c67b52e02592d2ee7ceb47dea908ab0e46"
+    }
+  },
+  "permissions": {
+    "payments": true
+  }
+}

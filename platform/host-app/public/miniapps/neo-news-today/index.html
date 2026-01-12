@@ -1,80 +1,15 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <link rel="stylesheet" href="./static/uni.a030d507.css">
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Neo News Today</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background: #0a0a0a;
-        color: #fff;
-        min-height: 100vh;
-      }
-      .container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-      }
-      .header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 24px;
-        padding-bottom: 16px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      }
-      .logo {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-      }
-      .title {
-        font-size: 24px;
-        font-weight: 700;
-      }
-      .subtitle {
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.6);
-      }
-      .loading {
-        text-align: center;
-        padding: 40px;
-        color: rgba(255, 255, 255, 0.5);
-      }
-      .article-list {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
-    </style>
+    <script type="module" crossorigin src="./static/index-ByuEjbD0.js"></script>
+    <link rel="stylesheet" crossorigin href="./static/index-BpdmzlbS.css">
   </head>
   <body>
-    <div class="container" id="main">
-      <div class="header">
-        <img src="./static/nnt-logo.png" alt="NNT" class="logo" />
-        <div>
-          <div class="title">Neo News Today</div>
-          <div class="subtitle">Latest Neo Ecosystem News</div>
-        </div>
-      </div>
-      <div id="articles" class="article-list">
-        <div class="loading">Loading articles...</div>
-      </div>
-    </div>
-    <div class="iframe-container" id="iframe-container">
-      <div class="iframe-header">
-        <button class="back-btn" id="back-btn">← Back</button>
-        <a id="external-link" href="#" target="_blank" class="external-link">Open ↗</a>
-      </div>
-      <iframe id="article-iframe" class="article-iframe"></iframe>
-    </div>
-    <link rel="stylesheet" href="./static/styles.css" />
-    <script src="./static/app.js"></script>
+    <div id="app"></div>
   </body>
 </html>

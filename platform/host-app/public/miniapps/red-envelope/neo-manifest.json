@@ -1,0 +1,25 @@
+{
+  "app_id": "miniapp-redenvelope",
+  "name": "Red Envelope",
+  "name_zh": "红包",
+  "description": "Share the joy of giving with digital red envelopes! Send lucky GAS gifts to friends and groups with randomized amounts, perfect for celebrations and holidays.",
+  "description_zh": "发送幸运 GAS 红包给朋友。创建红包，分享链接，让朋友们抢红包！",
+  "category": "social",
+  "status": "active",
+  "supportedChains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
+  "contracts": {
+    "neo-n3-mainnet": {
+      "address": "0xf2649c2b6312d8c7b4982c0c597c9772a2595b1e"
+    },
+    "neo-n3-testnet": {
+      "address": "0xf2649c2b6312d8c7b4982c0c597c9772a2595b1e"
+    }
+  },
+  "permissions": {
+    "payments": true,
+    "randomness": true
+  }
+}

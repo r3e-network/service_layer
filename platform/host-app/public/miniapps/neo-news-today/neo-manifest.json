@@ -1,0 +1,22 @@
+{
+  "app_id": "miniapp-neo-news-today",
+  "name": "Neo News Today",
+  "name_zh": "Neo新闻今日",
+  "description": "Stay updated with the latest Neo ecosystem news from NeoNewsToday.com",
+  "description_zh": "获取NeoNewsToday.com的最新Neo生态系统新闻",
+  "category": "utility",
+  "status": "active",
+  "supportedChains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
+  "contracts": {
+    "neo-n3-mainnet": {
+      "address": null
+    },
+    "neo-n3-testnet": {
+      "address": null
+    }
+  },
+  "permissions": {}
+}

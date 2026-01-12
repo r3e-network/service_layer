@@ -1,0 +1,24 @@
+{
+  "app_id": "miniapp-unbreakablevault",
+  "name": "Unbreakable Vault",
+  "name_zh": "坚不可摧保险库",
+  "description": "Store your most valuable assets in a time-locked vault with multiple security layers. Social recovery, hardware key support, and customizable unlock conditions.",
+  "description_zh": "在多层安全的时间锁定保险库中存储贵重资产。",
+  "category": "utility",
+  "status": "active",
+  "supportedChains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
+  "contracts": {
+    "neo-n3-mainnet": {
+      "address": "0xcf4c6eb16baad22292fb3ced6e570c31fadddd4e"
+    },
+    "neo-n3-testnet": {
+      "address": "0xcf4c6eb16baad22292fb3ced6e570c31fadddd4e"
+    }
+  },
+  "permissions": {
+    "payments": true
+  }
+}

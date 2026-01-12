@@ -1,0 +1,25 @@
+{
+  "app_id": "miniapp-onchaintarot",
+  "name": "On-Chain Tarot",
+  "name_zh": "链上塔罗",
+  "description": "Receive mystical tarot readings powered by VRF randomness. Each reading is minted as a unique NFT capturing your fortune at that moment in time.",
+  "description_zh": "接收由 VRF 随机数驱动的神秘塔罗牌占卜。",
+  "category": "nft",
+  "status": "active",
+  "supportedChains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
+  "contracts": {
+    "neo-n3-mainnet": {
+      "address": "0xfff9616dd3d9e863bc72bf26ff0a0da2d698e767"
+    },
+    "neo-n3-testnet": {
+      "address": "0xfff9616dd3d9e863bc72bf26ff0a0da2d698e767"
+    }
+  },
+  "permissions": {
+    "payments": true,
+    "randomness": true
+  }
+}
