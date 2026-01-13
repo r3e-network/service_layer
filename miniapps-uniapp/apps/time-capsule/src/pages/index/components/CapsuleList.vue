@@ -1,6 +1,5 @@
 <template>
-  <view class="card">
-    <text class="card-title">{{ t("yourCapsules") }}</text>
+  <NeoCard :title="t('yourCapsules')" variant="erobo">
 
     <view v-if="capsules.length === 0" class="empty-state">
       <view class="empty-icon"><AppIcon name="archive" :size="64" class="text-secondary" /></view>
@@ -57,11 +56,11 @@
         </view>
       </view>
     </view>
-  </view>
+  </NeoCard>
 </template>
 
 <script setup lang="ts">
-import { AppIcon, NeoButton } from "@/shared/components";
+import { NeoCard, AppIcon, NeoButton } from "@/shared/components";
 
 export interface Capsule {
   id: string;
@@ -97,8 +96,8 @@ const getCountdown = (unlockDate: string) => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .card {
   background: var(--bg-card, white);
@@ -122,39 +121,44 @@ const getCountdown = (unlockDate: string) => {
 .empty-state {
   text-align: center;
   padding: $space-8;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
 }
 .empty-text {
   font-size: 14px;
-  font-weight: $font-weight-black;
+  font-weight: 700;
   text-transform: uppercase;
   margin-top: $space-4;
   display: block;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .capsule-container {
   display: flex;
   gap: $space-4;
   padding: $space-4;
-  background: var(--bg-elevated, #f8f8f8);
-  border: 3px solid var(--border-color, black);
-  box-shadow: 6px 6px 0 var(--shadow-color, black);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
   margin-bottom: $space-5;
-  transition: all $transition-fast;
-  color: var(--text-primary, black);
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: 4px 4px 0 var(--shadow-color, black);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  color: white;
+  backdrop-filter: blur(10px);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   }
 
   &.locked {
-    border-color: var(--border-color, black);
-    background: var(--bg-card, white);
+    border-color: rgba(255, 255, 255, 0.1);
   }
   &.unlocked {
-    border-color: var(--border-color, black);
-    background: var(--brutal-green-light, #e8f5e9);
-    border-width: 4px;
-    box-shadow: 8px 8px 0 var(--shadow-color, black);
+    border-color: #00E599;
+    background: rgba(0, 229, 153, 0.05);
+    box-shadow: 0 0 15px rgba(0, 229, 153, 0.15);
   }
 }
 
@@ -169,17 +173,29 @@ const getCountdown = (unlockDate: string) => {
 .capsule-body {
   width: 40px;
   height: 80px;
-  border: 3px solid var(--border-color, black);
-  background: var(--bg-card, white);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+    pointer-events: none;
+  }
 }
 
 .lock-indicator {
-  color: var(--text-primary, black);
+  color: white;
+  z-index: 1;
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
 }
 
 .capsule-details {
@@ -189,52 +205,57 @@ const getCountdown = (unlockDate: string) => {
   justify-content: center;
 }
 .capsule-name {
-  font-size: 18px;
-  font-weight: $font-weight-black;
+  font-size: 16px;
+  font-weight: 700;
   text-transform: uppercase;
   margin-bottom: 4px;
+  color: white;
 }
 
 .countdown-display {
   display: flex;
   align-items: center;
   gap: $space-2;
-  margin: 4px 0;
+  margin: 6px 0;
 }
 .countdown-unit {
-  background: black;
+  background: rgba(255, 255, 255, 0.05);
   color: white;
   padding: 4px 8px;
-  border: 2px solid black;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
   min-width: 40px;
   text-align: center;
 }
 .countdown-value {
-  font-size: 18px;
-  font-weight: $font-weight-black;
+  font-size: 16px;
+  font-weight: 700;
   font-family: $font-mono;
 }
 .countdown-unit-label {
   font-size: 8px;
   display: block;
-  opacity: 0.8;
+  opacity: 0.6;
 }
 .countdown-separator {
-  font-weight: $font-weight-black;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .unlock-date {
   font-size: 10px;
-  font-weight: $font-weight-black;
-  opacity: 0.6;
+  font-weight: 600;
+  opacity: 0.5;
   font-family: $font-mono;
+  color: white;
 }
 
 .unlocked-label {
   font-size: 14px;
-  font-weight: $font-weight-black;
-  color: var(--neo-green);
+  font-weight: 700;
+  color: #00E599;
   text-transform: uppercase;
   margin-bottom: 8px;
+  text-shadow: 0 0 10px rgba(0, 229, 153, 0.3);
 }
 </style>

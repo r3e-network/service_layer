@@ -25,14 +25,14 @@ export interface NFTAttribute {
 
 export interface NFT {
   tokenId: string;
-  contractHash: string;
+  contractAddress: string;
   collectionName: string;
   metadata: NFTMetadata;
   owner: string;
 }
 
 export interface NFTCollection {
-  contractHash: string;
+  contractAddress: string;
   name: string;
   symbol: string;
   totalSupply: number;
@@ -64,8 +64,8 @@ export async function getNFTById(tokenId: string): Promise<NFT | undefined> {
 /**
  * Filter NFTs by collection
  */
-export function filterByCollection(nfts: NFT[], contractHash: string): NFT[] {
-  return nfts.filter((n) => n.contractHash === contractHash);
+export function filterByCollection(nfts: NFT[], contractAddress: string): NFT[] {
+  return nfts.filter((n) => n.contractAddress === contractAddress);
 }
 
 /**
@@ -95,11 +95,11 @@ export function isValidTokenId(tokenId: string): boolean {
 /**
  * Transfer NFT to another address (NEP-11)
  */
-export async function transferNFT(contractHash: string, tokenId: string, to: string): Promise<string> {
+export async function transferNFT(contractAddress: string, tokenId: string, to: string): Promise<string> {
   const privateKey = await SecureStore.getItemAsync("neo_private_key");
   if (!privateKey) throw new Error("No private key found");
 
-  const script = buildNFTTransferScript(contractHash, tokenId, to);
+  const script = buildNFTTransferScript(contractAddress, tokenId, to);
   const scriptHash = sha256(hexToBytes(script));
   const privKeyBytes = hexToBytes(privateKey);
   const signature = p256.sign(scriptHash, privKeyBytes);
@@ -123,7 +123,7 @@ export async function transferNFT(contractHash: string, tokenId: string, to: str
 /**
  * Build NEP-11 transfer script
  */
-function buildNFTTransferScript(contractHash: string, tokenId: string, to: string): string {
+function buildNFTTransferScript(contractAddress: string, tokenId: string, to: string): string {
   const script: number[] = [];
   const tokenIdBytes = hexToBytes(tokenId);
 
@@ -138,8 +138,8 @@ function buildNFTTransferScript(contractHash: string, tokenId: string, to: strin
   script.push(0x0c, 0x08);
   script.push(...Array.from(new TextEncoder().encode("transfer")));
 
-  // Push contract hash (reversed)
-  const hash = contractHash.startsWith("0x") ? contractHash.slice(2) : contractHash;
+  // Push contract address (reversed)
+  const hash = contractAddress.startsWith("0x") ? contractAddress.slice(2) : contractAddress;
   script.push(0x0c, 0x14, ...reverseHex(hash));
 
   // SYSCALL System.Contract.Call

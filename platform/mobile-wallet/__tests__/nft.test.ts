@@ -20,7 +20,7 @@ const mockSecureStore = SecureStore as jest.Mocked<typeof SecureStore>;
 
 const mockNFT: NFT = {
   tokenId: "abc123",
-  contractHash: "0x1234",
+  contractAddress: "0x1234",
   collectionName: "Test Collection",
   metadata: { name: "Test NFT", image: "https://example.com/nft.png" },
   owner: "NXV7ZhHiyM1aHXwpVsRZC6BEaDQhNn2sfF",
@@ -68,8 +68,8 @@ describe("nft", () => {
   });
 
   describe("filterByCollection", () => {
-    it("should filter NFTs by contract hash", () => {
-      const nfts = [mockNFT, { ...mockNFT, tokenId: "def456", contractHash: "0x5678" }];
+    it("should filter NFTs by contract address", () => {
+      const nfts = [mockNFT, { ...mockNFT, tokenId: "def456", contractAddress: "0x5678" }];
       const filtered = filterByCollection(nfts, "0x1234");
       expect(filtered).toHaveLength(1);
     });

@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('createTrust')" variant="accent">
+  <NeoCard :title="t('createTrust')" variant="erobo-neo">
     <view class="form-section">
       <view class="form-label">
         <text class="label-icon">📋</text>
@@ -80,8 +80,8 @@ defineEmits(["update:name", "update:beneficiary", "update:gasValue", "update:neo
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .form-section {
   margin-bottom: $space-4;
@@ -93,33 +93,38 @@ defineEmits(["update:name", "update:beneficiary", "update:gasValue", "update:neo
   margin-bottom: 6px;
 }
 .label-text {
-  font-size: 12px;
-  font-weight: $font-weight-black;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  border-bottom: 2px solid var(--border-color, black);
+  letter-spacing: 0.1em;
+  color: white;
+  opacity: 0.9;
 }
 
 .info-banner {
-  background: var(--brutal-yellow);
-  border: 3px solid var(--border-color, black);
+  background: rgba(255, 222, 89, 0.1);
+  border: 1px solid rgba(255, 222, 89, 0.3);
+  border-radius: 12px;
   padding: $space-4;
   display: flex;
   gap: $space-4;
   margin-bottom: $space-6;
-  box-shadow: 6px 6px 0 var(--shadow-color, black);
+  backdrop-filter: blur(10px);
 }
 .info-title {
-  font-weight: $font-weight-black;
-  font-size: 12px;
+  font-weight: 800;
+  font-size: 11px;
   text-transform: uppercase;
   display: block;
   margin-bottom: 4px;
-  border-bottom: 2px solid black;
+  color: #ffde59;
+  letter-spacing: 0.1em;
 }
 .info-text {
   font-size: 10px;
-  font-weight: $font-weight-black;
+  font-weight: 600;
   line-height: 1.5;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .dual-asset-inputs {
@@ -134,8 +139,9 @@ defineEmits(["update:name", "update:beneficiary", "update:gasValue", "update:neo
 .asset-hint {
   display: block;
   font-size: 10px;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.5);
   margin-top: $space-2;
-  font-weight: $font-weight-bold;
+  font-weight: 500;
+  font-style: italic;
 }
 </style>

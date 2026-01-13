@@ -1,5 +1,17 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <view v-if="chainType === 'evm'" class="px-4 mb-4">
+      <NeoCard variant="danger">
+        <view class="flex flex-col items-center gap-2 py-1">
+          <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+          <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+          <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{
+            t("switchToNeo")
+          }}</NeoButton>
+        </view>
+      </NeoCard>
+    </view>
+
     <!-- Destroy Tab -->
     <view v-if="activeTab === 'destroy'" class="tab-content">
       <StatusMessage :status="status" />
@@ -47,6 +59,8 @@ import { createT } from "@/shared/utils/i18n";
 import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 import AppLayout from "@/shared/components/AppLayout.vue";
 import NeoDoc from "@/shared/components/NeoDoc.vue";
+import NeoCard from "@/shared/components/NeoCard.vue";
+import NeoButton from "@/shared/components/NeoButton.vue";
 import GraveyardHero from "./components/GraveyardHero.vue";
 import DestructionChamber from "./components/DestructionChamber.vue";
 import ConfirmDestroyModal from "./components/ConfirmDestroyModal.vue";
@@ -99,6 +113,9 @@ const translations = {
   feature1Desc: { en: "Assets are destroyed on-chain forever", zh: "资产在链上永久销毁" },
   feature2Name: { en: "On-Chain Proofs", zh: "链上证明" },
   feature2Desc: { en: "Destruction is recorded on-chain", zh: "销毁记录上链" },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 
 const t = createT(translations);
@@ -118,7 +135,7 @@ const docFeatures = computed(() => [
 ]);
 
 const APP_ID = "miniapp-graveyard";
-const { address, connect, invokeContract, invokeRead, getContractHash } = useWallet();
+const { address, connect, invokeContract, invokeRead, chainType, switchChain } = useWallet() as any;
 const { payGAS, isLoading } = usePayments(APP_ID);
 const { list: listEvents } = useEvents();
 
@@ -136,7 +153,7 @@ const history = ref<HistoryItem[]>([]);
 const showConfirm = ref(false);
 const isDestroying = ref(false);
 const showWarningShake = ref(false);
-const contractHash = ref<string | null>(null);
+const contractAddress = ref<string>("0x50ac1c37690cc2cfc594472833cf57505d5f46de"); // Placeholder/Demo Contract
 
 const formatNum = (n: number) => formatNumber(n, 2);
 
@@ -152,12 +169,8 @@ const waitForEvent = async (txid: string, eventName: string) => {
   return null;
 };
 
-const ensureContractHash = async () => {
-  if (!contractHash.value) {
-    contractHash.value = (await getContractHash()) as string;
-  }
-  if (!contractHash.value) throw new Error(t("contractUnavailable"));
-  return contractHash.value as string;
+const ensureContractAddress = async () => {
+  return contractAddress.value;
 };
 
 const initiateDestroy = () => {
@@ -178,14 +191,14 @@ const executeDestroy = async () => {
   try {
     if (!address.value) await connect();
     if (!address.value) throw new Error(t("connectWallet"));
-    const contract = await ensureContractHash();
+    const contract = await ensureContractAddress();
 
     const payment = await payGAS("0.1", `graveyard:bury:${assetHash.value.slice(0, 10)}`);
     const receiptId = payment.receipt_id;
     if (!receiptId) throw new Error(t("receiptMissing"));
 
     const tx = await invokeContract({
-      scriptHash: contract,
+      contractAddress: contract,
       operation: "BuryMemory",
       args: [
         { type: "Hash160", value: address.value as string },
@@ -219,12 +232,12 @@ const executeDestroy = async () => {
 };
 
 const loadStats = async () => {
-  if (!contractHash.value) {
-    contractHash.value = (await getContractHash()) as string;
+  if (!contractAddress.value) {
+    contractAddress.value = (await getContractAddress()) as string;
   }
-  if (!contractHash.value) return;
+  if (!contractAddress.value) return;
   try {
-    const totalRes = await invokeRead({ contractHash: contractHash.value, operation: "TotalMemories" });
+    const totalRes = await invokeRead({ contractAddress: contractAddress.value, operation: "TotalMemories" });
     totalDestroyed.value = Number(parseInvokeResult(totalRes) || 0);
     gasReclaimed.value = Number((totalDestroyed.value * 0.1).toFixed(2));
   } catch (e) {
@@ -261,8 +274,8 @@ watch(activeTab, async (tab) => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: $space-6;

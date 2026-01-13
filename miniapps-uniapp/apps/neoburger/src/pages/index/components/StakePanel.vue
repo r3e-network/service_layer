@@ -28,7 +28,7 @@
       </view>
     </view>
 
-    <view class="conversion-card mb-6">
+    <NeoCard flat variant="erobo-neo" class="mb-6 conversion-card">
       <view class="conversion-row">
         <text class="conversion-label">{{ t("youWillReceive") }}</text>
         <text class="conversion-value">{{ estimatedBneo }} bNEO</text>
@@ -41,7 +41,7 @@
         <text class="conversion-label">{{ t("yearlyReturn") }}</text>
         <text class="conversion-value highlight">+{{ yearlyReturn }} NEO</text>
       </view>
-    </view>
+    </NeoCard>
 
     <NeoButton variant="primary" size="lg" block :disabled="!canStake" :loading="loading" @click="$emit('stake')">
       {{ loading ? t("processing") : t("stakeNeo") }}
@@ -70,8 +70,8 @@ function formatAmount(amount: number): string {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .panel-subtitle {
   font-size: 14px;
@@ -91,7 +91,7 @@ function formatAmount(amount: number): string {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .balance-hint {
@@ -113,13 +113,7 @@ function formatAmount(amount: number): string {
   gap: 12px;
 }
 
-.conversion-card {
-  background: rgba(0, 229, 153, 0.05);
-  border: 1px solid rgba(0, 229, 153, 0.1);
-  border-radius: 16px;
-  padding: 20px;
-  backdrop-filter: blur(10px);
-}
+
 
 .conversion-row {
   display: flex;
@@ -143,8 +137,8 @@ function formatAmount(amount: number): string {
   color: white;
 
   &.highlight {
-    color: #00E599;
-    text-shadow: 0 0 15px rgba(0, 229, 153, 0.2);
+    color: #4ade80;
+    text-shadow: 0 0 15px rgba(74, 222, 128, 0.3);
   }
 }
 </style>

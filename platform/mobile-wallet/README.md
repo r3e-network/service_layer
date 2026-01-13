@@ -15,7 +15,7 @@ A cross-platform mobile wallet for Neo N3 blockchain with MiniApp support, built
 
 ### Token Management
 
-- [x] 🪙 **Custom Tokens** - Add NEP-17 tokens by contract hash
+- [x] 🪙 **Custom Tokens** - Add NEP-17 tokens by contract address
 - [x] 📋 **Token Management** - Enable/disable token visibility
 - [x] 📊 **Transaction Details** - Full transaction history with details
 

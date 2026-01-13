@@ -46,8 +46,8 @@ const coinStyle = computed(() => {
 </script>
 
 <style scoped lang="scss">
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .coin-scene {
   width: 120px;

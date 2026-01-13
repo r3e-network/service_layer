@@ -6,10 +6,21 @@
   "description_zh": "创建和资助社区项目，透明链上追踪资源分享",
   "version": "1.0.0",
   "entry_url": "mf://builtin?app=miniapp-grant-share",
-  "permissions": ["wallet", "payments"],
-  "assets_allowed": ["NEO", "GAS"],
+  "permissions": [
+    "wallet",
+    "payments"
+  ],
+  "assets_allowed": [
+    "NEO",
+    "GAS"
+  ],
   "category": "social",
-  "tags": ["grants", "funding", "community", "sharing"],
+  "tags": [
+    "grants",
+    "funding",
+    "community",
+    "sharing"
+  ],
   "card": {
     "display": {
       "type": "live_status",
@@ -17,7 +28,11 @@
       "live_status": {
         "enabled": true,
         "refresh_interval": 60,
-        "fields": ["total_grants", "total_funded", "active_projects"]
+        "fields": [
+          "total_grants",
+          "total_funded",
+          "active_projects"
+        ]
       }
     },
     "info": {
@@ -28,5 +43,9 @@
         "verified": true
       }
     }
-  }
+  },
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ]
 }

@@ -62,8 +62,8 @@ const getStatusText = (status: number) => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content { padding: 20px; }
 .scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }

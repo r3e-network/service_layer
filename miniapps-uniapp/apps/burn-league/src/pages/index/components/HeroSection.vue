@@ -1,5 +1,5 @@
 <template>
-  <NeoCard variant="erobo-bitcoin" class="hero-card">
+  <NeoCard variant="erobo" class="hero-card">
     <view class="fire-container">
       <view class="flame flame-1"></view>
       <view class="flame flame-2"></view>
@@ -28,8 +28,8 @@ const formatNum = (n: number) => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .hero-card {
   text-align: center;
@@ -37,6 +37,9 @@ const formatNum = (n: number) => {
   position: relative;
   overflow: hidden;
   margin-bottom: 24px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  box-shadow: 0 0 30px rgba(255, 107, 107, 0.1);
 }
 
 .fire-container {

@@ -1,6 +1,6 @@
 <template>
-  <NeoCard>
-    <text class="card-title">{{ t("buyKeys") }}</text>
+  <NeoCard variant="erobo">
+    <text class="card-title-glass">{{ t("buyKeys") }}</text>
     <NeoInput
       :modelValue="keyCount"
       @update:modelValue="$emit('update:keyCount', $event)"
@@ -8,11 +8,11 @@
       :placeholder="t('keyCountPlaceholder')"
       suffix="Keys"
     />
-    <view class="cost-row">
-      <text class="cost-label">{{ t("estimatedCost") }}</text>
-      <text class="cost-value">{{ estimatedCost }} GAS</text>
+    <view class="cost-row-glass">
+      <text class="cost-label-glass">{{ t("estimatedCost") }}</text>
+      <text class="cost-value-glass">{{ estimatedCost }} GAS</text>
     </view>
-    <text class="hint-text">{{ t("keyPrice") }}</text>
+    <text class="hint-text-glass">{{ t("keyPrice") }}</text>
     <NeoButton variant="primary" size="lg" block @click="$emit('buy')" :disabled="isPaying">
       {{ isPaying ? t("buying") : t("buyKeys") }}
     </NeoButton>
@@ -33,44 +33,51 @@ defineEmits(["update:keyCount", "buy"]);
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
-.card-title {
+.card-title-glass {
   font-size: 14px;
-  font-weight: $font-weight-black;
+  font-weight: $font-weight-bold;
   text-transform: uppercase;
-  border-bottom: 2px solid black;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   margin-bottom: $space-4;
+  padding-bottom: $space-2;
   display: block;
+  color: white;
+  letter-spacing: 0.1em;
 }
 
-.cost-row {
+.cost-row-glass {
   display: flex;
   justify-content: space-between;
   margin: $space-4 0;
   padding: $space-3;
-  background: var(--bg-elevated, #eee);
-  border: 2px solid var(--border-color, black);
-  color: var(--text-primary, black);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
 }
-.cost-label {
+.cost-label-glass {
   font-size: 12px;
-  font-weight: $font-weight-black;
+  font-weight: $font-weight-bold;
   text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
 }
-.cost-value {
+.cost-value-glass {
   font-size: 18px;
-  font-weight: $font-weight-black;
+  font-weight: $font-weight-bold;
   font-family: $font-mono;
+  color: #34d399;
 }
 
-.hint-text {
+.hint-text-glass {
   font-size: 10px;
-  font-weight: $font-weight-black;
+  font-weight: $font-weight-bold;
   text-transform: uppercase;
   opacity: 0.6;
   display: block;
   margin-bottom: $space-4;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
 }
 </style>

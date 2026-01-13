@@ -8,7 +8,7 @@ import { p256 } from "@noble/curves/nist";
 import { sha256 } from "@noble/hashes/sha2";
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 
-// Neo N3 native contract script hashes
+// Neo N3 native contract addresses
 export const CONTRACTS = {
   NEO: "0xef4073a0f2b305a38ec4050e4d3d28bc40ea63f5",
   GAS: "0xd2a4cff31913016155e38e474a2c06d08be276cf",
@@ -42,7 +42,7 @@ interface Witness {
  * Build a NEP-17 transfer script using Neo VM opcodes
  */
 export function buildTransferScript(params: TransferParams): string {
-  const contractHash = CONTRACTS[params.asset].slice(2);
+  const contractAddress = CONTRACTS[params.asset].slice(2);
   const amount = params.asset === "GAS" ? BigInt(Math.floor(parseFloat(params.amount) * 1e8)) : BigInt(params.amount);
 
   const script: number[] = [];
@@ -63,9 +63,9 @@ export function buildTransferScript(params: TransferParams): string {
   script.push(0x0c, 0x08); // PUSHDATA1, length 8
   script.push(...Array.from(new TextEncoder().encode("transfer")));
 
-  // Push contract hash (reversed)
+  // Push contract address (reversed)
   script.push(0x0c, 0x14); // PUSHDATA1, length 20
-  script.push(...reverseHex(contractHash));
+  script.push(...reverseHex(contractAddress));
 
   // SYSCALL System.Contract.Call
   script.push(0x41); // SYSCALL

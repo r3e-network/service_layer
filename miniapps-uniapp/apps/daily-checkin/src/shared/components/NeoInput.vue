@@ -23,7 +23,10 @@
         @focus="$emit('focus', $event)"
         @blur="$emit('blur', $event)"
       />
-      <text v-if="suffix" class="neo-input__suffix">{{ suffix }}</text>
+      <view v-if="suffixIcon || suffix" class="neo-input__suffix">
+        <AppIcon v-if="suffixIcon" :name="suffixIcon" :size="18" />
+        <text v-if="suffix">{{ suffix }}</text>
+      </view>
     </view>
     <text v-if="error" class="neo-input__error">{{ error }}</text>
     <text v-else-if="hint" class="neo-input__hint">{{ hint }}</text>
@@ -31,12 +34,15 @@
 </template>
 
 <script setup lang="ts">
+import { AppIcon } from "./index";
+
 defineProps<{
   modelValue?: string | number;
   type?: "text" | "number" | "password" | "textarea";
   label?: string;
   placeholder?: string;
   suffix?: string;
+  suffixIcon?: string;
   hint?: string;
   error?: string;
   disabled?: boolean;
@@ -50,82 +56,110 @@ defineEmits<{
 </script>
 
 <style lang="scss">
-@import "@/shared/styles/tokens.scss";
+@use "@/shared/styles/tokens.scss" as *;
 
 .neo-input {
   display: flex;
   flex-direction: column;
-  gap: $space-2;
+  gap: 6px;
 
   &__label {
-    font-size: $font-size-sm;
-    font-weight: $font-weight-bold;
-    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary, rgba(255, 255, 255, 0.6));
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.05em;
+    margin-left: 2px;
   }
 
   &__wrapper {
     display: flex;
     align-items: center;
-    background: var(--bg-secondary);
-    border: $border-width-md solid var(--border-color);
-    box-shadow: $shadow-sm;
-    transition: box-shadow $transition-fast;
+    background: var(--bg-card, rgba(255, 255, 255, 0.05));
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    border-radius: 18px;
+    box-shadow: inset 0 2px 4px var(--shadow-color, rgba(0, 0, 0, 0.1));
+    transition: all 0.2s ease;
 
     &:focus-within {
-      box-shadow: 5px 5px 0 var(--neo-green);
-      border-color: var(--neo-green);
+      background: var(--bg-elevated, rgba(255, 255, 255, 0.1));
+      border-color: rgba(159, 157, 243, 0.6);
+      box-shadow:
+        0 0 20px rgba(159, 157, 243, 0.2),
+        inset 0 2px 4px var(--shadow-color, rgba(0, 0, 0, 0.1));
     }
   }
 
   &__field {
     flex: 1;
-    height: 48px;
-    padding: 0 $space-4;
+    height: 50px;
+    padding: 0 16px;
     background: transparent;
     border: none;
-    font-size: $font-size-lg;
-    font-weight: $font-weight-semibold;
-    color: var(--text-primary);
-    width: 100%; /* Ensure width for textarea */
+    font-size: 14px;
+    font-family: $font-family;
+    font-weight: 500;
+    color: var(--text-primary, white);
+    width: 100%;
 
     &::placeholder {
-      color: var(--text-muted);
+      color: var(--text-muted, rgba(255, 255, 255, 0.3));
     }
   }
 
   &__textarea {
     height: 120px;
-    padding: $space-3 $space-4;
+    padding: 12px 16px;
     line-height: 1.5;
   }
 
   &__suffix {
-    padding: 0 $space-4;
-    font-weight: $font-weight-bold;
-    color: var(--neo-green);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 16px;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text-secondary, rgba(255, 255, 255, 0.5));
   }
 
   &__hint {
-    font-size: $font-size-xs;
-    color: var(--text-muted);
+    font-size: 11px;
+    color: var(--text-muted, rgba(255, 255, 255, 0.4));
+    margin-left: 2px;
   }
 
   &__error {
-    font-size: $font-size-xs;
-    color: var(--status-error);
-    font-weight: $font-weight-medium;
+    font-size: 11px;
+    color: #ef4444;
+    font-weight: 600;
+    margin-left: 2px;
   }
 
-  &--error &__wrapper {
-    border-color: var(--status-error);
-    box-shadow: 5px 5px 0 var(--status-error);
+  &--error {
+    .neo-input__wrapper {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2);
+
+      &:focus-within {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+      }
+    }
+
+    .neo-input__label {
+      color: #ef4444;
+    }
   }
 
   &--disabled {
     opacity: 0.5;
     pointer-events: none;
+
+    .neo-input__wrapper {
+      background: rgba(255, 255, 255, 0.02);
+      border-color: rgba(255, 255, 255, 0.05);
+    }
   }
 }
 </style>

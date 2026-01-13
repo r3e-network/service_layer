@@ -14,11 +14,22 @@
       "port": 5180
     }
   },
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
   "name_zh": "Neo 浏览器",
   "description_zh": "探索 Neo N3 区块链 - 交易、地址、合约",
   "category": "tools",
-  "tags": ["explorer", "blockchain", "transactions", "search"],
-  "permissions": ["datafeed"],
+  "tags": [
+    "explorer",
+    "blockchain",
+    "transactions",
+    "search"
+  ],
+  "permissions": [
+    "datafeed"
+  ],
   "assets_allowed": [],
   "limits": {},
   "contracts_needed": [],
@@ -35,7 +46,12 @@
       "live_status": {
         "enabled": true,
         "refresh_interval": 15,
-        "fields": ["mainnet_height", "testnet_height", "mainnet_txs", "testnet_txs"],
+        "fields": [
+          "mainnet_height",
+          "testnet_height",
+          "mainnet_txs",
+          "testnet_txs"
+        ],
         "api_endpoint": "/api/explorer/stats"
       }
     },

@@ -6,10 +6,25 @@
   "description_zh": "通过 NeoBurger 流动性质押 NEO 赚取 GAS 奖励",
   "version": "1.0.0",
   "entry_url": "mf://builtin?app=miniapp-neoburger",
-  "permissions": ["wallet", "payments"],
-  "assets_allowed": ["NEO", "GAS"],
+  "permissions": [
+    "wallet",
+    "payments"
+  ],
+  "assets_allowed": [
+    "NEO",
+    "GAS"
+  ],
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
   "category": "defi",
-  "tags": ["staking", "liquid-staking", "bNEO", "yield"],
+  "tags": [
+    "staking",
+    "liquid-staking",
+    "bNEO",
+    "yield"
+  ],
   "external_contracts": {
     "bNEO": "0x48c40d4666f93408be1bef038b6722404d9a4c2a"
   },
@@ -20,7 +35,11 @@
       "live_status": {
         "enabled": true,
         "refresh_interval": 60,
-        "fields": ["tvl", "apy", "total_stakers"]
+        "fields": [
+          "tvl",
+          "apy",
+          "total_stakers"
+        ]
       }
     },
     "info": {

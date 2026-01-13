@@ -1,32 +1,32 @@
 <template>
-  <NeoCard variant="accent" :class="['doomsday-clock-card', dangerLevel]">
+  <NeoCard variant="erobo-bitcoin" :class="['doomsday-clock-card', dangerLevel]">
     <view class="clock-header">
-      <text class="clock-label">{{ t("timeUntilEvent") }}</text>
-      <view :class="['danger-badge', dangerLevel]">
+      <text class="clock-label text-glass-glow">{{ t("timeUntilEvent") }}</text>
+      <view :class="['danger-badge-glass', dangerLevel]">
         <text class="danger-text">{{ dangerLevelText }}</text>
       </view>
     </view>
 
-    <view class="clock-display">
-      <text :class="['clock-time', dangerLevel, { pulse: shouldPulse }]">{{ countdown }}</text>
+    <view class="clock-display-glass">
+      <text :class="['clock-time-glass', dangerLevel, { pulse: shouldPulse }]">{{ countdown }}</text>
     </view>
 
     <!-- Danger Level Meter -->
-    <view class="danger-meter">
+    <view class="danger-meter-glass">
       <view class="meter-labels">
-        <text class="meter-label">{{ t("safe") }}</text>
-        <text class="meter-label">{{ t("critical") }}</text>
+        <text class="meter-label text-glass">{{ t("safe") }}</text>
+        <text class="meter-label text-glass">{{ t("critical") }}</text>
       </view>
-      <view class="meter-bar">
-        <view :class="['meter-fill', dangerLevel]" :style="{ width: dangerProgress + '%' }"></view>
-        <view class="meter-indicator" :style="{ left: dangerProgress + '%' }"></view>
+      <view class="meter-bar-glass">
+        <view :class="['meter-fill-glass', dangerLevel]" :style="{ width: dangerProgress + '%' }"></view>
+        <view class="meter-indicator-glass" :style="{ left: dangerProgress + '%' }"></view>
       </view>
     </view>
 
     <!-- Event Description -->
-    <view class="event-description">
-      <text class="event-title">{{ t("nextEvent") }}</text>
-      <text class="event-text">{{ currentEventDescription }}</text>
+    <view class="event-description-glass">
+      <text class="event-title-glass">{{ t("nextEvent") }}</text>
+      <text class="event-text-glass">{{ currentEventDescription }}</text>
     </view>
   </NeoCard>
 </template>
@@ -46,18 +46,12 @@ defineProps<{
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .doomsday-clock-card {
   position: relative;
   overflow: hidden;
-  border-width: 4px !important;
-  box-shadow: 12px 12px 0 black !important;
-  &.critical {
-    border-color: var(--brutal-red) !important;
-    box-shadow: 12px 12px 0 var(--brutal-red) !important;
-  }
 }
 
 .clock-header {
@@ -68,84 +62,91 @@ defineProps<{
 }
 .clock-label {
   font-size: 12px;
-  font-weight: $font-weight-black;
+  font-weight: $font-weight-bold;
   text-transform: uppercase;
-  border: 2px solid var(--border-color, black);
-  padding: 2px 8px;
-  background: var(--bg-card, white);
-  color: var(--text-primary, black);
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.9);
 }
 
-.danger-badge {
+.danger-badge-glass {
   padding: 4px 12px;
-  border: 3px solid var(--border-color, black);
-  font-size: 12px;
+  border-radius: 20px;
+  font-size: 10px;
   font-weight: $font-weight-black;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  
   &.low {
-    background: var(--neo-green);
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.3);
   }
   &.medium {
-    background: var(--brutal-yellow);
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    border-color: rgba(245, 158, 11, 0.3);
   }
   &.high {
-    background: var(--brutal-orange);
-    color: white;
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.3);
   }
   &.critical {
-    background: var(--brutal-red);
-    color: white;
-    animation: pulse-red 0.5s infinite;
+    background: rgba(239, 68, 68, 0.3);
+    color: #fee2e2;
+    border-color: rgba(239, 68, 68, 0.5);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+    animation: pulse-red 1s infinite alternate;
   }
 }
 
 @keyframes pulse-red {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-  100% {
-    opacity: 1;
-  }
+  0% { box-shadow: 0 0 5px rgba(239, 68, 68, 0.4); }
+  100% { box-shadow: 0 0 15px rgba(239, 68, 68, 0.8); }
 }
 
-.clock-display {
-  text-align: center;
+.clock-display-glass {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   margin: $space-8 0;
-  background: black;
   padding: $space-6;
-  border: 3px solid black;
-  box-shadow: inset 8px 8px 0 rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
 }
-.clock-time {
-  font-size: 56px;
+.clock-time-glass {
+  font-size: 48px;
   font-weight: $font-weight-black;
   font-family: $font-mono;
   line-height: 1;
-  color: var(--brutal-green);
+  letter-spacing: 0.05em;
+  background: linear-gradient(180deg, #ffffff, #a5b4fc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 8px rgba(165, 180, 252, 0.5));
+  
   &.critical {
-    color: var(--brutal-red);
+    background: linear-gradient(180deg, #fff, #f87171);
+    -webkit-background-clip: text;
+    background-clip: text;
+    filter: drop-shadow(0 0 10px rgba(248, 113, 113, 0.6));
   }
   &.pulse {
-    animation: time-pulse 0.5s infinite;
+    animation: time-pulse 1s infinite alternate;
   }
 }
 
 @keyframes time-pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.02);
-  }
-  100% {
-    transform: scale(1);
-  }
+  0% { opacity: 0.8; transform: scale(0.98); }
+  100% { opacity: 1; transform: scale(1.02); }
 }
 
-.danger-meter {
+.danger-meter-glass {
   margin-top: $space-6;
 }
 .meter-labels {
@@ -155,49 +156,59 @@ defineProps<{
 }
 .meter-label {
   font-size: 10px;
-  font-weight: $font-weight-black;
+  font-weight: $font-weight-bold;
   text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
 }
 
-.meter-bar {
-  height: 20px;
-  background: var(--bg-elevated, #eee);
-  border: 3px solid var(--border-color, black);
+.meter-bar-glass {
+  height: 12px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 6px;
   position: relative;
   overflow: hidden;
-  padding: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
-.meter-fill {
+.meter-fill-glass {
   height: 100%;
   transition: width 0.3s ease;
-  background: black;
-  &.critical {
-    background: var(--brutal-red);
-  }
-  &.high {
-    background: var(--brutal-orange);
-  }
+  /* Gradient driven by state classes */
+  background: linear-gradient(90deg, #34d399, #f59e0b, #ef4444); 
+  &.low { background: linear-gradient(90deg, #34d399, #10b981); }
+  &.medium { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+  &.high { background: linear-gradient(90deg, #f87171, #ef4444); }
+  &.critical { background: linear-gradient(90deg, #ef4444, #b91c1c); box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+}
+.meter-indicator-glass {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #fff;
+  box-shadow: 0 0 5px #fff;
+  transform: translateX(-50%);
 }
 
-.event-description {
+.event-description-glass {
   margin-top: $space-6;
   padding: $space-4;
-  background: var(--brutal-yellow);
-  border: 2px solid var(--border-color, black);
-  box-shadow: 4px 4px 0 var(--shadow-color, black);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
 }
-.event-title {
+.event-title-glass {
   font-size: 10px;
-  font-weight: $font-weight-black;
+  font-weight: $font-weight-bold;
   text-transform: uppercase;
-  border-bottom: 2px solid var(--border-color, black);
-  margin-bottom: 4px;
-  display: inline-block;
-}
-.event-text {
-  font-size: 14px;
-  font-weight: $font-weight-black;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.5);
   display: block;
-  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.event-text-glass {
+  font-size: 14px;
+  font-weight: $font-weight-medium;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.4;
 }
 </style>

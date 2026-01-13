@@ -1,5 +1,5 @@
 <template>
-  <view class="position-summary">
+  <NeoCard variant="erobo" class="position-summary">
     <view class="health-section">
       <text class="section-label">{{ t("healthFactor") }}</text>
       <view class="health-gauge">
@@ -48,12 +48,13 @@
         <text class="metric-unit">APR</text>
       </view>
     </view>
-  </view>
+  </NeoCard>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
 import { formatNumber } from "@/shared/utils/format";
+import { NeoCard } from "@/shared/components";
 
 const props = defineProps<{
   loan: any;
@@ -81,16 +82,10 @@ const healthGradient = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
-.position-summary {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-lg;
-  padding: $space-4;
-  margin-bottom: $space-3;
-}
+
 
 .health-section { margin-bottom: $space-4; }
 
@@ -135,7 +130,6 @@ const healthGradient = computed(() => {
 .gauge-value {
   font-size: $font-size-2xl;
   font-weight: $font-weight-black;
-  color: var(--text-primary);
   line-height: 1;
 }
 
@@ -144,6 +138,7 @@ const healthGradient = computed(() => {
   color: var(--text-secondary);
   margin-top: $space-1;
   text-transform: uppercase;
+  font-weight: 700;
 }
 
 .health-legend {
@@ -171,15 +166,12 @@ const healthGradient = computed(() => {
 }
 
 .metric-card {
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
-  padding: $space-3;
-  display: flex;
-  flex-direction: column;
   gap: $space-1;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
-.metric-label { font-size: $font-size-xs; color: var(--text-secondary); text-transform: uppercase; }
+.metric-label { font-size: $font-size-xs; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; }
 
 .metric-value {
   font-size: $font-size-xl;

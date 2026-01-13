@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('makeChoice')">
+  <NeoCard :title="t('makeChoice')" variant="erobo-neo">
     <view class="choice-row">
       <view :class="['choice-btn', choice === 'heads' && 'active-heads']" @click="$emit('update:choice', 'heads')">
         <AppIcon name="heads" :size="32" />
@@ -51,8 +51,8 @@ defineEmits(["update:choice", "update:betAmount", "flip"]);
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .choice-row {
   display: grid;

@@ -24,24 +24,25 @@ export interface Theme {
   colors: ThemeColors;
 }
 
+// Neo Modern Dark Theme (Matches tokens.scss)
 const DARK_COLORS: ThemeColors = {
-  background: "#0f0f0f",
-  surface: "#1a1a1a",
-  text: "#ffffff",
-  textSecondary: "#a0a0a0",
-  primary: "#00e599",
-  border: "#ffffff",
-  error: "#ff4757",
+  background: "#05060d", // $neo-black / $bg-primary
+  surface: "#121322",    // $bg-elevated
+  text: "#f8f8ff",       // $text-primary
+  textSecondary: "rgba(231, 232, 246, 0.72)", // $text-secondary
+  primary: "#00e599",    // $neo-green
+  border: "rgba(159, 157, 243, 0.15)", // $border-color
+  error: "#ef4444",      // $status-error
 };
 
 const LIGHT_COLORS: ThemeColors = {
-  background: "#f5f5f5",
-  surface: "#ffffff",
-  text: "#000000",
-  textSecondary: "#555555",
+  background: "#f8f8ff", // $bg-primary-light
+  surface: "#ffffff",    // $bg-elevated-light
+  text: "#1b1b2f",       // $text-primary-light
+  textSecondary: "#4a4a63",
   primary: "#00e599",
-  border: "#000000",
-  error: "#ff4757",
+  border: "rgba(159, 157, 243, 0.2)",
+  error: "#ef4444",
 };
 
 /**

@@ -4,6 +4,18 @@
       <!-- Network Stats Cards -->
       <NetworkStats :mainnet-stats="mainnetStats" :testnet-stats="testnetStats" :t="t as any" />
 
+      <view v-if="chainType === 'evm'" class="mb-4">
+        <NeoCard variant="danger">
+          <view class="flex flex-col items-center gap-2 py-1">
+            <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+            <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+            <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{
+              t("switchToNeo")
+            }}</NeoButton>
+          </view>
+        </NeoCard>
+      </view>
+
       <!-- Status Message -->
       <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
         <text class="status-text">{{ status.msg }}</text>
@@ -49,7 +61,8 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
-import { AppLayout, NeoDoc, NeoCard } from "@/shared/components";
+import { useWallet } from "@neo/uniapp-sdk";
+import { AppLayout, NeoDoc, NeoCard, NeoButton } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 import type { StatItem } from "@/shared/components/NeoStats.vue";
 
@@ -83,6 +96,9 @@ const translations = {
   searchFailed: { en: "Search failed", zh: "搜索失败" },
   tabSearch: { en: "Search", zh: "搜索" },
   tabHistory: { en: "History", zh: "历史" },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 
   docs: { en: "Docs", zh: "文档" },
   docSubtitle: {
@@ -94,7 +110,7 @@ const translations = {
     zh: "Explorer 提供 Neo N3 区块链的全面视图。搜索交易、检查地址并分析智能合约。",
   },
   step1: {
-    en: "Enter a transaction hash, address, or contract hash",
+    en: "Enter a transaction hash, address, or contract address",
     zh: "输入交易哈希、地址或合约哈希",
   },
   step2: {
@@ -152,6 +168,8 @@ const navTabs: NavTab[] = [
   { id: "history", icon: "clock", label: t("tabHistory") },
   { id: "docs", icon: "book", label: t("docs") },
 ];
+
+const { chainType, switchChain } = useWallet() as any;
 
 const searchQuery = ref("");
 const selectedNetwork = ref<"mainnet" | "testnet">("testnet");
@@ -320,8 +338,8 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .app-container {
   padding: 20px;

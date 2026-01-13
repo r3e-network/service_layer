@@ -27,20 +27,28 @@ export type CardVariant =
   | "erobo-neo"
   | "erobo-bitcoin";
 
-defineProps<{
-  title?: string;
-  variant?: CardVariant;
-  hoverable?: boolean;
-  flat?: boolean;
-}>();
+withDefaults(
+  defineProps<{
+    title?: string;
+    variant?: CardVariant;
+    hoverable?: boolean;
+    flat?: boolean;
+  }>(),
+  {
+    title: undefined,
+    variant: "default",
+    hoverable: false,
+    flat: false,
+  },
+);
 
 defineEmits<{
   (e: "click", event: MouseEvent): void;
 }>();
 </script>
 
-<style lang="scss">
-@import "@/shared/styles/tokens.scss";
+<style lang="scss" scoped>
+@use "@/shared/styles/tokens.scss" as *;
 
 .neo-card {
   background: var(--bg-card, rgba(255, 255, 255, 0.02));

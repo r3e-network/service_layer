@@ -3,9 +3,11 @@ import { loadWallet, generateWallet, importFromWIF } from "@/lib/neo/wallet";
 import { getBalances, getTokenBalance } from "@/lib/neo/rpc";
 import { getTokenPrices, calculateUsdValue } from "@/lib/price";
 import { authenticate, setBiometricsEnabled, getBiometricsStatus } from "@/lib/biometrics";
-import { loadNetwork, saveNetwork, Network } from "@/lib/network";
+import { loadNetwork, saveNetwork, loadChainId, saveChainId, Network } from "@/lib/network";
 import { loadTokens, saveToken, removeToken, Token } from "@/lib/tokens";
 import { getLocale, setLocale as saveLocale, Locale } from "@/lib/i18n";
+import type { ChainId } from "@/types/miniapp";
+import { resolveChainType, type ChainType } from "@/lib/chains";
 
 export interface Asset {
   symbol: string;
@@ -25,6 +27,8 @@ interface WalletState {
   biometricsEnabled: boolean;
   biometricsAvailable: boolean;
   network: Network;
+  chainId: ChainId | null;
+  chainType: ChainType;
   initialize: () => Promise<void>;
   createWallet: () => Promise<void>;
   unlock: () => Promise<void>;
@@ -33,9 +37,10 @@ interface WalletState {
   toggleBiometrics: () => Promise<void>;
   requireAuthForTransaction: () => Promise<boolean>;
   switchNetwork: (network: Network) => Promise<void>;
+  switchChain: (chainId: ChainId) => Promise<void>;
   importWallet: (wif: string) => Promise<boolean>;
   addToken: (token: Token) => Promise<void>;
-  deleteToken: (contractHash: string) => Promise<void>;
+  deleteToken: (contractAddress: string) => Promise<void>;
   setAddress: (address: string) => void;
   locale: Locale;
   setLocale: (locale: Locale) => Promise<void>;
@@ -55,24 +60,31 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   biometricsEnabled: false,
   biometricsAvailable: false,
   network: "mainnet",
+  chainId: null,
+  chainType: "neo-n3",
   locale: "en",
 
   initialize: async () => {
     set({ isLoading: true });
-    const [wallet, status, network, locale] = await Promise.all([
+    const [wallet, status, network, chainId, locale] = await Promise.all([
       loadWallet(),
       getBiometricsStatus(),
       loadNetwork(),
+      loadChainId(),
       getLocale(),
     ]);
     if (wallet) {
       set({ address: wallet.address, isLocked: true });
     }
+    // Determine chainType from chainId or default to neo-n3
+    const chainType: ChainType = chainId ? (resolveChainType(chainId) ?? "neo-n3") : "neo-n3";
     set({
       isLoading: false,
       biometricsEnabled: status.isEnabled,
       biometricsAvailable: status.isAvailable,
       network,
+      chainId,
+      chainType,
       locale,
     });
   },
@@ -136,7 +148,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
       // Fetch custom token balances
       const tokenAssets: Asset[] = await Promise.all(
         customTokens.map(async (token) => {
-          const bal = await getTokenBalance(address, token.contractHash, token.decimals);
+          const bal = await getTokenBalance(address, token.contractAddress, token.decimals);
           return {
             symbol: token.symbol,
             name: token.name,
@@ -177,6 +189,16 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     await get().refreshBalances();
   },
 
+  switchChain: async (chainId: ChainId) => {
+    await saveChainId(chainId);
+    const chainType: ChainType = resolveChainType(chainId) ?? "neo-n3";
+    // Update network based on chainId for backward compatibility
+    const network: Network = chainId.includes("mainnet") ? "mainnet" : "testnet";
+    await saveNetwork(network);
+    set({ chainId, chainType, network });
+    await get().refreshBalances();
+  },
+
   importWallet: async (wif: string) => {
     try {
       set({ isLoading: true });
@@ -195,8 +217,8 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     await get().refreshBalances();
   },
 
-  deleteToken: async (contractHash: string) => {
-    await removeToken(contractHash);
+  deleteToken: async (contractAddress: string) => {
+    await removeToken(contractAddress);
     await get().refreshBalances();
   },
 

@@ -23,7 +23,7 @@ describe("Token Storage", () => {
     });
 
     it("should return parsed tokens from storage", async () => {
-      const storedTokens: Token[] = [{ contractHash: "0x123", symbol: "FLM", name: "Flamingo", decimals: 8 }];
+      const storedTokens: Token[] = [{ contractAddress: "0x123", symbol: "FLM", name: "Flamingo", decimals: 8 }];
       mockSecureStore.getItemAsync.mockResolvedValue(JSON.stringify(storedTokens));
       const tokens = await loadTokens();
       expect(tokens).toEqual(storedTokens);
@@ -31,8 +31,8 @@ describe("Token Storage", () => {
 
     it("should handle multiple tokens", async () => {
       const storedTokens: Token[] = [
-        { contractHash: "0x123", symbol: "FLM", name: "Flamingo", decimals: 8 },
-        { contractHash: "0x456", symbol: "SWTH", name: "Switcheo", decimals: 8 },
+        { contractAddress: "0x123", symbol: "FLM", name: "Flamingo", decimals: 8 },
+        { contractAddress: "0x456", symbol: "SWTH", name: "Switcheo", decimals: 8 },
       ];
       mockSecureStore.getItemAsync.mockResolvedValue(JSON.stringify(storedTokens));
       const tokens = await loadTokens();
@@ -43,15 +43,15 @@ describe("Token Storage", () => {
   describe("saveToken", () => {
     it("should save new token to empty storage", async () => {
       mockSecureStore.getItemAsync.mockResolvedValue(null);
-      const newToken: Token = { contractHash: "0x123", symbol: "FLM", name: "Flamingo", decimals: 8 };
+      const newToken: Token = { contractAddress: "0x123", symbol: "FLM", name: "Flamingo", decimals: 8 };
       await saveToken(newToken);
       expect(mockSecureStore.setItemAsync).toHaveBeenCalledWith("custom_tokens", JSON.stringify([newToken]));
     });
 
     it("should append token to existing list", async () => {
-      const existing: Token[] = [{ contractHash: "0x111", symbol: "OLD", name: "Old", decimals: 8 }];
+      const existing: Token[] = [{ contractAddress: "0x111", symbol: "OLD", name: "Old", decimals: 8 }];
       mockSecureStore.getItemAsync.mockResolvedValue(JSON.stringify(existing));
-      const newToken: Token = { contractHash: "0x222", symbol: "NEW", name: "New", decimals: 8 };
+      const newToken: Token = { contractAddress: "0x222", symbol: "NEW", name: "New", decimals: 8 };
       await saveToken(newToken);
       expect(mockSecureStore.setItemAsync).toHaveBeenCalledWith(
         "custom_tokens",
@@ -60,19 +60,19 @@ describe("Token Storage", () => {
     });
 
     it("should not duplicate existing token", async () => {
-      const existing: Token[] = [{ contractHash: "0x123", symbol: "FLM", name: "Flamingo", decimals: 8 }];
+      const existing: Token[] = [{ contractAddress: "0x123", symbol: "FLM", name: "Flamingo", decimals: 8 }];
       mockSecureStore.getItemAsync.mockResolvedValue(JSON.stringify(existing));
-      const duplicate: Token = { contractHash: "0x123", symbol: "FLM", name: "Flamingo", decimals: 8 };
+      const duplicate: Token = { contractAddress: "0x123", symbol: "FLM", name: "Flamingo", decimals: 8 };
       await saveToken(duplicate);
       expect(mockSecureStore.setItemAsync).not.toHaveBeenCalled();
     });
   });
 
   describe("removeToken", () => {
-    it("should remove token by contract hash", async () => {
+    it("should remove token by contract address", async () => {
       const existing: Token[] = [
-        { contractHash: "0x123", symbol: "FLM", name: "Flamingo", decimals: 8 },
-        { contractHash: "0x456", symbol: "SWTH", name: "Switcheo", decimals: 8 },
+        { contractAddress: "0x123", symbol: "FLM", name: "Flamingo", decimals: 8 },
+        { contractAddress: "0x456", symbol: "SWTH", name: "Switcheo", decimals: 8 },
       ];
       mockSecureStore.getItemAsync.mockResolvedValue(JSON.stringify(existing));
       await removeToken("0x123");
@@ -80,7 +80,7 @@ describe("Token Storage", () => {
     });
 
     it("should handle removing non-existent token", async () => {
-      const existing: Token[] = [{ contractHash: "0x123", symbol: "FLM", name: "Flamingo", decimals: 8 }];
+      const existing: Token[] = [{ contractAddress: "0x123", symbol: "FLM", name: "Flamingo", decimals: 8 }];
       mockSecureStore.getItemAsync.mockResolvedValue(JSON.stringify(existing));
       await removeToken("0x999");
       expect(mockSecureStore.setItemAsync).toHaveBeenCalledWith("custom_tokens", JSON.stringify(existing));

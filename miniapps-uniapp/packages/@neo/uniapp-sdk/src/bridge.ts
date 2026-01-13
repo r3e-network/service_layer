@@ -1,10 +1,10 @@
 /**
- * SDK Bridge - Connects uni-app to Neo MiniApp SDK
+ * SDK Bridge - Connects uni-app to the MiniApp SDK
  *
  * Refactored with centralized origin validation (SOLID: Single Responsibility)
  */
 
-import type { MiniAppSDK, NeoSDKConfig } from "./types";
+import type { MiniAppSDK, MiniAppSDKConfig, ChainId, ChainType } from "./types";
 import { SDK_TIMEOUTS, PRODUCTION_ORIGINS, DEV_ORIGINS } from "./config";
 
 declare global {
@@ -126,7 +126,7 @@ class OriginValidator {
     if (!target || target === "null") {
       // In production, reject unknown origins for security
       // Fall back to first production origin as last resort
-      console.warn("[Neo SDK] Could not determine target origin, using production fallback");
+      console.warn("[MiniApp SDK] Could not determine target origin, using production fallback");
       return PRODUCTION_ORIGINS[0];
     }
     return target;
@@ -142,6 +142,7 @@ class OriginValidator {
 
 // Singleton instance
 const originValidator = new OriginValidator();
+let cachedConfig: MiniAppSDKConfig | null = null;
 
 /**
  * Validate SDK injection to prevent tampering
@@ -175,7 +176,7 @@ function createPostMessageSDK(): MiniAppSDK {
         // Use centralized origin validation
         if (!originValidator.isValid(event.origin)) return;
         if (event.source !== window.parent) return;
-        if (event.data?.type !== "neo_miniapp_sdk_response") return;
+        if (event.data?.type !== "miniapp_sdk_response") return;
         if (event.data?.id !== id) return;
 
         clearTimeout(timer);
@@ -189,12 +190,9 @@ function createPostMessageSDK(): MiniAppSDK {
       };
 
       window.addEventListener("message", handler);
-      window.parent.postMessage({ type: "neo_miniapp_sdk_request", id, method, params: args }, safeTargetOrigin);
+      window.parent.postMessage({ type: "miniapp_sdk_request", id, method, params: args }, safeTargetOrigin);
     });
   };
-
-  // Cache for config fetched from host
-  let cachedConfig: { appId: string; contractHash: string | null; debug: boolean } | null = null;
 
   return {
     invoke,
@@ -202,16 +200,17 @@ function createPostMessageSDK(): MiniAppSDK {
       // Return cached config or fetch from host
       if (cachedConfig) return cachedConfig;
       // Try to get config synchronously from window if available
-      if (typeof window !== "undefined" && (window as any).__NEO_MINIAPP_CONFIG__) {
-        cachedConfig = (window as any).__NEO_MINIAPP_CONFIG__;
+      if (typeof window !== "undefined" && (window as any).__MINIAPP_CONFIG__) {
+        cachedConfig = (window as any).__MINIAPP_CONFIG__;
         return cachedConfig;
       }
       // Return default config (will be updated async)
-      return { appId: "", contractHash: null, debug: false };
+      return { appId: "", contractAddress: null, chainId: null, chainType: undefined, supportedChains: [], debug: false };
     },
     getAddress: () => invoke("getAddress") as Promise<string>,
     wallet: {
       getAddress: () => invoke("wallet.getAddress") as Promise<string>,
+      switchChain: (chainId: ChainId) => invoke("wallet.switchChain", chainId) as Promise<void>,
       invokeIntent: (requestId: string) => invoke("wallet.invokeIntent", requestId),
     },
     payments: {
@@ -266,9 +265,19 @@ export function waitForSDK(timeout = SDK_TIMEOUTS.SDK_INIT): Promise<MiniAppSDK>
       window.removeEventListener("miniapp-sdk-ready", handler);
       // Fallback to postMessage-based SDK for cross-origin iframes
       if (window.parent !== window) {
-        console.log("[Neo SDK] Direct injection timeout, using postMessage bridge");
+        console.log("[MiniApp SDK] Direct injection timeout, using postMessage bridge");
         const proxySDK = createPostMessageSDK();
         window.MiniAppSDK = proxySDK;
+        proxySDK
+          .invoke("getConfig")
+          .then((config) => {
+            if (config && typeof config === "object") {
+              cachedConfig = config as MiniAppSDKConfig;
+            }
+          })
+          .catch(() => {
+            // Ignore config fetch errors (host may not be ready)
+          });
         resolve(proxySDK);
       } else {
         reject(new Error("SDK timeout"));
@@ -296,9 +305,9 @@ export function waitForSDK(timeout = SDK_TIMEOUTS.SDK_INIT): Promise<MiniAppSDK>
 /**
  * Create SDK bridge for H5 platform
  */
-export function createH5Bridge(config: NeoSDKConfig): Promise<MiniAppSDK> {
+export function createH5Bridge(config: MiniAppSDKConfig): Promise<MiniAppSDK> {
   if (config.debug) {
-    console.log("[Neo] Creating H5 bridge for:", config.appId);
+    console.log("[MiniApp SDK] Creating H5 bridge for:", config.appId);
   }
   return waitForSDK();
 }
@@ -317,7 +326,15 @@ export function getSDKSync(): MiniAppSDK | null {
 export interface HostWalletState {
   connected: boolean;
   address: string | null;
-  balance: { neo: string; gas: string } | null;
+  chainId?: ChainId | null;
+  chainType?: ChainType;
+  balance?: {
+    native: string;
+    nativeSymbol?: string;
+    governance?: string;
+    governanceSymbol?: string;
+  } | null;
+  balances?: Record<string, string>;
 }
 
 type WalletStateListener = (state: HostWalletState) => void;
@@ -362,12 +379,21 @@ export function initWalletStateListener(): (() => void) | null {
 
     const data = event.data;
     if (!data || typeof data !== "object") return;
-    if (data.type !== "neo_wallet_state_change") return;
+    if (data.type === "miniapp_config") {
+      if (data.config && typeof data.config === "object") {
+        cachedConfig = data.config as MiniAppSDKConfig;
+      }
+      return;
+    }
+    if (data.type !== "miniapp_wallet_state_change") return;
 
     currentWalletState = {
       connected: Boolean(data.connected),
       address: data.address || null,
-      balance: data.balance || null,
+      chainId: data.chainId ?? null,
+      chainType: data.chainType ?? null,
+      balance: data.balance || data.multiChainBalance || null,
+      balances: data.balances || undefined,
     };
 
     // Notify all listeners
@@ -375,7 +401,7 @@ export function initWalletStateListener(): (() => void) | null {
       try {
         listener(currentWalletState);
       } catch (e) {
-        console.error("[Neo SDK] Wallet state listener error:", e);
+        console.error("[MiniApp SDK] Wallet state listener error:", e);
       }
     });
   };
@@ -405,7 +431,7 @@ function notifyHostReady(): void {
   if (typeof window === "undefined") return;
   const safeTargetOrigin = originValidator.getSafeTargetOrigin();
   try {
-    window.parent.postMessage({ type: "neo_miniapp_ready" }, safeTargetOrigin);
+    window.parent.postMessage({ type: "miniapp_ready" }, safeTargetOrigin);
   } catch {
     // Ignore if not in iframe
   }
@@ -437,7 +463,7 @@ export async function callBridge(method: string, params?: Record<string, unknown
       // CRITICAL: Validate origin before processing message
       if (event.source !== window.parent) return;
       if (!originValidator.isValid(event.origin)) {
-        console.warn("[Neo SDK] Rejected message from invalid origin:", event.origin);
+        console.warn("[MiniApp SDK] Rejected message from invalid origin:", event.origin);
         return;
       }
 

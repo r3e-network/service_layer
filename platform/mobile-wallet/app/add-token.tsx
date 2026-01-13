@@ -10,26 +10,26 @@ export default function AddTokenScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { addToken, isLoading } = useWalletStore();
-  const [contractHash, setContractHash] = useState("");
+  const [contractAddress, setContractAddress] = useState("");
   const [symbol, setSymbol] = useState("");
   const [name, setName] = useState("");
   const [decimals, setDecimals] = useState("8");
   const [error, setError] = useState("");
 
-  const validateContractHash = (hash: string): boolean => {
-    const cleanHash = hash.startsWith("0x") ? hash : `0x${hash}`;
-    return /^0x[a-fA-F0-9]{40}$/.test(cleanHash);
+  const validateContractAddress = (address: string): boolean => {
+    const cleanAddress = address.startsWith("0x") ? address : `0x${address}`;
+    return /^0x[a-fA-F0-9]{40}$/.test(cleanAddress);
   };
 
   const handleAdd = async () => {
     setError("");
 
-    if (!contractHash.trim()) {
+    if (!contractAddress.trim()) {
       setError(t("tokens.enter_hash"));
       return;
     }
 
-    if (!validateContractHash(contractHash.trim())) {
+    if (!validateContractAddress(contractAddress.trim())) {
       setError(t("tokens.invalid_hash"));
       return;
     }
@@ -51,10 +51,12 @@ export default function AddTokenScreen() {
     }
 
     try {
-      const cleanHash = contractHash.trim().startsWith("0x") ? contractHash.trim() : `0x${contractHash.trim()}`;
+      const cleanAddress = contractAddress.trim().startsWith("0x")
+        ? contractAddress.trim()
+        : `0x${contractAddress.trim()}`;
 
       await addToken({
-        contractHash: cleanHash,
+        contractAddress: cleanAddress,
         symbol: symbol.trim().toUpperCase(),
         name: name.trim(),
         decimals: dec,
@@ -84,8 +86,8 @@ export default function AddTokenScreen() {
             style={styles.input}
             placeholder="0x..."
             placeholderTextColor="#666"
-            value={contractHash}
-            onChangeText={setContractHash}
+            value={contractAddress}
+            onChangeText={setContractAddress}
             autoCapitalize="none"
             autoCorrect={false}
           />

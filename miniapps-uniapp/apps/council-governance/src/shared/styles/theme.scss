@@ -1,22 +1,236 @@
 // Neo MiniApp Platform Theme Variables
-$color-bg-primary: #0d1117;
-$color-bg-secondary: #1a1a2e;
-$color-bg-card: rgba(255, 255, 255, 0.05);
-$color-border: rgba(255, 255, 255, 0.1);
+// Used across all uni-app MiniApps
+// Supports light/dark mode via CSS custom properties
 
-$color-text-primary: #ffffff;
-$color-text-secondary: #888888;
-$color-text-tertiary: #666666;
+@use "./tokens.scss" as *;
 
+// ============================================
+// Global Layout Settings (Critical for iframe)
+// ============================================
+// Fill 100% of explorer window - NO SCROLL on page level
+// All scrolling happens inside .app-content only
+
+html,
+body,
+#app,
+uni-app,
+uni-page,
+uni-page-wrapper,
+uni-page-body,
+page {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+// In iframe context, use 100% instead of viewport units
+// Viewport units don't work correctly inside iframes
+html,
+body {
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+// ============================================
+// CSS Custom Properties (Runtime Theming)
+// ============================================
+// Using short names (--bg-primary) as primary, with --color-* aliases for compatibility
+
+:root {
+  // Default to dark theme - Primary variables (short names)
+  --bg-primary: #05060d;
+  --bg-secondary: #0b0c16;
+  --bg-card: rgba(12, 13, 22, 0.8);
+  --bg-elevated: #121322;
+  --text-primary: #f8f8ff;
+  --text-secondary: rgba(231, 232, 246, 0.72);
+  --text-muted: rgba(196, 197, 219, 0.6);
+  --border-color: rgba(159, 157, 243, 0.18);
+  --shadow-color: rgba(0, 0, 0, 0.35);
+
+  // E-Robo Wallet Style CSS Variables
+  --erobo-purple: #9f9df3;
+  --erobo-purple-dark: #7b79d1;
+  --erobo-pink: #f7aac7;
+  --erobo-peach: #f8d7c2;
+  --erobo-mint: #d8f2e2;
+  --erobo-sky: #d9ecff;
+  --erobo-ink: #1b1b2f;
+  --erobo-gradient: linear-gradient(135deg, #9f9df3 0%, #7b79d1 100%);
+  --erobo-glow: 0 0 30px rgba(159, 157, 243, 0.4);
+  --card-radius: 20px;
+  --blur-radius: 50px;
+
+  // Aliases for backward compatibility
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-card: var(--bg-card);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border-color);
+  --color-shadow: var(--shadow-color);
+}
+
+// Light theme mixin (DRY - used in both explicit and system preference)
+@mixin light-theme-vars {
+  --bg-primary: #f8f8ff;
+  --bg-secondary: #f2f3fb;
+  --bg-card: rgba(255, 255, 255, 0.92);
+  --bg-elevated: #ffffff;
+  --text-primary: #1b1b2f;
+  --text-secondary: #4a4a63;
+  --text-muted: #7a7a96;
+  --border-color: rgba(159, 157, 243, 0.2);
+  --shadow-color: rgba(27, 27, 47, 0.08);
+  --erobo-purple: #7c7ab8;
+  --erobo-purple-dark: #5a58a3;
+  --erobo-pink: #f1a1c1;
+  --erobo-peach: #f6d0ba;
+  --erobo-mint: #d5efe0;
+  --erobo-sky: #d3e8ff;
+  --erobo-ink: #1b1b2f;
+  --erobo-gradient: linear-gradient(135deg, #7c7ab8 0%, #5a58a3 100%);
+  --erobo-glow: 0 0 20px rgba(124, 122, 184, 0.3);
+}
+
+// Light theme - WCAG AA compliant contrast
+[data-theme="light"],
+.theme-light {
+  @include light-theme-vars;
+}
+
+// System preference detection
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]):not(.theme-dark) {
+    @include light-theme-vars;
+  }
+}
+
+// ============================================
+// SCSS Variables (Build-time, for fallback)
+// ============================================
+
+// Base colors (dark theme defaults)
+$color-bg-primary: #05060d;
+$color-bg-secondary: #0b0c16;
+$color-bg-card: rgba(12, 13, 22, 0.85);
+$color-border: rgba(159, 157, 243, 0.18);
+
+// Brand Colors
 $color-neo: #00e599;
+$color-electric-purple: #7000ff;
+
+// E-Robo Wallet Style Colors
+$color-erobo-purple: #9f9df3;
+$color-erobo-purple-dark: #7b79d1;
+$color-erobo-bitcoin: #ffe4c3;
+$color-erobo-neo-accent: #d5eec9;
+$color-erobo-achain: #e0e2ff;
+$color-erobo-watchlist: #def5e9;
+$color-erobo-trending: #dff0ff;
+$color-erobo-best: #ffebe4;
+
+// Text colors
+$color-text-primary: #f8fafc;
+$color-text-secondary: #94a3b8;
+$color-text-tertiary: #64748b;
+$color-text-muted: #475569;
+
+// Category accent colors
+$color-gaming: #00e599;
+$color-defi: #3b82f6;
+$color-social: #ec4899;
+$color-nft: #7000ff;
 $color-governance: #8b5cf6;
-$color-success: #22c55e;
+$color-utility: #f59e0b;
+
+// Status colors
+$color-success: #00e599;
 $color-error: #ef4444;
 $color-warning: #f59e0b;
+$color-info: #3b82f6;
 
-$font-family: "Outfit",
-  -apple-system,
-  BlinkMacSystemFont,
-  "Segoe UI",
-  sans-serif;
+// ============================================
+// E-Robo Animation System
+// ============================================
 
+// Animation durations
+$anim-fast: 150ms;
+$anim-normal: 300ms;
+$anim-slow: 500ms;
+
+// Animation curves (E-Robo style)
+$ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+$ease-in-out-expo: cubic-bezier(0.87, 0, 0.13, 1);
+$ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+// Keyframe animations
+@keyframes erobo-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes erobo-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes erobo-glow-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(159, 157, 243, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(159, 157, 243, 0.5);
+  }
+}
+
+@keyframes erobo-float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+// Animation utility classes
+.erobo-animate-in {
+  animation: erobo-fade-in $anim-normal $ease-out-expo;
+}
+
+.erobo-scale-in {
+  animation: erobo-scale-in $anim-normal $ease-spring;
+}
+
+.erobo-glow-pulse {
+  animation: erobo-glow-pulse 2s ease-in-out infinite;
+}
+
+.erobo-float {
+  animation: erobo-float 3s ease-in-out infinite;
+}

@@ -14,7 +14,7 @@
 
     <!-- Content -->
     <view v-else-if="transactions.length">
-      <NeoCard v-for="tx in transactions" :key="tx.hash" class="mb-3" @click="$emit('viewTx', tx.hash)">
+      <NeoCard v-for="tx in transactions" :key="tx.hash" variant="erobo" class="mb-3" @click="$emit('viewTx', tx.hash)">
         <view class="tx-item-content-neo">
           <view class="tx-info">
             <text class="tx-hash-neo">{{ truncateHash(tx.hash) }}</text>
@@ -50,8 +50,8 @@ const truncateHash = (hash: string) => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .section-title-neo {
   font-size: 11px;

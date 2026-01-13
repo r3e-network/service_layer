@@ -19,13 +19,16 @@ export const mockSDK: MiniAppSDK = {
     return {};
   },
   getConfig() {
-    return { appId: "mock-app", contractHash: null, debug: true };
+    return { appId: "mock-app", contractAddress: null, debug: true };
   },
   // Legacy interface
   wallet: {
     async getAddress() {
       console.log("[MockSDK] getAddress called");
       return "NXV7ZhHiyM1aHXwpVsRZC6BwNFP2jghXAq";
+    },
+    async switchChain(chainId: string) {
+      console.log("[MockSDK] switchChain called:", chainId);
     },
     async invokeIntent(requestId: string) {
       console.log("[MockSDK] invokeIntent:", requestId);
@@ -43,10 +46,14 @@ export const mockSDK: MiniAppSDK = {
         user_id: "mock-user",
         intent: "payments",
         constraints: { settlement: "GAS_ONLY" },
+        chain_id: "neo-n3-mainnet",
+        chain_type: "neo-n3",
         invocation: {
-          contract: "0x0bb8f09e6d3611bc5c8adbd79ff8af1e34f73193",
+          chain_id: "neo-n3-mainnet",
+          chain_type: "neo-n3",
+          contract_address: "0x0bb8f09e6d3611bc5c8adbd79ff8af1e34f73193",
           method: "transfer",
-          args: [amount, memo],
+          params: [amount, memo ?? ""],
         },
       };
     },
@@ -60,10 +67,14 @@ export const mockSDK: MiniAppSDK = {
         user_id: "mock-user",
         intent: "governance",
         constraints: { governance: "BNEO_ONLY" },
+        chain_id: "neo-n3-mainnet",
+        chain_type: "neo-n3",
         invocation: {
-          contract: "0xc8f3bbe1c205c932aab00b28f7df99f9bc788a05",
+          chain_id: "neo-n3-mainnet",
+          chain_type: "neo-n3",
+          contract_address: "0xc8f3bbe1c205c932aab00b28f7df99f9bc788a05",
           method: "vote",
-          args: [proposalId, amount, support],
+          params: [proposalId, amount, support],
         },
       };
     },
@@ -111,6 +122,8 @@ export const mockSDK: MiniAppSDK = {
       return {
         request_id: generateId(),
         app_id: appId,
+        chain_id: "neo-n3-mainnet",
+        chain_type: "neo-n3",
         randomness: randomBytes,
       };
     },
@@ -135,7 +148,7 @@ export const mockSDK: MiniAppSDK = {
     },
   },
   events: {
-    async list(params: { app_id?: string; event_name?: string; limit?: number } = {}) {
+    async list(params: { app_id?: string; event_name?: string; chain_id?: string; limit?: number } = {}) {
       console.log("[MockSDK] events.list:", params);
       await new Promise((r) => setTimeout(r, 300));
       const eventId = generateId();
@@ -145,7 +158,8 @@ export const mockSDK: MiniAppSDK = {
             id: eventId,
             app_id: params.app_id || "mock-app",
             event_name: params.event_name || "MockEvent",
-            contract_hash: "0x0000000000000000000000000000000000000000",
+            chain_id: params.chain_id || "neo-n3-mainnet",
+            contract_address: "0x0000000000000000000000000000000000000000",
             tx_hash: `0x${generateId()}`,
             block_index: 1234567,
             state: [] as unknown[],
@@ -163,6 +177,7 @@ export const mockSDK: MiniAppSDK = {
       await new Promise((r) => setTimeout(r, 300));
       return {
         app_id: appId,
+        chain_id: "neo-n3-mainnet",
         date: date || new Date().toISOString().split("T")[0],
         transactions: 42,
         volume_gas: "123.45",

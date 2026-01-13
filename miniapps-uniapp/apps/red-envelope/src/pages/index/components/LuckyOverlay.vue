@@ -31,8 +31,8 @@ defineEmits(["close"]);
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .lucky-overlay {
   position: fixed;
@@ -46,15 +46,17 @@ defineEmits(["close"]);
 }
 
 .lucky-card {
-  background: rgba(26, 26, 26, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(26, 26, 26, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 229, 153, 0.3);
   border-radius: 24px;
   padding: 40px 20px;
   text-align: center;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 229, 153, 0.1);
   width: 85%;
   max-width: 360px;
   position: relative;
+  overflow: hidden;
 }
 
 .lucky-header {
@@ -80,7 +82,7 @@ defineEmits(["close"]);
   color: white;
   font-family: $font-family;
   line-height: 1;
-  text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
 }
 
 .lucky-currency {
@@ -94,8 +96,8 @@ defineEmits(["close"]);
 .lucky-from {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-primary, rgba(255, 255, 255, 0.8));
-  background: var(--bg-card, rgba(255, 255, 255, 0.05));
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.05);
   padding: 8px 16px;
   border-radius: 100px;
   display: inline-block;

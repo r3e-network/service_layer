@@ -1,18 +1,18 @@
 <template>
   <view class="tab-content scrollable">
-    <NeoCard :title="t('globalStats')">
+    <NeoCard :title="t('globalStats')" variant="erobo-bitcoin">
       <view class="global-stats">
-        <view class="stat-item">
+        <view class="stat-item-glass">
           <text class="stat-icon">👥</text>
           <text class="stat-value">{{ globalStats.totalUsers }}</text>
           <text class="stat-label">{{ t("totalUsers") }}</text>
         </view>
-        <view class="stat-item">
+        <view class="stat-item-glass">
           <text class="stat-icon">✅</text>
           <text class="stat-value">{{ globalStats.totalCheckins }}</text>
           <text class="stat-label">{{ t("totalCheckins") }}</text>
         </view>
-        <view class="stat-item">
+        <view class="stat-item-glass">
           <text class="stat-icon">💰</text>
           <text class="stat-value">{{ formatGas(globalStats.totalRewarded) }}</text>
           <text class="stat-label">{{ t("totalRewarded") }}</text>
@@ -20,11 +20,11 @@
       </view>
     </NeoCard>
 
-    <NeoCard :title="t('yourStats')">
+    <NeoCard :title="t('yourStats')" variant="erobo">
       <NeoStats :stats="userStats" />
     </NeoCard>
 
-    <NeoCard :title="t('recentCheckins')">
+    <NeoCard :title="t('recentCheckins')" variant="erobo">
       <view v-if="checkinHistory.length === 0" class="empty-state">
         <text>{{ t("noCheckins") }}</text>
       </view>
@@ -58,8 +58,8 @@ const formatGas = (value: number) => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: 20px;
@@ -73,11 +73,11 @@ const formatGas = (value: number) => {
 
 .global-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 
-.stat-item {
+.stat-item-glass {
   text-align: center;
   padding: 12px;
-  background: var(--bg-card, rgba(255, 255, 255, 0.03));
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
 }
 .stat-icon { font-size: 24px; display: block; margin-bottom: 4px; }

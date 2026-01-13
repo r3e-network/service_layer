@@ -14,6 +14,11 @@ export {
   normalizeStatus,
   coerceMiniAppInfo,
   buildMiniAppEntryUrl,
+  getContractForChain,
+  isChainSupported,
+  getAllSupportedChains,
+  resolveChainIdForApp,
+  getEntryUrlForChain,
 } from "./normalize";
 
 // Builtin apps registry

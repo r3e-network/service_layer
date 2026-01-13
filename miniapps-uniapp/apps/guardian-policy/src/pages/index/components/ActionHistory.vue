@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="'📜 ' + t('actionHistory')" class="history-card">
+  <NeoCard :title="'📜 ' + t('actionHistory')" class="history-card" variant="erobo">
     <view v-for="action in actionHistory" :key="action.id" class="history-item">
       <view class="history-icon" :class="action.type">{{ getActionIcon(action.type) }}</view>
       <view class="history-content">
@@ -37,39 +37,40 @@ const getActionIcon = (type: string) => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .history-item {
   display: flex;
   align-items: center;
   gap: $space-4;
   padding: $space-4;
-  border-bottom: 2px solid var(--border-color, black);
-  background: var(--bg-card, white);
-  margin-bottom: $space-2;
-  box-shadow: 3px 3px 0 var(--shadow-color, black);
-  color: var(--text-primary, black);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: transparent;
+  color: white;
+  &:last-child { border-bottom: none; }
 }
 .history-icon {
-  width: 36px;
-  height: 36px;
-  border: 2px solid var(--border-color, black);
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  background: var(--bg-elevated, #eee);
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.05);
 }
 .history-action {
   font-size: 12px;
-  font-weight: $font-weight-black;
+  font-weight: 700;
   text-transform: uppercase;
+  color: white;
 }
 .history-time {
   font-size: 10px;
-  opacity: 0.6;
-  font-weight: $font-weight-black;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
   display: block;
 }
 </style>

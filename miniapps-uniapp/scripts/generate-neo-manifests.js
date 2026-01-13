@@ -63,7 +63,11 @@ function generateNeoManifest(appDir) {
     description_zh: `${manifest.name} - Neo 小程序`,
     category: config.category,
     status: "active",
-    contract_hash: null,
+    supported_chains: ["neo-n3-mainnet", "neo-n3-testnet"],
+    contracts: {
+      "neo-n3-mainnet": { address: null },
+      "neo-n3-testnet": { address: null },
+    },
     permissions: {
       payments: config.payments || false,
       governance: config.governance || false,

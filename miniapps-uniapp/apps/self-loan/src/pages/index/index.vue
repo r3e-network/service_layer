@@ -1,5 +1,17 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <view v-if="chainType === 'evm'" class="px-4 mb-4">
+      <NeoCard variant="danger">
+        <view class="flex flex-col items-center gap-2 py-1">
+          <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+          <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+          <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{
+            t("switchToNeo")
+          }}</NeoButton>
+        </view>
+      </NeoCard>
+    </view>
+
     <!-- Main Tab -->
     <view v-if="activeTab === 'main'" class="tab-content">
       <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
@@ -37,10 +49,10 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { useWallet } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
-import { AppLayout, NeoDoc, NeoCard } from "@/shared/components";
+import { AppLayout, NeoDoc, NeoCard, NeoButton } from "@/shared/components";
 import PositionSummary from "./components/PositionSummary.vue";
 import CollateralStatus from "./components/CollateralStatus.vue";
 import BorrowForm from "./components/BorrowForm.vue";
@@ -123,6 +135,18 @@ const translations = {
     en: "Repay on your own schedule with low fixed interest rates.",
     zh: "按自己的时间表还款，享受低固定利率。",
   },
+  wrongChain: { en: "Wrong Chain", zh: "链错误" },
+  wrongChainMessage: {
+    en: "This app requires Neo N3. Please switch networks.",
+    zh: "此应用需要 Neo N3 网络，请切换网络。",
+  },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
+  insufficientNeo: { en: "Insufficient NEO balance", zh: "NEO 余额不足" },
+  connectWallet: { en: "Please connect wallet", zh: "请连接钱包" },
+  repayLoan: { en: "Repay Loan", zh: "还款" },
+  repaying: { en: "Repaying...", zh: "还款中..." },
+  repaySuccess: { en: "Loan repaid successfully", zh: "还款成功" },
+  neoCollateral: { en: "NEO Collateral", zh: "NEO 抵押品" },
 };
 
 const t = createT(translations);
@@ -146,17 +170,13 @@ const docFeatures = computed(() => [
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 const APP_ID = "miniapp-self-loan";
-const { address, connect, getContractHash, invokeRead } = useWallet();
-const { payGAS, isLoading } = usePayments(APP_ID);
-const contractHash = ref<string | null>(null);
+const NEO_CONTRACT = "0xef4073a0f2b305a38ec4050e4d3d28bc40ea63f5";
+const GAS_CONTRACT = "0xd2a4cff31913016155e38e474a2c06d08be276cf";
+const SELF_LOAN_CONTRACT = "0xc56f33fc6ec47edbd594472833cf57505d5f99aa";
 
-const ensureContractHash = async () => {
-  if (!contractHash.value) {
-    contractHash.value = await getContractHash();
-  }
-  if (!contractHash.value) throw new Error(t("contractUnavailable"));
-  return contractHash.value;
-};
+const { address, connect, invokeContract, getBalance, chainType, switchChain } = useWallet() as any;
+const isLoading = ref(false);
+const neoBalance = ref(0);
 
 const terms = ref<Terms>({ maxBorrow: 5000, interestRate: 8.5, repaymentSchedule: "Monthly" });
 const loan = ref<Loan>({ borrowed: 0, collateralLocked: 0, nextPayment: 0, nextPaymentDue: "N/A" });
@@ -186,91 +206,109 @@ const collateralUtilization = computed(() => {
 
 const takeLoan = async (): Promise<void> => {
   if (isLoading.value) return;
-  const amount = parseFloat(loanAmount.value);
-  if (!(amount > 0 && amount <= terms.value.maxBorrow)) {
+  const borrowAmount = parseFloat(loanAmount.value);
+
+  // Validate borrow amount
+  if (!(borrowAmount > 0 && borrowAmount <= terms.value.maxBorrow)) {
     return void (status.value = {
       msg: t("enterAmount").replace("{max}", String(terms.value.maxBorrow)),
       type: "error",
     });
   }
 
-  const collateral = amount * 1.5;
+  // Calculate NEO collateral required (150% collateralization ratio)
+  // borrowAmount is in GAS, collateral is in NEO
+  const neoCollateral = Math.ceil(borrowAmount * 1.5);
 
+  // Check if user has enough NEO
+  if (neoCollateral > neoBalance.value) {
+    status.value = { msg: t("insufficientNeo"), type: "error" };
+    return;
+  }
+
+  isLoading.value = true;
   try {
-    // Lock collateral via smart contract
-    const result = await payGAS(collateral.toString(), `self-loan:collateral:${amount}`);
-    if (!result) {
-      status.value = { msg: t("paymentFailed"), type: "error" };
-      return;
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) {
+      throw new Error(t("connectWallet"));
     }
 
-    // Update loan state
-    loan.value.borrowed += amount;
-    loan.value.collateralLocked += collateral;
+    // Step 1: Lock NEO as collateral by transferring to Self Loan contract
+    await invokeContract({
+      scriptHash: NEO_CONTRACT,
+      operation: "transfer",
+      args: [
+        { type: "Hash160", value: address.value },
+        { type: "Hash160", value: SELF_LOAN_CONTRACT },
+        { type: "Integer", value: neoCollateral }, // NEO is indivisible
+        { type: "ByteArray", value: `loan:${borrowAmount}` }, // Memo with loan amount
+      ],
+    });
 
+    // Update loan state - user receives GAS loan against locked NEO
+    loan.value.borrowed += borrowAmount;
+    loan.value.collateralLocked += neoCollateral;
+    neoBalance.value -= neoCollateral;
+
+    // Update statistics
     stats.value.totalLoans++;
-    stats.value.totalBorrowed += amount;
+    stats.value.totalBorrowed += borrowAmount;
     loanHistory.value.unshift({
       icon: "💰",
-      amount,
+      amount: borrowAmount,
       timestamp: new Date().toLocaleTimeString(),
     });
     if (loanHistory.value.length > 10) loanHistory.value.pop();
 
-    status.value = { msg: t("loanApproved").replace("{amount}", fmt(amount, 2)), type: "success" };
+    status.value = { msg: t("loanApproved").replace("{amount}", fmt(borrowAmount, 2)), type: "success" };
     loanAmount.value = "";
-  } catch (e) {
-    status.value = { msg: t("paymentFailed"), type: "error" };
+  } catch (e: any) {
+    status.value = { msg: e?.message || t("paymentFailed"), type: "error" };
+  } finally {
+    isLoading.value = false;
   }
 };
 
-// Fetch user's loan data from smart contract
+// Fetch user's loan data and balances
 const fetchData = async () => {
-  if (!address.value) return;
-
   try {
-    const contract = await ensureContractHash();
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) return;
+
+    // Load NEO balance
+    const neo = await getBalance("NEO");
+    neoBalance.value = typeof neo === "string" ? parseFloat(neo) || 0 : typeof neo === "number" ? neo : 0;
+
+    // Get user's active loan from contract
     const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
     if (!sdk?.invoke) {
       console.warn("[SelfLoan] SDK not available");
       return;
     }
 
-    // Get total loans count from contract
-    const totalResult = await sdk.invoke("invokeRead", {
-      contract,
-      method: "TotalLoans",
-      args: [],
-    });
+    // Query user's loan position
+    const loanResult = (await sdk.invoke("invokeRead", {
+      contract: SELF_LOAN_CONTRACT,
+      method: "GetUserLoan",
+      args: [{ type: "Hash160", value: address.value }],
+    })) as any;
 
-    const totalLoans = parseInt(totalResult?.stack?.[0]?.value || "0");
+    if (loanResult?.stack?.[0]?.value) {
+      const loanData = loanResult.stack[0].value;
+      const collateral = parseInt(loanData?.collateral || "0");
+      const debt = parseInt(loanData?.debt || "0") / 1e8;
+      const accruedRewards = parseInt(loanData?.accruedRewards || "0") / 1e8;
 
-    // Find user's active loan
-    for (let i = 1; i <= totalLoans; i++) {
-      const loanResult = await sdk.invoke("invokeRead", {
-        contract,
-        method: "GetLoan",
-        args: [{ type: "Integer", value: i.toString() }],
-      });
-
-      if (loanResult?.stack?.[0]) {
-        const loanData = loanResult.stack[0].value;
-        const borrower = loanData?.borrower;
-        const isActive = loanData?.active === true;
-
-        if (borrower === address.value && isActive) {
-          const collateral = parseInt(loanData?.collateral || "0");
-          const debt = parseInt(loanData?.debt || "0") / 1e8;
-
-          loan.value = {
-            borrowed: debt,
-            collateralLocked: collateral,
-            nextPayment: debt * 0.1,
-            nextPaymentDue: "Monthly",
-          };
-          break;
-        }
-      }
+      loan.value = {
+        borrowed: debt,
+        collateralLocked: collateral,
+        nextPayment: Math.max(0, debt - accruedRewards) * 0.1,
+        nextPaymentDue: debt > 0 ? "Monthly" : "N/A",
+      };
     }
   } catch (e) {
     console.warn("[SelfLoan] Failed to fetch data:", e);
@@ -283,8 +321,8 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: $space-3;

@@ -9,8 +9,20 @@
       "icon": "/miniapps/lottery/static/icon.svg",
       "entry_url": "/miniapps/lottery/index.html",
       "status": "active",
-      "contract_hash": "0x3e330b4c396b40aa08d49912c0179319831b3a6e",
-      "permissions": { "payments": true, "randomness": true, "automation": true }
+      "permissions": {
+        "payments": true,
+        "automation": true,
+        "rng": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0x3e330b4c396b40aa08d49912c0179319831b3a6e",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-coinflip",
@@ -21,8 +33,19 @@
       "icon": "/miniapps/coin-flip/static/icon.svg",
       "entry_url": "/miniapps/coin-flip/index.html",
       "status": "active",
-      "contract_hash": "0xbd4c9203495048900e34cd9c4618c05994e86cc0",
-      "permissions": { "payments": true, "randomness": true }
+      "permissions": {
+        "payments": true,
+        "rng": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0xbd4c9203495048900e34cd9c4618c05994e86cc0",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-dicegame",
@@ -33,8 +56,19 @@
       "icon": "/miniapps/dice-game/static/icon.svg",
       "entry_url": "/miniapps/dice-game/index.html",
       "status": "active",
-      "contract_hash": "0xfacff9abd201dca86e6a63acfb5d60da278da8ea",
-      "permissions": { "payments": true, "randomness": true }
+      "permissions": {
+        "payments": true,
+        "rng": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0xfacff9abd201dca86e6a63acfb5d60da278da8ea",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-scratchcard",
@@ -45,8 +79,19 @@
       "icon": "/miniapps/scratch-card/static/icon.svg",
       "entry_url": "/miniapps/scratch-card/index.html",
       "status": "active",
-      "contract_hash": "0x2674ef3b4d8c006201d1e7e473316592f6cde5f2",
-      "permissions": { "payments": true, "randomness": true }
+      "permissions": {
+        "payments": true,
+        "rng": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0x2674ef3b4d8c006201d1e7e473316592f6cde5f2",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-secretpoker",
@@ -57,8 +102,19 @@
       "icon": "/miniapps/secret-poker/static/icon.svg",
       "entry_url": "/miniapps/secret-poker/index.html",
       "status": "active",
-      "contract_hash": "0xa27348cc0a79c776699a028244250b4f3d6bbe0c",
-      "permissions": { "payments": true, "randomness": true }
+      "permissions": {
+        "payments": true,
+        "rng": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0xa27348cc0a79c776699a028244250b4f3d6bbe0c",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-neo-crash",
@@ -69,8 +125,19 @@
       "icon": "/miniapps/neo-crash/static/icon.svg",
       "entry_url": "/miniapps/neo-crash/index.html",
       "status": "active",
-      "contract_hash": "0x2e594e12b2896c135c3c8c80dbf2317fa56ceead",
-      "permissions": { "payments": true, "randomness": true }
+      "permissions": {
+        "payments": true,
+        "rng": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0x2e594e12b2896c135c3c8c80dbf2317fa56ceead",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-cryptoriddle",
@@ -81,8 +148,18 @@
       "icon": "/miniapps/crypto-riddle/static/icon.svg",
       "entry_url": "/miniapps/crypto-riddle/index.html",
       "status": "active",
-      "contract_hash": "0x35718d58fff23aed609df196d7954cbeb8ac3d7c",
-      "permissions": { "payments": true }
+      "permissions": {
+        "payments": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0x35718d58fff23aed609df196d7954cbeb8ac3d7c",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-millionpiecemap",
@@ -93,8 +170,18 @@
       "icon": "/miniapps/million-piece-map/static/icon.svg",
       "entry_url": "/miniapps/million-piece-map/index.html",
       "status": "active",
-      "contract_hash": "0xdf787aaf8a70dd2612521de69f12c7bf5a8d0d6d",
-      "permissions": { "payments": true }
+      "permissions": {
+        "payments": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0xdf787aaf8a70dd2612521de69f12c7bf5a8d0d6d",
+          "active": true
+        }
+      }
     }
   ],
   "defi": [
@@ -107,7 +194,12 @@
       "icon": "/miniapps/neo-swap/static/icon.svg",
       "entry_url": "/miniapps/neo-swap/index.html",
       "status": "active",
-      "permissions": { "payments": true }
+      "permissions": {
+        "payments": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ]
     },
     {
       "app_id": "miniapp-flashloan",
@@ -118,8 +210,18 @@
       "icon": "/miniapps/flashloan/static/icon.svg",
       "entry_url": "/miniapps/flashloan/index.html",
       "status": "active",
-      "contract_hash": "0xee51e5b399f7727267b7d296ff34ec6bb9283131",
-      "permissions": { "payments": true }
+      "permissions": {
+        "payments": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0xee51e5b399f7727267b7d296ff34ec6bb9283131",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-compound-capsule",
@@ -130,8 +232,19 @@
       "icon": "/miniapps/compound-capsule/static/icon.svg",
       "entry_url": "/miniapps/compound-capsule/index.html",
       "status": "active",
-      "contract_hash": "0xba302bebace6c2bd0f610228b56bd3d3de07dbd7",
-      "permissions": { "payments": true, "automation": true }
+      "permissions": {
+        "payments": true,
+        "automation": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0xba302bebace6c2bd0f610228b56bd3d3de07dbd7",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-self-loan",
@@ -142,8 +255,18 @@
       "icon": "/miniapps/self-loan/static/icon.svg",
       "entry_url": "/miniapps/self-loan/index.html",
       "status": "active",
-      "contract_hash": "0x5ed7d8c85f24f4aa16b328aca776e09be5241296",
-      "permissions": { "payments": true }
+      "permissions": {
+        "payments": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0x5ed7d8c85f24f4aa16b328aca776e09be5241296",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-neoburger",
@@ -154,7 +277,12 @@
       "icon": "/miniapps/neoburger/static/icon.svg",
       "entry_url": "/miniapps/neoburger/index.html",
       "status": "active",
-      "permissions": { "payments": true }
+      "permissions": {
+        "payments": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ]
     },
     {
       "app_id": "miniapp-gassponsor",
@@ -165,7 +293,12 @@
       "icon": "/miniapps/gas-sponsor/static/icon.svg",
       "entry_url": "/miniapps/gas-sponsor/index.html",
       "status": "active",
-      "permissions": { "payments": true }
+      "permissions": {
+        "payments": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ]
     }
   ],
   "social": [
@@ -178,7 +311,12 @@
       "icon": "/miniapps/grant-share/static/icon.svg",
       "entry_url": "/miniapps/grant-share/index.html",
       "status": "active",
-      "permissions": { "payments": true }
+      "permissions": {
+        "payments": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ]
     },
     {
       "app_id": "miniapp-redenvelope",
@@ -189,8 +327,19 @@
       "icon": "/miniapps/red-envelope/static/icon.svg",
       "entry_url": "/miniapps/red-envelope/index.html",
       "status": "active",
-      "contract_hash": "0xf2649c2b6312d8c7b4982c0c597c9772a2595b1e",
-      "permissions": { "payments": true, "randomness": true }
+      "permissions": {
+        "payments": true,
+        "rng": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0xf2649c2b6312d8c7b4982c0c597c9772a2595b1e",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-dev-tipping",
@@ -201,8 +350,18 @@
       "icon": "/miniapps/dev-tipping/static/icon.svg",
       "entry_url": "/miniapps/dev-tipping/index.html",
       "status": "active",
-      "contract_hash": "0x38ec54ce12e9cbf041cc7e31534eccae0eaa38dc",
-      "permissions": { "payments": true }
+      "permissions": {
+        "payments": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0x38ec54ce12e9cbf041cc7e31534eccae0eaa38dc",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-breakupcontract",
@@ -213,8 +372,18 @@
       "icon": "/miniapps/breakup-contract/static/icon.svg",
       "entry_url": "/miniapps/breakup-contract/index.html",
       "status": "active",
-      "contract_hash": "0x84a3864028b7b71e9f420056e1eae2e3e3113a0c",
-      "permissions": { "payments": true }
+      "permissions": {
+        "payments": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0x84a3864028b7b71e9f420056e1eae2e3e3113a0c",
+          "active": true
+        }
+      }
     }
   ],
   "nft": [
@@ -227,8 +396,18 @@
       "icon": "/miniapps/canvas/static/icon.svg",
       "entry_url": "/miniapps/canvas/index.html",
       "status": "active",
-      "contract_hash": "0x53f9c7b86fa2f8336839ef5073d964d644cbb46c",
-      "permissions": { "payments": true }
+      "permissions": {
+        "payments": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0x53f9c7b86fa2f8336839ef5073d964d644cbb46c",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-onchaintarot",
@@ -239,8 +418,19 @@
       "icon": "/miniapps/on-chain-tarot/static/icon.svg",
       "entry_url": "/miniapps/on-chain-tarot/index.html",
       "status": "active",
-      "contract_hash": "0xc2bb26d21f357f125a0e49cbca7718b6aa5c3b1e",
-      "permissions": { "payments": true, "randomness": true }
+      "permissions": {
+        "payments": true,
+        "rng": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0xc2bb26d21f357f125a0e49cbca7718b6aa5c3b1e",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-time-capsule",
@@ -251,8 +441,19 @@
       "icon": "/miniapps/time-capsule/static/icon.svg",
       "entry_url": "/miniapps/time-capsule/index.html",
       "status": "active",
-      "contract_hash": "0x119763e1402d7190728191d83c95c5b8e995abcd",
-      "permissions": { "payments": true, "automation": true }
+      "permissions": {
+        "payments": true,
+        "automation": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0x119763e1402d7190728191d83c95c5b8e995abcd",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-heritage-trust",
@@ -263,8 +464,19 @@
       "icon": "/miniapps/heritage-trust/static/icon.svg",
       "entry_url": "/miniapps/heritage-trust/index.html",
       "status": "active",
-      "contract_hash": "0xd59eea851cd8e5dd57efe80646ff53fa274600f8",
-      "permissions": { "payments": true, "automation": true }
+      "permissions": {
+        "payments": true,
+        "automation": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0xd59eea851cd8e5dd57efe80646ff53fa274600f8",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-garden-of-neo",
@@ -275,8 +487,19 @@
       "icon": "/miniapps/garden-of-neo/static/icon.svg",
       "entry_url": "/miniapps/garden-of-neo/index.html",
       "status": "active",
-      "contract_hash": "0xdb52b284d97973b01fed431dd6d143a4d04d9fa7",
-      "permissions": { "payments": true, "automation": true }
+      "permissions": {
+        "payments": true,
+        "automation": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0xdb52b284d97973b01fed431dd6d143a4d04d9fa7",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-graveyard",
@@ -287,8 +510,18 @@
       "icon": "/miniapps/graveyard/static/icon.svg",
       "entry_url": "/miniapps/graveyard/index.html",
       "status": "active",
-      "contract_hash": "0xe88938b2c2032483cf5edcdab7e4bde981e5fb24",
-      "permissions": { "payments": true }
+      "permissions": {
+        "payments": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0xe88938b2c2032483cf5edcdab7e4bde981e5fb24",
+          "active": true
+        }
+      }
     }
   ],
   "governance": [
@@ -301,8 +534,19 @@
       "icon": "/miniapps/gov-booster/static/icon.svg",
       "entry_url": "/miniapps/gov-booster/index.html",
       "status": "active",
-      "contract_hash": "0xebabd9712f985afc0e5a4e24ed2fc4acb874796f",
-      "permissions": { "governance": true, "payments": true }
+      "permissions": {
+        "governance": true,
+        "payments": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0xebabd9712f985afc0e5a4e24ed2fc4acb874796f",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-burn-league",
@@ -313,8 +557,18 @@
       "icon": "/miniapps/burn-league/static/icon.svg",
       "entry_url": "/miniapps/burn-league/index.html",
       "status": "active",
-      "contract_hash": "0xf1aa73e2fb00664e8ef100dac083fc42be6aaf85",
-      "permissions": { "payments": true }
+      "permissions": {
+        "payments": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0xf1aa73e2fb00664e8ef100dac083fc42be6aaf85",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-doomsday-clock",
@@ -325,8 +579,19 @@
       "icon": "/miniapps/doomsday-clock/static/icon.svg",
       "entry_url": "/miniapps/doomsday-clock/index.html",
       "status": "active",
-      "contract_hash": "0xe4f386057d6308b83a5fd2e84bc3eb9149adc719",
-      "permissions": { "payments": true, "automation": true }
+      "permissions": {
+        "payments": true,
+        "automation": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0xe4f386057d6308b83a5fd2e84bc3eb9149adc719",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-masqueradedao",
@@ -337,8 +602,18 @@
       "icon": "/miniapps/masquerade-dao/static/icon.svg",
       "entry_url": "/miniapps/masquerade-dao/index.html",
       "status": "active",
-      "contract_hash": "0x36873ae952147150e065ad2ba8d23731ffd00d5a",
-      "permissions": { "governance": true }
+      "permissions": {
+        "governance": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0x36873ae952147150e065ad2ba8d23731ffd00d5a",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-gov-merc",
@@ -349,8 +624,19 @@
       "icon": "/miniapps/gov-merc/static/icon.svg",
       "entry_url": "/miniapps/gov-merc/index.html",
       "status": "active",
-      "contract_hash": "0x05d4ed2e60141043d6d20f5cde274704bd42c0dc",
-      "permissions": { "governance": true, "payments": true }
+      "permissions": {
+        "governance": true,
+        "payments": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0x05d4ed2e60141043d6d20f5cde274704bd42c0dc",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-candidate-vote",
@@ -361,7 +647,13 @@
       "icon": "/miniapps/candidate-vote/static/icon.svg",
       "entry_url": "/miniapps/candidate-vote/index.html",
       "status": "active",
-      "permissions": { "governance": true, "payments": true }
+      "permissions": {
+        "governance": true,
+        "payments": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ]
     },
     {
       "app_id": "miniapp-council-governance",
@@ -372,7 +664,13 @@
       "icon": "/miniapps/council-governance/static/icon.svg",
       "entry_url": "/miniapps/council-governance/index.html",
       "status": "active",
-      "permissions": { "governance": true, "payments": true }
+      "permissions": {
+        "governance": true,
+        "payments": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ]
     }
   ],
   "utility": [
@@ -385,7 +683,12 @@
       "icon": "/miniapps/neo-ns/static/icon.svg",
       "entry_url": "/miniapps/neo-ns/index.html",
       "status": "active",
-      "permissions": { "payments": true }
+      "permissions": {
+        "payments": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ]
     },
     {
       "app_id": "miniapp-explorer",
@@ -396,7 +699,12 @@
       "icon": "/miniapps/explorer/static/icon.svg",
       "entry_url": "/miniapps/explorer/index.html",
       "status": "active",
-      "permissions": { "datafeed": true }
+      "permissions": {
+        "datafeed": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ]
     },
     {
       "app_id": "miniapp-guardianpolicy",
@@ -407,8 +715,18 @@
       "icon": "/miniapps/guardian-policy/static/icon.svg",
       "entry_url": "/miniapps/guardian-policy/index.html",
       "status": "active",
-      "contract_hash": "0x893a774957244b83a0efed1d42771fe1e424cfec",
-      "permissions": { "payments": true }
+      "permissions": {
+        "payments": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0x893a774957244b83a0efed1d42771fe1e424cfec",
+          "active": true
+        }
+      }
     },
     {
       "app_id": "miniapp-unbreakablevault",
@@ -419,8 +737,18 @@
       "icon": "/miniapps/unbreakable-vault/static/icon.svg",
       "entry_url": "/miniapps/unbreakable-vault/index.html",
       "status": "active",
-      "contract_hash": "0xb60bf51f7fc9b7e0beeabfde0765d8ec9b895dd4",
-      "permissions": { "payments": true }
+      "permissions": {
+        "payments": true
+      },
+      "supportedChains": [
+        "neo-n3-mainnet"
+      ],
+      "chainContracts": {
+        "neo-n3-mainnet": {
+          "address": "0xb60bf51f7fc9b7e0beeabfde0765d8ec9b895dd4",
+          "active": true
+        }
+      }
     }
   ]
 }

@@ -1,27 +1,27 @@
 <template>
-  <NeoCard>
+  <NeoCard variant="erobo-neo">
     <view class="stats-grid">
-      <NeoCard class="flex-1 text-center">
-        <text class="stat-value">{{ formatNum(totalPot) }}</text>
-        <text class="stat-label">{{ t("totalPot") }}</text>
-      </NeoCard>
-      <NeoCard class="flex-1 text-center">
-        <text class="stat-value">{{ userKeys }}</text>
-        <text class="stat-label">{{ t("yourKeys") }}</text>
-      </NeoCard>
-      <NeoCard class="flex-1 text-center">
-        <text class="stat-value">#{{ roundId }}</text>
-        <text class="stat-label">{{ t("round") }}</text>
-      </NeoCard>
+      <view class="stat-box-glass">
+        <text class="stat-value-glass">{{ formatNum(totalPot) }}</text>
+        <text class="stat-label-glass">{{ t("totalPot") }}</text>
+      </view>
+      <view class="stat-box-glass">
+        <text class="stat-value-glass">{{ userKeys }}</text>
+        <text class="stat-label-glass">{{ t("yourKeys") }}</text>
+      </view>
+      <view class="stat-box-glass">
+        <text class="stat-value-glass">#{{ roundId }}</text>
+        <text class="stat-label-glass">{{ t("round") }}</text>
+      </view>
     </view>
     <view class="stats-subgrid">
-      <view class="stat-row">
-        <text class="stat-row-label">{{ t("lastBuyer") }}</text>
-        <text class="stat-row-value">{{ lastBuyerLabel }}</text>
+      <view class="stat-row-glass">
+        <text class="stat-row-label-glass">{{ t("lastBuyer") }}</text>
+        <text class="stat-row-value-glass">{{ lastBuyerLabel }}</text>
       </view>
-      <view class="stat-row">
-        <text class="stat-row-label">{{ t("roundStatus") }}</text>
-        <text class="stat-row-value" :class="{ active: isRoundActive }">
+      <view class="stat-row-glass">
+        <text class="stat-row-label-glass">{{ t("roundStatus") }}</text>
+        <text class="stat-row-value-glass" :class="{ active: isRoundActive }">
           {{ isRoundActive ? t("activeRound") : t("inactiveRound") }}
         </text>
       </view>
@@ -48,27 +48,39 @@ const formatNum = (n: number) => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: $space-4;
 }
-.stat-value {
+
+.stat-box-glass {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: $space-3;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.stat-value-glass {
   font-size: 18px;
-  font-weight: $font-weight-black;
+  font-weight: $font-weight-bold;
   font-family: $font-mono;
   display: block;
-  border-bottom: 3px solid black;
+  color: white;
   margin-bottom: 4px;
 }
-.stat-label {
+.stat-label-glass {
   font-size: 10px;
-  font-weight: $font-weight-black;
+  font-weight: $font-weight-bold;
   text-transform: uppercase;
-  opacity: 0.6;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .stats-subgrid {
@@ -77,26 +89,28 @@ const formatNum = (n: number) => {
   flex-direction: column;
   gap: $space-3;
 }
-.stat-row {
+.stat-row-glass {
   display: flex;
   justify-content: space-between;
   padding: $space-3;
-  background: var(--bg-card, white);
-  border: 2px solid var(--border-color, black);
-  box-shadow: 4px 4px 0 var(--shadow-color, black);
-  color: var(--text-primary, black);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
 }
-.stat-row-label {
+.stat-row-label-glass {
   font-size: 10px;
-  font-weight: $font-weight-black;
+  font-weight: $font-weight-bold;
   text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
 }
-.stat-row-value {
+.stat-row-value-glass {
   font-size: 12px;
-  font-weight: $font-weight-black;
+  font-weight: $font-weight-medium;
   font-family: $font-mono;
+  color: rgba(255, 255, 255, 0.9);
   &.active {
-    color: var(--neo-green);
+    color: #34d399;
+    text-shadow: 0 0 5px rgba(52, 211, 153, 0.5);
   }
 }
 </style>

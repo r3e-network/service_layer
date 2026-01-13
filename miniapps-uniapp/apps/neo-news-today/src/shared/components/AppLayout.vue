@@ -54,7 +54,8 @@ const safeActiveTab = computed(() => (props.activeTab as string) || '');
 </script>
 
 <style lang="scss">
-@import "@/shared/styles/theme.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/theme.scss" as *;
 
 // Global reset
 :global(*) {

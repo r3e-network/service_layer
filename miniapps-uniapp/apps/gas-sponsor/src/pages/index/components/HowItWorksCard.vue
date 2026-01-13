@@ -28,8 +28,8 @@ defineProps<{
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .help-item { display: flex; align-items: center; gap: $space-3; padding: $space-2 0; }
 .help-num {

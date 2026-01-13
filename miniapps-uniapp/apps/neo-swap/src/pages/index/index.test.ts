@@ -218,7 +218,7 @@ describe("Neo Swap - Token Exchange", () => {
       const minAmountOut = 995000000; // 9.95 GAS with slippage
 
       await invokeContract({
-        scriptHash: "0xf970f4ccecd765b63732b821775dc38c25d74f23",
+        contractAddress: "0xf970f4ccecd765b63732b821775dc38c25d74f23",
         operation: "swap",
         args: [
           { type: "Hash160", value: address },
@@ -231,7 +231,7 @@ describe("Neo Swap - Token Exchange", () => {
 
       expect(invokeContract).toHaveBeenCalledWith(
         expect.objectContaining({
-          scriptHash: "0xf970f4ccecd765b63732b821775dc38c25d74f23",
+          contractAddress: "0xf970f4ccecd765b63732b821775dc38c25d74f23",
           operation: "swap",
         }),
       );

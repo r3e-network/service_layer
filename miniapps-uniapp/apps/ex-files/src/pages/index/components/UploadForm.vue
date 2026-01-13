@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('uploadMemory')">
+  <NeoCard :title="t('uploadMemory')" variant="erobo-neo">
     <template #header-extra>
       <text class="upload-icon">📤</text>
     </template>
@@ -14,7 +14,9 @@
       type="textarea"
       class="mb-2"
     />
-    <text class="hash-note text-[10px] font-bold uppercase opacity-60 mb-6 block">{{ t("hashNote") }}</text>
+    <view class="hash-note-glass mb-6">
+      <text class="hash-note-text">🔒 {{ t("hashNote") }}</text>
+    </view>
 
     <NeoInput
       :modelValue="recordRating"
@@ -47,26 +49,38 @@ defineEmits(["update:recordContent", "update:recordRating", "create"]);
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
+
+.upload-icon {
+  font-size: 20px;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
 
 .upload-subtitle {
-  font-size: 12px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  opacity: 0.6;
-  margin-bottom: $space-6;
-  display: block;
-  border-left: 4px solid black;
-  padding-left: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-left: 2px solid #00E599;
+  padding-left: 12px;
+  text-align: left !important;
+  background: rgba(0, 229, 153, 0.05);
+  padding: 8px 12px;
+  border-radius: 0 8px 8px 0;
 }
-.hash-note {
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  opacity: 0.8;
-  background: var(--bg-elevated, #eee);
-  padding: 4px 8px;
-  border: 1px solid var(--border-color, black);
-  color: var(--text-primary, black);
+
+.hash-note-glass {
+  background: rgba(159, 157, 243, 0.1);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(159, 157, 243, 0.2);
+}
+
+.hash-note-text {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #9f9df3;
+  letter-spacing: 0.05em;
 }
 </style>

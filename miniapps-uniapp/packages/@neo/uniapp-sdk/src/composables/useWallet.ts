@@ -3,7 +3,7 @@
  * Provides wallet connection, balance, and transaction management
  */
 import { ref, onMounted, onUnmounted } from "vue";
-import { getSDKSync, waitForSDK, subscribeToWalletState, getWalletState } from "../bridge";
+import { getSDKSync, waitForSDK, subscribeToWalletState, getWalletState, type HostWalletState } from "../bridge";
 import { apiGet } from "../api";
 
 export interface RequireConnectionOptions {
@@ -14,8 +14,6 @@ export interface RequireConnectionOptions {
 }
 
 export interface WalletBalances {
-  GAS: string;
-  NEO: string;
   [key: string]: string;
 }
 
@@ -31,12 +29,45 @@ export interface WalletTransaction {
 
 export function useWallet() {
   const address = ref<string | null>(null);
-  const balances = ref<WalletBalances>({ GAS: "0", NEO: "0" });
+  const balances = ref<WalletBalances>({});
+  const chainId = ref<string | null>(null);
+  const chainType = ref<string | null>(null);
   const isConnected = ref(false);
   const isLoading = ref(false);
   const error = ref<Error | null>(null);
   const showConnectionPrompt = ref(false);
   const connectionPromptMessage = ref<string | null>(null);
+
+  const normalizeBalances = (state: HostWalletState | null): WalletBalances => {
+    if (!state) return {};
+    if (state.balances && Object.keys(state.balances).length > 0) {
+      return { ...state.balances };
+    }
+    if (state.balance) {
+      const out: WalletBalances = {};
+      const nativeSymbol = state.balance.nativeSymbol || (state.chainType === "neo-n3" ? "GAS" : "NATIVE");
+      out[nativeSymbol] = state.balance.native || "0";
+      if (state.balance.governance || state.balance.governanceSymbol) {
+        const governanceSymbol = state.balance.governanceSymbol || (state.chainType === "neo-n3" ? "NEO" : "GOV");
+        out[governanceSymbol] = state.balance.governance || "0";
+      }
+      return out;
+    }
+    return {};
+  };
+
+  const applyHostState = (state: HostWalletState) => {
+    if (state.connected && state.address) {
+      address.value = state.address;
+      isConnected.value = true;
+    } else {
+      address.value = null;
+      isConnected.value = false;
+    }
+    chainId.value = state.chainId ?? null;
+    chainType.value = state.chainType ?? null;
+    balances.value = normalizeBalances(state);
+  };
 
   const connect = async () => {
     isLoading.value = true;
@@ -45,6 +76,9 @@ export function useWallet() {
       const sdk = await waitForSDK();
       address.value = await sdk.wallet.getAddress();
       isConnected.value = true;
+      const config = sdk.getConfig?.();
+      chainId.value = config?.chainId ?? null;
+      chainType.value = config?.chainType ?? null;
     } catch (e) {
       error.value = e as Error;
     } finally {
@@ -60,33 +94,94 @@ export function useWallet() {
     return sdk.wallet.invokeIntent(requestId);
   };
 
-  const invokeContract = async (params: { scriptHash: string; operation: string; args: any[] }) => {
+  const invokeContract = async (params: {
+    contractAddress?: string;
+    scriptHash?: string;
+    contractHash?: string;
+    method?: string;
+    operation?: string;
+    args: any[];
+  }) => {
     const sdk = await waitForSDK();
+    const config = sdk.getConfig?.();
+    const contractAddress = params.contractAddress || params.scriptHash || params.contractHash;
+    const method = params.method || params.operation;
+    if (!contractAddress || !method) {
+      throw new Error("contract address and method required");
+    }
     // Use the generic invoke method path
     return sdk.invoke("invokeFunction", {
-      contract: params.scriptHash,
-      method: params.operation,
+      contract: contractAddress,
+      method,
       args: params.args,
+      chainId: config?.chainId,
+      chainType: config?.chainType,
     });
   };
 
-  const invokeRead = async (params: { contractHash?: string; operation: string; args?: any[]; network?: string }) => {
+  const invokeRead = async (params: {
+    contractAddress?: string;
+    scriptHash?: string;
+    contractHash?: string;
+    method?: string;
+    operation?: string;
+    args?: any[];
+    chainId?: string;
+    chainType?: string;
+  }) => {
     const sdk = await waitForSDK();
-    const contractHash = params.contractHash || sdk.getConfig?.().contractHash;
-    if (!contractHash) {
-      throw new Error("contract hash not configured");
+    const config = sdk.getConfig?.();
+    const contractAddress =
+      params.contractAddress || params.scriptHash || params.contractHash || config?.contractAddress;
+    const method = params.method || params.operation;
+    if (!contractAddress) {
+      throw new Error("contract address not configured");
+    }
+    if (!method) {
+      throw new Error("method required");
     }
     return sdk.invoke("invokeRead", {
-      contract: contractHash,
-      method: params.operation,
+      contract: contractAddress,
+      method,
       args: params.args || [],
-      network: params.network,
+      chainId: params.chainId || config?.chainId,
+      chainType: params.chainType || config?.chainType,
     });
   };
 
-  const getContractHash = async () => {
+  const getContractAddress = async () => {
     const sdk = await waitForSDK();
-    return sdk.getConfig?.().contractHash ?? null;
+    const local = sdk.getConfig?.();
+    if (local?.contractAddress) return local.contractAddress;
+    if (local?.chainId && local?.chainContracts?.[local.chainId]?.address) {
+      return local.chainContracts[local.chainId].address || null;
+    }
+    if (sdk.invoke) {
+      try {
+        const remote = (await sdk.invoke("getConfig")) as
+          | { contractAddress?: string | null; chainId?: string | null; chainContracts?: Record<string, any> }
+          | undefined;
+        if (remote?.contractAddress) return remote.contractAddress;
+        if (remote?.chainId && remote?.chainContracts?.[remote.chainId]?.address) {
+          return remote.chainContracts[remote.chainId].address || null;
+        }
+      } catch {
+        // Ignore and fall through to null
+      }
+    }
+    return null;
+  };
+
+  const switchChain = async (targetChainId: string) => {
+    const sdk = await waitForSDK();
+    if (sdk.wallet.switchChain) {
+      await sdk.wallet.switchChain(targetChainId);
+      // Optimistically update state or wait for event?
+      // Event listener will update state.
+      chainId.value = targetChainId;
+    } else {
+      throw new Error("switchChain not supported by SDK");
+    }
   };
 
   const getAddress = async () => {
@@ -98,9 +193,13 @@ export function useWallet() {
     isLoading.value = true;
     error.value = null;
     try {
-      const data = await apiGet<{ balances: WalletBalances }>("/wallet-balance");
+      const sdk = await waitForSDK();
+      const config = sdk.getConfig?.();
+      const activeChainId = config?.chainId || chainId.value;
+      const query = activeChainId ? `?chain_id=${encodeURIComponent(activeChainId)}` : "";
+      const data = await apiGet<{ balances: WalletBalances }>(`/wallet-balance${query}`);
       // Safely handle missing or invalid balances
-      const safeBalances = data?.balances ?? { GAS: "0", NEO: "0" };
+      const safeBalances = data?.balances ?? {};
       balances.value = safeBalances;
 
       if (token) {
@@ -121,7 +220,12 @@ export function useWallet() {
     try {
       // Validate limit parameter
       const validLimit = Number.isNaN(limit) || limit < 1 ? 20 : Math.min(limit, 100);
-      const data = await apiGet<{ transactions: WalletTransaction[] }>(`/wallet-transactions?limit=${validLimit}`);
+      const sdk = await waitForSDK();
+      const config = sdk.getConfig?.();
+      const activeChainId = config?.chainId || chainId.value;
+      const params = new URLSearchParams({ limit: String(validLimit) });
+      if (activeChainId) params.set("chain_id", activeChainId);
+      const data = await apiGet<{ transactions: WalletTransaction[] }>(`/wallet-transactions?${params.toString()}`);
       return data.transactions;
     } catch (e) {
       error.value = e as Error;
@@ -171,33 +275,11 @@ export function useWallet() {
   onMounted(() => {
     // First, check host wallet state (from postMessage)
     const hostState = getWalletState();
-    if (hostState.connected && hostState.address) {
-      address.value = hostState.address;
-      isConnected.value = true;
-      if (hostState.balance) {
-        balances.value = {
-          GAS: hostState.balance.gas || "0",
-          NEO: hostState.balance.neo || "0",
-        };
-      }
-    }
+    applyHostState(hostState);
 
     // Subscribe to wallet state changes from host
     unsubscribeWalletState = subscribeToWalletState((state) => {
-      if (state.connected && state.address) {
-        address.value = state.address;
-        isConnected.value = true;
-        if (state.balance) {
-          balances.value = {
-            GAS: state.balance.gas || "0",
-            NEO: state.balance.neo || "0",
-          };
-        }
-      } else {
-        address.value = null;
-        isConnected.value = false;
-        balances.value = { GAS: "0", NEO: "0" };
-      }
+      applyHostState(state);
     });
 
     // Fallback: try SDK directly (only if not already connected via host state)
@@ -212,10 +294,13 @@ export function useWallet() {
           if (!wasConnectedBefore && !isConnected.value) {
             address.value = addr;
             isConnected.value = true;
+            const config = sdk.getConfig?.();
+            chainId.value = config?.chainId ?? null;
+            chainType.value = config?.chainType ?? null;
           }
         })
         .catch((e) => {
-          console.debug("[Neo SDK] Fallback wallet connection failed:", e?.message || e);
+          console.debug("[MiniApp SDK] Fallback wallet connection failed:", e?.message || e);
         });
     }
   });
@@ -229,6 +314,8 @@ export function useWallet() {
   return {
     // State
     address,
+    chainId,
+    chainType,
     balances,
     isConnected,
     isLoading,
@@ -240,8 +327,9 @@ export function useWallet() {
     invokeIntent,
     invokeContract,
     invokeRead,
-    getContractHash,
+    getContractAddress,
     getAddress,
+    switchChain,
     getBalance,
     getTransactions,
     // Connection management

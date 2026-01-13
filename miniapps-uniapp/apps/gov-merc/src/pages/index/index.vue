@@ -2,15 +2,25 @@
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <!-- Rent Tab -->
     <view v-if="activeTab === 'rent'" class="tab-content">
+      <view v-if="chainType === 'evm'" class="mb-4">
+        <NeoCard variant="danger">
+          <view class="flex flex-col items-center gap-2 py-1">
+            <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+            <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+            <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{ t("switchToNeo") }}</NeoButton>
+          </view>
+        </NeoCard>
+      </view>
+
       <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
-        <text class="status-text font-bold uppercase">{{ status.msg }}</text>
+        <text class="status-text font-bold uppercase tracking-wider">{{ status.msg }}</text>
       </NeoCard>
 
-      <NeoCard :title="t('yourDelegations')" variant="accent" class="mb-6">
+      <NeoCard :title="t('yourDelegations')" variant="erobo-neo" class="mb-6">
         <NeoStats :stats="rentStats" />
       </NeoCard>
 
-      <NeoCard title="Rent Out Your Votes" class="mb-6">
+      <NeoCard title="Rent Out Your Votes" class="mb-6" variant="erobo">
         <view class="form-group-neo">
           <NeoInput
             v-model="rentAmount"
@@ -50,6 +60,15 @@
 
     <!-- Market Tab -->
     <view v-if="activeTab === 'market'" class="tab-content">
+      <view v-if="chainType === 'evm'" class="mb-4">
+        <NeoCard variant="danger">
+          <view class="flex flex-col items-center gap-2 py-1">
+            <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+            <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+            <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{ t("switchToNeo") }}</NeoButton>
+          </view>
+        </NeoCard>
+      </view>
       <text class="section-title-neo mb-4 font-bold uppercase">{{ t("availableMercs") }}</text>
       <view class="delegates-list">
         <text v-if="delegates.length === 0" class="empty-neo text-center p-8 opacity-60 uppercase font-bold">{{
@@ -58,12 +77,12 @@
         <NeoCard
           v-for="(d, i) in delegates"
           :key="i"
-          :variant="d.tier === 'elite' ? 'warning' : 'default'"
+          variant="erobo"
           class="mb-6"
         >
           <template #header-extra v-if="d.tier === 'elite'">
             <text
-              class="elite-badge-neo bg-black text-warning text-xs font-black px-2 py-1 border border-black shadow-neo"
+              class="elite-badge-neo bg-black text-warning text-xs font-black px-2 py-1 border border-black shadow-neo glass-badge"
               >ELITE</text
             >
           </template>
@@ -77,7 +96,7 @@
             </view>
             <view class="delegate-info-neo">
               <text class="delegate-name-neo font-black text-lg uppercase block">{{ d.name }}</text>
-              <text class="delegate-address-neo font-mono text-xs opacity-60 block">{{ d.address }}</text>
+              <text class="delegate-address-neo font-mono text-xs opacity-60 block text-white">{{ d.address }}</text>
             </view>
           </view>
 
@@ -91,14 +110,14 @@
             />
           </view>
 
-          <view class="delegate-metrics-neo bg-black/5 p-3 rounded mb-4 flex gap-4">
+          <view class="delegate-metrics-neo bg-black/5 p-3 rounded mb-4 flex gap-4 glass-metrics">
             <view class="metric-neo flex-1">
-              <text class="metric-label-neo text-[10px] uppercase font-bold opacity-60 block">Total Delegated</text>
-              <text class="metric-value-neo font-mono font-bold text-sm">{{ formatNum(d.totalDelegated) }} VP</text>
+              <text class="metric-label-neo text-[10px] uppercase font-bold opacity-60 block text-white">Total Delegated</text>
+              <text class="metric-value-neo font-mono font-bold text-sm text-white">{{ formatNum(d.totalDelegated) }} VP</text>
             </view>
             <view class="metric-neo flex-1 text-right">
-              <text class="metric-label-neo text-[10px] uppercase font-bold opacity-60 block">Votes Cast</text>
-              <text class="metric-value-neo font-mono font-bold text-sm">{{ d.votesCast }}</text>
+              <text class="metric-label-neo text-[10px] uppercase font-bold opacity-60 block text-white">Votes Cast</text>
+              <text class="metric-value-neo font-mono font-bold text-sm text-white">{{ d.votesCast }}</text>
             </view>
           </view>
 
@@ -156,6 +175,9 @@ const translations = {
   delegationSuccess: { en: "Delegation successful!", zh: "委托成功！" },
   noDelegates: { en: "No delegates available", zh: "没有可用的雇佣兵" },
   error: { en: "Error", zh: "错误" },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 
   docs: { en: "Docs", zh: "文档" },
   docSubtitle: {
@@ -210,7 +232,7 @@ const docFeatures = computed(() => [
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 const APP_ID = "miniapp-gov-merc";
-const { address, connect } = useWallet();
+const { address, connect, chainType, switchChain } = useWallet() as any;
 
 interface Delegate {
   id: number;
@@ -323,8 +345,8 @@ onMounted(() => fetchData());
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: $space-4;
@@ -348,82 +370,91 @@ onMounted(() => fetchData());
 
 .section-title-neo {
   font-size: 12px;
-  font-weight: $font-weight-black;
+  font-weight: 700;
   text-transform: uppercase;
   margin-bottom: 8px;
-  background: black;
-  color: white;
+  color: #a78bfa;
   padding: 2px 10px;
   display: inline-block;
+  letter-spacing: 0.1em;
 }
 
 .delegate-avatar-neo {
-  background: var(--bg-card, white);
-  border: 3px solid var(--border-color, black);
-  box-shadow: 4px 4px 0 var(--shadow-color, black);
-  color: var(--text-primary, black);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+  color: white;
   &.elite {
-    background: var(--brutal-yellow);
+    background: rgba(255, 222, 10, 0.2);
+    border-color: rgba(255, 222, 10, 0.4);
+    color: #ffde59;
+    text-shadow: 0 0 10px #ffde59;
   }
 }
 
 .delegate-name-neo {
-  font-weight: $font-weight-black;
+  font-weight: 800;
   font-size: 20px;
-  border-bottom: 2px solid black;
+  color: white;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
 }
 .delegate-address-neo {
   font-family: $font-mono;
   font-size: 10px;
-  opacity: 1;
-  font-weight: $font-weight-black;
+  opacity: 0.7;
+  font-weight: 500;
   margin-top: 4px;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .elite-badge-neo {
-  background: black;
-  color: var(--brutal-yellow);
-  font-size: 10px;
-  font-weight: $font-weight-black;
+  background: rgba(255, 222, 10, 0.1);
+  color: #ffde59;
+  font-size: 9px;
+  font-weight: 700;
   padding: 4px 10px;
-  border: 2px solid black;
-  box-shadow: 4px 4px 0 var(--brutal-yellow);
+  border: 1px solid rgba(255, 222, 10, 0.4);
+  box-shadow: 0 0 10px rgba(255, 222, 10, 0.2);
+  border-radius: 99px;
 }
 
 .delegate-metrics-neo {
-  background: var(--bg-elevated, #eee);
+  background: rgba(0, 0, 0, 0.2);
   padding: $space-4;
-  border: 2px solid var(--border-color, black);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   gap: $space-4;
-  box-shadow: inset 4px 4px 0 var(--shadow-color, rgba(0, 0, 0, 0.05));
-  color: var(--text-primary, black);
+  border-radius: 12px;
+  color: white;
 }
 .metric-label-neo {
-  font-size: 10px;
-  font-weight: $font-weight-black;
+  font-size: 9px;
+  font-weight: 700;
   text-transform: uppercase;
-  color: var(--text-secondary, #666);
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.05em;
 }
 .metric-value-neo {
   font-family: $font-mono;
-  font-weight: $font-weight-black;
+  font-weight: 700;
   font-size: 14px;
-  color: var(--text-primary, black);
+  color: white;
 }
 
 .empty-neo {
   font-family: $font-mono;
   font-size: 14px;
-  font-weight: $font-weight-black;
-  background: var(--bg-elevated, #eee);
-  border: 2px dashed var(--border-color, black);
-  color: var(--text-primary, black);
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
 }
 .status-text {
   font-family: $font-mono;
-  font-size: 12px;
-  font-weight: $font-weight-black;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
 }
 
 .scrollable {

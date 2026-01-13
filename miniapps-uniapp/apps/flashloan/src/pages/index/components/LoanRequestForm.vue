@@ -1,9 +1,9 @@
 <template>
-  <NeoCard variant="default" class="loan-card">
+  <NeoCard variant="erobo" class="loan-card">
     <view class="card-header">
       <text class="card-title">{{ t("requestFlashLoan") }}</text>
-      <view class="risk-indicator" :class="riskLevel">
-        <text class="risk-text">{{ t(riskLevel) }}</text>
+      <view class="risk-indicator-glass" :class="riskLevel">
+        <text class="risk-text-glass">{{ t(riskLevel) }}</text>
       </view>
     </view>
 
@@ -33,19 +33,19 @@
         suffix="GAS"
       />
       <view class="amount-hints">
-        <text
+        <view
           v-for="hint in [1000, 5000, 10000]"
           :key="hint"
-          class="hint-btn"
+          class="hint-btn-glass"
           @click="$emit('update:loanAmount', hint.toString())"
         >
-          {{ formatNum(hint) }}
-        </text>
+          <text>{{ formatNum(hint) }}</text>
+        </view>
       </view>
     </view>
 
     <!-- Fee Calculator -->
-    <view class="fee-calculator">
+    <NeoCard variant="erobo-neo" flat class="fee-calculator">
       <view class="calc-row">
         <text class="calc-label">{{ t("loanAmount") }}</text>
         <text class="calc-value">{{ formatNum(parseFloat(loanAmount || "0")) }} GAS</text>
@@ -64,13 +64,15 @@
         <text class="calc-label">{{ t("estimatedProfit") }}</text>
         <text class="calc-value profit-highlight">+{{ estimatedProfit.toFixed(4) }} GAS</text>
       </view>
-    </view>
+    </NeoCard>
 
     <!-- Risk Warning -->
-    <view v-if="parseFloat(loanAmount || '0') > gasLiquidity * 0.5" class="risk-warning">
-      <text class="warning-icon">⚠️</text>
-      <text class="warning-text">{{ t("highRiskWarning") }}</text>
-    </view>
+    <NeoCard v-if="parseFloat(loanAmount || '0') > gasLiquidity * 0.5" variant="danger" flat class="risk-warning mt-4">
+      <view class="flex items-center gap-2">
+        <text class="warning-icon">⚠️</text>
+        <text class="warning-text-glass">{{ t("highRiskWarning") }}</text>
+      </view>
+    </NeoCard>
 
     <NeoButton variant="primary" size="lg" block :loading="isLoading" @click="$emit('request')" class="execute-btn">
       <text v-if="!isLoading">⚡ {{ t("executeLoan") }}</text>
@@ -108,8 +110,8 @@ const formatNum = (n: number) => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .card-header {
   display: flex;
@@ -118,48 +120,70 @@ const formatNum = (n: number) => {
   margin-bottom: $space-4;
 }
 .card-title {
-  font-size: 16px;
-  font-weight: $font-weight-black;
+  font-size: 14px;
+  font-weight: 700;
   text-transform: uppercase;
+  color: white;
+  letter-spacing: 0.05em;
 }
 
-.risk-indicator {
-  padding: 4px 10px;
-  font-size: 10px;
-  font-weight: $font-weight-black;
+.risk-indicator-glass {
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 9px;
+  font-weight: 700;
   text-transform: uppercase;
-  border: 2px solid var(--border-color, black);
-  box-shadow: 3px 3px 0 var(--shadow-color, black);
+  backdrop-filter: blur(5px);
+
   &.low {
-    background: var(--neo-green);
+    background: rgba(0, 229, 153, 0.2);
+    color: #00e599;
+    border: 1px solid rgba(0, 229, 153, 0.3);
   }
   &.medium {
-    background: var(--brutal-yellow);
+    background: rgba(253, 224, 71, 0.2);
+    color: #FDE047;
+    border: 1px solid rgba(253, 224, 71, 0.3);
   }
   &.high {
-    background: var(--brutal-red);
-    color: white;
+    background: rgba(239, 68, 68, 0.2);
+    color: #EF4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
   }
+}
+
+.risk-text-glass {
+  letter-spacing: 0.05em;
+}
+
+.section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 8px;
+  display: block;
 }
 
 .operation-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: $space-3;
-  margin: $space-6 0;
+  margin-bottom: $space-6;
 }
 .operation-btn {
-  padding: $space-4 $space-2;
-  background: var(--bg-card, white);
-  border: 3px solid var(--border-color, black);
+  padding: 16px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
   text-align: center;
-  box-shadow: 4px 4px 0 var(--shadow-color, black);
-  transition: all $transition-fast;
-  color: var(--text-primary, black);
+  transition: all 0.2s;
+  cursor: pointer;
+
   &.active {
-    background: var(--brutal-yellow);
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 var(--shadow-color, black);
+    background: rgba(0, 229, 153, 0.1);
+    border-color: #00e599;
+    box-shadow: 0 0 15px rgba(0, 229, 153, 0.15);
   }
 }
 .op-icon {
@@ -168,9 +192,17 @@ const formatNum = (n: number) => {
   margin-bottom: 4px;
 }
 .op-name {
-  font-weight: $font-weight-black;
+  font-weight: 700;
   font-size: 10px;
   text-transform: uppercase;
+  display: block;
+  color: white;
+}
+.op-desc {
+  font-size: 8px;
+  opacity: 0.6;
+  color: white;
+  margin-top: 4px;
   display: block;
 }
 
@@ -182,65 +214,69 @@ const formatNum = (n: number) => {
   gap: $space-2;
   margin-top: $space-2;
 }
-.hint-btn {
+.hint-btn-glass {
   font-size: 10px;
-  font-weight: $font-weight-bold;
-  padding: 4px 8px;
-  border: 1px solid var(--border-color, black);
-  background: var(--bg-elevated, #eee);
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.05);
   cursor: pointer;
-  color: var(--text-primary, black);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
 .fee-calculator {
-  background: black;
-  color: white;
-  padding: $space-5;
-  border: 3px solid black;
   margin-top: $space-6;
-  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.2);
 }
 .calc-row {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
   margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  
   &.total {
-    font-weight: $font-weight-black;
-    color: var(--brutal-green);
-    border-top: 1px solid #444;
+    font-weight: 700;
+    color: white;
     padding-top: 8px;
   }
   &.profit {
-    color: var(--brutal-yellow);
-    font-weight: $font-weight-black;
+    color: #FDE047;
+    font-weight: 700;
     margin-top: 8px;
-    border-top: 1px solid #444;
     padding-top: 8px;
   }
 }
 .calc-divider {
   height: 1px;
-  background: #333;
+  background: rgba(255, 255, 255, 0.1);
   margin: 4px 0;
 }
-
-.risk-warning {
-  margin: $space-4 0;
-  padding: $space-3;
-  background: var(--brutal-red);
-  color: white;
-  border: 2px solid var(--border-color, black);
-  display: flex;
-  align-items: center;
-  gap: $space-2;
+.fee-highlight {
+  color: #EF4444;
 }
-.warning-text {
-  font-size: 10px;
-  font-weight: bold;
+.profit-highlight {
+  color: #00e599;
 }
 
 .execute-btn {
   margin-top: $space-4;
+}
+
+.warning-text-glass {
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 0 5px rgba(239, 68, 68, 0.4);
 }
 </style>

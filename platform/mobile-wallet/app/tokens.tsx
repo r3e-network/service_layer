@@ -34,7 +34,7 @@ export default function TokensScreen() {
       (t) =>
         t.symbol.toLowerCase().includes(query) ||
         t.name.toLowerCase().includes(query) ||
-        t.contractHash.toLowerCase().includes(query),
+        t.contractAddress.toLowerCase().includes(query),
     );
   }, [tokens, searchQuery]);
 
@@ -45,8 +45,8 @@ export default function TokensScreen() {
         text: t("common.delete"),
         style: "destructive",
         onPress: async () => {
-          await deleteToken(token.contractHash);
-          setTokens((prev) => prev.filter((t) => t.contractHash !== token.contractHash));
+          await deleteToken(token.contractAddress);
+          setTokens((prev) => prev.filter((t) => t.contractAddress !== token.contractAddress));
           setSelectedToken(null);
         },
       },
@@ -107,7 +107,7 @@ export default function TokensScreen() {
       ) : (
         <FlatList
           data={filteredTokens}
-          keyExtractor={(item) => item.contractHash}
+          keyExtractor={(item) => item.contractAddress}
           renderItem={renderToken}
           contentContainerStyle={styles.listContent}
         />
@@ -161,7 +161,7 @@ function TokenDetailModal({ token, onClose, onDelete }: TokenDetailModalProps) {
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>{t("tokens.contract")}</Text>
               <Text style={styles.detailValueSmall} selectable>
-                {token.contractHash}
+                {token.contractAddress}
               </Text>
             </View>
           </View>

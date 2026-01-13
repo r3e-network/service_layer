@@ -5,7 +5,7 @@
       <text class="stat-value">{{ formatNum(userBurned) }}</text>
       <text class="stat-label">{{ t("youBurned") }}</text>
     </NeoCard>
-    <NeoCard variant="erobo-bitcoin" class="flex-1 text-center">
+    <NeoCard variant="erobo-neo" class="flex-1 text-center">
       <text class="stat-icon">{{ getRankIcon(rank) }}</text>
       <text class="stat-value">#{{ rank }}</text>
       <text class="stat-label">{{ t("rank") }}</text>
@@ -35,8 +35,8 @@ const getRankIcon = (rank: number): string => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .stats-grid {
   display: grid;

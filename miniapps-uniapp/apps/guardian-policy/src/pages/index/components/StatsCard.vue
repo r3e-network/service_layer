@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="'📊 ' + t('statistics')" class="stats-card">
+  <NeoCard :title="'📊 ' + t('statistics')" class="stats-card" variant="erobo-neo">
     <view class="stat-row">
       <text class="stat-label">{{ t("totalPolicies") }}</text>
       <text class="stat-value">{{ stats.totalPolicies }}</text>
@@ -39,8 +39,8 @@ defineProps<{
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .stats-card { margin-bottom: $space-4; }
 
@@ -48,19 +48,22 @@ defineProps<{
   display: flex;
   justify-content: space-between;
   padding: $space-3 0;
-  border-bottom: 2px solid black;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 .stat-label {
   font-size: 12px;
-  font-weight: $font-weight-black;
+  font-weight: 700;
   text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.05em;
 }
 .stat-value {
   font-family: $font-mono;
-  font-weight: $font-weight-black;
-  font-size: 18px;
-  background: black;
+  font-weight: 700;
+  font-size: 14px;
+  background: transparent;
   color: white;
   padding: 0 8px;
+  text-shadow: 0 0 10px rgba(159, 157, 243, 0.4);
 }
 </style>

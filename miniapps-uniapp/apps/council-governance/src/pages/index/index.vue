@@ -1,7 +1,19 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <view v-if="chainType === 'evm'" class="px-5 mb-4">
+      <NeoCard variant="danger">
+        <view class="flex flex-col items-center gap-2 py-1">
+          <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+          <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+          <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{
+            t("switchToNeo")
+          }}</NeoButton>
+        </view>
+      </NeoCard>
+    </view>
+
     <ActiveProposalsTab
-      v-if="activeTab === 'active'"
+      v-if="activeTab === 'active' && chainType !== 'evm'"
       :proposals="activeProposals"
       :status="status"
       :loading="loadingProposals"
@@ -159,6 +171,9 @@ const translations = {
     zh: "所有投票都记录在链上，完全可追溯。",
   },
   error: { en: "Error", zh: "错误" },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 const t = createT(translations);
 const APP_ID = "miniapp-council-governance";
@@ -185,8 +200,8 @@ const navTabs = [
 ];
 const activeTab = ref("active");
 
-const { address, invokeContract, invokeRead, getContractHash } = useWallet();
-const contractHash = ref<string | null>(null);
+const { address, invokeContract, invokeRead, chainType, switchChain } = useWallet() as any;
+const contractAddress = ref<string | null>(null);
 const selectedProposal = ref<Proposal | null>(null);
 const status = ref<{ msg: string; type: "success" | "error" | "info" } | null>(null);
 const loadingProposals = ref(false);
@@ -196,19 +211,19 @@ const votingPower = ref(0);
 const hasVotedMap = ref<Record<number, boolean>>({});
 const isVoting = ref(false);
 const createTabRef = ref<any>(null);
-const currentNetwork = ref<"mainnet" | "testnet">("testnet");
+const currentChainId = ref<"neo-n3-mainnet" | "neo-n3-testnet">("neo-n3-testnet");
 
 // Detect network from host origin
 const detectNetwork = () => {
   try {
     const origin = window.parent !== window ? document.referrer : window.location.origin;
     if (origin.includes("testnet") || origin.includes("localhost") || origin.includes("127.0.0.1")) {
-      currentNetwork.value = "testnet";
+      currentChainId.value = "neo-n3-testnet";
     } else {
-      currentNetwork.value = "mainnet";
+      currentChainId.value = "neo-n3-mainnet";
     }
   } catch {
-    currentNetwork.value = "testnet";
+    currentChainId.value = "neo-n3-testnet";
   }
 };
 
@@ -249,11 +264,11 @@ const showStatus = (msg: string, type: "success" | "error" | "info" = "info") =>
   }, 4000);
 };
 
-const ensureContractHash = async (showMessage = true) => {
-  if (!contractHash.value) {
-    contractHash.value = await getContractHash();
+const ensureContractAddress = async (showMessage = true) => {
+  if (!contractAddress.value) {
+    contractAddress.value = "0xc56f33fc6ec47edbd594472833cf57505d5f99aa";
   }
-  if (!contractHash.value) {
+  if (!contractAddress.value) {
     if (showMessage) {
       showStatus(t("contractUnavailable"), "error");
     }
@@ -263,11 +278,11 @@ const ensureContractHash = async (showMessage = true) => {
 };
 
 const readMethod = async (operation: string, args: any[] = []) => {
-  const hasHash = await ensureContractHash(false);
+  const hasHash = await ensureContractAddress(false);
   if (!hasHash) {
     throw new Error(t("contractUnavailable"));
   }
-  const result = await invokeRead({ contractHash: contractHash.value as string, operation, args });
+  const result = await invokeRead({ contractHash: contractAddress.value as string, operation, args });
   return parseInvokeResult(result);
 };
 
@@ -297,15 +312,15 @@ const castVote = async (proposalId: number, voteType: VoteChoice) => {
     showStatus(t("alreadyVoted"), "error");
     return;
   }
-  const hasHash = await ensureContractHash();
+  const hasHash = await ensureContractAddress();
   if (!hasHash) return;
 
   try {
     isVoting.value = true;
     const support = voteType === "for";
     await invokeContract({
-      scriptHash: contractHash.value as string,
-      operation: "Vote",
+      scriptHash: contractAddress.value as string,
+      operation: "vote",
       args: [
         { type: "Hash160", value: voter },
         { type: "Integer", value: proposalId },
@@ -352,7 +367,7 @@ const createProposal = async (proposalData: any) => {
     showStatus(t("notCandidate"), "error");
     return;
   }
-  const hasHash = await ensureContractHash();
+  const hasHash = await ensureContractAddress();
   if (!hasHash) return;
 
   const policyDataS =
@@ -360,8 +375,8 @@ const createProposal = async (proposalData: any) => {
 
   try {
     await invokeContract({
-      scriptHash: contractHash.value as string,
-      operation: "CreateProposal",
+      scriptHash: contractAddress.value as string,
+      operation: "createProposal",
       args: [
         { type: "Hash160", value: address.value },
         { type: "Integer", value: proposalData.type },
@@ -413,7 +428,7 @@ const parseProposal = (data: Record<string, any>): Proposal => {
 const CACHE_KEY = "council_proposals_cache";
 
 const loadProposals = async () => {
-  const hasHash = await ensureContractHash();
+  const hasHash = await ensureContractAddress();
   if (!hasHash) return;
 
   // 1. Load from cache first
@@ -428,12 +443,12 @@ const loadProposals = async () => {
 
   try {
     loadingProposals.value = true;
-    const count = Number((await readMethod("GetProposalCount")) || 0);
+    const count = Number((await readMethod("getProposalCount")) || 0);
     const list: Proposal[] = [];
 
     // Process in parallel to speed up initial load if many proposals exist
     const fetchProposal = async (id: number) => {
-      const proposalData = await readMethod("GetProposal", [{ type: "Integer", value: id }]);
+      const proposalData = await readMethod("getProposal", [{ type: "Integer", value: id }]);
       if (proposalData) {
         return parseProposal(proposalData);
       }
@@ -469,11 +484,11 @@ const refreshCandidateStatus = async () => {
   try {
     // Call API to check if address is in top 21 council members
     const res = await uni.request({
-      url: `${API_HOST}/api/neo/council-members?network=${currentNetwork.value}&address=${address.value}`,
+      url: `${API_HOST}/api/neo/council-members?chain_id=${currentChainId.value}&address=${address.value}`,
       method: "GET",
     });
     if (res.statusCode === 200 && res.data) {
-      const data = res.data as { isCouncilMember?: boolean; network: string };
+      const data = res.data as { isCouncilMember?: boolean; chainId: string };
       isCandidate.value = Boolean(data.isCouncilMember);
       votingPower.value = isCandidate.value ? 1 : 0;
     } else {
@@ -490,17 +505,17 @@ const refreshCandidateStatus = async () => {
 
 const refreshHasVoted = async (proposalIds?: number[]) => {
   if (!address.value) return;
-  const hasHash = await ensureContractHash(false);
+  const hasHash = await ensureContractAddress(false);
   if (!hasHash) return;
   const currentAddress = address.value;
-  const currentHash = contractHash.value as string;
+  const currentHash = contractAddress.value as string;
   const ids = proposalIds ?? proposals.value.map((p) => p.id);
   const updates: Record<number, boolean> = { ...hasVotedMap.value };
   await Promise.all(
     ids.map(async (id) => {
       const res = await invokeRead({
         contractHash: currentHash,
-        operation: "HasVoted",
+        operation: "hasVoted",
         args: [
           { type: "Hash160", value: currentAddress },
           { type: "Integer", value: id },
@@ -514,7 +529,7 @@ const refreshHasVoted = async (proposalIds?: number[]) => {
 
 onMounted(async () => {
   detectNetwork();
-  await ensureContractHash(false);
+  await ensureContractAddress(false);
   await loadProposals();
   await refreshCandidateStatus();
   await refreshHasVoted();
@@ -533,8 +548,8 @@ const docFeatures = computed(() => [
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: 20px;

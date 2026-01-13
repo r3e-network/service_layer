@@ -9,6 +9,18 @@
         <text class="status-text">{{ status.msg }}</text>
       </NeoCard>
 
+      <view v-if="chainType === 'evm'" class="mb-4">
+        <NeoCard variant="danger">
+          <view class="flex flex-col items-center gap-2 py-1">
+            <text class="status-text text-red-400">{{ t("wrongChain") }}</text>
+            <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+            <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{
+              t("switchToNeo")
+            }}</NeoButton>
+          </view>
+        </NeoCard>
+      </view>
+
       <!-- Sponsor Tab -->
       <view v-if="activeTab === 'sponsor'" class="tab-content">
         <!-- Gas Tank Visualization -->
@@ -42,6 +54,65 @@
 
         <!-- How It Works -->
         <HowItWorksCard :t="t as any" />
+      </view>
+
+      <!-- Donate Tab -->
+      <view v-if="activeTab === 'donate'" class="tab-content">
+        <NeoCard :title="t('donateTitle')" variant="accent">
+          <view class="donate-form">
+            <text class="form-subtitle">{{ t("donateSubtitle") }}</text>
+            <text class="form-description">{{ t("donateDescription") }}</text>
+            <view class="input-section">
+              <text class="input-label">{{ t("donateAmount") }}</text>
+              <view class="preset-amounts">
+                <view
+                  v-for="amt in [0.1, 0.5, 1, 5]"
+                  :key="amt"
+                  :class="['preset-btn', { active: donateAmount === amt.toString() }]"
+                  @click="donateAmount = amt.toString()"
+                >
+                  <text class="preset-value">{{ amt }}</text>
+                  <text class="preset-unit">GAS</text>
+                </view>
+              </view>
+              <NeoInput v-model="donateAmount" type="number" placeholder="0.1" suffix="GAS" />
+            </view>
+            <NeoButton variant="primary" size="lg" block :loading="isDonating" @click="handleDonate">
+              {{ isDonating ? t("donating") : t("donateBtn") }}
+            </NeoButton>
+          </view>
+        </NeoCard>
+      </view>
+
+      <!-- Send Tab -->
+      <view v-if="activeTab === 'send'" class="tab-content">
+        <NeoCard :title="t('sendTitle')" variant="accent">
+          <view class="send-form">
+            <text class="form-subtitle">{{ t("sendSubtitle") }}</text>
+            <view class="input-section">
+              <text class="input-label">{{ t("recipientAddress") }}</text>
+              <NeoInput v-model="recipientAddress" :placeholder="t('recipientPlaceholder')" />
+            </view>
+            <view class="input-section">
+              <text class="input-label">{{ t("sendAmount") }}</text>
+              <view class="preset-amounts">
+                <view
+                  v-for="amt in [0.05, 0.1, 0.2, 0.5]"
+                  :key="amt"
+                  :class="['preset-btn', { active: sendAmount === amt.toString() }]"
+                  @click="sendAmount = amt.toString()"
+                >
+                  <text class="preset-value">{{ amt }}</text>
+                  <text class="preset-unit">GAS</text>
+                </view>
+              </view>
+              <NeoInput v-model="sendAmount" type="number" placeholder="0.1" suffix="GAS" />
+            </view>
+            <NeoButton variant="primary" size="lg" block :loading="isSending" @click="handleSend">
+              {{ isSending ? t("sending") : t("sendBtn") }}
+            </NeoButton>
+          </view>
+        </NeoCard>
       </view>
 
       <!-- Stats Tab -->
@@ -91,7 +162,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useWallet, useGasSponsor } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
-import { AppLayout, NeoCard, NeoDoc } from "@/shared/components";
+import { AppLayout, NeoCard, NeoDoc, NeoButton, NeoInput } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 import GasTank from "./components/GasTank.vue";
 import UserBalanceInfo from "./components/UserBalanceInfo.vue";
@@ -166,11 +237,37 @@ const translations = {
     en: "Quota resets daily at midnight UTC for continued access.",
     zh: "配额每天 UTC 午夜自动重置，持续可用。",
   },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
+  // Donate tab
+  tabDonate: { en: "Donate", zh: "捐赠" },
+  donateTitle: { en: "Donate to Gas Pool", zh: "捐赠到 Gas 池" },
+  donateSubtitle: { en: "Help new users get started on Neo", zh: "帮助新用户开始使用 Neo" },
+  donateAmount: { en: "Donation Amount", zh: "捐赠金额" },
+  donating: { en: "Donating...", zh: "捐赠中..." },
+  donateBtn: { en: "Donate GAS", zh: "捐赠 GAS" },
+  donateSuccess: { en: "Thank you for your donation!", zh: "感谢您的捐赠！" },
+  donateDescription: {
+    en: "Your donation helps new users cover transaction fees.",
+    zh: "您的捐赠帮助新用户支付交易费用。",
+  },
+  // Send tab
+  tabSend: { en: "Send", zh: "发送" },
+  sendTitle: { en: "Send GAS to Address", zh: "发送 GAS 到地址" },
+  sendSubtitle: { en: "Help someone with low GAS balance", zh: "帮助 GAS 余额不足的人" },
+  recipientAddress: { en: "Recipient Address", zh: "接收地址" },
+  recipientPlaceholder: { en: "Enter Neo N3 address...", zh: "输入 Neo N3 地址..." },
+  sendAmount: { en: "Amount to Send", zh: "发送金额" },
+  sending: { en: "Sending...", zh: "发送中..." },
+  sendBtn: { en: "Send GAS", zh: "发送 GAS" },
+  sendSuccess: { en: "GAS sent successfully!", zh: "GAS 发送成功！" },
+  invalidAddress: { en: "Invalid address", zh: "无效地址" },
 };
 
 const t = createT(translations);
 
-const { address, connect } = useWallet();
+const { address, connect, invokeContract, chainType, switchChain } = useWallet() as any;
 const { isRequestingSponsorship: isRequesting, checkEligibility, requestSponsorship: apiRequest } = useGasSponsor();
 
 const ELIGIBILITY_THRESHOLD = 0.1;
@@ -178,6 +275,8 @@ const ELIGIBILITY_THRESHOLD = 0.1;
 const activeTab = ref("sponsor");
 const navTabs: NavTab[] = [
   { id: "sponsor", icon: "gift", label: t("tabSponsor") },
+  { id: "donate", icon: "heart", label: t("tabDonate") },
+  { id: "send", icon: "send", label: t("tabSend") },
   { id: "stats", icon: "chart", label: t("tabStats") },
   { id: "docs", icon: "book", label: t("docs") },
 ];
@@ -192,6 +291,15 @@ const requestAmount = ref("0.01");
 const status = ref<{ msg: string; type: string } | null>(null);
 
 const quickAmounts = [0.01, 0.02, 0.05, 0.1];
+
+// Donate and Send state
+const donateAmount = ref("0.1");
+const sendAmount = ref("0.1");
+const recipientAddress = ref("");
+const isDonating = ref(false);
+const isSending = ref(false);
+const GAS_CONTRACT = "0xd2a4cff31913016155e38e474a2c06d08be276cf";
+const SPONSOR_POOL_ADDRESS = "NikhQp1aAD1YFCiwknhM5LQQebj4464bCJ"; // Gas sponsor pool
 
 const isEligible = computed(() => parseFloat(gasBalance.value) < ELIGIBILITY_THRESHOLD);
 const remainingQuota = computed(() => Math.max(0, parseFloat(dailyLimit.value) - parseFloat(usedQuota.value)));
@@ -256,6 +364,79 @@ const requestSponsorship = async () => {
   }
 };
 
+const toFixed8 = (value: string) => {
+  const num = Number.parseFloat(value);
+  if (!Number.isFinite(num)) return "0";
+  return Math.floor(num * 1e8).toString();
+};
+
+const handleDonate = async () => {
+  if (isDonating.value) return;
+  const amount = parseFloat(donateAmount.value);
+  if (Number.isNaN(amount) || amount <= 0) {
+    showStatus("Invalid amount", "error");
+    return;
+  }
+  isDonating.value = true;
+  try {
+    if (!address.value) await connect();
+    if (!address.value) throw new Error("Wallet not connected");
+    await invokeContract({
+      contractAddress: GAS_CONTRACT,
+      operation: "transfer",
+      args: [
+        { type: "Hash160", value: address.value },
+        { type: "Hash160", value: SPONSOR_POOL_ADDRESS },
+        { type: "Integer", value: toFixed8(donateAmount.value) },
+        { type: "Any", value: null },
+      ],
+    });
+    showStatus(t("donateSuccess"), "success");
+    donateAmount.value = "0.1";
+    await loadUserData();
+  } catch (e: any) {
+    showStatus(e.message || t("error"), "error");
+  } finally {
+    isDonating.value = false;
+  }
+};
+
+const handleSend = async () => {
+  if (isSending.value) return;
+  if (!recipientAddress.value || recipientAddress.value.length < 30) {
+    showStatus(t("invalidAddress"), "error");
+    return;
+  }
+  const amount = parseFloat(sendAmount.value);
+  if (Number.isNaN(amount) || amount <= 0) {
+    showStatus("Invalid amount", "error");
+    return;
+  }
+  isSending.value = true;
+  try {
+    if (!address.value) await connect();
+    if (!address.value) throw new Error("Wallet not connected");
+    await invokeContract({
+      contractAddress: GAS_CONTRACT,
+      operation: "transfer",
+      args: [
+        { type: "Hash160", value: address.value },
+        { type: "Hash160", value: recipientAddress.value },
+        { type: "Integer", value: toFixed8(sendAmount.value) },
+        { type: "Any", value: null },
+      ],
+    });
+    showStatus(t("sendSuccess"), "success");
+    sendAmount.value = "0.1";
+    recipientAddress.value = "";
+    await loadUserData();
+  } catch (e: any) {
+    showStatus(e.message || t("error"), "error");
+  } finally {
+    isSending.value = false;
+  }
+};
+
 onMounted(() => {
   loadUserData();
 });
@@ -268,8 +449,8 @@ const docFeatures = computed(() => [
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .app-container {
   padding: 20px;
@@ -295,5 +476,73 @@ const docFeatures = computed(() => [
 .scrollable {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.donate-form,
+.send-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-subtitle {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-primary, white);
+}
+
+.form-description {
+  font-size: 12px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+  line-height: 1.5;
+}
+
+.input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-primary, white);
+}
+
+.preset-amounts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.preset-btn {
+  padding: 12px 8px;
+  background: var(--bg-card, rgba(255, 255, 255, 0.1));
+  border: 2px solid var(--border-color, rgba(255, 255, 255, 0.2));
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &.active {
+    background: var(--neo-green, #00e599);
+    border-color: var(--neo-green, #00e599);
+  }
+}
+
+.preset-value {
+  font-weight: 700;
+  font-size: 16px;
+  display: block;
+  color: var(--text-primary, white);
+}
+
+.preset-unit {
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.7;
+  color: var(--text-primary, white);
 }
 </style>

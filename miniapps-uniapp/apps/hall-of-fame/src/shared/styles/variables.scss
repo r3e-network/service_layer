@@ -3,7 +3,7 @@
 // Runtime theming with CSS variables
 // ============================================
 
-@import "./tokens.scss";
+@use "./tokens.scss" as *;
 
 // === ROOT VARIABLES (Dark Theme Default) ===
 
@@ -16,7 +16,6 @@
 
   // Accent palette
   --brutal-yellow: #{$brutal-yellow};
-  --brutal-yellow-rgb: 255, 222, 89;
   --brutal-pink: #{$brutal-pink};
   --brutal-blue: #{$brutal-blue};
   --brutal-orange: #{$brutal-orange};
@@ -28,7 +27,6 @@
   --bg-secondary: #{$bg-secondary};
   --bg-card: #{$bg-card};
   --bg-elevated: #{$bg-elevated};
-  --bg-tertiary: #{$bg-elevated};
 
   // Text
   --text-primary: #{$text-primary};
@@ -60,7 +58,6 @@
   --bg-secondary: #{$bg-secondary-light};
   --bg-card: #{$bg-card-light};
   --bg-elevated: #{$bg-elevated-light};
-  --bg-tertiary: #{$bg-elevated-light};
 
   --text-primary: #{$text-primary-light};
   --text-secondary: #{$text-secondary-light};
@@ -78,7 +75,6 @@
     --bg-secondary: #{$bg-secondary-light};
     --bg-card: #{$bg-card-light};
     --bg-elevated: #{$bg-elevated-light};
-    --bg-tertiary: #{$bg-elevated-light};
 
     --text-primary: #{$text-primary-light};
     --text-secondary: #{$text-secondary-light};

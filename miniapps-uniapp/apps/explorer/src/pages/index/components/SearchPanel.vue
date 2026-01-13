@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('search')" class="mb-6">
+  <NeoCard :title="t('search')" variant="erobo-neo" class="mb-6">
     <view class="search-box-neo mb-4">
       <NeoInput
         :modelValue="searchQuery"
@@ -48,8 +48,8 @@ defineEmits(["update:searchQuery", "update:selectedNetwork", "search"]);
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .search-box-neo { display: flex; flex-direction: column; }
 .mb-2 { margin-bottom: 8px; }

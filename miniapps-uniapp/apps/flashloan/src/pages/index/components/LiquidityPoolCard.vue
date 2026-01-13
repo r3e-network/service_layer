@@ -1,5 +1,5 @@
 <template>
-  <NeoCard variant="default" class="liquidity-card">
+  <NeoCard variant="erobo-neo" class="liquidity-card">
     <view class="card-header">
       <text class="card-title">{{ t("availableLiquidity") }}</text>
       <view class="lightning-badge">⚡</view>
@@ -39,8 +39,8 @@ const formatNum = (n: number) => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .card-header {
   display: flex;
@@ -49,53 +49,61 @@ const formatNum = (n: number) => {
   margin-bottom: $space-4;
 }
 .card-title {
-  font-size: 16px;
-  font-weight: $font-weight-black;
+  font-size: 14px;
+  font-weight: 700;
   text-transform: uppercase;
+  color: white;
+  letter-spacing: 0.05em;
 }
 .lightning-badge {
-  background: black;
-  color: var(--brutal-yellow);
+  background: rgba(0, 229, 153, 0.2);
+  color: #00e599;
   width: 24px;
   height: 24px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
+  box-shadow: 0 0 10px rgba(0, 229, 153, 0.3);
 }
 
 .liquidity-item {
   margin-bottom: $space-4;
 }
 .token-label {
-  font-size: 12px;
-  font-weight: $font-weight-black;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  border: 1px solid var(--border-color, black);
-  padding: 2px 6px;
-  background: var(--bg-card, white);
-  color: var(--text-primary, black);
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  display: inline-block;
 }
 .token-amount {
   font-family: $font-mono;
-  font-weight: $font-weight-black;
+  font-weight: 700;
   font-size: 24px;
-  color: var(--text-primary, black);
+  color: white;
   display: block;
-  margin-top: 4px;
+  margin-top: 8px;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
 }
 .liquidity-bar {
-  height: 16px;
-  background: var(--bg-card, white);
-  border: 3px solid var(--border-color, black);
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
   margin-top: 8px;
-  padding: 2px;
+  overflow: hidden;
 }
 .liquidity-fill {
   height: 100%;
-  background: var(--neo-green);
+  background: #00e599;
+  box-shadow: 0 0 10px rgba(0, 229, 153, 0.5);
   &.neo {
-    background: var(--brutal-blue);
+    background: #a78bfa; /* E-Robo Purple */
+    box-shadow: 0 0 10px rgba(167, 139, 250, 0.5);
   }
 }
 </style>

@@ -21,12 +21,6 @@ const DEFAULT_PERMISSIONS = {
   automation: false,
 };
 
-// Validate Neo N3 script hash format (0x + 40 hex chars)
-function isValidContractHash(hash) {
-  if (!hash) return true; // null is valid (no contract)
-  return /^0x[a-fA-F0-9]{40}$/.test(hash);
-}
-
 // Validate manifest has required fields
 function validateManifest(manifest, appDir) {
   const errors = [];
@@ -81,11 +75,11 @@ function discoverMiniApps() {
         neoManifest = JSON.parse(fs.readFileSync(neoManifestPath, "utf-8"));
       }
 
-      // Validate contract hash format
-      if (neoManifest.contract_hash && !isValidContractHash(neoManifest.contract_hash)) {
-        console.error(`❌ Invalid contract_hash for ${appDir}: must be 0x + 40 hex chars`);
-        continue;
-      }
+      const supportedChains = Array.isArray(neoManifest.supported_chains) ? neoManifest.supported_chains : [];
+      const chainContracts =
+        neoManifest.contracts && typeof neoManifest.contracts === "object" && !Array.isArray(neoManifest.contracts)
+          ? neoManifest.contracts
+          : {};
 
       const app = {
         app_id: manifest.appid || `miniapp-${appDir}`,
@@ -96,7 +90,8 @@ function discoverMiniApps() {
         icon: `/miniapps/${appDir}/static/icon.svg`,
         entry_url: `/miniapps/${appDir}/index.html`,
         status: neoManifest.status || "active",
-        contract_hash: neoManifest.contract_hash || null,
+        supportedChains,
+        chainContracts,
         permissions: neoManifest.permissions || DEFAULT_PERMISSIONS,
       };
 

@@ -23,7 +23,7 @@
       />
 
       <!-- Your Position -->
-      <NeoCard :title="t('yourPosition')">
+      <NeoCard :title="t('yourPosition')" variant="erobo">
         <view class="position-info">
           <text class="lp-amount">0.0000</text>
           <text class="lp-label">NEO/GAS LP {{ t("poolShare") }}</text>
@@ -85,8 +85,8 @@ function addLiquidity() {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: 24px;

@@ -1,6 +1,16 @@
 <template>
-  <NeoCard :title="t('createEnvelope')" variant="default">
+  <NeoCard :title="t('createEnvelope')" variant="erobo-neo">
     <view class="input-group">
+      <NeoInput
+        :modelValue="name"
+        @update:modelValue="$emit('update:name', $event)"
+        :placeholder="t('namePlaceholder')"
+      />
+      <NeoInput
+        :modelValue="description"
+        @update:modelValue="$emit('update:description', $event)"
+        :placeholder="t('descriptionPlaceholder')"
+      />
       <NeoInput
         :modelValue="amount"
         @update:modelValue="$emit('update:amount', $event)"
@@ -35,6 +45,8 @@
 import { NeoCard, NeoInput, NeoButton, AppIcon } from "@/shared/components";
 
 defineProps<{
+  name: string;
+  description: string;
   amount: string;
   count: string;
   expiryHours: string;
@@ -42,14 +54,30 @@ defineProps<{
   t: (key: string) => string;
 }>();
 
-defineEmits(["update:amount", "update:count", "update:expiryHours", "create"]);
+defineEmits(["update:name", "update:description", "update:amount", "update:count", "update:expiryHours", "create"]);
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
-.input-group { display: flex; flex-direction: column; gap: 24px; margin-bottom: 32px; }
-.btn-content { display: flex; align-items: center; justify-content: center; gap: 8px; }
-.button-text { font-weight: 700; text-transform: uppercase; font-family: $font-family; }
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.btn-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.button-text {
+  font-weight: 800;
+  text-transform: uppercase;
+  font-family: $font-family;
+  letter-spacing: 0.05em;
+  font-size: 14px;
+}
 </style>

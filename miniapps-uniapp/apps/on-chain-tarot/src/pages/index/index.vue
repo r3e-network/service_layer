@@ -1,5 +1,17 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <view v-if="chainType === 'evm'" class="px-4 mb-4">
+      <NeoCard variant="danger">
+        <view class="flex flex-col items-center gap-2 py-1">
+          <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+          <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+          <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{
+            t("switchToNeo")
+          }}</NeoButton>
+        </view>
+      </NeoCard>
+    </view>
+
     <view v-if="activeTab === 'game'" class="tab-content mystical-bg">
       <!-- Mystical Background Decorations -->
       <view class="cosmic-stars">
@@ -23,11 +35,7 @@
         @flip="flipCard"
       />
 
-      <ReadingDisplay
-        v-if="hasDrawn && allFlipped"
-        :title="t('yourReading')"
-        :reading="getReading()"
-      />
+      <ReadingDisplay v-if="hasDrawn && allFlipped" :title="t('yourReading')" :reading="getReading()" />
     </view>
 
     <view v-if="activeTab === 'stats'" class="tab-content scrollable">
@@ -114,6 +122,12 @@ const translations = {
     en: "Full Major and Minor Arcana for authentic tarot readings.",
     zh: "完整的大阿卡纳和小阿卡纳，提供真实的塔罗解读。",
   },
+  wrongChain: { en: "Wrong Chain", zh: "链错误" },
+  wrongChainMessage: {
+    en: "This app requires Neo N3. Please switch networks.",
+    zh: "此应用需要 Neo N3 网络，请切换网络。",
+  },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 
 const t = createT(translations);
@@ -131,7 +145,7 @@ const docFeatures = computed(() => [
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 const APP_ID = "miniapp-onchaintarot";
-const { address, connect, invokeContract, getContractHash } = useWallet();
+const { address, connect, invokeContract, chainType, switchChain } = useWallet() as any;
 const { payGAS, isLoading } = usePayments(APP_ID);
 const { list: listEvents } = useEvents();
 
@@ -221,7 +235,7 @@ const status = ref<{ msg: string; type: string } | null>(null);
 const hasDrawn = computed(() => drawn.value.length === 3);
 const allFlipped = computed(() => drawn.value.every((c) => c.flipped));
 const readingsCount = ref(0);
-const contractHash = ref<string | null>(null);
+const contractAddress = ref<string | null>(null);
 const question = ref("");
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -249,12 +263,12 @@ const waitForReading = async (readingId: string) => {
   return null;
 };
 
-const ensureContractHash = async () => {
-  if (!contractHash.value) {
-    contractHash.value = await getContractHash();
+const ensureContractAddress = async () => {
+  if (!contractAddress.value) {
+    contractAddress.value = "0xc56f33fc6ec47edbd594472833cf57505d5f99aa";
   }
-  if (!contractHash.value) throw new Error(t("contractUnavailable"));
-  return contractHash.value;
+  if (!contractAddress.value) throw new Error(t("contractUnavailable"));
+  return contractAddress.value;
 };
 
 const draw = async () => {
@@ -263,7 +277,7 @@ const draw = async () => {
     status.value = { msg: t("drawingCards"), type: "loading" };
     if (!address.value) await connect();
     if (!address.value) throw new Error(t("connectWallet"));
-    const contract = await ensureContractHash();
+    const contract = await ensureContractAddress();
 
     const payment = await payGAS("0.05", `tarot:${Date.now()}`);
     const receiptId = payment.receipt_id;
@@ -340,8 +354,8 @@ onMounted(async () => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: 20px;
@@ -376,10 +390,26 @@ onMounted(async () => {
   filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
   animation: twinkle 3s infinite;
 }
-.star-1 { top: 10%; left: 15%; animation-delay: 0s; }
-.star-2 { top: 20%; right: 20%; animation-delay: 1s; }
-.star-3 { bottom: 10%; left: 10%; animation-delay: 2s; }
-.star-4 { bottom: 15%; right: 15%; animation-delay: 1.5s; }
+.star-1 {
+  top: 10%;
+  left: 15%;
+  animation-delay: 0s;
+}
+.star-2 {
+  top: 20%;
+  right: 20%;
+  animation-delay: 1s;
+}
+.star-3 {
+  bottom: 10%;
+  left: 10%;
+  animation-delay: 2s;
+}
+.star-4 {
+  bottom: 15%;
+  right: 15%;
+  animation-delay: 1.5s;
+}
 
 .moon-decoration {
   position: absolute;
@@ -390,8 +420,15 @@ onMounted(async () => {
 }
 
 @keyframes twinkle {
-  0%, 100% { opacity: 0.3; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1.1); }
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
 }
 
 .scrollable {

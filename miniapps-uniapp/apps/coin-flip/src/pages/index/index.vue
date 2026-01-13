@@ -1,10 +1,21 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <view v-if="chainType === 'evm'" class="px-5 mb-4">
+      <NeoCard variant="danger">
+        <view class="flex flex-col items-center gap-2 py-1">
+          <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+          <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+          <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{ t("switchToNeo") }}</NeoButton>
+        </view>
+      </NeoCard>
+    </view>
+
     <view v-if="activeTab === 'game'" class="tab-content">
       <!-- Error Message -->
-      <view v-if="errorMessage" class="error-banner">
-        <text>{{ errorMessage }}</text>
-      </view>
+      <!-- Error Message -->
+      <NeoCard v-if="errorMessage" variant="danger" class="mb-4">
+        <text class="text-center">{{ errorMessage }}</text>
+      </NeoCard>
 
       <!-- Coin Arena -->
       <CoinArena :display-outcome="displayOutcome" :is-flipping="isFlipping" :result="result" :t="t as any" />
@@ -94,6 +105,9 @@ const translations = {
   feature1Desc: { en: "Randomness is generated inside an Intel SGX enclave.", zh: "随机数在 Intel SGX 安全区内生成。" },
   feature2Name: { en: "Instant Payout", zh: "即时支付" },
   feature2Desc: { en: "Winnings are automatically sent via smart contract.", zh: "奖金通过智能合约自动发送。" },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 const t = createT(translations);
 
@@ -112,7 +126,7 @@ const docFeatures = computed(() => [
 
 const APP_ID = "miniapp-coinflip";
 const { payGAS } = usePayments(APP_ID);
-const { address, connect, invokeContract, getContractHash } = useWallet();
+const { address, connect, invokeContract, chainType, switchChain } = useWallet() as any;
 const { list: listEvents } = useEvents();
 
 const betAmount = ref("1");
@@ -125,7 +139,7 @@ const result = ref<GameResult | null>(null);
 const displayOutcome = ref<"heads" | "tails" | null>(null);
 const showWinOverlay = ref(false);
 const winAmount = ref("0");
-const contractHash = ref<string | null>(null);
+const contractAddress = ref<string | null>(null);
 const errorMessage = ref<string | null>(null);
 
 // Timer tracking for cleanup
@@ -192,10 +206,10 @@ const flip = async () => {
     if (!address.value) {
       throw new Error(t("connectWallet"));
     }
-    if (!contractHash.value) {
-      contractHash.value = await getContractHash();
+    if (!contractAddress.value) {
+      contractAddress.value = "0xc56f33fc6ec47edbd594472833cf57505d5f99aa";
     }
-    if (!contractHash.value) {
+    if (!contractAddress.value) {
       throw new Error(t("error"));
     }
 
@@ -207,7 +221,7 @@ const flip = async () => {
 
     const amountInt = toFixed8(betAmount.value);
     const tx = await invokeContract({
-      scriptHash: contractHash.value as string,
+      scriptHash: contractAddress.value as string,
       operation: "PlaceBet",
       args: [
         { type: "Hash160", value: address.value as string },
@@ -276,8 +290,8 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: $space-4;
@@ -292,15 +306,5 @@ onUnmounted(() => {
   -webkit-overflow-scrolling: touch;
 }
 
-.error-banner {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.15) 100%);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  border-radius: 12px;
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  text-align: center;
-  color: #fca5a5;
-  font-size: 14px;
-  font-weight: 500;
-}
+
 </style>

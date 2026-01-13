@@ -1,6 +1,16 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view class="app-container">
+      <view v-if="chainType === 'evm'" class="mb-4">
+        <NeoCard variant="danger">
+          <view class="flex flex-col items-center gap-2 py-1">
+            <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+            <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+            <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{ t("switchToNeo") }}</NeoButton>
+          </view>
+        </NeoCard>
+      </view>
+
       <!-- Status Message -->
       <NeoCard v-if="statusMessage" :variant="statusType === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
         <text class="font-bold uppercase tracking-wider">{{ statusMessage }}</text>
@@ -217,6 +227,9 @@ const translations = {
     en: "Democratic decision-making on which projects receive funding.",
     zh: "民主决策哪些项目获得资助。",
   },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 
 const t = createT(translations);
@@ -228,7 +241,7 @@ const docFeatures = computed(() => [
 ]);
 
 const APP_ID = "miniapp-grant-share";
-const { address, connect } = useWallet();
+const { address, connect, chainType, switchChain } = useWallet() as any;
 const { payGAS, isLoading: paymentLoading } = usePayments(APP_ID);
 
 interface Grant {
@@ -400,8 +413,8 @@ onMounted(async () => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .app-container {
   padding: $space-4;

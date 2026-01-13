@@ -4,6 +4,18 @@
       <text class="status-text">{{ statusMessage }}</text>
     </NeoCard>
 
+    <view v-if="chainType === 'evm'" class="mb-4 px-4">
+      <NeoCard variant="danger">
+        <view class="flex flex-col items-center gap-2 py-1">
+          <text class="status-text text-red-400">{{ t("wrongChain") }}</text>
+          <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+          <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{
+            t("switchToNeo")
+          }}</NeoButton>
+        </view>
+      </NeoCard>
+    </view>
+
     <view v-if="activeTab === 'stake' || activeTab === 'unstake'" class="app-container">
       <!-- Hero APY Card -->
       <NeoBurgerHero :animated-apy="animatedApy" :t="t as any" />
@@ -91,6 +103,7 @@ import RewardsTab from "./components/RewardsTab.vue";
 
 const APP_ID = "miniapp-neoburger";
 const BNEO_CONTRACT = "0x48c40d4666f93408be1bef038b6722404d9a4c2a";
+const NEO_CONTRACT = "0xef4073a0f2b305a38ec4050e4d3d28bc40ea63f5";
 
 const translations = {
   title: { en: "NeoBurger", zh: "NeoBurger" },
@@ -168,11 +181,14 @@ const translations = {
     zh: "奖励自动复利，随时间增加您的 bNEO 价值。",
   },
   error: { en: "Error", zh: "错误" },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 
 const t = createT(translations);
 
-const { getAddress, invokeContract, getBalance } = useWallet();
+const { getAddress, invokeContract, getBalance, chainType, switchChain } = useWallet() as any;
 
 // Navigation tabs
 const navTabs: NavTab[] = [
@@ -360,13 +376,14 @@ async function handleStake() {
   loading.value = true;
   try {
     const amount = parseFloat(stakeAmount.value);
+    // Transfer NEO to bNEO contract to receive bNEO tokens
     await invokeContract({
-      scriptHash: BNEO_CONTRACT,
+      scriptHash: NEO_CONTRACT,
       operation: "transfer",
       args: [
         { type: "Hash160", value: await getAddress() },
         { type: "Hash160", value: BNEO_CONTRACT },
-        { type: "Integer", value: amount * 100000000 },
+        { type: "Integer", value: Math.floor(amount) }, // NEO is indivisible
         { type: "Any", value: null },
       ],
     });
@@ -417,7 +434,7 @@ async function handleClaimRewards() {
       throw new Error("SDK not available");
     }
 
-    // NeoBurger contract hash on mainnet
+    // NeoBurger contract address on mainnet
     const NEOBURGER_CONTRACT = "0x48c40d4666f93408be1bef038b6722404d9a4c2a";
 
     await sdk.invoke("invokeFunction", {
@@ -463,8 +480,8 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .app-container {
   padding: 20px;

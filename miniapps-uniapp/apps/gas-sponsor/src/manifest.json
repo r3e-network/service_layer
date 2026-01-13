@@ -6,10 +6,24 @@
   "description_zh": "为低余额新用户提供免费 Gas 代付服务",
   "version": "1.0.0",
   "entry_url": "mf://builtin?app=miniapp-gas-sponsor",
-  "permissions": ["wallet", "payments"],
-  "assets_allowed": ["GAS"],
+  "permissions": [
+    "wallet",
+    "payments"
+  ],
+  "assets_allowed": [
+    "GAS"
+  ],
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
   "category": "utility",
-  "tags": ["gas", "sponsor", "onboarding", "free"],
+  "tags": [
+    "gas",
+    "sponsor",
+    "onboarding",
+    "free"
+  ],
   "card": {
     "display": {
       "type": "live_status",
@@ -17,7 +31,10 @@
       "live_status": {
         "enabled": true,
         "refresh_interval": 300,
-        "fields": ["daily_quota", "users_helped"]
+        "fields": [
+          "daily_quota",
+          "users_helped"
+        ]
       }
     },
     "info": {

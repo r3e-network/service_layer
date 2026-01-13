@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('rewardProgress')" class="reward-card">
+  <NeoCard :title="t('rewardProgress')" variant="erobo-neo" class="reward-card">
     <view class="reward-milestones">
       <view
         v-for="milestone in milestones"
@@ -32,8 +32,8 @@ defineProps<{
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .reward-milestones { display: flex; justify-content: space-between; gap: 12px; }
 

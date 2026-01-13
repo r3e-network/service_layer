@@ -1,15 +1,15 @@
 <template>
-  <NeoCard :title="t('eventHistory')">
+  <NeoCard :title="t('eventHistory')" variant="erobo">
     <view v-if="history.length === 0" class="empty-state">
       <text>{{ t("noHistory") }}</text>
     </view>
     <view class="history-list">
-      <view v-for="event in history" :key="event.id" class="history-item">
+      <view v-for="event in history" :key="event.id" class="history-item-glass">
         <view class="history-header">
-          <text class="history-title">{{ event.title }}</text>
-          <text class="history-date">{{ event.date }}</text>
+          <text class="history-title-glass">{{ event.title }}</text>
+          <text class="history-date-glass">{{ event.date }}</text>
         </view>
-        <text class="history-desc">{{ event.details }}</text>
+        <text class="history-desc-glass">{{ event.details }}</text>
       </view>
     </view>
   </NeoCard>
@@ -32,16 +32,17 @@ defineProps<{
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .empty-state {
   text-align: center;
   padding: $space-6;
   opacity: 0.6;
-  font-weight: $font-weight-black;
+  font-weight: $font-weight-bold;
   text-transform: uppercase;
   font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .history-list {
@@ -49,35 +50,43 @@ defineProps<{
   flex-direction: column;
   gap: $space-4;
 }
-.history-item {
+.history-item-glass {
   padding: $space-4;
-  background: var(--bg-card, white);
-  border: 3px solid var(--border-color, black);
-  box-shadow: 6px 6px 0 var(--shadow-color, black);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
   margin-bottom: $space-2;
-  color: var(--text-primary, black);
+  transition: all 0.2s ease;
+  
+  &:active {
+    background: rgba(255, 255, 255, 0.1);
+  }
 }
-.history-title {
-  font-weight: $font-weight-black;
+.history-title-glass {
+  font-weight: $font-weight-bold;
   text-transform: uppercase;
   font-size: 14px;
-  border-bottom: 2px solid var(--border-color, black);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   margin-bottom: 4px;
   display: inline-block;
+  color: white;
 }
-.history-date {
+.history-date-glass {
   font-size: 10px;
   opacity: 0.6;
-  font-weight: $font-weight-black;
+  font-weight: $font-weight-medium;
   display: block;
   margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.8);
 }
-.history-desc {
+.history-desc-glass {
   font-size: 12px;
   font-family: $font-mono;
-  background: var(--bg-elevated, #f0f0f0);
-  padding: 4px 8px;
-  border: 1px solid var(--border-color, black);
-  color: var(--text-primary, black);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.9);
+  display: block;
 }
 </style>

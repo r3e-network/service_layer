@@ -3,7 +3,14 @@
  * Validates and normalizes MiniApp data from various sources
  */
 
-import type { MiniAppCategory, MiniAppInfo, MiniAppPermissions, MiniAppLimits } from "@/types/miniapp";
+import type {
+  MiniAppCategory,
+  MiniAppInfo,
+  MiniAppPermissions,
+  MiniAppLimits,
+  MiniAppChainContracts,
+  ChainId,
+} from "@/types/miniapp";
 
 function asObject(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
@@ -13,6 +20,36 @@ function asObject(value: unknown): Record<string, unknown> {
 function toString(value: unknown, fallback = ""): string {
   if (value === undefined || value === null) return fallback;
   return String(value);
+}
+
+const CHAIN_ID_PATTERN = /^[a-z0-9]+-[a-z0-9]+(-[a-z0-9]+)*$/;
+
+function isValidChainId(value: unknown): value is ChainId {
+  if (typeof value !== "string") return false;
+  return CHAIN_ID_PATTERN.test(value);
+}
+
+function normalizeSupportedChains(value: unknown): ChainId[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const list = value.map((v) => toString(v).trim().toLowerCase()).filter(isValidChainId);
+  return list.length > 0 ? Array.from(new Set(list)) : undefined;
+}
+
+function normalizeChainContracts(value: unknown): MiniAppChainContracts | undefined {
+  const obj = asObject(value);
+  if (Object.keys(obj).length === 0) return undefined;
+  const out: MiniAppChainContracts = {};
+  for (const [chainId, raw] of Object.entries(obj)) {
+    if (!isValidChainId(chainId)) continue;
+    const cfg = asObject(raw);
+    const address = toString(cfg.address ?? "").trim();
+    out[chainId] = {
+      address: address || null,
+      active: cfg.active !== false,
+      entryUrl: toString(cfg.entryUrl ?? cfg.entry_url ?? "").trim() || undefined,
+    };
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
 }
 
 export function normalizeCategory(value: unknown): MiniAppCategory {
@@ -36,7 +73,7 @@ export function normalizePermissions(value: unknown, fallback?: MiniAppPermissio
 
   const payments = has("payments") ? raw.payments : fallback?.payments;
   const governance = has("governance") ? raw.governance : fallback?.governance;
-  const randomness = has("randomness") || has("rng") ? (raw.randomness ?? raw.rng) : fallback?.randomness;
+  const rng = has("rng") ? raw.rng : fallback?.rng;
   const datafeed = has("datafeed") ? raw.datafeed : fallback?.datafeed;
   const confidential = has("confidential") ? raw.confidential : fallback?.confidential;
   const automation = has("automation") ? raw.automation : fallback?.automation;
@@ -44,7 +81,7 @@ export function normalizePermissions(value: unknown, fallback?: MiniAppPermissio
   return {
     payments: Boolean(payments),
     governance: Boolean(governance),
-    randomness: Boolean(randomness),
+    rng: Boolean(rng),
     datafeed: Boolean(datafeed),
     confidential: Boolean(confidential),
     automation: Boolean(automation),
@@ -95,7 +132,9 @@ export function coerceMiniAppInfo(raw: unknown, fallback?: MiniAppInfo): MiniApp
   const description = toString(obj.description ?? fallback?.description ?? "").trim();
   const icon = toString(obj.icon ?? fallback?.icon ?? "🧩").trim() || "🧩";
   const category = normalizeCategory(obj.category ?? fallback?.category);
-  const contractHash = toString(obj.contract_hash ?? fallback?.contract_hash ?? "").trim();
+  const supportedChains =
+    normalizeSupportedChains(obj.supportedChains ?? obj.supported_chains ?? fallback?.supportedChains) ?? [];
+  let chainContracts = normalizeChainContracts(obj.chainContracts ?? obj.contracts ?? fallback?.chainContracts);
   const permissions = normalizePermissions(obj.permissions ?? fallback?.permissions, fallback?.permissions);
   const limits = normalizeLimits(obj.limits ?? fallback?.limits, fallback?.limits);
   const status = normalizeStatus(obj.status, fallback?.status);
@@ -113,7 +152,8 @@ export function coerceMiniAppInfo(raw: unknown, fallback?: MiniAppInfo): MiniApp
     icon,
     category,
     entry_url: entryUrl,
-    contract_hash: contractHash || null,
+    supportedChains,
+    chainContracts,
     status: status ?? null,
     permissions,
     limits,
@@ -139,4 +179,54 @@ export function buildMiniAppEntryUrl(entryUrl: string, params: Record<string, st
   const queryString = searchParams.toString();
   const assembled = queryString ? `${path}?${queryString}` : path;
   return hash ? `${assembled}#${hash}` : assembled;
+}
+
+// ============================================================================
+// Multi-chain helpers
+// ============================================================================
+
+export function getContractForChain(app: MiniAppInfo, chainId: ChainId | null): string | null {
+  if (!chainId) return null;
+  const contract = app.chainContracts?.[chainId];
+  if (contract && contract.active !== false && contract.address) {
+    return contract.address;
+  }
+  return null;
+}
+
+export function isChainSupported(app: MiniAppInfo, chainId: ChainId): boolean {
+  if (app.supportedChains?.includes(chainId)) return true;
+  const contract = app.chainContracts?.[chainId];
+  if (contract && contract.active !== false) return true;
+  return false;
+}
+
+export function getAllSupportedChains(app: MiniAppInfo): ChainId[] {
+  const out = new Set<ChainId>();
+  if (app.supportedChains) {
+    app.supportedChains.forEach((c) => out.add(c));
+  }
+  if (app.chainContracts) {
+    Object.entries(app.chainContracts).forEach(([chainId, contract]) => {
+      if (contract?.active === false) return;
+      out.add(chainId as ChainId);
+    });
+  }
+  return Array.from(out);
+}
+
+export function resolveChainIdForApp(app: MiniAppInfo, requested?: ChainId | null): ChainId | null {
+  const supported = getAllSupportedChains(app);
+  if (requested && supported.includes(requested)) return requested;
+  return supported[0] ?? null;
+}
+
+export function getEntryUrlForChain(app: MiniAppInfo, chainId?: ChainId | null): string {
+  if (chainId) {
+    const contract = app.chainContracts?.[chainId];
+    if (contract && contract.active !== false && contract.entryUrl) {
+      return contract.entryUrl;
+    }
+  }
+  return app.entry_url;
 }

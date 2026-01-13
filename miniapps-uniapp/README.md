@@ -67,7 +67,7 @@ mkdir -p apps/my-app/src
   "status": "active",
   "permissions": {
     "payments": true,
-    "randomness": true
+    "rng": true
   }
 }
 ```
@@ -75,8 +75,8 @@ mkdir -p apps/my-app/src
 Permissions are **deny-by-default**. Only the keys you set to `true` are enabled.
 Keep `app_id` aligned with the `APP_ID` constant used in your MiniApp code so
 payments, events, and SDK scoping all target the same app.
-If your MiniApp calls on-chain functions, set `contract_hash` to the deployed
-contract hash for your network. Auto-discovery will backfill `contract_hash`
+If your MiniApp calls on-chain functions, set `contracts.<chain>.address` to the deployed
+contract address for each network. Auto-discovery will backfill `contracts`
 when a matching entry exists in `deploy/config/testnet_contracts.json`.
 
 3. Auto-discover to register (already runs during host-app dev/build):

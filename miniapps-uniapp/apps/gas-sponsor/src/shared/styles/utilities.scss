@@ -1,0 +1,174 @@
+// ============================================
+// NEO BRUTALISM UTILITY CLASSES
+// Atomic CSS utilities for rapid development
+// ============================================
+
+@import "./tokens.scss";
+@import "./variables.scss";
+
+// === LAYOUT ===
+
+.flex {
+  display: flex;
+}
+.flex-col {
+  flex-direction: column;
+}
+.flex-row {
+  flex-direction: row;
+}
+.flex-wrap {
+  flex-wrap: wrap;
+}
+.flex-1 {
+  flex: 1;
+}
+.items-center {
+  align-items: center;
+}
+.items-start {
+  align-items: flex-start;
+}
+.items-end {
+  align-items: flex-end;
+}
+.justify-center {
+  justify-content: center;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.justify-end {
+  justify-content: flex-end;
+}
+
+.grid {
+  display: grid;
+}
+.grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+.grid-cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.grid-cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+// === SPACING ===
+
+@each $i in (1, 2, 3, 4, 5, 6, 8, 10, 12) {
+  .gap-#{$i} {
+    gap: #{$i * 4}px;
+  }
+  .p-#{$i} {
+    padding: #{$i * 4}px;
+  }
+  .px-#{$i} {
+    padding-left: #{$i * 4}px;
+    padding-right: #{$i * 4}px;
+  }
+  .py-#{$i} {
+    padding-top: #{$i * 4}px;
+    padding-bottom: #{$i * 4}px;
+  }
+  .m-#{$i} {
+    margin: #{$i * 4}px;
+  }
+  .mt-#{$i} {
+    margin-top: #{$i * 4}px;
+  }
+  .mb-#{$i} {
+    margin-bottom: #{$i * 4}px;
+  }
+}
+
+// === TYPOGRAPHY ===
+
+.text-xs {
+  font-size: $font-size-xs;
+}
+.text-sm {
+  font-size: $font-size-sm;
+}
+.text-base {
+  font-size: $font-size-base;
+}
+.text-lg {
+  font-size: $font-size-lg;
+}
+.text-xl {
+  font-size: $font-size-xl;
+}
+.text-2xl {
+  font-size: $font-size-2xl;
+}
+.text-3xl {
+  font-size: $font-size-3xl;
+}
+
+.font-normal {
+  font-weight: $font-weight-normal;
+}
+.font-medium {
+  font-weight: $font-weight-medium;
+}
+.font-bold {
+  font-weight: $font-weight-bold;
+}
+.font-black {
+  font-weight: $font-weight-black;
+}
+
+.text-center {
+  text-align: center;
+}
+.text-left {
+  text-align: left;
+}
+.text-right {
+  text-align: right;
+}
+.uppercase {
+  text-transform: uppercase;
+}
+.tracking-wide {
+  letter-spacing: 1px;
+}
+
+// === COLORS ===
+
+.text-primary {
+  color: var(--text-primary);
+}
+.text-secondary {
+  color: var(--text-secondary);
+}
+.text-muted {
+  color: var(--text-muted);
+}
+.text-neo {
+  color: var(--neo-green);
+}
+.text-success {
+  color: var(--status-success);
+}
+.text-error {
+  color: var(--status-error);
+}
+.text-warning {
+  color: var(--status-warning);
+}
+
+.bg-primary {
+  background: var(--bg-primary);
+}
+.bg-secondary {
+  background: var(--bg-secondary);
+}
+.bg-card {
+  background: var(--bg-card);
+}
+.bg-neo {
+  background: var(--neo-green);
+}

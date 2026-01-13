@@ -2,14 +2,24 @@
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <!-- Main Tab -->
     <view v-if="activeTab === 'main'" class="tab-content">
-      <!-- DEMO Mode Banner -->
-      <view class="demo-banner">
-        <text class="demo-badge">{{ t("demoMode") }}</text>
-        <text class="demo-note">{{ t("demoNote") }}</text>
+      <view v-if="chainType === 'evm'" class="mb-4">
+        <NeoCard variant="danger">
+          <view class="flex flex-col items-center gap-2 py-1">
+            <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+            <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+            <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{ t("switchToNeo") }}</NeoButton>
+          </view>
+        </NeoCard>
       </view>
 
-      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
-        <text class="font-bold">{{ status.msg }}</text>
+      <!-- DEMO Mode Banner -->
+      <NeoCard variant="warning" class="mb-4 text-center">
+        <text class="font-bold block text-glass-glow">{{ t("demoMode") }}</text>
+        <text class="text-xs opacity-80 text-glass">{{ t("demoNote") }}</text>
+      </NeoCard>
+
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'erobo-neo'" class="mb-4 text-center">
+        <text class="font-bold text-glass">{{ status.msg }}</text>
       </NeoCard>
 
       <!-- Flash Loan Flow Visualization -->
@@ -155,6 +165,9 @@ const translations = {
     en: "Ensure your callback contract repays loan + 0.09% fee atomically",
     zh: "确保你的回调合约原子化偿还贷款 + 0.09% 手续费",
   },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 
 const t = createT(translations);
@@ -173,7 +186,7 @@ const docFeatures = computed(() => [
 ]);
 
 const APP_ID = "miniapp-flashloan";
-const { address, connect } = useWallet();
+const { address, connect, chainType, switchChain } = useWallet() as any;
 
 const isLoading = ref(false);
 const dataLoading = ref(true);
@@ -273,8 +286,8 @@ onMounted(() => fetchData());
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: $space-4;
@@ -286,28 +299,7 @@ onMounted(() => fetchData());
   -webkit-overflow-scrolling: touch;
 }
 
-.demo-banner {
-  background: var(--brutal-yellow);
-  padding: $space-3;
-  border: 3px solid var(--border-color, black);
-  text-align: center;
-  margin-bottom: $space-4;
-  box-shadow: 6px 6px 0 var(--shadow-color, black);
-}
-.demo-badge {
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  font-size: 14px;
-  border-bottom: 2px solid black;
-  display: inline-block;
-  margin-bottom: 4px;
-}
-.demo-note {
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  display: block;
-  opacity: 1;
-}
+
 
 .scrollable {
   overflow-y: auto;

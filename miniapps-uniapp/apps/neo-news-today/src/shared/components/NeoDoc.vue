@@ -66,7 +66,7 @@ const t = createT(translations);
 </script>
 
 <style lang="scss" scoped>
-@import "../styles/tokens.scss";
+@use "../styles/tokens.scss" as *;
 
 .neo-doc {
   padding: 20px;

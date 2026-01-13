@@ -1,7 +1,7 @@
 <template>
   <view class="modal-overlay" @click.self="$emit('close')">
     <view class="modal-content">
-      <NeoCard :title="t('proposalDetails')" variant="default">
+      <NeoCard :title="t('proposalDetails')" variant="erobo-neo">
         <template #header-extra>
           <view class="close-btn" @click="$emit('close')">×</view>
         </template>
@@ -116,8 +116,8 @@ const getPolicyMethodLabel = (method?: string) =>
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .modal-overlay {
   position: fixed;

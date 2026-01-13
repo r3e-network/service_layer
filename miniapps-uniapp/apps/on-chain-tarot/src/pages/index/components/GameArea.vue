@@ -9,9 +9,9 @@
     </view>
     <view class="card-spread-container">
       <view class="spread-labels">
-        <text class="spread-label">{{ t("past") }}</text>
-        <text class="spread-label">{{ t("present") }}</text>
-        <text class="spread-label">{{ t("future") }}</text>
+        <text class="spread-label-glass">{{ t("past") }}</text>
+        <text class="spread-label-glass">{{ t("present") }}</text>
+        <text class="spread-label-glass">{{ t("future") }}</text>
       </view>
 
       <view class="cards-row">
@@ -51,8 +51,8 @@ defineEmits(["update:question", "draw", "reset", "flip"]);
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .mystical-card {
   padding: 24px;
@@ -68,16 +68,18 @@ defineEmits(["update:question", "draw", "reset", "flip"]);
   margin-bottom: 16px;
 }
 
-.spread-label {
+.spread-label-glass {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(255, 255, 255, 0.1);
   color: white;
   padding: 4px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 99px;
   letter-spacing: 0.1em;
+  backdrop-filter: blur(10px);
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
 }
 
 .cards-row {

@@ -1,38 +1,50 @@
 <template>
   <AppLayout :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab === 'developers' || activeTab === 'send'" class="app-container">
-      <view class="header">
-        <text class="title">{{ t("title") }}</text>
-        <text class="subtitle">{{ t("subtitle") }}</text>
+      <view v-if="chainType === 'evm'" class="mb-4">
+        <NeoCard variant="danger">
+          <view class="flex flex-col items-center gap-2 py-1">
+            <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+            <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+            <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{
+              t("switchToNeo")
+            }}</NeoButton>
+          </view>
+        </NeoCard>
       </view>
-      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4">
-        <text class="text-center font-bold">{{ status.msg }}</text>
+
+      <view class="header">
+        <text class="title text-glass-glow">{{ t("title") }}</text>
+        <text class="subtitle text-glass">{{ t("subtitle") }}</text>
+      </view>
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'erobo-neo'" class="mb-4">
+        <text class="text-center font-bold text-glass">{{ status.msg }}</text>
       </NeoCard>
 
       <view v-if="activeTab === 'developers'" class="tab-content">
-        <NeoCard :title="t('topDevelopers')" variant="accent">
-          <view v-for="dev in developers" :key="dev.id" class="dev-card" @click="selectDev(dev)">
+        <NeoCard :title="t('topDevelopers')" variant="erobo">
+          <view v-for="dev in developers" :key="dev.id" class="dev-card-glass" @click="selectDev(dev)">
             <view class="dev-card-header">
-              <view class="dev-avatar">
+              <view class="dev-avatar-glass">
                 <text class="avatar-emoji">👨‍💻</text>
-                <view class="avatar-badge">{{ dev.rank }}</view>
+                <view class="avatar-badge-glass">{{ dev.rank }}</view>
               </view>
               <view class="dev-info">
-                <text class="dev-name">{{ dev.name }}</text>
-                <text class="dev-projects">
+                <text class="dev-name-glass">{{ dev.name }}</text>
+                <text class="dev-projects-glass">
                   <text class="project-icon">🧩</text>
                   {{ dev.role }}
                 </text>
-                <text class="dev-contributions">{{ dev.tipCount }} {{ t("tipsCount") }}</text>
+                <text class="dev-contributions-glass">{{ dev.tipCount }} {{ t("tipsCount") }}</text>
               </view>
             </view>
-            <view class="dev-card-footer">
+            <view class="dev-card-footer-glass">
               <view class="tip-stats">
-                <text class="tip-label">{{ t("totalTips") }}</text>
-                <text class="tip-amount">{{ formatNum(dev.totalTips) }} GAS</text>
+                <text class="tip-label-glass">{{ t("totalTips") }}</text>
+                <text class="tip-amount-glass">{{ formatNum(dev.totalTips) }} GAS</text>
               </view>
               <view class="tip-action">
-                <text class="tip-icon">💚</text>
+                <text class="tip-icon text-glass">💚</text>
               </view>
             </view>
           </view>
@@ -40,36 +52,36 @@
       </view>
 
       <view v-if="activeTab === 'send'" class="tab-content">
-        <NeoCard :title="t('sendTip')" variant="accent">
+        <NeoCard :title="t('sendTip')" variant="erobo-neo">
           <view class="form-group">
             <!-- Developer Selection -->
             <view class="input-section">
-              <text class="input-label">{{ t("selectDeveloper") }}</text>
+              <text class="input-label-glass">{{ t("selectDeveloper") }}</text>
               <view class="dev-selector">
                 <view
                   v-for="dev in developers"
                   :key="dev.id"
-                  :class="['dev-select-item', { active: selectedDevId === dev.id }]"
+                  :class="['dev-select-item-glass', { active: selectedDevId === dev.id }]"
                   @click="selectedDevId = dev.id"
                 >
-                  <text class="dev-select-name">{{ dev.name }}</text>
-                  <text class="dev-select-role">{{ dev.role }}</text>
+                  <text class="dev-select-name-glass">{{ dev.name }}</text>
+                  <text class="dev-select-role-glass">{{ dev.role }}</text>
                 </view>
               </view>
             </view>
 
             <!-- Tip Amount with Presets -->
             <view class="input-section">
-              <text class="input-label">{{ t("tipAmount") }}</text>
+              <text class="input-label-glass">{{ t("tipAmount") }}</text>
               <view class="preset-amounts">
                 <view
                   v-for="preset in presetAmounts"
                   :key="preset"
-                  :class="['preset-btn', { active: tipAmount === preset.toString() }]"
+                  :class="['preset-btn-glass', { active: tipAmount === preset.toString() }]"
                   @click="tipAmount = preset.toString()"
                 >
-                  <text class="preset-value">{{ preset }}</text>
-                  <text class="preset-unit">GAS</text>
+                  <text class="preset-value-glass">{{ preset }}</text>
+                  <text class="preset-unit-glass">GAS</text>
                 </view>
               </view>
               <NeoInput v-model="tipAmount" type="number" :placeholder="t('customAmount')" suffix="GAS" />
@@ -77,11 +89,11 @@
 
             <!-- Optional Message -->
             <view class="input-section">
-              <text class="input-label">{{ t("optionalMessage") }}</text>
+              <text class="input-label-glass">{{ t("optionalMessage") }}</text>
               <NeoInput v-model="tipMessage" :placeholder="t('messagePlaceholder')" />
             </view>
             <view class="input-section">
-              <text class="input-label">{{ t("tipperName") }}</text>
+              <text class="input-label-glass">{{ t("tipperName") }}</text>
               <NeoInput v-model="tipperName" :placeholder="t('tipperNamePlaceholder')" />
             </view>
 
@@ -92,15 +104,15 @@
             </NeoButton>
 
             <!-- Recent Tips -->
-            <view v-if="recentTips.length > 0" class="recent-tips">
-              <text class="recent-tips-title">{{ t("recentTips") }}</text>
-              <view v-for="tip in recentTips" :key="tip.id" class="recent-tip-item">
+            <view v-if="recentTips.length > 0" class="recent-tips-glass">
+              <text class="recent-tips-title-glass">{{ t("recentTips") }}</text>
+              <view v-for="tip in recentTips" :key="tip.id" class="recent-tip-item-glass">
                 <text class="recent-tip-emoji">✨</text>
                 <view class="recent-tip-info">
-                  <text class="recent-tip-to">{{ tip.to }}</text>
-                  <text class="recent-tip-time">{{ tip.time }}</text>
+                  <text class="recent-tip-to-glass">{{ tip.to }}</text>
+                  <text class="recent-tip-time-glass">{{ tip.time }}</text>
                 </view>
-                <text class="recent-tip-amount">{{ tip.amount }} GAS</text>
+                <text class="recent-tip-amount-glass">{{ tip.amount }} GAS</text>
               </view>
             </view>
           </view>
@@ -123,9 +135,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
+import { useWallet, useEvents } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
-import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
+import { parseStackItem } from "@/shared/utils/neo";
 import { createT } from "@/shared/utils/i18n";
 import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
@@ -186,6 +198,9 @@ const translations = {
     en: "All tips are recorded on-chain with full transparency.",
     zh: "所有打赏都记录在链上，完全透明。",
   },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 
 const t = createT(translations);
@@ -196,10 +211,9 @@ const docFeatures = computed(() => [
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 const APP_ID = "miniapp-dev-tipping";
-const { address, connect, invokeContract, invokeRead, getContractHash } = useWallet();
-const { payGAS, isLoading } = usePayments(APP_ID);
+const { address, connect, invokeContract, chainType, switchChain } = useWallet() as any;
 const { list: listEvents } = useEvents();
-const contractHash = ref<string | null>(null);
+const isLoading = ref(false);
 
 const activeTab = ref<string>("developers");
 const navTabs: NavTab[] = [
@@ -250,64 +264,26 @@ const toFixed8 = (value: string) => {
   return Math.floor(num * 1e8).toString();
 };
 
-const ensureContractHash = async () => {
-  if (!contractHash.value) {
-    contractHash.value = (await getContractHash()) as string;
-  }
-  if (!contractHash.value) {
-    throw new Error("Contract not configured");
-  }
-};
-
 const loadDevelopers = async () => {
-  await ensureContractHash();
-  const hash = contractHash.value as string;
-  const totalRes = await invokeRead({ contractHash: hash, operation: "TotalDevelopers" });
-  const total = Number(parseInvokeResult(totalRes) ?? 0);
-  const list: Developer[] = [];
-  for (let id = 1; id <= total; id += 1) {
-    const [nameRes, roleRes, walletRes, tipsRes, countRes, balanceRes] = await Promise.all([
-      invokeRead({ contractHash: hash, operation: "GetDevName", args: [{ type: "Integer", value: id }] }),
-      invokeRead({ contractHash: hash, operation: "GetDevRole", args: [{ type: "Integer", value: id }] }),
-      invokeRead({
-        contractHash: hash,
-        operation: "GetDevWallet",
-        args: [{ type: "Integer", value: id }],
-      }),
-      invokeRead({
-        contractHash: hash,
-        operation: "GetDevTotalTips",
-        args: [{ type: "Integer", value: id }],
-      }),
-      invokeRead({
-        contractHash: hash,
-        operation: "GetDevTipCount",
-        args: [{ type: "Integer", value: id }],
-      }),
-      invokeRead({
-        contractHash: hash,
-        operation: "GetDevBalance",
-        args: [{ type: "Integer", value: id }],
-      }),
-    ]);
-    list.push({
-      id,
-      name: String(parseInvokeResult(nameRes) || `Dev #${id}`),
-      role: String(parseInvokeResult(roleRes) || ""),
-      wallet: String(parseInvokeResult(walletRes) || ""),
-      totalTips: toGas(parseInvokeResult(tipsRes)),
-      tipCount: Number(parseInvokeResult(countRes) ?? 0),
-      balance: toGas(parseInvokeResult(balanceRes)),
-      rank: "",
-    });
+  try {
+    const response = await fetch("/api/dev-tipping/developers");
+    if (!response.ok) throw new Error("Failed to fetch developers");
+    const data = await response.json();
+    developers.value = (data.developers || []).map((dev: any, idx: number) => ({
+      id: dev.id,
+      name: dev.name || `Dev #${dev.id}`,
+      role: dev.role || "Neo Developer",
+      wallet: dev.wallet || "",
+      totalTips: dev.total_tips || 0,
+      tipCount: dev.tip_count || 0,
+      balance: 0,
+      rank: `#${idx + 1}`,
+    }));
+    // Calculate total donated from all developers
+    totalDonated.value = developers.value.reduce((sum, dev) => sum + dev.totalTips, 0);
+  } catch (e) {
+    console.warn("Failed to load developers from API", e);
   }
-  list.sort((a, b) => b.totalTips - a.totalTips);
-  list.forEach((dev, idx) => {
-    dev.rank = `#${idx + 1}`;
-  });
-  developers.value = list;
-  const totalDonatedRes = await invokeRead({ contractHash: hash, operation: "TotalDonated" });
-  totalDonated.value = toGas(parseInvokeResult(totalDonatedRes));
 };
 
 const loadRecentTips = async () => {
@@ -355,6 +331,7 @@ const waitForEvent = async (txid: string, eventName: string) => {
 
 const sendTip = async () => {
   if (!selectedDevId.value || !tipAmount.value || isLoading.value) return;
+  isLoading.value = true;
   try {
     if (!address.value) {
       await connect();
@@ -362,29 +339,37 @@ const sendTip = async () => {
     if (!address.value) {
       throw new Error(t("error"));
     }
-    await ensureContractHash();
-    const hash = contractHash.value as string;
-    const payment = await payGAS(tipAmount.value, `tip:${selectedDevId.value}`);
-    const receiptId = payment.receipt_id;
-    if (!receiptId) {
-      throw new Error("Missing payment receipt");
+    // Find the selected developer
+    const dev = developers.value.find((d) => d.id === selectedDevId.value);
+    if (!dev || !dev.wallet) {
+      throw new Error("Developer wallet not found");
     }
+    // Transfer GAS directly to developer's wallet
+    const GAS_CONTRACT = "0xd2a4cff31913016155e38e474a2c06d08be276cf";
     const tx = await invokeContract({
-      scriptHash: hash,
-      operation: "Tip",
+      contractAddress: GAS_CONTRACT,
+      operation: "transfer",
       args: [
         { type: "Hash160", value: address.value as string },
-        { type: "Integer", value: selectedDevId.value },
+        { type: "Hash160", value: dev.wallet },
         { type: "Integer", value: toFixed8(tipAmount.value) },
-        { type: "String", value: tipMessage.value || "" },
-        { type: "String", value: tipperName.value || "" },
-        { type: "Integer", value: String(receiptId) },
+        { type: "Any", value: null },
       ],
     });
     const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
-    if (txid) {
-      await waitForEvent(txid, "TipSent");
-    }
+    // Record tip to Supabase API
+    await fetch("/api/dev-tipping/developers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tipper_address: address.value,
+        tipper_name: tipperName.value || "Anonymous",
+        developer_id: selectedDevId.value,
+        amount: parseFloat(tipAmount.value),
+        message: tipMessage.value || "",
+        tx_hash: txid,
+      }),
+    });
     status.value = { msg: t("tipSent"), type: "success" };
     tipAmount.value = "1";
     tipMessage.value = "";
@@ -392,6 +377,8 @@ const sendTip = async () => {
     await refreshData();
   } catch (e: any) {
     status.value = { msg: e.message || t("error"), type: "error" };
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -401,8 +388,8 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: $space-4;
@@ -414,18 +401,19 @@ onMounted(() => {
   -webkit-overflow-scrolling: touch;
 }
 
-.dev-card {
+.dev-card-glass {
   padding: $space-6;
-  background: var(--bg-card, white);
-  border: 4px solid var(--border-color, black);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
   margin-bottom: $space-6;
   cursor: pointer;
-  box-shadow: 10px 10px 0 var(--shadow-color, black);
-  transition: all $transition-fast;
-  color: var(--text-primary, black);
+  transition: all 0.2s ease;
+  backdrop-filter: blur(5px);
+  
   &:active {
-    transform: translate(4px, 4px);
-    box-shadow: 6px 6px 0 var(--shadow-color, black);
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(0.98);
   }
 }
 
@@ -434,83 +422,84 @@ onMounted(() => {
   gap: $space-5;
   margin-bottom: $space-4;
 }
-.dev-avatar {
+
+.dev-avatar-glass {
   width: 60px;
   height: 60px;
-  background: var(--brutal-yellow);
-  border: 4px solid var(--border-color, black);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  box-shadow: 4px 4px 0 var(--shadow-color, black);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .avatar-emoji {
   font-size: 32px;
 }
-.avatar-badge {
+.avatar-badge-glass {
   position: absolute;
-  top: -10px;
-  right: -10px;
-  background: black;
+  top: -4px;
+  right: -4px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
   color: white;
   padding: 2px 8px;
   font-size: 10px;
   font-weight: $font-weight-black;
-  border: 2px solid var(--border-color, black);
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .dev-info {
   flex: 1;
 }
-.dev-name {
-  font-size: 20px;
-  font-weight: $font-weight-black;
+.dev-name-glass {
+  font-size: 18px;
+  font-weight: $font-weight-bold;
   text-transform: uppercase;
   display: block;
-  border-bottom: 2px solid black;
   margin-bottom: 4px;
+  color: white;
 }
-.dev-projects {
+.dev-projects-glass {
   font-size: 10px;
-  font-weight: $font-weight-black;
-  opacity: 0.6;
+  font-weight: $font-weight-bold;
+  opacity: 0.8;
   text-transform: uppercase;
-  background: var(--bg-elevated, #eee);
-  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 12px;
   display: inline-block;
-  color: var(--text-primary, black);
+  color: rgba(255, 255, 255, 0.8);
 }
-.dev-contributions {
+.dev-contributions-glass {
   font-size: 10px;
-  font-weight: $font-weight-black;
-  color: var(--neo-purple);
+  font-weight: $font-weight-bold;
+  color: #a78bfa;
   text-transform: uppercase;
   display: block;
   margin-top: 4px;
 }
 
-.dev-card-footer {
+.dev-card-footer-glass {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
   padding-top: $space-4;
-  border-top: 4px solid black;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
-.tip-label {
+.tip-label-glass {
   font-size: 10px;
-  font-weight: $font-weight-black;
-  opacity: 1;
+  font-weight: $font-weight-bold;
+  opacity: 0.6;
   text-transform: uppercase;
+  color: white;
 }
-.tip-amount {
+.tip-amount-glass {
   font-family: $font-mono;
-  font-weight: $font-weight-black;
-  color: black;
-  background: var(--neo-green);
-  padding: 4px 10px;
-  border: 2px solid var(--border-color, black);
+  font-weight: $font-weight-bold;
+  color: #34d399;
   font-size: 16px;
   margin-left: 8px;
 }
@@ -520,13 +509,42 @@ onMounted(() => {
   flex-direction: column;
   gap: $space-6;
 }
-.input-label {
+.input-label-glass {
   font-size: 12px;
-  font-weight: $font-weight-black;
+  font-weight: $font-weight-bold;
   text-transform: uppercase;
-  color: var(--text-primary, black);
+  color: rgba(255, 255, 255, 0.7);
   margin-bottom: 8px;
   display: block;
+}
+
+.dev-selector {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.dev-select-item-glass {
+  padding: $space-3;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  &.active {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: #34d399;
+  }
+}
+.dev-select-name-glass {
+  color: white;
+  font-weight: $font-weight-bold;
+}
+.dev-select-role-glass {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 10px;
 }
 
 .preset-amounts {
@@ -535,81 +553,80 @@ onMounted(() => {
   gap: $space-3;
   margin-bottom: $space-4;
 }
-.preset-btn {
+.preset-btn-glass {
   padding: $space-4;
-  background: var(--bg-card, white);
-  border: 3px solid var(--border-color, black);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
   text-align: center;
   cursor: pointer;
-  box-shadow: 4px 4px 0 var(--shadow-color, black);
-  color: var(--text-primary, black);
+  color: white;
+  transition: all 0.2s ease;
+  
   &.active {
-    background: var(--brutal-yellow);
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 var(--shadow-color, black);
+    background: rgba(245, 158, 11, 0.3);
+    border-color: #fbbf24;
+    color: #fbbf24;
   }
-  transition: all $transition-fast;
 }
-.preset-value {
+.preset-value-glass {
   font-weight: $font-weight-black;
   font-size: 18px;
   display: block;
   line-height: 1;
 }
-.preset-unit {
+.preset-unit-glass {
   font-size: 10px;
-  font-weight: $font-weight-black;
-  opacity: 0.8;
+  font-weight: $font-weight-bold;
+  opacity: 0.6;
 }
 
-.recent-tips {
+.recent-tips-glass {
   margin-top: $space-8;
-  border-top: 6px solid black;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding-top: $space-6;
 }
-.recent-tips-title {
+.recent-tips-title-glass {
   font-size: 14px;
-  font-weight: $font-weight-black;
+  font-weight: $font-weight-bold;
   text-transform: uppercase;
   margin-bottom: $space-4;
-  background: black;
-  color: white;
-  padding: 4px 12px;
+  color: rgba(255, 255, 255, 0.8);
   display: inline-block;
 }
-.recent-tip-item {
+.recent-tip-item-glass {
   padding: $space-4;
-  background: var(--bg-card, white);
-  border: 3px solid var(--border-color, black);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
   margin-bottom: $space-4;
   display: flex;
   align-items: center;
   gap: $space-4;
-  box-shadow: 4px 4px 0 var(--shadow-color, black);
-  color: var(--text-primary, black);
+  color: white;
 }
 .recent-tip-info {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
-.recent-tip-to {
-  font-weight: $font-weight-black;
+.recent-tip-to-glass {
+  font-weight: $font-weight-bold;
   font-size: 14px;
   text-transform: uppercase;
+  color: white;
 }
-.recent-tip-time {
+.recent-tip-time-glass {
   font-size: 10px;
-  font-weight: $font-weight-black;
+  font-weight: $font-weight-medium;
   opacity: 0.5;
+  color: rgba(255, 255, 255, 0.7);
 }
-.recent-tip-amount {
+.recent-tip-amount-glass {
   font-family: $font-mono;
-  font-weight: $font-weight-black;
-  color: black;
-  background: var(--neo-green);
-  padding: 2px 8px;
-  border: 1px solid var(--border-color, black);
+  font-weight: $font-weight-bold;
+  color: #34d399;
+  font-size: 14px;
 }
 
 .scrollable {

@@ -8,7 +8,7 @@ import * as SecureStore from "expo-secure-store";
 const TOKENS_KEY = "custom_tokens";
 
 export interface Token {
-  contractHash: string;
+  contractAddress: string;
   symbol: string;
   name: string;
   decimals: number;
@@ -21,15 +21,15 @@ export async function loadTokens(): Promise<Token[]> {
 
 export async function saveToken(token: Token): Promise<void> {
   const tokens = await loadTokens();
-  const exists = tokens.some((t) => t.contractHash === token.contractHash);
+  const exists = tokens.some((t) => t.contractAddress === token.contractAddress);
   if (!exists) {
     tokens.push(token);
     await SecureStore.setItemAsync(TOKENS_KEY, JSON.stringify(tokens));
   }
 }
 
-export async function removeToken(contractHash: string): Promise<void> {
+export async function removeToken(contractAddress: string): Promise<void> {
   const tokens = await loadTokens();
-  const filtered = tokens.filter((t) => t.contractHash !== contractHash);
+  const filtered = tokens.filter((t) => t.contractAddress !== contractAddress);
   await SecureStore.setItemAsync(TOKENS_KEY, JSON.stringify(filtered));
 }

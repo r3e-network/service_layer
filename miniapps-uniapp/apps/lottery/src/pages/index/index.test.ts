@@ -36,7 +36,7 @@ vi.mock("@neo/uniapp-sdk", () => ({
     connect: vi.fn().mockResolvedValue(undefined),
     invokeRead: vi.fn().mockResolvedValue({ result: "0" }),
     invokeContract: vi.fn().mockResolvedValue({ txid: "test-tx" }),
-    getContractHash: vi.fn().mockReturnValue("0x1234567890abcdef"),
+    getContractAddress: vi.fn().mockReturnValue("0x1234567890abcdef"),
   })),
   usePayments: vi.fn(() => ({
     payGAS: mockPayGAS,

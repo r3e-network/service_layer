@@ -1,5 +1,15 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <view v-if="chainType === 'evm'" class="px-5 mb-4">
+      <NeoCard variant="danger">
+        <view class="flex flex-col items-center gap-2 py-1">
+          <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+          <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+          <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{ t("switchToNeo") }}</NeoButton>
+        </view>
+      </NeoCard>
+    </view>
+
     <view v-if="activeTab === 'game'" class="tab-content">
       <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
         <text class="font-bold">{{ status.msg }}</text>
@@ -118,6 +128,9 @@ const translations = {
     en: "All burns and rankings are transparently recorded on Neo N3.",
     zh: "所有销毁和排名都透明地记录在 Neo N3 上。",
   },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 
 const t = createT(translations);
@@ -136,7 +149,7 @@ const docFeatures = computed(() => [
 ]);
 
 const APP_ID = "miniapp-burn-league";
-const { address, connect, invokeContract, invokeRead, getContractHash } = useWallet();
+const { address, connect, invokeContract, invokeRead, chainType, switchChain } = useWallet() as any;
 const { list: listEvents } = useEvents();
 
 const { payGAS, isLoading } = usePayments(APP_ID);
@@ -148,7 +161,7 @@ const userBurned = ref(0);
 const rank = ref(0);
 const burnCount = ref(0);
 const status = ref<{ msg: string; type: string } | null>(null);
-const contractHash = ref<string | null>(null);
+const contractAddress = ref<string | null>(null);
 
 const leaderboard = ref<LeaderEntry[]>([]);
 
@@ -169,11 +182,11 @@ const estimatedReward = computed(() => {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const ensureContractHash = async () => {
-  if (!contractHash.value) {
-    contractHash.value = await getContractHash();
+const ensureContractAddress = async () => {
+  if (!contractAddress.value) {
+    contractAddress.value = "0xc56f33fc6ec47edbd594472833cf57505d5f99aa";
   }
-  if (!contractHash.value) {
+  if (!contractAddress.value) {
     throw new Error("Contract not configured");
   }
 };
@@ -190,14 +203,14 @@ const waitForEvent = async (txid: string, eventName: string) => {
 
 const loadStats = async () => {
   try {
-    await ensureContractHash();
-    const totalRes = await invokeRead({ contractHash: contractHash.value!, operation: "TotalBurned" });
+    await ensureContractAddress();
+    const totalRes = await invokeRead({ scriptHash: contractAddress.value!, operation: "TotalBurned" });
     totalBurned.value = toGas(parseInvokeResult(totalRes));
-    const poolRes = await invokeRead({ contractHash: contractHash.value!, operation: "RewardPool" });
+    const poolRes = await invokeRead({ scriptHash: contractAddress.value!, operation: "RewardPool" });
     rewardPool.value = toGas(parseInvokeResult(poolRes));
     if (address.value) {
       const userRes = await invokeRead({
-        contractHash: contractHash.value!,
+        scriptHash: contractAddress.value!,
         operation: "GetUserBurned",
         args: [{ type: "Hash160", value: address.value }],
       });
@@ -260,7 +273,7 @@ const burnTokens = async () => {
     if (!address.value) {
       throw new Error(t("error"));
     }
-    await ensureContractHash();
+    await ensureContractAddress();
     status.value = { msg: t("burning"), type: "loading" };
     const payment = await payGAS(burnAmount.value, "burn");
     const receiptId = payment.receipt_id;
@@ -268,7 +281,7 @@ const burnTokens = async () => {
       throw new Error("Missing payment receipt");
     }
     const tx = await invokeContract({
-      scriptHash: contractHash.value!,
+      scriptHash: contractAddress.value!,
       operation: "BurnGas",
       args: [
         { type: "Hash160", value: address.value },
@@ -298,8 +311,8 @@ watch(address, () => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: 20px;

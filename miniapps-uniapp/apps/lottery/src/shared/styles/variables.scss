@@ -3,7 +3,7 @@
 // Runtime theming with CSS variables
 // ============================================
 
-@import "./tokens.scss";
+@use "./tokens.scss" as *;
 
 // === ROOT VARIABLES (Dark Theme Default) ===
 
@@ -16,7 +16,6 @@
 
   // Accent palette
   --brutal-yellow: #{$brutal-yellow};
-  --brutal-yellow-rgb: 255, 222, 89;
   --brutal-pink: #{$brutal-pink};
   --brutal-blue: #{$brutal-blue};
   --brutal-orange: #{$brutal-orange};

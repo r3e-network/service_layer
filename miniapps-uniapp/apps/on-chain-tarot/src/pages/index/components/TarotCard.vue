@@ -45,35 +45,35 @@ defineEmits(["flip"]);
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tarot-card {
   width: 100px;
   height: 160px;
-  background: linear-gradient(135deg, rgba(159, 157, 243, 0.1) 0%, rgba(123, 121, 209, 0.05) 100%);
-  border: 1px solid rgba(159, 157, 243, 0.2);
+  background: linear-gradient(135deg, rgba(82, 0, 255, 0.15) 0%, rgba(121, 40, 202, 0.1) 100%);
+  border: 1px solid rgba(138, 43, 226, 0.3);
   border-radius: 12px;
   cursor: pointer;
   position: relative;
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 10px rgba(138, 43, 226, 0.1);
   overflow: hidden;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   transform-style: preserve-3d;
 
   &.flipped {
-    background: linear-gradient(135deg, rgba(159, 157, 243, 0.2) 0%, rgba(123, 121, 209, 0.1) 100%);
-    border-color: rgba(159, 157, 243, 0.5);
-    box-shadow: 0 0 30px rgba(159, 157, 243, 0.3);
+    background: linear-gradient(135deg, rgba(82, 0, 255, 0.25) 0%, rgba(121, 40, 202, 0.2) 100%);
+    border-color: rgba(138, 43, 226, 0.6);
+    box-shadow: 0 0 30px rgba(138, 43, 226, 0.4), inset 0 0 20px rgba(138, 43, 226, 0.1);
     transform: rotateY(0deg) scale(1.05); /* Assuming we implement true 3d flip later, for now just scale/glow */
   }
 
   &:not(.flipped):hover {
     transform: translateY(-5px);
-    border-color: rgba(159, 157, 243, 0.4);
-    box-shadow: 0 0 20px rgba(159, 157, 243, 0.2);
+    border-color: rgba(138, 43, 226, 0.5);
+    box-shadow: 0 0 20px rgba(138, 43, 226, 0.3);
   }
 }
 
@@ -133,10 +133,11 @@ defineEmits(["flip"]);
   position: absolute;
   font-size: 8px;
   color: #00E599;
-  opacity: 0.6;
+  opacity: 0.8;
+  filter: drop-shadow(0 0 2px #00E599);
 }
-.top-left { top: 4px; left: 4px; }
-.top-right { top: 4px; right: 4px; }
-.bottom-left { bottom: 4px; left: 4px; }
-.bottom-right { bottom: 4px; right: 4px; }
+.top-left { top: 6px; left: 6px; }
+.top-right { top: 6px; right: 6px; }
+.bottom-left { bottom: 6px; left: 6px; }
+.bottom-right { bottom: 6px; right: 6px; }
 </style>

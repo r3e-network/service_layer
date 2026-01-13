@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('queryRecord')" class="mb-6">
+  <NeoCard :title="t('queryRecord')" class="mb-6" variant="erobo">
     <template #header-extra>
       <text class="section-icon">🔎</text>
     </template>
@@ -24,12 +24,27 @@
     </NeoButton>
 
     <view v-if="queryResult" class="result-card-neo">
-      <text class="result-title font-bold block mb-2">{{ t("queryResult") }}</text>
+      <view class="result-header">
+        <text class="result-title">{{ t("queryResult") }}</text>
+        <view class="result-badge">HIT</view>
+      </view>
       <view class="result-info">
-        <text class="result-line">{{ t("record") }} #{{ queryResult.id }}</text>
-        <text class="result-line">{{ t("rating") }}: {{ queryResult.rating }}</text>
-        <text class="result-line">{{ t("totalQueries") }}: {{ queryResult.queryCount }}</text>
-        <text class="result-line word-break">{{ t("hashLabel") }}: {{ queryResult.dataHash }}</text>
+        <view class="result-row">
+          <text class="result-label">{{ t("record") }} ID</text>
+          <text class="result-val">#{{ queryResult.id }}</text>
+        </view>
+        <view class="result-row">
+          <text class="result-label">{{ t("rating") }}</text>
+          <text class="result-val">{{ queryResult.rating }} / 5</text>
+        </view>
+        <view class="result-row">
+          <text class="result-label">{{ t("totalQueries") }}</text>
+          <text class="result-val">{{ queryResult.queryCount }}</text>
+        </view>
+        <view class="result-row">
+          <text class="result-label">{{ t("hashLabel") }}</text>
+          <text class="result-val word-break mono">{{ queryResult.dataHash }}</text>
+        </view>
       </view>
     </view>
   </NeoCard>
@@ -60,44 +75,75 @@ defineEmits(["update:queryInput", "query"]);
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .section-icon {
-  font-size: 24px;
+  font-size: 20px;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
+
 .result-card-neo {
-  background: var(--bg-card, white);
-  border: 4px solid var(--border-color, black);
-  padding: $space-6;
-  box-shadow: 8px 8px 0 var(--shadow-color, black);
-  margin-top: $space-4;
+  background: rgba(159, 157, 243, 0.1);
+  border: 1px solid rgba(159, 157, 243, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 16px;
   position: relative;
-  color: var(--text-primary, black);
-  &::before {
-    content: "QUERY HIT";
-    position: absolute;
-    top: -12px;
-    right: $space-4;
-    background: var(--brutal-yellow);
-    border: 2px solid var(--border-color, black);
-    padding: 2px 10px;
-    font-size: 10px;
-    font-weight: $font-weight-black;
-  }
 }
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+}
+
+.result-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.result-badge {
+  background: #00E599;
+  color: black;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
 .result-info {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-.result-line {
-  font-size: 12px;
-  font-family: $font-mono;
-  font-weight: $font-weight-black;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 4px;
+
+.result-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
+
+.result-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.result-val {
+  font-size: 13px;
+  color: white;
+  font-weight: 500;
+  &.mono { font-family: $font-mono; font-size: 11px; }
+}
+
 .word-break {
   word-break: break-all;
 }

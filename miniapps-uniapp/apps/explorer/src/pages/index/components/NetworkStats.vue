@@ -1,9 +1,9 @@
 <template>
   <view class="stats-grid mb-6">
-    <NeoCard :title="t('mainnet')" variant="success" class="flex-1">
+    <NeoCard :title="t('mainnet')" variant="erobo" class="flex-1">
       <NeoStats :stats="mainnetStats" />
     </NeoCard>
-    <NeoCard :title="t('testnet')" variant="accent" class="flex-1">
+    <NeoCard :title="t('testnet')" variant="erobo-neo" class="flex-1">
       <NeoStats :stats="testnetStats" />
     </NeoCard>
   </view>
@@ -20,8 +20,8 @@ defineProps<{
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .stats-grid {
   display: flex;

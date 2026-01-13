@@ -115,6 +115,7 @@ function mapTrendingToMiniApp(data: TrendingApp[]): MiniApp[] {
       volume_24h: t.stats?.volume_24h,
     },
     permissions: {},
+    supportedChains: ["neo-n3-mainnet", "neo-n3-testnet"],
   }));
 }
 
@@ -127,5 +128,6 @@ function mapSearchToMiniApp(data: SearchResult[]): MiniApp[] {
     category: (s.category?.toLowerCase() || "utility") as MiniAppCategory,
     entry_url: `/miniapps/${s.app_id}/index.html`,
     permissions: {},
+    supportedChains: ["neo-n3-mainnet", "neo-n3-testnet"],
   }));
 }

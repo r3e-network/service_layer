@@ -39,12 +39,17 @@ defineEmits(["sign", "break"]);
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .contracts-list { display: flex; flex-direction: column; gap: $space-4; }
 .section-title {
-  font-size: 16px; font-weight: $font-weight-black; text-transform: uppercase;
-  border-bottom: 2px solid black; padding-bottom: $space-1;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
+  padding-bottom: $space-1;
+  letter-spacing: 0.1em;
+  margin-left: 4px;
 }
 </style>

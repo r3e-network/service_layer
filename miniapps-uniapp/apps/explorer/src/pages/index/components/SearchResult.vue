@@ -2,7 +2,7 @@
   <view v-if="result" class="result-section">
     <text class="section-title-neo mb-4">{{ t("searchResult") }}</text>
 
-    <NeoCard v-if="result.type === 'transaction'" class="mb-6">
+    <NeoCard v-if="result.type === 'transaction'" variant="erobo" class="mb-6">
       <template #header-extra>
         <text :class="['vm-state-neo', result.data.vmState]">{{
           result.data.vmState
@@ -29,7 +29,7 @@
       </view>
     </NeoCard>
 
-    <NeoCard v-else-if="result.type === 'address'" :title="t('address')" class="mb-6">
+    <NeoCard v-else-if="result.type === 'address'" :title="t('address')" variant="erobo" class="mb-6">
       <view class="result-rows mb-4">
         <view class="result-row-neo">
           <text class="label-neo">Address:</text>
@@ -81,8 +81,8 @@ const truncateHash = (hash: string) => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .section-title-neo {
   font-size: 11px;

@@ -3,5 +3,9 @@
   "appid": "miniapp-council-governance",
   "description": "Council governance for voting on proposals",
   "versionName": "1.0.0",
-  "versionCode": "100"
+  "versionCode": "100",
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ]
 }

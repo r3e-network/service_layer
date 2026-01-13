@@ -1,6 +1,18 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab !== 'docs'" class="app-container">
+      <view v-if="chainType === 'evm'" class="mb-4">
+        <NeoCard variant="danger">
+          <view class="flex flex-col items-center gap-2 py-1">
+            <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+            <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+            <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{
+              t("switchToNeo")
+            }}</NeoButton>
+          </view>
+        </NeoCard>
+      </view>
+
       <NeoCard v-if="statusMessage" :variant="statusType === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
         <text class="font-bold">{{ statusMessage }}</text>
       </NeoCard>
@@ -93,9 +105,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
-import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { ref, computed, onMounted, watch } from "vue";
+import { useWallet } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
+import { parseInvokeResult } from "@/shared/utils/neo";
 import { AppLayout, NeoDoc, AppIcon, NeoButton, NeoCard, NeoInput } from "@/shared/components";
 
 const translations = {
@@ -155,6 +168,9 @@ const translations = {
     en: "Your domain is an NFT - transfer, sell, or manage it freely.",
     zh: "您的域名是 NFT - 可自由转让、出售或管理。",
   },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 
 const t = createT(translations);
@@ -165,8 +181,8 @@ const docFeatures = computed(() => [
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 const APP_ID = "miniapp-neo-ns";
-const { address, connect } = useWallet();
-const { payGAS } = usePayments(APP_ID);
+const NNS_CONTRACT = "0x50ac1c37690cc2cfc594472833cf57505d5f46de";
+const { address, connect, chainType, switchChain, invokeRead, invokeContract } = useWallet() as any;
 
 interface SearchResult {
   available: boolean;
@@ -193,7 +209,8 @@ const loading = ref(false);
 const statusMessage = ref("");
 const statusType = ref<"success" | "error">("success");
 const userAddress = ref("");
-const myDomains = ref<Domain[]>([{ name: "alice.neo", owner: "", expiry: Date.now() + 365 * 24 * 60 * 60 * 1000 }]);
+const myDomains = ref<Domain[]>([]);
+const searchDebounce = ref<ReturnType<typeof setTimeout> | null>(null);
 
 function shortenAddress(addr: string): string {
   if (!addr || addr.length < 10) return addr;
@@ -210,37 +227,100 @@ function showStatus(msg: string, type: "success" | "error") {
   setTimeout(() => (statusMessage.value = ""), 3000);
 }
 
-function checkAvailability() {
-  if (!searchQuery.value) {
+// Convert domain name to token ID (UTF-8 bytes as base64)
+function domainToTokenId(name: string): string {
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(name.toLowerCase() + ".neo");
+  return btoa(String.fromCharCode(...bytes));
+}
+
+// Real NNS contract call: check availability
+async function checkAvailability() {
+  if (!searchQuery.value || searchQuery.value.length < 1) {
     searchResult.value = null;
     return;
   }
-  const taken = ["neo", "defi", "nft", "alice"].includes(searchQuery.value.toLowerCase());
-  searchResult.value = taken
-    ? { available: false, owner: "NXowner123" }
-    : { available: true, price: calculatePrice(searchQuery.value) };
-}
 
-function calculatePrice(name: string): number {
-  if (name.length <= 3) return 100;
-  if (name.length <= 5) return 50;
-  return 10;
+  // Debounce the search
+  if (searchDebounce.value) {
+    clearTimeout(searchDebounce.value);
+  }
+
+  searchDebounce.value = setTimeout(async () => {
+    try {
+      loading.value = true;
+      const name = searchQuery.value.toLowerCase();
+
+      // Call isAvailable on NNS contract
+      const availableResult = await invokeRead({
+        contractHash: NNS_CONTRACT,
+        operation: "isAvailable",
+        args: [{ type: "String", value: name + ".neo" }],
+      });
+      const isAvailable = Boolean(parseInvokeResult(availableResult));
+
+      // Get price based on name length
+      const priceResult = await invokeRead({
+        contractHash: NNS_CONTRACT,
+        operation: "getPrice",
+        args: [{ type: "Integer", value: name.length }],
+      });
+      const priceRaw = Number(parseInvokeResult(priceResult) || 0);
+      const price = priceRaw / 1e8; // Convert from GAS decimals
+
+      if (isAvailable) {
+        searchResult.value = { available: true, price };
+      } else {
+        // Get owner if not available
+        try {
+          const ownerResult = await invokeRead({
+            contractHash: NNS_CONTRACT,
+            operation: "ownerOf",
+            args: [{ type: "ByteArray", value: domainToTokenId(name) }],
+          });
+          const owner = String(parseInvokeResult(ownerResult) || "");
+          searchResult.value = { available: false, owner };
+        } catch {
+          searchResult.value = { available: false, owner: "Unknown" };
+        }
+      }
+    } catch (e: any) {
+      console.error("NNS availability check failed:", e);
+      searchResult.value = null;
+      showStatus(e.message || "Failed to check availability", "error");
+    } finally {
+      loading.value = false;
+    }
+  }, 500);
 }
 
 async function handleRegister() {
   if (!searchResult.value?.available || searchResult.value.price === undefined || loading.value) return;
+  if (!address.value) {
+    showStatus("Please connect your wallet first", "error");
+    return;
+  }
+
   loading.value = true;
   try {
-    await payGAS(searchResult.value.price.toString(), "nns:register:" + searchQuery.value);
-    const domain: Domain = {
-      name: searchQuery.value + ".neo",
-      owner: userAddress.value,
-      expiry: Date.now() + 365 * 24 * 60 * 60 * 1000,
-    };
-    myDomains.value.unshift(domain);
-    showStatus(searchQuery.value + ".neo " + t("registered"), "success");
+    const name = searchQuery.value.toLowerCase();
+
+    // Call register on NNS contract
+    await invokeContract({
+      scriptHash: NNS_CONTRACT,
+      operation: "register",
+      args: [
+        { type: "String", value: name + ".neo" },
+        { type: "Hash160", value: address.value },
+      ],
+    });
+
+    showStatus(name + ".neo " + t("registered"), "success");
     searchQuery.value = "";
     searchResult.value = null;
+
+    // Refresh my domains
+    await loadMyDomains();
     activeTab.value = "domains";
   } catch (e: any) {
     showStatus(e.message || t("registrationFailed"), "error");
@@ -250,11 +330,23 @@ async function handleRegister() {
 }
 
 async function handleRenew(domain: Domain) {
+  if (!address.value) {
+    showStatus("Please connect your wallet first", "error");
+    return;
+  }
+
   loading.value = true;
   try {
-    await payGAS("10", "nns:renew:" + domain.name);
-    domain.expiry += 365 * 24 * 60 * 60 * 1000;
+    // Call renew on NNS contract
+    await invokeContract({
+      scriptHash: NNS_CONTRACT,
+      operation: "renew",
+      args: [{ type: "String", value: domain.name }],
+    });
+
     showStatus(domain.name + " " + t("renewed"), "success");
+    // Refresh my domains to get updated expiry
+    await loadMyDomains();
   } catch (e: any) {
     showStatus(e.message || t("renewalFailed"), "error");
   } finally {
@@ -266,16 +358,86 @@ function showManage(domain: Domain) {
   showStatus(t("managing") + " " + domain.name, "success");
 }
 
+// Load user's domains from NNS contract
+async function loadMyDomains() {
+  if (!address.value) {
+    myDomains.value = [];
+    return;
+  }
+
+  try {
+    // Get all tokens owned by the user
+    const tokensResult = await invokeRead({
+      contractHash: NNS_CONTRACT,
+      operation: "tokensOf",
+      args: [{ type: "Hash160", value: address.value }],
+    });
+
+    const tokens = parseInvokeResult(tokensResult);
+    if (!tokens || !Array.isArray(tokens)) {
+      myDomains.value = [];
+      return;
+    }
+
+    // Get properties for each domain
+    const domains: Domain[] = [];
+    for (const tokenId of tokens) {
+      try {
+        const propsResult = await invokeRead({
+          contractHash: NNS_CONTRACT,
+          operation: "properties",
+          args: [{ type: "ByteArray", value: tokenId }],
+        });
+        const props = parseInvokeResult(propsResult) as Record<string, any>;
+        if (props) {
+          // Decode domain name from token ID
+          let name = "";
+          try {
+            const bytes = Uint8Array.from(atob(tokenId), (c) => c.charCodeAt(0));
+            name = new TextDecoder().decode(bytes);
+          } catch {
+            name = String(props.name || tokenId);
+          }
+
+          domains.push({
+            name: name,
+            owner: address.value,
+            expiry: Number(props.expiration || 0) * 1000,
+          });
+        }
+      } catch (e) {
+        console.warn("Failed to get domain properties:", e);
+      }
+    }
+
+    myDomains.value = domains.sort((a, b) => b.expiry - a.expiry);
+  } catch (e: any) {
+    console.error("Failed to load domains:", e);
+    myDomains.value = [];
+  }
+}
+
 onMounted(async () => {
   await connect();
   userAddress.value = address.value || "";
-  myDomains.value.forEach((d) => (d.owner = userAddress.value));
+  if (address.value) {
+    await loadMyDomains();
+  }
+});
+
+watch(address, async (newAddr) => {
+  userAddress.value = newAddr || "";
+  if (newAddr) {
+    await loadMyDomains();
+  } else {
+    myDomains.value = [];
+  }
 });
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .app-container {
   padding: 20px;
@@ -303,14 +465,14 @@ onMounted(async () => {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 
   &.variant-success {
-    background: radial-gradient(circle at top right, rgba(0, 229, 153, 0.1), transparent 70%),
-                rgba(255, 255, 255, 0.03);
+    background:
+      radial-gradient(circle at top right, rgba(0, 229, 153, 0.1), transparent 70%), rgba(255, 255, 255, 0.03);
     border-color: rgba(0, 229, 153, 0.2);
     box-shadow: 0 0 30px rgba(0, 229, 153, 0.1);
   }
   &.variant-danger {
-    background: radial-gradient(circle at top right, rgba(239, 68, 68, 0.1), transparent 70%),
-                rgba(255, 255, 255, 0.03);
+    background:
+      radial-gradient(circle at top right, rgba(239, 68, 68, 0.1), transparent 70%), rgba(255, 255, 255, 0.03);
     border-color: rgba(239, 68, 68, 0.2);
     box-shadow: 0 0 30px rgba(239, 68, 68, 0.1);
   }
@@ -358,7 +520,7 @@ onMounted(async () => {
 
   &.text-green-700 {
     background: rgba(0, 229, 153, 0.1);
-    color: #00E599 !important;
+    color: #00e599 !important;
     border: 1px solid rgba(0, 229, 153, 0.2);
     box-shadow: 0 0 15px rgba(0, 229, 153, 0.2);
   }
@@ -396,7 +558,7 @@ onMounted(async () => {
   font-family: $font-family;
   color: white;
   text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-  
+
   &.premium-price {
     color: #d8b4fe;
     text-shadow: 0 0 30px rgba(168, 85, 247, 0.4);
@@ -441,7 +603,7 @@ onMounted(async () => {
   margin-bottom: 16px;
   transition: all 0.2s ease;
   backdrop-filter: blur(20px);
-  
+
   &:hover {
     transform: translateY(-2px);
     background: linear-gradient(135deg, rgba(159, 157, 243, 0.1) 0%, rgba(123, 121, 209, 0.06) 100%);
@@ -451,7 +613,7 @@ onMounted(async () => {
 }
 .domain-info {
   margin-bottom: 16px;
-  border-left: 3px solid #00E599;
+  border-left: 3px solid #00e599;
   padding-left: 16px;
 }
 .domain-name {

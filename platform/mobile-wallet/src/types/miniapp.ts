@@ -5,12 +5,14 @@
 
 export type MiniAppCategory = "gaming" | "defi" | "governance" | "utility" | "social" | "nft";
 
+export type ChainId = string;
+
 export type MiniAppSource = "builtin" | "community" | "verified";
 
 export type MiniAppPermissions = {
   payments?: boolean;
   governance?: boolean;
-  randomness?: boolean;
+  rng?: boolean;
   datafeed?: boolean;
   confidential?: boolean;
   automation?: boolean;
@@ -21,6 +23,14 @@ export type MiniAppLimits = {
   daily_gas_cap_per_user?: string;
   governance_cap?: string;
 };
+
+export type MiniAppChainContract = {
+  address: string | null;
+  active?: boolean;
+  entryUrl?: string;
+};
+
+export type MiniAppChainContracts = Record<ChainId, MiniAppChainContract>;
 
 export type MiniAppDeveloper = {
   name: string;
@@ -47,13 +57,16 @@ export type MiniAppInfo = {
   icon: string;
   category: MiniAppCategory;
   entry_url: string;
-  contract_hash?: string | null;
+  supportedChains: ChainId[];
+  chainContracts?: MiniAppChainContracts;
   status?: "active" | "disabled" | "pending" | null;
   source?: MiniAppSource;
   stats?: MiniAppStats;
   developer?: MiniAppDeveloper;
   permissions: MiniAppPermissions;
   limits?: MiniAppLimits | null;
+  news_integration?: boolean | null;
+  stats_display?: string[] | null;
   features?: string[];
   created_at?: string;
 };

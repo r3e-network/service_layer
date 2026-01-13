@@ -48,7 +48,7 @@ export async function fetchAppDetail(appId: string): Promise<AppDetail | null> {
       description: app.description,
       icon: app.icon,
       category: app.category,
-      permissions: ["payments", "randomness"],
+      permissions: ["payments", "rng"],
       stats: statsData?.stats || getDefaultStats(),
     };
   } catch {

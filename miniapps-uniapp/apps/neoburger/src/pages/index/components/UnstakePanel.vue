@@ -28,16 +28,16 @@
       </view>
     </view>
 
-    <view class="conversion-card mb-6">
-      <view class="conversion-row">
-        <text class="conversion-label">{{ t("youWillReceive") }}</text>
-        <text class="conversion-value">{{ estimatedNeo }} NEO</text>
+    <NeoCard variant="danger" class="mb-6">
+      <view class="conversion-row-glass">
+        <text class="conversion-label-glass">{{ t("youWillReceive") }}</text>
+        <text class="conversion-value-glass">{{ estimatedNeo }} NEO</text>
       </view>
-      <view class="conversion-row">
-        <text class="conversion-label">{{ t("exchangeRate") }}</text>
-        <text class="conversion-value">1 bNEO = 1.01 NEO</text>
+      <view class="conversion-row-glass">
+        <text class="conversion-label-glass">{{ t("exchangeRate") }}</text>
+        <text class="conversion-value-glass">1 bNEO = 1.01 NEO</text>
       </view>
-    </view>
+    </NeoCard>
 
     <NeoButton variant="danger" size="lg" block :disabled="!canUnstake" :loading="loading" @click="$emit('unstake')">
       {{ loading ? t("processing") : t("unstakeBneo") }}
@@ -65,8 +65,8 @@ function formatAmount(amount: number): string {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .panel-subtitle {
   font-size: 14px;
@@ -108,30 +108,22 @@ function formatAmount(amount: number): string {
   gap: 12px;
 }
 
-.conversion-card {
-  background: rgba(239, 68, 68, 0.05);
-  border: 1px solid rgba(239, 68, 68, 0.1);
-  border-radius: 16px;
-  padding: 20px;
-  backdrop-filter: blur(10px);
-}
-
-.conversion-row {
+.conversion-row-glass {
   display: flex;
   justify-content: space-between;
   margin-bottom: 12px;
   &:last-child { margin-bottom: 0; }
 }
 
-.conversion-label {
+.conversion-label-glass {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  color: rgba(239, 68, 68, 0.6);
+  color: rgba(255, 255, 255, 0.7);
   letter-spacing: 0.05em;
 }
 
-.conversion-value {
+.conversion-value-glass {
   font-size: 14px;
   font-weight: 700;
   font-family: $font-family;

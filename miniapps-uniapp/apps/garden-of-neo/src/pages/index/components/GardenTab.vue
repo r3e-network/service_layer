@@ -1,54 +1,54 @@
 <template>
-  <view class="tab-container">
-    <NeoCard v-if="localStatus" :variant="localStatus.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
-      <text class="status-text font-bold uppercase">{{ localStatus.msg }}</text>
+  <view class="tab-container-glass">
+    <NeoCard v-if="localStatus" :variant="localStatus.type === 'error' ? 'danger' : 'erobo-neo'" class="mb-4 text-center">
+      <text class="status-text-glass">{{ localStatus.msg }}</text>
     </NeoCard>
 
-    <NeoCard :title="t('yourGarden')" variant="success" class="garden-card-brutal">
-      <view class="garden-container-brutal">
-        <view class="garden-grid-brutal">
+    <NeoCard :title="t('yourGarden')" variant="erobo-neo" class="garden-card-glass">
+      <view class="garden-container-glass">
+        <view class="garden-grid-glass">
           <view
             v-for="plot in plots"
             :key="plot.id"
-            class="plot-brutal"
+            class="plot-glass"
             :class="[{ empty: !plot.plant }, plot.plant ? getGrowthStage(plot.plant.growth) : '']"
             @click="selectPlot(plot)"
           >
-            <view v-if="plot.plant" class="plant-box-brutal">
-              <text class="plant-icon-brutal" :class="{ ready: plot.plant.growth >= 100 }">
+            <view v-if="plot.plant" class="plant-box-glass">
+              <text class="plant-icon-glass" :class="{ ready: plot.plant.growth >= 100 }">
                 {{ plot.plant.icon }}
               </text>
-              <view v-if="plot.plant.growth >= 100" class="ready-sticker">{{ t("ready") }}</view>
+              <view v-if="plot.plant.growth >= 100" class="ready-sticker-glass">{{ t("ready") }}</view>
             </view>
-            <text v-else class="empty-icon-brutal">🕳️</text>
-            <view v-if="plot.plant" class="growth-label-brutal">
-              <text class="growth-text-brutal">{{ Math.floor(plot.plant.growth) }}%</text>
+            <text v-else class="empty-icon-glass">🕳️</text>
+            <view v-if="plot.plant" class="growth-label-glass">
+              <text class="growth-text-glass">{{ Math.floor(plot.plant.growth) }}%</text>
             </view>
           </view>
         </view>
       </view>
     </NeoCard>
 
-    <NeoCard :title="t('availableSeeds')" class="mb-4">
+    <NeoCard :title="t('availableSeeds')" variant="erobo" class="mb-4">
       <view class="seeds-list">
-        <view v-for="seed in seeds" :key="seed.id" class="seed-item-neo" @click="plantSeed(seed)">
-          <view class="seed-icon-wrapper">
+        <view v-for="seed in seeds" :key="seed.id" class="seed-item-glass" @click="plantSeed(seed)">
+          <view class="seed-icon-wrapper-glass">
             <text class="seed-icon">{{ seed.icon }}</text>
           </view>
           <view class="seed-info">
-            <text class="seed-name font-bold">{{ seed.name }}</text>
-            <text class="seed-time text-xs opacity-60">⏱ {{ seed.growTime }}{{ t("hoursToGrow") }}</text>
+            <text class="seed-name-glass">{{ seed.name }}</text>
+            <text class="seed-time-glass">⏱ {{ seed.growTime }}{{ t("hoursToGrow") }}</text>
           </view>
-          <view class="seed-price-tag-neo">
-            <text class="seed-price font-black">{{ seed.price }}</text>
-            <text class="seed-currency text-xs">GAS</text>
+          <view class="seed-price-tag-glass">
+            <text class="seed-price-glass">{{ seed.price }}</text>
+            <text class="seed-currency-glass">GAS</text>
           </view>
         </view>
       </view>
     </NeoCard>
 
-    <NeoCard :title="t('actions')" class="mb-4">
-      <view class="action-btns-neo flex gap-3">
+    <NeoCard :title="t('actions')" variant="erobo-bitcoin" class="mb-4">
+      <view class="action-btns-glass flex gap-3">
         <NeoButton variant="primary" size="md" block :loading="isBusy" @click="refreshGarden">
           🔄 {{ isBusy ? t("refreshing") : t("refreshStatus") }}
         </NeoButton>
@@ -68,8 +68,8 @@ import { NeoButton, NeoCard } from "@/shared/components";
 
 const props = defineProps<{
   t: (key: string) => string;
-  contractHash: string | null;
-  ensureContractHash: () => Promise<void>;
+  contractAddress: string | null;
+  ensureContractAddress: () => Promise<void>;
 }>();
 
 const emit = defineEmits<{
@@ -153,7 +153,7 @@ const seedByType = (seedType: number) => seeds.value.find((seed) => seed.id === 
 
 const buildPlant = async (plantId: number, seedType: number): Promise<Plant> => {
   const statusRes = await invokeRead({
-    contractHash: props.contractHash!,
+    contractHash: props.contractAddress!,
     operation: "GetPlantStatus",
     args: [{ type: "Integer", value: plantId }],
   });
@@ -163,7 +163,7 @@ const buildPlant = async (plantId: number, seedType: number): Promise<Plant> => 
   const isMature = Boolean(status[2]);
 
   const harvestedRes = await invokeRead({
-    contractHash: props.contractHash!,
+    contractHash: props.contractAddress!,
     operation: "IsHarvested",
     args: [{ type: "Integer", value: plantId }],
   });
@@ -183,7 +183,7 @@ const buildPlant = async (plantId: number, seedType: number): Promise<Plant> => 
 };
 
 const loadGarden = async () => {
-  await props.ensureContractHash();
+  await props.ensureContractAddress();
   const seedEvents = await listEvents({ app_id: APP_ID, event_name: "PlantSeeded", limit: 100 });
   const harvestEvents = await listEvents({ app_id: APP_ID, event_name: "PlantHarvested", limit: 100 });
 
@@ -260,7 +260,7 @@ const plantSeed = async (seed: { id: number; name: string; icon: string; price: 
   try {
     if (!address.value) await connect();
     if (!address.value) throw new Error(props.t("connectWallet"));
-    await props.ensureContractHash();
+    await props.ensureContractAddress();
 
     showStatus(props.t("plantingSeed"), "loading");
     const payment = await payGAS(seed.price, `plant:${seed.id}`);
@@ -268,7 +268,7 @@ const plantSeed = async (seed: { id: number; name: string; icon: string; price: 
     if (!receiptId) throw new Error("Missing payment receipt");
 
     await invokeContract({
-      scriptHash: props.contractHash!,
+      scriptHash: props.contractAddress!,
       operation: "Plant",
       args: [
         { type: "Hash160", value: address.value },
@@ -288,11 +288,11 @@ const harvestPlant = async (plant: Plant, skipRefresh = false) => {
   try {
     if (!address.value) await connect();
     if (!address.value) throw new Error(props.t("connectWallet"));
-    await props.ensureContractHash();
+    await props.ensureContractAddress();
 
     isHarvesting.value = true;
     await invokeContract({
-      scriptHash: props.contractHash!,
+      scriptHash: props.contractAddress!,
       operation: "Harvest",
       args: [
         { type: "Hash160", value: address.value },
@@ -335,115 +335,137 @@ watch(address, async () => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
-.tab-container {
+.tab-container-glass {
   padding: $space-6;
   display: flex;
   flex-direction: column;
   gap: $space-6;
-  background-color: var(--bg-card, white);
-  color: var(--text-primary, black);
+  background: transparent;
+  color: white;
 }
 
-.garden-card-brutal {
-  border: 6px solid var(--border-color, black);
-  box-shadow: 12px 12px 0 var(--shadow-color, black);
-  rotate: -0.5deg;
+.status-text-glass {
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  color: white;
+  letter-spacing: 0.05em;
+  font-size: 14px;
+}
+
+.garden-card-glass {
   margin-bottom: $space-6;
 }
 
-.garden-grid-brutal {
+.garden-grid-glass {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: $space-4;
   padding: $space-2;
 }
 
-.plot-brutal {
+.plot-glass {
   aspect-ratio: 1;
-  background: var(--bg-card, white);
-  border: 4px solid var(--border-color, black);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  transition: all $transition-fast;
-  box-shadow: 6px 6px 0 var(--shadow-color, black);
-  color: var(--text-primary, black);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
   &.empty {
-    border-style: solid;
-    background: var(--bg-elevated, #f0f0f0);
-    box-shadow: 2px 2px 0 var(--shadow-color, black);
-    opacity: 0.8;
+    border-style: dashed;
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.1);
+    opacity: 0.7;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.4);
+      opacity: 1;
+    }
   }
 
   &:active {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 var(--shadow-color, black);
+    transform: scale(0.95);
   }
 
   &.stage-seedling {
-    background: #e0fcf2;
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
   }
   &.stage-sprouting {
-    background: #c1f9e5;
+    background: rgba(16, 185, 129, 0.2);
+    border-color: rgba(16, 185, 129, 0.4);
   }
   &.stage-growing {
-    background: var(--brutal-yellow);
+    background: rgba(245, 158, 11, 0.2);
+    border-color: rgba(245, 158, 11, 0.4);
   }
   &.stage-blooming {
-    background: #ff7eb3;
+    background: rgba(236, 72, 153, 0.2);
+    border-color: rgba(236, 72, 153, 0.4);
   }
   &.stage-mature {
-    background: var(--neo-green);
+    background: rgba(16, 185, 129, 0.3);
+    border-color: rgba(16, 185, 129, 0.5);
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
   }
 }
 
-.plant-icon-brutal {
+.plant-icon-glass {
   font-size: 48px;
+  filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2));
   &.ready {
-    animation: brutal-bounce 0.5s infinite;
+    animation: glass-bounce 1.5s infinite ease-in-out;
   }
 }
 
-@keyframes brutal-bounce {
-  0%,
-  100% {
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    transform: translateY(-10px) scale(1.1);
-  }
+@keyframes glass-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
 }
 
-.ready-sticker {
+.ready-sticker-glass {
   position: absolute;
-  top: -10px;
-  right: -10px;
-  background: black;
-  color: var(--neo-green);
-  font-size: 10px;
-  font-weight: 900;
-  padding: 2px 6px;
-  border: 2px solid black;
-  rotate: 15deg;
-  box-shadow: 2px 2px 0 var(--neo-green);
-}
-
-.growth-label-brutal {
-  position: absolute;
-  bottom: 4px;
-  left: 4px;
-  background: black;
-  padding: 1px 4px;
-}
-.growth-text-brutal {
+  top: -8px;
+  right: -8px;
+  background: linear-gradient(135deg, #34d399, #10b981);
   color: white;
   font-size: 10px;
-  font-weight: 900;
+  font-weight: $font-weight-black;
+  padding: 4px 8px;
+  border-radius: 12px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  z-index: 10;
+}
+
+.empty-icon-glass {
+  font-size: 24px;
+  opacity: 0.5;
+}
+
+.growth-label-glass {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 4px;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  text-align: center;
+}
+.growth-text-glass {
+  color: white;
+  font-size: 10px;
+  font-weight: $font-weight-bold;
   font-family: $font-mono;
 }
 
@@ -453,78 +475,82 @@ watch(address, async () => {
   gap: $space-6;
 }
 
-.seed-item-neo {
+.seed-item-glass {
   display: flex;
   align-items: center;
   gap: $space-6;
   padding: $space-4;
-  background: var(--bg-card, white);
-  border: 4px solid var(--border-color, black);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
   cursor: pointer;
-  transition: all $transition-fast;
-  box-shadow: 8px 8px 0 var(--shadow-color, black);
-  color: var(--text-primary, black);
+  transition: all 0.2s ease;
+  backdrop-filter: blur(5px);
+  
   &:active {
-    transform: translate(3px, 3px);
-    box-shadow: 3px 3px 0 var(--shadow-color, black);
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(0.98);
   }
 }
 
-.seed-icon-wrapper {
-  width: 64px;
-  height: 64px;
-  background: var(--bg-elevated, #f0f0f0);
-  border: 3px solid var(--border-color, black);
+.seed-icon-wrapper-glass {
+  width: 56px;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  rotate: -5deg;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .seed-icon {
-  font-size: 32px;
+  font-size: 28px;
 }
 .seed-info {
   flex: 1;
 }
-.seed-name {
-  font-size: 18px;
-  font-weight: 900;
+.seed-name-glass {
+  font-size: 16px;
+  font-weight: $font-weight-bold;
   text-transform: uppercase;
-  font-style: italic;
-}
-.seed-time {
-  font-size: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
-  margin-top: 4px;
-  display: block;
-  background: black;
   color: white;
-  padding: 2px 6px;
-  align-self: flex-start;
+  display: block;
 }
-
-.seed-price-tag-neo {
-  background: var(--brutal-yellow);
-  color: black;
-  padding: $space-4;
-  border: 3px solid var(--border-color, black);
-  box-shadow: 4px 4px 0 var(--shadow-color, black);
-  rotate: 3deg;
-}
-
-.seed-price {
-  font-size: 20px;
-  font-weight: 900;
-  line-height: 1;
-}
-.seed-currency {
+.seed-time-glass {
   font-size: 12px;
-  font-weight: 900;
+  font-weight: $font-weight-medium;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 4px;
+  display: inline-block;
+  background: rgba(0,0,0,0.3);
+  padding: 2px 8px;
+  border-radius: 12px;
 }
 
-.action-btns-neo {
+.seed-price-tag-glass {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34d399;
+  padding: 8px 12px;
+  border-radius: 12px;
+  text-align: right;
+  min-width: 80px;
+}
+
+.seed-price-glass {
+  font-size: 18px;
+  font-weight: $font-weight-black;
+  line-height: 1;
+  display: block;
+}
+.seed-currency-glass {
+  font-size: 10px;
+  font-weight: $font-weight-bold;
+  opacity: 0.8;
+}
+
+.action-btns-glass {
   display: flex;
   gap: $space-4;
 }

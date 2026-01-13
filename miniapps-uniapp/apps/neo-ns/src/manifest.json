@@ -6,10 +6,20 @@
   "description_zh": "注册和管理人类可读的 .neo 域名",
   "version": "1.0.0",
   "entry_url": "mf://builtin?app=miniapp-neo-ns",
-  "permissions": ["wallet", "payments"],
-  "assets_allowed": ["GAS"],
+  "permissions": [
+    "wallet",
+    "payments"
+  ],
+  "assets_allowed": [
+    "GAS"
+  ],
   "category": "utility",
-  "tags": ["domains", "naming", "identity", "nns"],
+  "tags": [
+    "domains",
+    "naming",
+    "identity",
+    "nns"
+  ],
   "external_contracts": {
     "NNS": "0x50ac1c37690cc2cfc594472833cf57505d5f46de"
   },
@@ -20,7 +30,11 @@
       "live_status": {
         "enabled": true,
         "refresh_interval": 60,
-        "fields": ["total_domains", "registered_today", "avg_price"]
+        "fields": [
+          "total_domains",
+          "registered_today",
+          "avg_price"
+        ]
       }
     },
     "info": {
@@ -31,5 +45,9 @@
         "verified": true
       }
     }
-  }
+  },
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ]
 }

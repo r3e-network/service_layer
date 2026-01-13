@@ -42,8 +42,8 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .quota-header {
   display: flex;

@@ -10,12 +10,12 @@
 
     <view class="doc-content">
       <view class="doc-section">
-        <text class="section-label">{{ t('whatItIs') }}</text>
+        <text class="section-label">{{ t("whatItIs") }}</text>
         <text class="section-text">{{ description }}</text>
       </view>
 
       <view class="doc-section">
-        <text class="section-label">{{ t('howToUse') }}</text>
+        <text class="section-label">{{ t("howToUse") }}</text>
         <view class="steps-list">
           <view v-for="(step, index) in steps" :key="index" class="step-item">
             <view class="step-number">{{ index + 1 }}</view>
@@ -25,7 +25,7 @@
       </view>
 
       <view class="doc-section">
-        <text class="section-label">{{ t('onChainFeatures') }}</text>
+        <text class="section-label">{{ t("onChainFeatures") }}</text>
         <view class="features-grid">
           <view v-for="feature in features" :key="feature.name" class="feature-card">
             <text class="feature-name">{{ feature.name }}</text>
@@ -60,153 +60,176 @@ defineProps<{
 const translations = {
   whatItIs: { en: "What is it?", zh: "这是什么？" },
   howToUse: { en: "How to use", zh: "如何使用" },
-  onChainFeatures: { en: "On-Chain Features", zh: "链上特性" }
+  onChainFeatures: { en: "On-Chain Features", zh: "链上特性" },
 };
 const t = createT(translations);
 </script>
 
 <style lang="scss" scoped>
-@import "../styles/tokens.scss";
+@use "../styles/tokens.scss" as *;
 
 .neo-doc {
-  padding: $space-6;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: $space-8;
+  gap: 32px;
   color: var(--text-primary);
-  background: var(--bg-primary);
   min-height: 100%;
 }
 
 .doc-header {
-  border-bottom: $border-width-md solid var(--border-color);
-  padding-bottom: $space-6;
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
+  padding-bottom: 24px;
 }
 
 .title-row {
   display: flex;
   align-items: center;
-  gap: $space-4;
-  margin-bottom: $space-2;
+  gap: 16px;
+  margin-bottom: 8px;
 }
 
 .doc-title {
-  font-size: $font-size-3xl;
-  font-weight: $font-weight-black;
-  letter-spacing: -1px;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-family: $font-family;
+  background: var(--text-gradient, linear-gradient(to right, var(--text-primary, #fff), var(--text-secondary, #aaa)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .doc-badge {
-  background: var(--accent-dim, rgba(0, 255, 163, 0.1));
-  color: var(--accent-primary, #00ffa3);
-  padding: 4px 10px;
-  border-radius: 4px;
+  background: rgba(159, 157, 243, 0.12);
+  color: #7b79d1;
+  padding: 4px 12px;
+  border: 1px solid rgba(159, 157, 243, 0.3);
+  border-radius: 100px;
   font-size: 10px;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 1px;
+  box-shadow: 0 0 10px rgba(159, 157, 243, 0.2);
 }
 
 .doc-subtitle {
-  font-size: $font-size-base;
-  color: var(--text-secondary);
-  line-height: 1.5;
+  font-size: 16px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  line-height: 1.6;
+  font-weight: 400;
 }
 
 .doc-content {
   display: flex;
   flex-direction: column;
-  gap: $space-8;
+  gap: 32px;
 }
 
 .doc-section {
   display: flex;
   flex-direction: column;
-  gap: $space-3;
+  gap: 12px;
 }
 
 .section-label {
-  font-size: $font-size-xs;
-  font-weight: $font-weight-black;
-  color: var(--accent-primary, #00ffa3);
+  font-size: 11px;
+  font-weight: 700;
+  color: #9f9df3;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+  text-shadow: 0 0 10px rgba(159, 157, 243, 0.3);
 }
 
 .section-text {
-  font-size: $font-size-base;
-  color: var(--text-primary);
+  font-size: 15px;
+  color: var(--text-primary, rgba(255, 255, 255, 0.8));
   line-height: 1.6;
 }
 
 .steps-list {
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: 16px;
 }
 
 .step-item {
   display: flex;
-  gap: $space-4;
+  gap: 16px;
   align-items: flex-start;
 }
 
 .step-number {
-  width: 24px;
-  height: 24px;
-  border-radius: 12px;
-  background: var(--text-primary);
-  color: var(--bg-primary);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg-card, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  color: #9f9df3;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
+  font-size: 12px;
+  font-weight: 700;
   flex-shrink: 0;
+  box-shadow: 0 0 10px var(--shadow-color, rgba(0, 0, 0, 0.1));
 }
 
 .step-text {
-  font-size: $font-size-base;
-  color: var(--text-secondary);
+  font-size: 15px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
   flex: 1;
+  line-height: 1.5;
 }
 
 .features-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: $space-4;
+  gap: 16px;
 }
 
 .feature-card {
-  padding: $space-4;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: $radius-md;
+  padding: 24px;
+  background: var(
+    --erobo-gradient,
+    linear-gradient(135deg, rgba(159, 157, 243, 0.12) 0%, rgba(247, 170, 199, 0.1) 100%)
+  );
+  border: 1px solid rgba(159, 157, 243, 0.2);
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
 }
 
 .feature-name {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary, white);
   display: block;
-  margin-bottom: $space-1;
+  margin-bottom: 4px;
 }
 
 .feature-desc {
-  font-size: $font-size-xs;
-  color: var(--text-tertiary);
+  font-size: 13px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
   line-height: 1.4;
 }
 
 .doc-footer {
-  margin-top: $space-10;
-  padding-top: $space-6;
-  border-top: 1px dashed var(--border-color);
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
   text-align: center;
 }
 
 .footer-text {
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--text-muted, rgba(255, 255, 255, 0.3));
   text-transform: uppercase;
   letter-spacing: 2px;
 }

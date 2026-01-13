@@ -1,9 +1,21 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <view v-if="chainType === 'evm'" class="px-4 mb-4">
+      <NeoCard variant="danger">
+        <view class="flex flex-col items-center gap-2 py-1">
+          <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+          <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+          <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{
+            t("switchToNeo")
+          }}</NeoButton>
+        </view>
+      </NeoCard>
+    </view>
+
     <view v-if="activeTab === 'capsules' || activeTab === 'create'" class="app-container">
-      <view v-if="status" :class="['status-msg', status.type]">
-        <text class="status-text">{{ status.msg }}</text>
-      </view>
+      <NeoCard v-if="status" :variant="status.type === 'success' ? 'success' : status.type === 'loading' ? 'accent' : 'danger'" class="mb-4 text-center">
+        <text class="status-text font-bold uppercase tracking-wider">{{ status.msg }}</text>
+      </NeoCard>
 
       <!-- Capsules Tab -->
       <view v-if="activeTab === 'capsules'" class="tab-content">
@@ -41,7 +53,7 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useWallet, usePayments } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
-import { AppLayout, NeoDoc } from "@/shared/components";
+import { AppLayout, NeoDoc, NeoCard, NeoButton } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
 import CapsuleList, { type Capsule } from "./components/CapsuleList.vue";
@@ -111,6 +123,12 @@ const translations = {
     en: "Your capsules are stored on Neo blockchain forever.",
     zh: "您的胶囊永久存储在 Neo 区块链上。",
   },
+  wrongChain: { en: "Wrong Chain", zh: "链错误" },
+  wrongChainMessage: {
+    en: "This app requires Neo N3. Please switch networks.",
+    zh: "此应用需要 Neo N3 网络，请切换网络。",
+  },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 
 const t = createT(translations);
@@ -122,16 +140,16 @@ const docFeatures = computed(() => [
 ]);
 
 const APP_ID = "miniapp-time-capsule";
-const { address, connect, getContractHash } = useWallet();
+const { address, connect, invokeContract, chainType, switchChain } = useWallet() as any;
 const { payGAS, isLoading } = usePayments(APP_ID);
-const contractHash = ref<string | null>(null);
+const contractAddress = ref<string | null>(null);
 
-const ensureContractHash = async () => {
-  if (!contractHash.value) {
-    contractHash.value = await getContractHash();
+const ensureContractAddress = async () => {
+  if (!contractAddress.value) {
+    contractAddress.value = "0xc56f33fc6ec47edbd594472833cf57505d5f99aa";
   }
-  if (!contractHash.value) throw new Error(t("error"));
-  return contractHash.value;
+  if (!contractAddress.value) throw new Error(t("error"));
+  return contractAddress.value;
 };
 
 const activeTab = ref("capsules");
@@ -176,7 +194,7 @@ const fetchData = async () => {
 
   isLoadingData.value = true;
   try {
-    const contract = await ensureContractHash();
+    const contract = await ensureContractAddress();
     const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
     if (!sdk?.invoke) {
       console.warn("[TimeCapsule] SDK not available");
@@ -188,7 +206,7 @@ const fetchData = async () => {
       contract,
       method: "TotalCapsules",
       args: [],
-    });
+    }) as any;
 
     const totalCapsules = parseInt(totalResult?.stack?.[0]?.value || "0");
     const userCapsules: Capsule[] = [];
@@ -199,7 +217,7 @@ const fetchData = async () => {
         contract,
         method: "GetCapsule",
         args: [{ type: "Integer", value: i.toString() }],
-      });
+      }) as any;
 
       if (capsuleResult?.stack?.[0]) {
         const capsuleData = capsuleResult.stack[0].value;
@@ -257,13 +275,47 @@ const create = async () => {
 
   try {
     status.value = { msg: t("creatingCapsule"), type: "loading" };
-    await payGAS("3", `create:${Date.now()}`);
 
+    // Ensure wallet is connected
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) {
+      throw new Error("Please connect wallet");
+    }
+
+    const contract = await ensureContractAddress();
+
+    // Pay the creation fee
+    const payment = await payGAS("3", `create:${Date.now()}`);
+    const receiptId = payment.receipt_id;
+    if (!receiptId) {
+      throw new Error("Payment receipt missing");
+    }
+
+    // Calculate unlock timestamp
     const unlockDate = new Date();
     unlockDate.setDate(unlockDate.getDate() + parseInt(newCapsule.value.days));
+    const unlockTimestamp = Math.floor(unlockDate.getTime() / 1000);
     const unlockDateStr = unlockDate.toISOString().split("T")[0];
-    const capsuleId = Date.now().toString();
 
+    // Create capsule on-chain
+    const tx = await invokeContract({
+      scriptHash: contract,
+      operation: "CreateCapsule",
+      args: [
+        { type: "Hash160", value: address.value },
+        { type: "String", value: newCapsule.value.name },
+        { type: "String", value: newCapsule.value.content },
+        { type: "Integer", value: String(unlockTimestamp) },
+        { type: "Integer", value: String(receiptId) },
+      ],
+    });
+
+    const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
+    const capsuleId = txid || Date.now().toString();
+
+    // Add to local list
     capsules.value.push({
       id: capsuleId,
       name: newCapsule.value.name,
@@ -289,8 +341,8 @@ const open = (cap: Capsule) => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .app-container {
   padding: $space-4;
@@ -306,29 +358,7 @@ const open = (cap: Capsule) => {
   flex: 1;
 }
 
-.status-msg {
-  text-align: center;
-  padding: $space-4;
-  border: 4px solid var(--border-color, black);
-  box-shadow: 8px 8px 0 var(--shadow-color, black);
-  margin-bottom: $space-6;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  animation: slideDown 0.3s ease-out;
 
-  &.success {
-    background: var(--brutal-yellow);
-    color: black;
-  }
-  &.error {
-    background: var(--brutal-red);
-    color: white;
-  }
-  &.loading {
-    background: var(--brutal-orange);
-    color: white;
-  }
-}
 
 @keyframes slideDown {
   from {

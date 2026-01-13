@@ -1,16 +1,16 @@
 <template>
-  <NeoCard :title="t('statistics')" variant="erobo">
-    <view class="stat-row">
-      <text class="stat-label">{{ t("totalGames") }}</text>
-      <text class="stat-value">{{ readingsCount }}</text>
+  <NeoCard :title="t('statistics')" variant="erobo-neo">
+    <view class="stat-row-glass">
+      <text class="stat-label-glass">{{ t("totalGames") }}</text>
+      <text class="stat-value-glass">{{ readingsCount }}</text>
     </view>
-    <view class="stat-row">
-      <text class="stat-label">{{ t("cardsDrawnCount") }}</text>
-      <text class="stat-value">{{ readingsCount * 3 }}</text>
+    <view class="stat-row-glass">
+      <text class="stat-label-glass">{{ t("cardsDrawnCount") }}</text>
+      <text class="stat-value-glass">{{ readingsCount * 3 }}</text>
     </view>
-    <view class="stat-row">
-      <text class="stat-label">{{ t("totalSpent") }}</text>
-      <text class="stat-value">{{ (readingsCount * 0.05).toFixed(2) }} GAS</text>
+    <view class="stat-row-glass">
+      <text class="stat-label-glass">{{ t("totalSpent") }}</text>
+      <text class="stat-value-glass">{{ (readingsCount * 0.05).toFixed(2) }} GAS</text>
     </view>
   </NeoCard>
 </template>
@@ -25,31 +25,31 @@ defineProps<{
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
-.stat-row {
+.stat-row-glass {
   display: flex;
   justify-content: space-between;
   padding: 16px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   align-items: center;
   &:last-child { border-bottom: none; }
 }
 
-.stat-label {
+.stat-label-glass {
   font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  color: rgba(255, 255, 255, 0.7);
   letter-spacing: 0.05em;
 }
 
-.stat-value {
+.stat-value-glass {
   font-weight: 700;
   font-family: $font-mono;
   font-size: 16px;
-  color: #9f9df3;
-  text-shadow: 0 0 10px rgba(159, 157, 243, 0.3);
+  color: #34d399; /* Green for values */
+  text-shadow: 0 0 10px rgba(52, 211, 153, 0.3);
 }
 </style>

@@ -3,9 +3,17 @@
  * Defines the SDK interface exposed to MiniApps via WebView bridge
  */
 
+import type { ChainId, MiniAppChainContracts } from "@/types/miniapp";
+import type { ChainType } from "@/lib/chains";
+
 export type MiniAppSDKConfig = {
   edgeBaseUrl: string;
   appId?: string;
+  chainId?: ChainId | null;
+  chainType?: ChainType;
+  contractAddress?: string | null;
+  supportedChains?: ChainId[];
+  chainContracts?: MiniAppChainContracts;
   getAuthToken?: () => Promise<string | undefined>;
   getAPIKey?: () => Promise<string | undefined>;
 };
@@ -70,6 +78,36 @@ export type ListResponse<T> = {
 };
 
 export interface MiniAppSDK {
+  getConfig?: () => {
+    appId?: string;
+    chainId?: ChainId | null;
+    chainType?: ChainType;
+    contractAddress?: string | null;
+    supportedChains?: ChainId[];
+    chainContracts?: MiniAppChainContracts;
+    debug?: boolean;
+  };
+  invokeRead?: (params: {
+    contract?: string;
+    method?: string;
+    args?: unknown[];
+    chainId?: ChainId;
+    chainType?: ChainType;
+    data?: string;
+    to?: string;
+  }) => Promise<unknown>;
+  invokeFunction?: (params: {
+    contract?: string;
+    method?: string;
+    args?: unknown[];
+    chainId?: ChainId;
+    chainType?: ChainType;
+    data?: string;
+    to?: string;
+    value?: string;
+    gas?: string;
+    gas_price?: string;
+  }) => Promise<unknown>;
   getAddress?: () => Promise<string>;
   wallet: {
     getAddress: () => Promise<string>;

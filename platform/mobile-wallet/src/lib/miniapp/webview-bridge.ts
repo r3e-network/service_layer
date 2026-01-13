@@ -14,7 +14,7 @@ export type BridgeMessage = {
 };
 
 export type BridgeResponse = {
-  type: "neo_miniapp_sdk_response";
+  type: "miniapp_sdk_response";
   id: string;
   ok: boolean;
   result?: unknown;
@@ -41,7 +41,7 @@ function hasPermission(method: string, permissions: MiniAppPermissions): boolean
     case "governance.voteAndInvoke":
       return Boolean(permissions.governance);
     case "rng.requestRandom":
-      return Boolean(permissions.randomness);
+      return Boolean(permissions.rng);
     case "datafeed.getPrice":
       return Boolean(permissions.datafeed);
     default:
@@ -71,6 +71,10 @@ export async function dispatchBridgeCall(config: BridgeConfig, method: string, p
   }
 
   switch (method) {
+    case "getConfig": {
+      return sdk.getConfig ? sdk.getConfig() : null;
+    }
+
     case "wallet.getAddress":
     case "getAddress":
       return getAddress();
@@ -122,6 +126,20 @@ export async function dispatchBridgeCall(config: BridgeConfig, method: string, p
       const [rawParams] = params;
       const p = rawParams && typeof rawParams === "object" ? { ...(rawParams as Record<string, unknown>) } : {};
       return sdk.transactions.list({ ...p, app_id: resolveScopedAppId(p.app_id, appId) });
+    }
+
+    case "invokeRead": {
+      const [rawParams] = params;
+      if (!sdk.invokeRead) throw new Error("invokeRead not supported");
+      if (!rawParams || typeof rawParams !== "object") throw new Error("invokeRead params required");
+      return sdk.invokeRead(rawParams as Record<string, unknown>);
+    }
+
+    case "invokeFunction": {
+      const [rawParams] = params;
+      if (!sdk.invokeFunction) throw new Error("invokeFunction not supported");
+      if (!rawParams || typeof rawParams !== "object") throw new Error("invokeFunction params required");
+      return sdk.invokeFunction(rawParams as Record<string, unknown>);
     }
 
     default:

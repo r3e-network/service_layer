@@ -1,6 +1,5 @@
 <template>
-  <view class="card collateral-card">
-    <text class="card-title">{{ t("collateralStatus") }}</text>
+  <NeoCard :title="t('collateralStatus')" variant="erobo" class="collateral-card">
     <view class="collateral-visual">
       <view class="collateral-bar">
         <view class="collateral-fill" :style="{ width: collateralUtilization + '%' }">
@@ -18,11 +17,12 @@
         </view>
       </view>
     </view>
-  </view>
+  </NeoCard>
 </template>
 
 <script setup lang="ts">
 import { formatNumber } from "@/shared/utils/format";
+import { NeoCard } from "@/shared/components";
 
 const props = defineProps<{
   loan: any;
@@ -35,27 +35,12 @@ const fmt = (n: number, d = 2) => formatNumber(n, d);
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
-.card {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  padding: $space-4;
-  margin-bottom: $space-3;
-}
 
-.card-title {
-  color: var(--neo-green);
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  display: block;
-  margin-bottom: $space-3;
-  text-transform: uppercase;
-}
 
-.collateral-card { background: var(--bg-card); }
+
 
 .collateral-visual {
   display: flex;

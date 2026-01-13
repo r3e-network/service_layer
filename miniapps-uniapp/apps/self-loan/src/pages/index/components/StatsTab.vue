@@ -1,6 +1,6 @@
 <template>
   <view class="tab-content scrollable">
-    <NeoCard :title="t('statistics')" variant="default">
+    <NeoCard :title="t('statistics')" variant="erobo">
       <view class="flex flex-col gap-3">
         <NeoCard variant="default" flat class="flex justify-between items-center p-3 border-none!">
           <text class="stat-label">{{ t("totalLoans") }}</text>
@@ -46,8 +46,8 @@ const fmt = (n: number, d = 2) => formatNumber(n, d);
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: $space-3;

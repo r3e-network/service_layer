@@ -3,8 +3,12 @@
     <view class="neo-modal__content" :class="`neo-modal--${variant}`">
       <view v-if="title" class="neo-modal__header">
         <text class="neo-modal__title">{{ title }}</text>
-        <view v-if="closeable" class="neo-modal__close" @click="$emit('close')">✕</view>
+        <view v-if="closeable" class="neo-modal__close" @click="$emit('close')">
+          <AppIcon name="x" :size="20" />
+        </view>
       </view>
+
+
       <view class="neo-modal__body">
         <slot />
       </view>
@@ -16,6 +20,8 @@
 </template>
 
 <script setup lang="ts">
+import AppIcon from "./AppIcon.vue";
+
 export type ModalVariant = "default" | "success" | "warning" | "danger";
 
 defineProps<{
@@ -31,7 +37,7 @@ defineEmits<{
 </script>
 
 <style lang="scss">
-@import "@/shared/styles/tokens.scss";
+@use "@/shared/styles/tokens.scss" as *;
 
 .neo-modal {
   position: fixed;
@@ -91,6 +97,8 @@ defineEmits<{
     font-weight: bold;
     color: var(--text-secondary);
     cursor: pointer;
+    transition: color $transition-fast;
+
     &:hover {
       color: var(--text-primary);
     }

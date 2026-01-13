@@ -111,17 +111,20 @@ defineProps<{
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .trust-document {
-  background: var(--bg-card, white);
-  border: 4px solid var(--border-color, black);
-  box-shadow: 10px 10px 0 var(--shadow-color, black);
-  margin-bottom: $space-8;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  margin-bottom: $space-6;
   padding: $space-6;
   position: relative;
-  color: var(--text-primary, black);
+  backdrop-filter: blur(20px);
+  color: white;
+  overflow: hidden;
+
   &::before {
     content: "OFFICIAL TRUST";
     position: absolute;
@@ -129,61 +132,70 @@ defineProps<{
     left: 0;
     right: 0;
     height: 24px;
-    background: black;
-    color: var(--brutal-yellow);
-    font-size: 10px;
-    font-weight: $font-weight-black;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 9px;
+    font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    letter-spacing: 2px;
+    letter-spacing: 0.2em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
 }
 
 .document-header {
+
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin: $space-6 0 $space-4;
-  border-bottom: 3px solid black;
   padding-bottom: $space-3;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 .document-seal {
-  background: black;
-  color: white;
-  padding: 4px 12px;
-  border: 2px solid black;
+  background: rgba(159, 157, 243, 0.15);
+  color: #9f9df3;
+  padding: 6px 14px;
+  border-radius: 99px;
+  border: 1px solid rgba(159, 157, 243, 0.3);
   display: flex;
   align-items: center;
   gap: $space-2;
-  box-shadow: 3px 3px 0 var(--brutal-red);
+  box-shadow: 0 0 15px rgba(159, 157, 243, 0.2);
 }
 .seal-icon {
   font-size: 18px;
 }
 .seal-text {
   font-size: 10px;
-  font-weight: $font-weight-black;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 0.1em;
 }
 
 .document-status {
-  padding: 4px 12px;
-  border: 3px solid var(--border-color, black);
-  font-weight: $font-weight-black;
+  padding: 6px 14px;
+  border-radius: 99px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-weight: 700;
   font-size: 10px;
   text-transform: uppercase;
-  box-shadow: 3px 3px 0 var(--shadow-color, black);
+  
   &.active {
-    background: var(--neo-green);
+    background: rgba(0, 229, 153, 0.1);
+    color: #00e599;
+    border-color: rgba(0, 229, 153, 0.3);
   }
   &.pending {
-    background: var(--brutal-yellow);
+    background: rgba(255, 222, 89, 0.1);
+    color: #ffde59;
+    border-color: rgba(255, 222, 89, 0.3);
   }
   &.triggered {
-    background: var(--brutal-red);
-    color: white;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
   }
 }
 
@@ -191,24 +203,26 @@ defineProps<{
   text-align: center;
   margin: $space-6 0;
   padding: $space-4;
-  background: var(--bg-elevated, #eee);
-  border: 3px solid var(--border-color, black);
-  box-shadow: inset 4px 4px 0 var(--shadow-color, rgba(0, 0, 0, 0.1));
-  color: var(--text-primary, black);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  color: white;
 }
 .title-text {
   font-size: 24px;
-  font-weight: $font-weight-black;
+  font-weight: 800;
   display: block;
   text-transform: uppercase;
-  border-bottom: 2px solid black;
+  color: white;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+  margin-bottom: 8px;
 }
 .title-subtitle {
   font-size: 10px;
-  font-weight: $font-weight-black;
-  opacity: 1;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
-  margin-top: 4px;
+  letter-spacing: 0.1em;
   display: block;
 }
 
@@ -222,11 +236,12 @@ defineProps<{
 }
 .asset-label {
   font-size: 10px;
-  font-weight: $font-weight-black;
+  font-weight: 700;
   text-transform: uppercase;
-  background: black;
-  color: white;
-  padding: 2px 8px;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.05em;
+  padding: 0;
+  background: transparent;
 }
 
 .dual-assets {
@@ -241,15 +256,18 @@ defineProps<{
   align-items: center;
   gap: $space-2;
   padding: $space-3;
-  border: 3px solid var(--border-color, black);
-  box-shadow: 4px 4px 0 var(--shadow-color, black);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
 
   &.gas {
-    background: var(--brutal-yellow);
+    border-color: rgba(255, 222, 89, 0.3);
+    background: linear-gradient(135deg, rgba(255, 222, 89, 0.1), transparent);
   }
 
   &.neo {
-    background: var(--neo-green);
+    border-color: rgba(0, 229, 153, 0.3);
+    background: linear-gradient(135deg, rgba(0, 229, 153, 0.1), transparent);
   }
 }
 
@@ -270,12 +288,12 @@ defineProps<{
 }
 
 .beneficiary-card {
-  background: var(--bg-card, white);
-  border: 3px solid var(--border-color, black);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
   padding: $space-4;
   margin-bottom: $space-6;
-  box-shadow: 5px 5px 0 var(--shadow-color, black);
-  color: var(--text-primary, black);
+  color: white;
 }
 .beneficiary-header {
   display: flex;
@@ -285,37 +303,42 @@ defineProps<{
 }
 .beneficiary-label {
   font-size: 10px;
-  font-weight: $font-weight-black;
+  font-weight: 700;
   text-transform: uppercase;
-  border-bottom: 2px solid black;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.6);
+  border-bottom: none;
 }
 .beneficiary-address {
   font-family: $font-mono;
   font-size: 12px;
-  font-weight: $font-weight-black;
-  background: var(--bg-elevated, #eee);
+  font-weight: 500;
+  background: rgba(0, 0, 0, 0.2);
   padding: $space-3;
-  border: 2px solid var(--border-color, black);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: block;
   margin: $space-2 0;
   word-break: break-all;
-  color: var(--text-primary, black);
+  color: rgba(255, 255, 255, 0.9);
 }
 .beneficiary-allocation {
   display: flex;
   justify-content: space-between;
-  font-weight: $font-weight-black;
+  font-weight: 600;
   font-size: 12px;
   margin-top: 8px;
-  border-top: 2px solid black;
-  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 8px;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .trigger-section {
-  background: black;
+  background: rgba(0, 0, 0, 0.2);
   color: white;
   padding: $space-5;
-  border: 3px solid black;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
   margin-bottom: $space-6;
 }
 .trigger-header {
@@ -326,9 +349,10 @@ defineProps<{
 }
 .trigger-label {
   font-size: 10px;
-  font-weight: $font-weight-black;
+  font-weight: 700;
   text-transform: uppercase;
-  color: var(--brutal-yellow);
+  letter-spacing: 0.1em;
+  color: white;
 }
 .trigger-timeline {
   display: flex;
@@ -343,11 +367,13 @@ defineProps<{
 .timeline-dot {
   width: 12px;
   height: 12px;
-  border: 2px solid white;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
   background: transparent;
   &.active {
-    background: var(--brutal-green);
-    border-color: var(--brutal-green);
+    background: #00e599;
+    border-color: #00e599;
+    box-shadow: 0 0 10px rgba(0, 229, 153, 0.4);
   }
 }
 .timeline-line {
@@ -363,23 +389,26 @@ defineProps<{
 }
 .timeline-date {
   font-size: 10px;
-  color: var(--brutal-yellow);
-  font-weight: $font-weight-black;
+  color: #ffde59;
+  font-weight: 600;
 }
 
 .document-footer {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 10px;
-  font-weight: $font-weight-black;
-  border-top: 3px solid black;
+  font-weight: 600;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   padding-top: $space-3;
   margin-top: $space-4;
+  color: rgba(255, 255, 255, 0.5);
 }
 .footer-signature {
-  background: var(--bg-elevated, #eee);
-  padding: 2px 8px;
-  border: 1px solid var(--border-color, black);
-  color: var(--text-primary, black);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
 }
 </style>

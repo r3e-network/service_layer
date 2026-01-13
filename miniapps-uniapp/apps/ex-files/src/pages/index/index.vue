@@ -1,12 +1,22 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab === 'files' || activeTab === 'upload'" class="app-container">
+      <view v-if="chainType === 'evm'" class="mb-4">
+        <NeoCard variant="danger">
+          <view class="flex flex-col items-center gap-2 py-1">
+            <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+            <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+            <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{ t("switchToNeo") }}</NeoButton>
+          </view>
+        </NeoCard>
+      </view>
+
       <StatusMessage :status="status" />
 
       <!-- Files Archive Tab -->
       <view v-if="activeTab === 'files'" class="tab-content">
         <!-- Archive Stats -->
-        <NeoCard class="mb-4">
+        <NeoCard class="mb-4" variant="erobo">
           <NeoStats :stats="statsData" />
         </NeoCard>
 
@@ -146,6 +156,9 @@ const translations = {
   feature1Desc: { en: "Hardware-level memory protection", zh: "硬件级回忆保护" },
   feature2Name: { en: "On-Chain Storage", zh: "链上存储" },
   feature2Desc: { en: "Immutable relationship records", zh: "不可篡改的关系记录" },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 
 const t = createT(translations);
@@ -160,7 +173,7 @@ const APP_ID = "miniapp-exfiles";
 const CREATE_FEE = "0.1";
 const QUERY_FEE = "0.05";
 
-const { address, connect, invokeRead, invokeContract, getContractHash } = useWallet();
+const { address, connect, invokeRead, invokeContract, chainType, switchChain } = useWallet() as any;
 const { payGAS, isLoading } = usePayments(APP_ID);
 const { list: listEvents } = useEvents();
 
@@ -171,7 +184,7 @@ const navTabs: NavTab[] = [
   { id: "docs", icon: "book", label: t("docs") },
 ];
 
-const contractHash = ref<string | null>(null);
+const contractAddress = ref<string>("0xa07521e6be12b9d2a138848f08080f084ba1cf39"); // Placeholder/Demo Contract
 const records = ref<RecordItem[]>([]);
 const recordContent = ref("");
 const recordRating = ref("3");
@@ -205,13 +218,8 @@ const showStatus = (msg: string, type: string) => {
   setTimeout(() => (status.value = null), 3000);
 };
 
-const ensureContractHash = async () => {
-  if (!contractHash.value) {
-    contractHash.value = await getContractHash();
-  }
-  if (!contractHash.value) {
-    throw new Error(t("missingContract"));
-  }
+const ensureContractAddress = async () => {
+  return contractAddress.value;
 };
 
 const formatHash = (hash: string) => {
@@ -238,7 +246,7 @@ const parseRecord = (recordId: number, raw: any): RecordItem => {
 };
 
 const loadRecords = async () => {
-  await ensureContractHash();
+  await ensureContractAddress();
   const res = await listEvents({ app_id: APP_ID, event_name: "RecordCreated", limit: 50 });
   const ids = Array.from(
     new Set(
@@ -253,7 +261,7 @@ const loadRecords = async () => {
   const list: RecordItem[] = [];
   for (const id of ids) {
     const recordRes = await invokeRead({
-      contractHash: contractHash.value as string,
+      scriptHash: contractAddress.value as string,
       operation: "GetRecord",
       args: [{ type: "Integer", value: id }],
     });
@@ -286,7 +294,7 @@ const createRecord = async () => {
     if (!address.value) {
       throw new Error(t("error"));
     }
-    await ensureContractHash();
+    await ensureContractAddress();
     const hashHex = await sha256Hex(recordContent.value.trim());
     const payment = await payGAS(CREATE_FEE, `create:${hashHex.slice(0, 8)}`);
     const receiptId = payment.receipt_id;
@@ -294,7 +302,7 @@ const createRecord = async () => {
       throw new Error("Missing payment receipt");
     }
     await invokeContract({
-      scriptHash: contractHash.value as string,
+      scriptHash: contractAddress.value as string,
       operation: "CreateRecord",
       args: [
         { type: "Hash160", value: address.value as string },
@@ -332,7 +340,7 @@ const queryRecord = async () => {
     if (!address.value) {
       throw new Error(t("error"));
     }
-    await ensureContractHash();
+    await ensureContractAddress();
     const input = queryInput.value.trim();
     const isHash = /^(0x)?[0-9a-fA-F]{64}$/.test(input);
     const hashHex = isHash ? input.replace(/^0x/, "") : await sha256Hex(input);
@@ -342,7 +350,7 @@ const queryRecord = async () => {
       throw new Error("Missing payment receipt");
     }
     const tx = await invokeContract({
-      scriptHash: contractHash.value as string,
+      scriptHash: contractAddress.value as string,
       operation: "QueryByHash",
       args: [
         { type: "Hash160", value: address.value as string },
@@ -358,7 +366,7 @@ const queryRecord = async () => {
         const recordId = Number(values[0] || 0);
         if (recordId > 0) {
           const recordRes = await invokeRead({
-            contractHash: contractHash.value as string,
+            scriptHash: contractAddress.value as string,
             operation: "GetRecord",
             args: [{ type: "Integer", value: recordId }],
           });
@@ -384,8 +392,8 @@ onMounted(async () => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .app-container {
   padding: $space-4;

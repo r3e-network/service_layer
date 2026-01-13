@@ -1,20 +1,15 @@
-@import "./tokens.scss";
+@use "./tokens.scss" as *;
+@use "./theme.scss" as *;
 
-// ============================================
-// MOBILE-FIRST LAYOUT SYSTEM
-// Professional MiniApp container styles
-// ============================================
-
-// Base container - fills available space
+// Base container - fixed height, no page scroll
+// Content areas use overflow-y: auto for scrollable lists
 .app-container {
-  flex: 1;
-  min-height: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  background: var(--bg-primary, $color-bg-primary);
-  color: var(--text-primary, $color-text-primary);
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  color: var(--text-primary);
   padding: $spacing-lg;
   font-family:
     "Outfit",
@@ -23,22 +18,17 @@
     "Segoe UI",
     Roboto,
     sans-serif;
+  transition:
+    background 0.3s ease,
+    color 0.3s ease;
 }
 
-// Tab content - flexible content area
-.tab-content {
+// Scrollable content area (for lists, etc.)
+.scrollable-content {
   flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-primary);
-  overflow: hidden;
-
-  &.scrollable {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: $spacing-lg;
-  }
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 // Header
@@ -50,10 +40,11 @@
 .title {
   font-size: $font-3xl;
   font-weight: bold;
+  color: var(--text-primary);
 }
 
 .subtitle {
-  color: $color-text-secondary;
+  color: var(--text-secondary);
   font-size: $font-sm;
   margin-top: $spacing-sm;
 }
@@ -67,15 +58,14 @@
 }
 
 .glass-card {
-  background: $color-bg-card;
+  background: var(--bg-card);
   backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--border-color);
   border-radius: $radius-xl;
-  transition: all 0.5s;
+  transition: all 0.3s ease;
 
   &:hover {
     border-color: rgba($color-neo, 0.3);
-    background: rgba(255, 255, 255, 0.08);
   }
 }
 

@@ -61,8 +61,8 @@ const priceImpactClass = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .rate-card {
   background: var(--bg-card, rgba(255, 255, 255, 0.03));

@@ -1,16 +1,28 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <view v-if="chainType === 'evm'" class="px-4 mb-4">
+      <NeoCard variant="danger">
+        <view class="flex flex-col items-center gap-2 py-1">
+          <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+          <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+          <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{
+            t("switchToNeo")
+          }}</NeoButton>
+        </view>
+      </NeoCard>
+    </view>
+
     <view class="app-container">
       <view v-if="status" :class="['status-msg', status.type]">
         <text>{{ status.msg }}</text>
       </view>
 
       <view v-if="activeTab === 'proposals'" class="tab-content">
-        <NeoCard>
+        <NeoCard variant="erobo-neo">
           <NeoStats :stats="statsData" />
         </NeoCard>
 
-        <NeoCard :title="t('yourMasks')">
+        <NeoCard :title="t('yourMasks')" variant="erobo">
           <view class="masks-grid">
             <view
               v-for="(mask, i) in masks"
@@ -38,7 +50,7 @@
       </view>
 
       <view v-if="activeTab === 'vote'" class="tab-content">
-        <NeoCard :title="t('proposals')">
+        <NeoCard :title="t('proposals')" variant="erobo">
           <view class="proposals-list">
             <view v-for="(p, i) in proposalsList" :key="i" class="proposal-item">
               <view class="proposal-header">
@@ -189,6 +201,12 @@ const translations = {
     en: "Vote results are encrypted until the reveal time to prevent vote manipulation.",
     zh: "投票结果在揭晓时间前保持加密，防止投票操纵。",
   },
+  wrongChain: { en: "Wrong Chain", zh: "链错误" },
+  wrongChainMessage: {
+    en: "This app requires Neo N3. Please switch networks.",
+    zh: "此应用需要 Neo N3 网络，请切换网络。",
+  },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 
 const t = createT(translations);
@@ -199,7 +217,7 @@ const docFeatures = computed(() => [
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 const APP_ID = "miniapp-masqueradedao";
-const { address, connect } = useWallet();
+const { address, connect, chainType, switchChain } = useWallet() as any;
 
 interface Mask {
   icon: string;
@@ -238,7 +256,7 @@ const proposalsList = ref<Proposal[]>([]);
 const statsData = computed<StatItem[]>(() => [
   { label: t("masks"), value: maskCount.value, variant: "default" },
   { label: t("rep"), value: reputation.value, variant: "accent" },
-  { label: t("active"), value: proposals.value, variant: "default" },
+  { label: t("active"), value: proposals.value },
 ]);
 
 const getVotePercentage = (forVotes: number, againstVotes: number): number => {
@@ -303,8 +321,8 @@ onMounted(() => fetchData());
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .app-container {
   display: flex;
@@ -323,23 +341,27 @@ onMounted(() => fetchData());
 .status-msg {
   text-align: center;
   padding: $space-3;
-  border: 2px solid var(--border-color, black);
-  font-weight: $font-weight-black;
+  border-radius: 99px;
+  font-weight: 700;
   text-transform: uppercase;
   font-size: 10px;
-  margin-bottom: $space-2;
-  box-shadow: 4px 4px 0 var(--shadow-color, black);
+  margin-bottom: $space-4;
+  backdrop-filter: blur(10px);
+  
   &.success {
-    background: var(--neo-green);
-    color: black;
+    background: rgba(0, 229, 153, 0.1);
+    border: 1px solid rgba(0, 229, 153, 0.3);
+    color: #00e599;
   }
   &.error {
-    background: var(--brutal-red);
-    color: white;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
   }
   &.loading {
-    background: var(--brutal-yellow);
-    color: black;
+    background: rgba(255, 222, 10, 0.1);
+    border: 1px solid rgba(255, 222, 10, 0.3);
+    color: #ffde59;
   }
 }
 
@@ -352,18 +374,25 @@ onMounted(() => fetchData());
 
 .mask-item {
   padding: $space-4;
-  background: var(--bg-card, white);
-  border: 3px solid var(--border-color, black);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
   text-align: center;
   cursor: pointer;
   position: relative;
   transition: all $transition-fast;
-  box-shadow: 6px 6px 0 var(--shadow-color, black);
-  color: var(--text-primary, black);
+  color: white;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateY(-2px);
+  }
+  
   &.active {
-    background: var(--brutal-yellow);
-    box-shadow: 2px 2px 0 var(--shadow-color, black);
-    transform: translate(4px, 4px);
+    background: rgba(159, 157, 243, 0.1);
+    border-color: rgba(159, 157, 243, 0.3);
+    box-shadow: 0 0 20px rgba(159, 157, 243, 0.2);
+    transform: translateY(-2px);
   }
 }
 
@@ -394,13 +423,15 @@ onMounted(() => fetchData());
 }
 
 .mask-name {
-  font-weight: $font-weight-black;
+  font-weight: 700;
   font-size: 14px;
   text-transform: uppercase;
   display: block;
   margin-bottom: 4px;
-  border-bottom: 1px solid black;
-  padding-bottom: 2px;
+  color: white;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 4px;
 }
 .mask-power-wrapper {
   display: flex;
@@ -411,8 +442,8 @@ onMounted(() => fetchData());
 .mask-power {
   font-family: $font-mono;
   font-size: 12px;
-  font-weight: $font-weight-black;
-  color: var(--text-primary, black);
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
 }
 .mask-encrypted {
   font-size: 10px;
@@ -427,10 +458,10 @@ onMounted(() => fetchData());
 
 .proposal-item {
   padding: $space-5;
-  background: var(--bg-card, white);
-  border: 3px solid var(--border-color, black);
-  box-shadow: 8px 8px 0 var(--shadow-color, black);
-  color: var(--text-primary, black);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  color: white;
 }
 
 .proposal-header {
@@ -441,25 +472,28 @@ onMounted(() => fetchData());
 }
 .proposal-id {
   font-family: $font-mono;
-  font-weight: $font-weight-black;
-  background: black;
-  color: white;
-  padding: 2px 8px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 4px 8px;
+  border-radius: 8px;
   font-size: 10px;
 }
 .proposal-status {
   display: flex;
   align-items: center;
   gap: 4px;
-  background: var(--bg-elevated, #eee);
-  border: 1px solid var(--border-color, black);
-  padding: 2px 6px;
-  color: var(--text-primary, black);
+  background: rgba(159, 157, 243, 0.1);
+  border: 1px solid rgba(159, 157, 243, 0.2);
+  padding: 2px 8px;
+  border-radius: 99px;
+  color: #9f9df3;
 }
 .status-text {
-  font-size: 8px;
-  font-weight: $font-weight-black;
+  font-size: 9px;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .proposal-title {
@@ -474,10 +508,11 @@ onMounted(() => fetchData());
   display: flex;
   justify-content: space-between;
   margin-bottom: $space-4;
-  padding: $space-2;
-  background: var(--bg-elevated, #f0f0f0);
-  border: 1px solid var(--border-color, black);
-  color: var(--text-primary, black);
+  padding: $space-3;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: white;
 }
 
 .meta-label {
@@ -500,15 +535,19 @@ onMounted(() => fetchData());
   margin-bottom: $space-4;
 }
 .vote-bar {
-  height: 12px;
-  background: var(--bg-card, white);
-  border: 2px solid var(--border-color, black);
-  margin-bottom: 4px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 99px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  border: none;
 }
 .vote-bar-fill {
   height: 100%;
-  background: var(--neo-purple);
-  border-right: 2px solid black;
+  background: #00e599;
+  border-radius: 99px;
+  box-shadow: 0 0 10px rgba(0, 229, 153, 0.4);
+  border: none;
 }
 
 .vote-counts {
@@ -531,18 +570,19 @@ onMounted(() => fetchData());
   align-items: center;
   justify-content: center;
   gap: 4px;
-  box-shadow: 4px 4px 0 var(--shadow-color, black);
 }
 
 .anonymity-notice {
   margin-top: $space-4;
-  padding: $space-2;
-  background: var(--brutal-yellow);
-  border: 1px solid var(--border-color, black);
+  padding: $space-3;
+  background: rgba(159, 157, 243, 0.1);
+  border: 1px solid rgba(159, 157, 243, 0.2);
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  color: #9f9df3;
 }
 .notice-text {
   font-size: 9px;

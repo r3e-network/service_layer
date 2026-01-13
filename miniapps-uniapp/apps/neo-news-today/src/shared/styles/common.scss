@@ -1,4 +1,5 @@
-@import "./theme.scss";
+@use "./tokens.scss" as *;
+@use "./theme.scss" as *;
 
 // Base container - fixed height, no page scroll
 // Content areas use overflow-y: auto for scrollable lists

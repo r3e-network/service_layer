@@ -34,17 +34,35 @@ defineEmits<{
 </script>
 
 <style lang="scss">
-@import "@/shared/styles/tokens.scss";
+@use "@/shared/styles/tokens.scss" as *;
 
 .navbar {
-  height: 56px;
-  background: var(--bg-card);
-  border-top: 1px solid var(--border-color);
+  height: 64px;
+  min-height: 64px;
+  background: var(--bg-card, rgba(12, 13, 22, 0.8));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border-color, rgba(159, 157, 243, 0.18));
   display: flex;
   align-items: center;
   justify-content: space-around;
   padding-bottom: env(safe-area-inset-bottom, 0);
   flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+
+  // Subtle top glow effect
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, var(--erobo-purple, #9f9df3) 50%, transparent 100%);
+    opacity: 0.5;
+    box-shadow: 0 0 10px rgba(159, 157, 243, 0.3);
+  }
 }
 
 .nav-item {
@@ -53,12 +71,35 @@ defineEmits<{
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 6px 0;
-  color: var(--text-tertiary);
-  transition: color 0.2s ease;
+  padding: 8px 0;
+  color: var(--text-muted, #666666);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: 24px;
+    height: 2px;
+    background: var(--erobo-purple, #9f9df3);
+    border-radius: 1px;
+    transition: transform 0.2s ease;
+  }
 
   &.active {
-    color: var(--color-accent, $neo-green);
+    color: var(--erobo-purple, #9f9df3);
+
+    &::after {
+      transform: translateX(-50%) scaleX(1);
+    }
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 }
 
@@ -66,11 +107,13 @@ defineEmits<{
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 .nav-label {
-  font-size: 10px;
-  font-weight: 500;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 </style>

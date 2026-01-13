@@ -1,5 +1,17 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <view v-if="chainType === 'evm'" class="px-4 mb-4">
+      <NeoCard variant="danger">
+        <view class="flex flex-col items-center gap-2 py-1">
+          <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+          <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+          <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{
+            t("switchToNeo")
+          }}</NeoButton>
+        </view>
+      </NeoCard>
+    </view>
+
     <view class="app-container">
       <!-- Status Message -->
       <NeoCard v-if="statusMessage" :variant="statusType === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
@@ -142,12 +154,18 @@ const translations = {
   feature1Desc: { en: "Vote with real GAS tokens to boost rankings.", zh: "使用真实 GAS 代币投票提升排名。" },
   feature2Name: { en: "Multiple Categories", zh: "多种分类" },
   feature2Desc: { en: "Recognize people, communities, and developers.", zh: "认可人物、社区和开发者。" },
+  wrongChain: { en: "Wrong Chain", zh: "链错误" },
+  wrongChainMessage: {
+    en: "This app requires Neo N3. Please switch networks.",
+    zh: "此应用需要 Neo N3 网络，请切换网络。",
+  },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 
 const t = createT(translations);
 
 const APP_ID = "miniapp-hall-of-fame";
-const { address, connect } = useWallet();
+const { address, connect, chainType, switchChain } = useWallet() as any;
 const { payGAS, isLoading: paymentLoading } = usePayments(APP_ID);
 
 type Category = "people" | "community" | "developer";
@@ -270,11 +288,40 @@ async function handleVote(entrant: Entrant) {
   votingId.value = entrant.id;
 
   try {
+    // First, process the GAS payment
     await payGAS("1", `vote:${entrant.id}:${entrant.name}`);
-    const idx = entrants.value.findIndex((e) => e.id === entrant.id);
-    if (idx !== -1) {
-      entrants.value[idx].score += 100;
+
+    // Then, persist the vote to the backend
+    const response = await fetch("/api/hall-of-fame/vote", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        entrantId: entrant.id,
+        voter: address.value || undefined,
+        amount: 1,
+      }),
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      // Update local state with server-confirmed score
+      const idx = entrants.value.findIndex((e) => e.id === entrant.id);
+      if (idx !== -1) {
+        if (result.newScore !== undefined) {
+          entrants.value[idx].score = result.newScore;
+        } else {
+          entrants.value[idx].score += 100;
+        }
+      }
+    } else {
+      // Payment succeeded but backend failed - still update locally
+      const idx = entrants.value.findIndex((e) => e.id === entrant.id);
+      if (idx !== -1) {
+        entrants.value[idx].score += 100;
+      }
+      console.warn("[HallOfFame] Vote API failed, updated locally only");
     }
+
     showStatus(t("voteSuccess"), "success");
   } catch (e: any) {
     showStatus(e.message || t("voteFailed"), "error");
@@ -293,8 +340,8 @@ onMounted(async () => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .app-container {
   padding: $space-4;

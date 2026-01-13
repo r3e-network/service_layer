@@ -13,7 +13,10 @@
         v-for="(candidate, index) in sortedCandidates"
         :key="candidate.publicKey"
         class="candidate-item"
-        :class="{ selected: selectedCandidate?.publicKey === candidate.publicKey }"
+        :class="{
+          selected: selectedCandidate?.publicKey === candidate.publicKey,
+          'user-voted': userVotedPublicKey === candidate.publicKey,
+        }"
         @click="selectCandidate(candidate)"
       >
         <view class="rank-badge" :class="getRankClass(index)">
@@ -21,7 +24,12 @@
         </view>
 
         <view class="candidate-info">
-          <text class="candidate-name">{{ candidate.name || truncateAddress(candidate.address) }}</text>
+          <view class="name-row">
+            <text class="candidate-name">{{ candidate.name || truncateAddress(candidate.address) }}</text>
+            <view v-if="userVotedPublicKey === candidate.publicKey" class="your-vote-badge">
+              <text class="your-vote-text">{{ t("yourVote") }}</text>
+            </view>
+          </view>
           <text class="candidate-address">{{ truncateAddress(candidate.publicKey) }}</text>
         </view>
 
@@ -30,8 +38,13 @@
           <text class="votes-label">{{ t("votes") }}</text>
         </view>
 
-        <view v-if="selectedCandidate?.publicKey === candidate.publicKey" class="selected-indicator">
-          <text class="check-icon">✓</text>
+        <view class="action-buttons">
+          <view v-if="selectedCandidate?.publicKey === candidate.publicKey" class="selected-indicator">
+            <text class="check-icon">✓</text>
+          </view>
+          <view class="info-btn" @click.stop="viewDetails(candidate, index)">
+            <text class="info-icon">ℹ</text>
+          </view>
         </view>
       </view>
     </view>
@@ -51,6 +64,7 @@ import type { Candidate } from "@neo/uniapp-sdk";
 const props = defineProps<{
   candidates: Candidate[];
   selectedCandidate: Candidate | null;
+  userVotedPublicKey: string | null;
   totalVotes: string;
   isLoading: boolean;
   t: (key: string) => string;
@@ -58,6 +72,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "select", candidate: Candidate): void;
+  (e: "view-details", candidate: Candidate, rank: number): void;
 }>();
 
 const sortedCandidates = computed(() => {
@@ -66,6 +81,10 @@ const sortedCandidates = computed(() => {
 
 const selectCandidate = (candidate: Candidate) => {
   emit("select", candidate);
+};
+
+const viewDetails = (candidate: Candidate, index: number) => {
+  emit("view-details", candidate, index + 1);
 };
 
 const truncateAddress = (addr: string) => {
@@ -99,8 +118,8 @@ const getRankClass = (index: number) => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .candidate-list-card {
   margin-bottom: 24px;
@@ -129,7 +148,7 @@ const getRankClass = (index: number) => {
   max-height: 320px;
   overflow-y: auto;
   padding-right: 4px;
-  
+
   &::-webkit-scrollbar {
     width: 4px;
   }
@@ -147,21 +166,29 @@ const getRankClass = (index: number) => {
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: var(--bg-card, rgba(255, 255, 255, 0.03));
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(5px);
 
   &:hover {
-    background: var(--bg-card, rgba(255, 255, 255, 0.05));
+    background: rgba(255, 255, 255, 0.08); // Slightly brighter on hover
+    border-color: rgba(255, 255, 255, 0.1);
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 
   &.selected {
     background: rgba(0, 229, 153, 0.1);
-    border-color: #00E599;
+    border-color: #00e599;
     box-shadow: 0 0 15px rgba(0, 229, 153, 0.1);
+  }
+
+  &.user-voted {
+    border-color: rgba(0, 229, 153, 0.4);
+    background: rgba(0, 229, 153, 0.05);
   }
 }
 
@@ -171,24 +198,25 @@ const getRankClass = (index: number) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-card, rgba(255, 255, 255, 0.05));
-  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
   font-weight: 800;
   font-size: 11px;
   color: var(--text-secondary, rgba(255, 255, 255, 0.5));
 
   &.rank-gold {
-    background: linear-gradient(135deg, #FFD700, #FDB931);
+    background: linear-gradient(135deg, #ffd700, #fdb931);
     color: black;
     box-shadow: 0 2px 5px rgba(253, 185, 49, 0.3);
   }
   &.rank-silver {
-    background: linear-gradient(135deg, #E0E0E0, #BDBDBD);
+    background: linear-gradient(135deg, #e0e0e0, #bdbdbd);
     color: black;
     box-shadow: 0 2px 5px rgba(189, 189, 189, 0.3);
   }
   &.rank-bronze {
-    background: linear-gradient(135deg, #CD7F32, #A0522D);
+    background: linear-gradient(135deg, #cd7f32, #a0522d);
     color: white;
     box-shadow: 0 2px 5px rgba(160, 82, 45, 0.3);
   }
@@ -197,6 +225,28 @@ const getRankClass = (index: number) => {
 .candidate-info {
   flex: 1;
   min-width: 0;
+}
+
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.your-vote-badge {
+  background: linear-gradient(135deg, #00e599, #00b377);
+  padding: 2px 8px;
+  border-radius: 99px;
+  flex-shrink: 0;
+}
+
+.your-vote-text {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: black;
 }
 
 .candidate-name {
@@ -243,7 +293,7 @@ const getRankClass = (index: number) => {
 .selected-indicator {
   width: 20px;
   height: 20px;
-  background: #00E599;
+  background: #00e599;
   color: black;
   border-radius: 50%;
   display: flex;
@@ -252,6 +302,38 @@ const getRankClass = (index: number) => {
   font-weight: 800;
   font-size: 12px;
   box-shadow: 0 0 10px rgba(0, 229, 153, 0.4);
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.info-btn {
+  width: 24px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.info-icon {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.check-icon {
+  line-height: 1;
 }
 
 .total-votes-footer {

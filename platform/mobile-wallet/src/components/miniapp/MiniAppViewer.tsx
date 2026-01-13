@@ -8,8 +8,16 @@ import { View, StyleSheet } from "react-native";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 import type { MiniAppInfo } from "@/types/miniapp";
 import { MiniAppLoader } from "./MiniAppLoader";
-import { createMiniAppSDK, dispatchBridgeCall, buildMiniAppEntryUrl } from "@/lib/miniapp";
+import {
+  createMiniAppSDK,
+  dispatchBridgeCall,
+  buildMiniAppEntryUrl,
+  resolveChainIdForApp,
+  getEntryUrlForChain,
+  getContractForChain,
+} from "@/lib/miniapp";
 import type { BridgeConfig, BridgeMessage } from "@/lib/miniapp";
+import { resolveChainType } from "@/lib/chains";
 
 interface MiniAppViewerProps {
   app: MiniAppInfo;
@@ -29,9 +37,14 @@ const MINIAPP_BASE_URL = "https://neomini.app";
 /**
  * JavaScript to inject into WebView for SDK bridge
  */
-const INJECTED_JS = `
+const buildInjectedJS = (configJson: string) => `
 (function() {
   if (window.MiniAppSDK) return;
+
+  const initialConfig = ${configJson || "null"};
+  if (initialConfig && typeof initialConfig === "object") {
+    window.__MINIAPP_CONFIG__ = initialConfig;
+  }
 
   const pending = new Map();
   let reqId = 0;
@@ -41,7 +54,7 @@ const INJECTED_JS = `
       const id = String(++reqId);
       pending.set(id, { resolve, reject });
       window.ReactNativeWebView.postMessage(JSON.stringify({
-        type: 'neo_miniapp_sdk_request',
+        type: 'miniapp_sdk_request',
         id,
         method,
         params: params || []
@@ -55,17 +68,43 @@ const INJECTED_JS = `
     });
   }
 
+  function invoke(method) {
+    const args = Array.prototype.slice.call(arguments, 1);
+    return request(method, args);
+  }
+
+  function getConfig() {
+    if (window.__MINIAPP_CONFIG__ && typeof window.__MINIAPP_CONFIG__ === "object") {
+      return window.__MINIAPP_CONFIG__;
+    }
+    return initialConfig || {
+      appId: "",
+      chainId: null,
+      chainType: undefined,
+      contractAddress: null,
+      supportedChains: [],
+      chainContracts: {},
+      debug: false,
+    };
+  }
+
   window.MiniAppSDK = {
+    invoke,
+    getConfig,
+    getAddress: () => request('wallet.getAddress'),
     wallet: {
       getAddress: () => request('wallet.getAddress'),
       invokeIntent: (requestId) => request('wallet.invokeIntent', [requestId])
     },
     payments: {
-      payGAS: (appId, amount, memo) => request('payments.payGAS', [appId, amount, memo])
+      payGAS: (appId, amount, memo) => request('payments.payGAS', [appId, amount, memo]),
+      payGASAndInvoke: (appId, amount, memo) => request('payments.payGASAndInvoke', [appId, amount, memo])
     },
     governance: {
       vote: (appId, proposalId, neoAmount, support) =>
-        request('governance.vote', [appId, proposalId, neoAmount, support])
+        request('governance.vote', [appId, proposalId, neoAmount, support]),
+      voteAndInvoke: (appId, proposalId, neoAmount, support) =>
+        request('governance.voteAndInvoke', [appId, proposalId, neoAmount, support])
     },
     rng: {
       requestRandom: (appId) => request('rng.requestRandom', [appId])
@@ -87,7 +126,11 @@ const INJECTED_JS = `
   window.addEventListener('message', function(e) {
     try {
       const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
-      if (data.type === 'neo_miniapp_sdk_response' && data.id) {
+      if (data && data.type === 'miniapp_config' && data.config && typeof data.config === 'object') {
+        window.__MINIAPP_CONFIG__ = data.config;
+        return;
+      }
+      if (data.type === 'miniapp_sdk_response' && data.id) {
         const p = pending.get(data.id);
         if (p) {
           pending.delete(data.id);
@@ -99,7 +142,10 @@ const INJECTED_JS = `
   });
 
   window.dispatchEvent(new Event('miniapp-sdk-ready'));
-  window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'neo_miniapp_ready' }));
+  window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'miniapp_ready' }));
+  if (initialConfig && typeof initialConfig === "object") {
+    window.postMessage({ type: "miniapp_config", config: initialConfig }, "*");
+  }
 })();
 true;
 `;
@@ -116,8 +162,41 @@ export function MiniAppViewer({
   const webViewRef = useRef<WebView>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
+  const effectiveChainId = useMemo(() => resolveChainIdForApp(app), [app]);
+  const chainType = useMemo(() => resolveChainType(effectiveChainId || null), [effectiveChainId]);
+  const contractAddress = useMemo(
+    () => getContractForChain(app, effectiveChainId),
+    [app, effectiveChainId],
+  );
+  const miniappConfig = useMemo(
+    () => ({
+      appId: app.app_id,
+      chainId: effectiveChainId,
+      chainType: chainType ?? null,
+      contractAddress: contractAddress ?? null,
+      supportedChains: app.supportedChains || [],
+      chainContracts: app.chainContracts || {},
+      debug: false,
+    }),
+    [app.app_id, app.chainContracts, app.supportedChains, chainType, contractAddress, effectiveChainId],
+  );
+  const serializedConfig = useMemo(() => JSON.stringify(miniappConfig), [miniappConfig]);
+  const injectedJS = useMemo(() => buildInjectedJS(serializedConfig), [serializedConfig]);
+
   // Create SDK instance
-  const sdk = useMemo(() => createMiniAppSDK({ edgeBaseUrl: EDGE_BASE_URL, appId: app.app_id }), [app.app_id]);
+  const sdk = useMemo(
+    () =>
+      createMiniAppSDK({
+        edgeBaseUrl: EDGE_BASE_URL,
+        appId: app.app_id,
+        chainId: effectiveChainId,
+        chainType: chainType || undefined,
+        contractAddress,
+        supportedChains: app.supportedChains,
+        chainContracts: app.chainContracts,
+      }),
+    [app.app_id, app.chainContracts, app.supportedChains, chainType, contractAddress, effectiveChainId],
+  );
 
   // Build bridge config
   const bridgeConfig: BridgeConfig = useMemo(
@@ -135,7 +214,7 @@ export function MiniAppViewer({
   const entryUrl = useMemo(() => {
     const supportedLocale = locale === "zh" ? "zh" : "en";
     // Convert relative paths to absolute URLs
-    let baseUrl = app.entry_url;
+    let baseUrl = getEntryUrlForChain(app, effectiveChainId);
     if (baseUrl.startsWith("/")) {
       baseUrl = `${MINIAPP_BASE_URL}${baseUrl}`;
     }
@@ -144,7 +223,47 @@ export function MiniAppViewer({
       theme,
       embedded: "1",
     });
-  }, [app.entry_url, locale, theme]);
+  }, [app, effectiveChainId, locale, theme]);
+
+  const postToWebView = useCallback((payload: unknown) => {
+    const message = JSON.stringify(payload);
+    webViewRef.current?.injectJavaScript(`
+        window.postMessage(${message}, '*');
+        true;
+      `);
+  }, []);
+
+  const sendConfig = useCallback(() => {
+    webViewRef.current?.injectJavaScript(`
+        (function() {
+          window.__MINIAPP_CONFIG__ = ${serializedConfig};
+          window.postMessage({ type: "miniapp_config", config: ${serializedConfig} }, "*");
+        })();
+        true;
+      `);
+  }, [serializedConfig]);
+
+  const sendWalletState = useCallback(async () => {
+    let address: string | null = null;
+    let connected = false;
+    try {
+      address = await getAddress();
+      connected = true;
+    } catch {
+      connected = false;
+      address = null;
+    }
+
+    postToWebView({
+      type: "miniapp_wallet_state_change",
+      connected,
+      address,
+      chainId: effectiveChainId,
+      chainType: chainType ?? null,
+      balance: null,
+      balances: {},
+    });
+  }, [chainType, effectiveChainId, getAddress, postToWebView]);
 
   // Handle messages from WebView
   const handleMessage = useCallback(
@@ -152,13 +271,15 @@ export function MiniAppViewer({
       try {
         const data: BridgeMessage = JSON.parse(event.nativeEvent.data);
 
-        if (data.type === "neo_miniapp_ready") {
+        if (data.type === "miniapp_ready") {
           setIsLoaded(true);
           onReady?.();
+          sendConfig();
+          void sendWalletState();
           return;
         }
 
-        if (data.type !== "neo_miniapp_sdk_request" || !data.id) return;
+        if (data.type !== "miniapp_sdk_request" || !data.id) return;
 
         const method = data.method || "";
         const params = data.params || [];
@@ -174,13 +295,13 @@ export function MiniAppViewer({
         // Ignore parse errors
       }
     },
-    [bridgeConfig, onReady],
+    [bridgeConfig, onReady, sendConfig, sendWalletState],
   );
 
   // Send response back to WebView
   const sendResponse = useCallback((id: string, ok: boolean, result?: unknown, error?: string) => {
     const response = JSON.stringify({
-      type: "neo_miniapp_sdk_response",
+      type: "miniapp_sdk_response",
       id,
       ok,
       result,
@@ -199,7 +320,7 @@ export function MiniAppViewer({
         ref={webViewRef}
         source={{ uri: entryUrl }}
         style={[styles.webview, !isLoaded && styles.hidden]}
-        injectedJavaScript={INJECTED_JS}
+        injectedJavaScript={injectedJS}
         onMessage={handleMessage}
         onError={(e) => onError?.(new Error(e.nativeEvent.description))}
         javaScriptEnabled

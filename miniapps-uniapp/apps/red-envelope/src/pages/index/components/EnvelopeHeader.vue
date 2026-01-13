@@ -3,9 +3,9 @@
     <text class="title-neo">{{ t("title") }}</text>
     <text class="subtitle-neo">{{ t("subtitle") }}</text>
     <view class="decorations-neo">
-      <view class="decoration-item"><AppIcon name="sparkle" :size="24" class="text-accent" /></view>
-      <view class="decoration-item"><AppIcon name="gift" :size="24" class="text-white" /></view>
-      <view class="decoration-item"><AppIcon name="sparkle" :size="24" class="text-accent" /></view>
+      <view class="decoration-item"><AppIcon name="sparkle" :size="24" class="text-accent glow-animate" /></view>
+      <view class="decoration-item"><AppIcon name="gift" :size="28" class="text-white bounce-animate" /></view>
+      <view class="decoration-item"><AppIcon name="sparkle" :size="24" class="text-accent glow-animate delayed" /></view>
     </view>
   </view>
 </template>
@@ -19,8 +19,8 @@ defineProps<{
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .header-neo {
   text-align: center;
@@ -61,6 +61,28 @@ defineProps<{
   color: #00E599;
 }
 
-.text-white { color: white; }
-.text-accent { color: #00E599; }
+.text-white { color: white; text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+.text-accent { color: #00E599; text-shadow: 0 0 10px rgba(0, 229, 153, 0.5); }
+
+.glow-animate {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.delayed {
+  animation-delay: 1s;
+}
+
+.bounce-animate {
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
 </style>

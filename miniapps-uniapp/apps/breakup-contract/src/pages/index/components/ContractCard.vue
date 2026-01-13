@@ -1,50 +1,76 @@
 <template>
-  <view class="contract-card">
-    <view class="contract-status-badge" :class="contract.status">
-      <text class="status-icon">{{ contract.status === "active" ? "💕" : "💔" }}</text>
-      <text class="status-text">{{ t(contract.status) }}</text>
-    </view>
+  <NeoCard :variant="getContractVariant(contract.status)" class="contract-card">
+    <template #header-extra>
+      <view class="contract-status-badge" :class="contract.status">
+        <text class="status-icon" v-if="contract.status === 'active'">💕</text>
+        <text class="status-icon" v-else-if="contract.status === 'broken'">💔</text>
+        <text class="status-text">{{ t(contract.status) }}</text>
+      </view>
+    </template>
 
     <view class="contract-info">
       <view class="info-row">
-        <text class="info-label">{{ t("partner") }}:</text>
-        <text class="info-value">{{ contract.partner }}</text>
+        <text class="info-label">{{ t("partner") }}</text>
+        <text class="info-value mono">{{ contract.partner }}</text>
       </view>
       <view class="info-row">
-        <text class="info-label">{{ t("stake") }}:</text>
-        <text class="info-value stake-amount">{{ contract.stake }} GAS</text>
+        <text class="info-label">{{ t("stake") }}</text>
+        <text class="info-value text-accent">{{ contract.stake }} GAS</text>
       </view>
       <view class="info-row">
-        <text class="info-label">{{ t("duration") }}:</text>
+        <text class="info-label">{{ t("duration") }}</text>
         <text class="info-value">{{ contract.daysLeft }} {{ t("daysLeft") }}</text>
       </view>
     </view>
 
-    <view class="contract-progress-section">
-      <text class="progress-label">{{ t("progress") }}: {{ contract.progress }}%</text>
-      <view class="progress-track">
-        <view class="progress-fill" :style="{ width: contract.progress + '%' }">
-          <view class="progress-heart">💕</view>
-        </view>
+    <view class="contract-progress-section mt-4">
+      <view class="flex justify-between mb-1">
+        <text class="progress-label">{{ t("progress") }}</text>
+        <text class="progress-val">{{ contract.progress }}%</text>
+      </view>
+      <view class="progress-track-glass">
+        <view class="progress-fill-glass" :style="{ width: contract.progress + '%' }"></view>
       </view>
     </view>
 
-    <view class="contract-actions">
-      <view v-if="contract.status === 'pending' && canSign" class="claim-btn" @click="$emit('sign', contract)">
-        <text>{{ t("signContract") }}</text>
-      </view>
-      <view v-else-if="contract.status === 'active'" class="break-btn" @click="$emit('break', contract)">
-        <text>{{ t("breakContract") }}</text>
-      </view>
-      <view v-else class="contract-status-text">
-        <text>{{ t(contract.status) }}</text>
+    <view class="contract-actions mt-4">
+      <NeoButton
+        v-if="contract.status === 'pending' && canSign"
+        variant="primary"
+        size="sm"
+        block
+        @click="$emit('sign', contract)"
+      >
+        {{ t("signContract") }}
+      </NeoButton>
+      <NeoButton
+        v-else-if="contract.status === 'active'"
+        variant="danger"
+        size="sm"
+        block
+        @click="$emit('break', contract)"
+      >
+        {{ t("breakContract") }}
+      </NeoButton>
+      <view v-else class="status-display text-center p-2 rounded glass-panel">
+        <text class="status-display-text">{{ t(contract.status) }}</text>
       </view>
     </view>
-  </view>
+  </NeoCard>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { NeoCard, NeoButton } from "@/shared/components";
+
+const getContractVariant = (status: string) => {
+  switch (status) {
+    case 'active': return 'erobo-neo';
+    case 'broken': return 'danger';
+    case 'pending': return 'warning';
+    default: return 'erobo';
+  }
+};
 
 interface RelationshipContractView {
   id: number;
@@ -72,105 +98,90 @@ const canSign = computed(() =>
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
-
-.contract-card {
-  background: var(--bg-card, white);
-  border: 2px solid var(--border-color, black);
-  padding: $space-4;
-  box-shadow: 6px 6px 0 var(--shadow-color, black);
-  border-left: 8px solid var(--brutal-pink);
-  color: var(--text-primary, black);
-}
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .contract-status-badge {
   display: inline-flex;
-  padding: 2px 8px;
-  border: 1px solid var(--border-color, black);
-  font-size: 8px;
-  font-weight: $font-weight-black;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  margin-bottom: $space-2;
-  &.active {
-    background: var(--neo-green);
-  }
-  &.pending {
-    background: var(--brutal-yellow);
-  }
-  &.broken {
-    background: var(--brutal-red);
-    color: white;
-  }
+  
+  &.active { background: rgba(0, 229, 153, 0.1); color: #00E599; border: 1px solid rgba(0, 229, 153, 0.2); }
+  &.pending { background: rgba(255, 222, 10, 0.1); color: #ffde59; border: 1px solid rgba(255, 222, 10, 0.2); }
+  &.broken { background: rgba(239, 68, 68, 0.1); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+  &.ended { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); }
+}
+
+.contract-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .info-row {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
-  padding: 2px 0;
-  border-bottom: 1px solid #eee;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
+
 .info-label {
-  opacity: 0.6;
-  font-weight: $font-weight-black;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
+
 .info-value {
-  font-family: $font-mono;
-  font-weight: $font-weight-black;
-}
-
-.contract-progress-section {
-  margin-top: $space-4;
-}
-.progress-label {
-  font-size: 8px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  color: var(--text-primary, black);
-}
-.progress-track {
-  height: 12px;
-  background: var(--bg-elevated, #eee);
-  margin-top: 4px;
-  border: 2px solid var(--border-color, black);
-}
-.progress-fill {
-  height: 100%;
-  background: var(--brutal-pink);
-  border-right: 2px solid black;
-}
-
-.contract-actions {
-  margin-top: $space-4;
-  display: flex;
-  gap: $space-2;
-}
-.break-btn,
-.claim-btn {
-  flex: 1;
-  text-align: center;
-  padding: $space-2;
-  border: 2px solid var(--border-color, black);
-  font-weight: $font-weight-black;
-  font-size: 10px;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all $transition-fast;
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: none;
-  }
-}
-.break-btn {
-  background: var(--brutal-red);
+  font-size: 12px;
+  font-weight: 600;
   color: white;
-  box-shadow: 4px 4px 0 var(--shadow-color, black);
+  &.mono { font-family: $font-mono; font-size: 11px; }
+  &.text-accent { color: #FF6B6B; }
 }
-.claim-btn {
-  background: var(--neo-green);
-  color: black;
-  box-shadow: 4px 4px 0 var(--shadow-color, black);
+
+.progress-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+}
+
+.progress-val {
+  font-size: 10px;
+  font-weight: 700;
+  color: #FF6B6B;
+}
+
+.progress-track-glass {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.progress-fill-glass {
+  height: 100%;
+  background: linear-gradient(90deg, #FF6B6B, #FFD93D);
+  border-radius: 99px;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.status-display-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
 }
 </style>

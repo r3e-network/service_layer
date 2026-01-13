@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('addLiquidity')" variant="default" class="mb-4">
+  <NeoCard :title="t('addLiquidity')" variant="erobo" class="mb-4">
     <view class="token-input-section">
       <view class="section-header">
         <text class="input-label">NEO</text>
@@ -60,8 +60,8 @@ defineEmits(["update:amountA", "update:amountB", "calculateA", "calculateB", "ad
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .token-input-section {
   background: var(--bg-card, rgba(255, 255, 255, 0.05));

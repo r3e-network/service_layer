@@ -1,31 +1,47 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <view v-if="chainType === 'evm'" class="px-4 mb-4">
+      <NeoCard variant="danger">
+        <view class="flex flex-col items-center gap-2 py-1">
+          <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+          <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+          <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{
+            t("switchToNeo")
+          }}</NeoButton>
+        </view>
+      </NeoCard>
+    </view>
+
     <view v-if="activeTab === 'vault'" class="tab-content scrollable">
       <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
-        <text class="font-bold uppercase">{{ status.msg }}</text>
+        <text class="font-bold uppercase status-text">{{ status.msg }}</text>
       </NeoCard>
 
-      <NeoCard :title="t('vaultBalance')" variant="accent">
-        <view class="balance-display">
-          <text class="balance">{{ formatNum(vaultBalance) }}</text>
-          <text class="balance-label">GAS</text>
-        </view>
-        <view class="security-row">
-          <text class="security-label">{{ t("securityLevel") }}</text>
-          <text class="security-value">{{ t("maximum") }}</text>
+      <NeoCard :title="t('vaultBalance')" variant="erobo">
+        <view class="balance-container">
+          <view class="balance-display">
+            <text class="balance">{{ formatNum(vaultBalance) }}</text>
+            <text class="balance-label">GAS</text>
+          </view>
+          <view class="security-badge">
+            <text class="security-icon">🔒</text>
+            <text class="security-text">{{ t("maximum") }} {{ t("securityLevel") }}</text>
+          </view>
         </view>
       </NeoCard>
 
-      <NeoCard :title="t('deposit')" variant="default">
+      <NeoCard :title="t('deposit')" variant="erobo-neo">
         <NeoInput v-model="depositAmount" type="number" :placeholder="t('amountToDeposit')" class="mb-4" />
         <NeoButton variant="primary" block :loading="isLoading" @click="deposit">
           {{ isLoading ? t("processing") : t("depositToVault") }}
         </NeoButton>
       </NeoCard>
 
-      <NeoCard :title="t('withdraw')" variant="default">
+      <NeoCard :title="t('withdraw')" variant="erobo">
         <NeoInput v-model="withdrawAmount" type="number" :placeholder="t('amountToWithdraw')" class="mb-2" />
-        <text class="warning-text block mb-4">{{ t("timeLockWarning") }}</text>
+        <view class="warning-badge mb-4">
+          <text class="warning-text">{{ t("timeLockWarning") }}</text>
+        </view>
         <NeoButton variant="secondary" block @click="withdraw">
           {{ t("requestWithdrawal") }}
         </NeoButton>
@@ -88,6 +104,12 @@ const translations = {
   feature1Desc: { en: "24-hour protection on all withdrawals.", zh: "所有提款均受 24 小时保护。" },
   feature2Name: { en: "TEE Secured", zh: "TEE 安全性" },
   feature2Desc: { en: "Assets managed within secure environment.", zh: "在安全环境中管理的资产。" },
+  wrongChain: { en: "Wrong Chain", zh: "链错误" },
+  wrongChainMessage: {
+    en: "This app requires Neo N3. Please switch networks.",
+    zh: "此应用需要 Neo N3 网络，请切换网络。",
+  },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 
 const t = createT(translations);
@@ -106,7 +128,7 @@ const docFeatures = computed(() => [
 ]);
 
 const APP_ID = "miniapp-unbreakablevault";
-const { address, connect } = useWallet();
+const { address, connect, chainType, switchChain } = useWallet() as any;
 const { payGAS, isLoading } = usePayments(APP_ID);
 
 const vaultBalance = ref(1250.75);
@@ -145,8 +167,8 @@ const withdraw = () => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: $space-4;
@@ -158,75 +180,81 @@ const withdraw = () => {
   -webkit-overflow-scrolling: touch;
 }
 
+.status-text {
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  color: white;
+}
+
+.balance-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0;
+}
+
 .balance-display {
   text-align: center;
-  padding: $space-8;
-  background: var(--bg-card, white);
-  border: 4px solid var(--border-color, black);
-  box-shadow: 8px 8px 0 var(--shadow-color, black);
-  margin-bottom: $space-6;
-  position: relative;
-  overflow: hidden;
-  color: var(--text-primary, black);
-  &::after {
-    content: "UNBREAKABLE";
-    position: absolute;
-    top: 5px;
-    right: -20px;
-    background: var(--brutal-yellow);
-    color: black;
-    font-size: 8px;
-    font-weight: $font-weight-black;
-    padding: 2px 20px;
-    transform: rotate(45deg);
-    border: 1px solid black;
-  }
+  margin-bottom: 20px;
 }
 
 .balance {
   font-size: 48px;
-  font-weight: $font-weight-black;
-  color: var(--text-primary, black);
+  font-weight: 800;
+  color: white;
   display: block;
-  font-family: $font-mono;
+  font-family: $font-family;
   line-height: 1;
+  text-shadow: 0 0 20px rgba(159, 157, 243, 0.4);
 }
 
 .balance-label {
   font-size: 14px;
-  font-weight: $font-weight-black;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.6);
   text-transform: uppercase;
   margin-top: 4px;
   display: block;
+  letter-spacing: 0.1em;
 }
 
-.security-row {
+.security-badge {
   display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
-  background: black;
-  color: white;
-  padding: 8px 12px;
-  margin-top: $space-4;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 229, 153, 0.1);
+  border: 1px solid rgba(0, 229, 153, 0.2);
+  padding: 8px 16px;
+  border-radius: 99px;
+  box-shadow: 0 0 15px rgba(0, 229, 153, 0.1);
 }
 
-.security-value {
-  color: var(--brutal-green);
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+.security-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: #00E599;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.security-icon {
+  font-size: 14px;
+}
+
+.warning-badge {
+  background: rgba(255, 222, 10, 0.1);
+  border: 1px solid rgba(255, 222, 10, 0.2);
+  padding: 8px;
+  border-radius: 8px;
+  text-align: center;
 }
 
 .warning-text {
-  font-size: 10px;
-  color: var(--brutal-yellow);
-  background: black;
-  padding: 4px 8px;
-  display: inline-block;
-  font-weight: $font-weight-black;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffde59;
   text-transform: uppercase;
-  border: 1px solid var(--border-color, black);
-  box-shadow: 2px 2px 0 var(--shadow-color, black);
+  letter-spacing: 0.05em;
 }
 
 .scrollable {

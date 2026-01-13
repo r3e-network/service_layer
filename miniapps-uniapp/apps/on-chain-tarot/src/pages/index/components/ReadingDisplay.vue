@@ -1,9 +1,9 @@
 <template>
-  <NeoCard :title="title" variant="default" class="reading-card">
-    <view class="fortune-container">
+  <NeoCard :title="title" variant="erobo-bitcoin" class="reading-card-container">
+    <view class="fortune-container-glass">
       <text class="fortune-icon">🔮</text>
-      <text class="reading-text">{{ reading }}</text>
-      <view class="mystical-divider">
+      <text class="reading-text-glass">{{ reading }}</text>
+      <view class="mystical-divider-glass">
         <text>✦ ✦ ✦</text>
       </view>
     </view>
@@ -20,24 +20,19 @@ defineProps<{
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
-.reading-card {
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
-  box-shadow: none;
-  background: var(--bg-card, rgba(255, 255, 255, 0.03));
-  backdrop-filter: blur(10px);
-  color: white;
-  border-radius: 24px;
+.reading-card-container {
+  margin-top: $space-6;
 }
 
-.fortune-container {
+.fortune-container-glass {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 24px;
-  padding: 24px;
+  padding: 16px;
 }
 
 .fortune-icon {
@@ -45,7 +40,7 @@ defineProps<{
   filter: drop-shadow(0 0 20px rgba(138, 43, 226, 0.5));
 }
 
-.reading-text {
+.reading-text-glass {
   font-family: $font-mono;
   font-size: 16px;
   font-weight: 700;
@@ -54,14 +49,16 @@ defineProps<{
   line-height: 1.6;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-primary, rgba(255, 255, 255, 0.9));
+  color: white;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
-.mystical-divider {
+.mystical-divider-glass {
   color: #00E599;
   font-weight: 700;
   letter-spacing: 12px;
   font-size: 20px;
   opacity: 0.8;
+  filter: drop-shadow(0 0 5px rgba(0, 229, 153, 0.5));
 }
 </style>

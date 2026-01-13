@@ -48,7 +48,7 @@ defineEmits<{
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
+@use "@/shared/styles/tokens.scss" as *;
 
 .neo-card {
   background: var(--bg-card, rgba(255, 255, 255, 0.02));
@@ -82,25 +82,29 @@ defineEmits<{
     }
   }
 
-  // Variants
+  // Variants with E-Robo Glass Gradients
   &--accent {
+    background: linear-gradient(135deg, rgba(0, 229, 153, 0.1) 0%, rgba(0, 229, 153, 0.05) 100%);
     border-color: rgba(0, 229, 153, 0.3);
-    box-shadow: 0 0 20px rgba(0, 229, 153, 0.1);
+    box-shadow: 0 0 25px rgba(0, 229, 153, 0.15);
   }
 
   &--success {
-    border-color: rgba(0, 229, 153, 0.3);
-    box-shadow: 0 0 20px rgba(0, 229, 153, 0.1);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%);
+    border-color: rgba(16, 185, 129, 0.3);
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.15);
   }
 
   &--warning {
+    background: linear-gradient(135deg, rgba(253, 224, 71, 0.15) 0%, rgba(253, 224, 71, 0.05) 100%);
     border-color: rgba(253, 224, 71, 0.3);
-    box-shadow: 0 0 20px rgba(253, 224, 71, 0.1);
+    box-shadow: 0 0 25px rgba(253, 224, 71, 0.15);
   }
 
   &--danger {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.05) 100%);
     border-color: rgba(239, 68, 68, 0.3);
-    box-shadow: 0 0 20px rgba(239, 68, 68, 0.1);
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.15);
   }
 
   // E-Robo Wallet Style Variants

@@ -18,12 +18,13 @@ for (const app of apps) {
   const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
 
   // Skip if already migrated
-  if (manifest.supportedChains) {
+  if (manifest.supported_chains || manifest.supportedChains) {
     console.log(`[SKIP] ${app} - already migrated`);
     continue;
   }
 
   // Migrate to new format
+  const contractAddress = manifest.contract_address || null;
   const newManifest = {
     app_id: manifest.app_id,
     name: manifest.name,
@@ -32,10 +33,10 @@ for (const app of apps) {
     description_zh: manifest.description_zh,
     category: manifest.category,
     status: manifest.status || "active",
-    supportedChains: ["neo-n3-mainnet", "neo-n3-testnet"],
+    supported_chains: ["neo-n3-mainnet", "neo-n3-testnet"],
     contracts: {
-      "neo-n3-mainnet": { address: manifest.contract_hash || null },
-      "neo-n3-testnet": { address: manifest.contract_hash || null },
+      "neo-n3-mainnet": { address: contractAddress },
+      "neo-n3-testnet": { address: contractAddress },
     },
     permissions: manifest.permissions || {},
   };

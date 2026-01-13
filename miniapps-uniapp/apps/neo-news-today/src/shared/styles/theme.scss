@@ -2,6 +2,8 @@
 // Used across all uni-app MiniApps
 // Supports light/dark mode via CSS custom properties
 
+@use "./tokens.scss" as *;
+
 // ============================================
 // Global Layout Settings (Critical for iframe)
 // ============================================
@@ -74,9 +76,8 @@ body {
   --color-shadow: var(--shadow-color);
 }
 
-// Light theme - WCAG AA compliant contrast
-[data-theme="light"],
-.theme-light {
+// Light theme mixin (DRY - used in both explicit and system preference)
+@mixin light-theme-vars {
   --bg-primary: #f8f8ff;
   --bg-secondary: #f2f3fb;
   --bg-card: rgba(255, 255, 255, 0.92);
@@ -86,8 +87,6 @@ body {
   --text-muted: #7a7a96;
   --border-color: rgba(159, 157, 243, 0.2);
   --shadow-color: rgba(27, 27, 47, 0.08);
-
-  // E-Robo colors for light theme
   --erobo-purple: #7c7ab8;
   --erobo-purple-dark: #5a58a3;
   --erobo-pink: #f1a1c1;
@@ -99,25 +98,16 @@ body {
   --erobo-glow: 0 0 20px rgba(124, 122, 184, 0.3);
 }
 
+// Light theme - WCAG AA compliant contrast
+[data-theme="light"],
+.theme-light {
+  @include light-theme-vars;
+}
+
 // System preference detection
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]):not(.theme-dark) {
-    --bg-primary: #f8f8ff;
-    --bg-secondary: #f2f3fb;
-    --bg-card: rgba(255, 255, 255, 0.92);
-    --bg-elevated: #ffffff;
-    --text-primary: #1b1b2f;
-    --text-secondary: #4a4a63;
-    --text-muted: #7a7a96;
-    --border-color: rgba(159, 157, 243, 0.2);
-    --shadow-color: rgba(27, 27, 47, 0.08);
-    --erobo-purple: #7c7ab8;
-    --erobo-purple-dark: #5a58a3;
-    --erobo-pink: #f1a1c1;
-    --erobo-peach: #f6d0ba;
-    --erobo-mint: #d5efe0;
-    --erobo-sky: #d3e8ff;
-    --erobo-ink: #1b1b2f;
+    @include light-theme-vars;
   }
 }
 
@@ -165,37 +155,6 @@ $color-error: #ef4444;
 $color-warning: #f59e0b;
 $color-info: #3b82f6;
 
-// Spacing
-$spacing-xs: 4px;
-$spacing-sm: 8px;
-$spacing-md: 12px;
-$spacing-lg: 16px;
-$spacing-xl: 20px;
-$spacing-2xl: 24px;
-
-// Border radius
-$radius-sm: 8px;
-$radius-md: 12px;
-$radius-lg: 16px;
-$radius-xl: 1rem;
-$radius-2xl: 1.5rem;
-$radius-3xl: 2rem;
-
-// Font sizes
-$font-family: "Outfit",
-  -apple-system,
-  BlinkMacSystemFont,
-  "Segoe UI",
-  sans-serif;
-
-$font-xs: 0.75rem;
-$font-sm: 0.875rem;
-$font-base: 1rem;
-$font-lg: 1.125rem;
-$font-xl: 1.25rem;
-$font-2xl: 1.5rem;
-$font-3xl: 1.875rem;
-
 // ============================================
 // E-Robo Animation System
 // ============================================
@@ -216,6 +175,7 @@ $ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -227,6 +187,7 @@ $ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
     opacity: 0;
     transform: scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -234,20 +195,24 @@ $ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @keyframes erobo-glow-pulse {
+
   0%,
   100% {
     box-shadow: 0 0 20px rgba(159, 157, 243, 0.3);
   }
+
   50% {
     box-shadow: 0 0 40px rgba(159, 157, 243, 0.5);
   }
 }
 
 @keyframes erobo-float {
+
   0%,
   100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-8px);
   }

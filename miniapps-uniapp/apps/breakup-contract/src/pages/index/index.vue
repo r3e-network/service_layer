@@ -1,17 +1,23 @@
 <template>
   <AppLayout :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab === 'create' || activeTab === 'contracts'" class="app-container">
-      <view class="header">
-        <view class="heart-icon">
-          <text class="heart">💕</text>
-          <text class="broken-heart">💔</text>
-        </view>
-        <text class="title">{{ t("title") }}</text>
-        <text class="subtitle">{{ t("subtitle") }}</text>
+      <view v-if="chainType === 'evm'" class="mb-4">
+        <NeoCard variant="danger">
+          <view class="flex flex-col items-center gap-2 py-1">
+            <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+            <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+            <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{ t("switchToNeo") }}</NeoButton>
+          </view>
+        </NeoCard>
       </view>
 
-      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
-        <text class="font-bold">{{ status.msg }}</text>
+      <NeoCard variant="erobo" class="mb-6 text-center">
+        <text class="title block mb-1">{{ t("title") }}</text>
+        <text class="subtitle block">{{ t("subtitle") }}</text>
+      </NeoCard>
+
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'erobo-neo'" class="mb-4 text-center">
+        <text class="font-bold status-msg">{{ status.msg }}</text>
       </NeoCard>
 
       <!-- Create Contract Tab -->
@@ -118,6 +124,9 @@ const translations = {
   feature1Desc: { en: "Real GAS locked in contract.", zh: "真实的 GAS 锁定在合约中。" },
   feature2Name: { en: "On-Chain Proof", zh: "链上证明" },
   feature2Desc: { en: "Immutable relationship records.", zh: "不可变的关系记录。" },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 
 const t = createT(translations);
@@ -129,10 +138,10 @@ const docFeatures = computed(() => [
 ]);
 
 const APP_ID = "miniapp-breakupcontract";
-const { address, connect, invokeContract, invokeRead, getContractHash } = useWallet();
+const { address, connect, invokeContract, invokeRead, chainType, switchChain } = useWallet() as any;
 const { list: listEvents } = useEvents();
 const { payGAS, isLoading } = usePayments(APP_ID);
-const contractHash = ref<string | null>(null);
+const contractAddress = ref<string>("0xc56f33fc6ec47edbd594472833cf57505d5f99aa"); // Placeholder/Demo Contract
 
 const activeTab = ref<string>("create");
 const navTabs: NavTab[] = [
@@ -172,13 +181,8 @@ const toGas = (value: any) => {
   return Number.isFinite(num) ? num / 1e8 : 0;
 };
 
-const ensureContractHash = async () => {
-  if (!contractHash.value) {
-    contractHash.value = await getContractHash();
-  }
-  if (!contractHash.value) {
-    throw new Error("Contract not configured");
-  }
+const ensureContractAddress = async () => {
+  return contractAddress.value;
 };
 
 const parseContract = (id: number, data: any[]): RelationshipContractView | null => {
@@ -221,7 +225,7 @@ const parseContract = (id: number, data: any[]): RelationshipContractView | null
 
 const loadContracts = async () => {
   try {
-    await ensureContractHash();
+    await ensureContractAddress();
     const createdEvents = await listEvents({ app_id: APP_ID, event_name: "ContractCreated", limit: 50 });
     const ids = new Set<number>();
     createdEvents.events.forEach((evt) => {
@@ -233,7 +237,7 @@ const loadContracts = async () => {
     const contractViews: RelationshipContractView[] = [];
     for (const id of Array.from(ids).sort((a, b) => b - a)) {
       const res = await invokeRead({
-        contractHash: contractHash.value!,
+        contractAddress: contractAddress.value!,
         operation: "GetContract",
         args: [{ type: "Integer", value: id }],
       });
@@ -261,14 +265,14 @@ const createContract = async () => {
     if (!address.value) {
       throw new Error(t("error"));
     }
-    await ensureContractHash();
+    await ensureContractAddress();
     const payment = await payGAS(stakeAmount.value, `contract:${partnerAddress.value.slice(0, 10)}`);
     const receiptId = payment.receipt_id;
     if (!receiptId) {
       throw new Error("Missing payment receipt");
     }
     await invokeContract({
-      scriptHash: contractHash.value!,
+      contractAddress: contractAddress.value!,
       operation: "CreateContract",
       args: [
         { type: "Hash160", value: address.value },
@@ -291,14 +295,14 @@ const createContract = async () => {
 const signContract = async (contract: RelationshipContractView) => {
   if (isLoading.value || !address.value) return;
   try {
-    await ensureContractHash();
+    await ensureContractAddress();
     const payment = await payGAS(contract.stake.toFixed(8), `contract:sign:${contract.id}`);
     const receiptId = payment.receipt_id;
     if (!receiptId) {
       throw new Error("Missing payment receipt");
     }
     await invokeContract({
-      scriptHash: contractHash.value!,
+      contractAddress: contractAddress.value!,
       operation: "SignContract",
       args: [
         { type: "Integer", value: contract.id },
@@ -319,9 +323,9 @@ const breakContract = async (contract: RelationshipContractView) => {
     return;
   }
   try {
-    await ensureContractHash();
+    await ensureContractAddress();
     await invokeContract({
-      scriptHash: contractHash.value!,
+      contractAddress: contractAddress.value!,
       operation: "TriggerBreakup",
       args: [
         { type: "Integer", value: contract.id },
@@ -341,8 +345,8 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .app-container {
   padding: $space-4;
@@ -352,29 +356,26 @@ onMounted(() => {
   gap: $space-4;
 }
 
-.header {
-  text-align: center;
-  margin-bottom: $space-4;
-}
-
-.heart-icon {
-  font-size: 32px;
-  display: flex;
-  justify-content: center;
-  gap: $space-2;
-}
 .title {
-  font-size: 32px;
-  font-weight: $font-weight-black;
+  font-size: 28px;
+  font-weight: 800;
   text-transform: uppercase;
-  color: var(--brutal-pink);
-  text-shadow: 4px 4px 0 black;
+  color: white;
+  text-shadow: 0 0 20px rgba(255, 107, 107, 0.4);
+  letter-spacing: 0.05em;
 }
 .subtitle {
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  opacity: 0.6;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.1em;
+}
+.status-msg {
+  color: white;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.05em;
 }
 
 .tab-content {

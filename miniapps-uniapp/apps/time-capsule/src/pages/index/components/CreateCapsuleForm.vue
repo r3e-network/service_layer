@@ -1,6 +1,5 @@
 <template>
-  <view class="card">
-    <text class="card-title">{{ t("createCapsule") }}</text>
+  <NeoCard :title="t('createCapsule')" variant="erobo-neo">
 
     <view class="form-section">
       <text class="form-label">{{ t("capsuleName") }}</text>
@@ -54,11 +53,11 @@
     >
       {{ isLoading ? t("creating") : t("createCapsuleButton") }}
     </NeoButton>
-  </view>
+  </NeoCard>
 </template>
 
 <script setup lang="ts">
-import { NeoInput, NeoButton } from "@/shared/components";
+import { NeoCard, NeoInput, NeoButton } from "@/shared/components";
 
 defineProps<{
   name: string;
@@ -73,41 +72,23 @@ defineEmits(["update:name", "update:content", "update:days", "create"]);
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
-
-.card {
-  background: var(--bg-card, white);
-  border: 4px solid var(--border-color, black);
-  box-shadow: 10px 10px 0 var(--shadow-color, black);
-  padding: $space-6;
-  margin-bottom: $space-6;
-  color: var(--text-primary, black);
-}
-
-.card-title {
-  color: var(--text-primary, black);
-  font-size: 24px;
-  font-weight: $font-weight-black;
-  margin-bottom: $space-6;
-  text-transform: uppercase;
-  border-bottom: 4px solid var(--brutal-yellow);
-  display: inline-block;
-}
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .form-section {
   margin-bottom: $space-6;
 }
 .form-label {
-  font-size: 12px;
-  font-weight: $font-weight-black;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
   margin-bottom: $space-2;
   display: block;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.05em;
 }
 .textarea-field {
   min-height: 120px;
-  border: 3px solid var(--border-color, black) !important;
 }
 
 .date-picker {
@@ -120,15 +101,17 @@ defineEmits(["update:name", "update:content", "update:days", "create"]);
   width: 100px;
 }
 .days-text {
-  font-weight: $font-weight-black;
+  font-weight: 700;
   text-transform: uppercase;
   font-size: 14px;
+  color: white;
 }
 
 .helper-text {
   font-size: 10px;
   opacity: 0.6;
-  font-weight: $font-weight-black;
+  font-weight: 600;
   text-transform: uppercase;
+  color: #00E599;
 }
 </style>

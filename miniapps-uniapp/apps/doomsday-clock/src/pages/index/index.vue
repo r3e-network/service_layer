@@ -1,6 +1,16 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab === 'game'" class="tab-content">
+      <view v-if="chainType === 'evm'" class="mb-4">
+        <NeoCard variant="danger">
+          <view class="flex flex-col items-center gap-2 py-1">
+            <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+            <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+            <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{ t("switchToNeo") }}</NeoButton>
+          </view>
+        </NeoCard>
+      </view>
+
       <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
         <text class="font-bold">{{ status.msg }}</text>
       </NeoCard>
@@ -141,6 +151,9 @@ const translations = {
   dangerMedium: { en: "ELEVATED", zh: "警戒" },
   dangerHigh: { en: "HIGH ALERT", zh: "高度警戒" },
   dangerCritical: { en: "CRITICAL", zh: "危急" },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 
 const t = createT(translations);
@@ -162,11 +175,11 @@ const APP_ID = "miniapp-doomsday-clock";
 const KEY_PRICE_GAS = 1;
 const MAX_DURATION_SECONDS = 86400;
 
-const { address, connect, invokeRead, invokeContract, getContractHash } = useWallet();
+const { address, connect, invokeRead, invokeContract, chainType, switchChain } = useWallet() as any;
 const { payGAS, isLoading: isPaying } = usePayments(APP_ID);
 const { list: listEvents } = useEvents();
 
-const contractHash = ref<string | null>(null);
+const contractAddress = ref<string>("0xc56f33fc6ec47edbd594472833cf57505d5f99aa"); // Placeholder/Demo Contract
 const roundId = ref(0);
 const totalPot = ref(0);
 const endTime = ref(0);
@@ -241,23 +254,18 @@ const showStatus = (msg: string, type: string) => {
   setTimeout(() => (status.value = null), 4000);
 };
 
-const ensureContractHash = async () => {
-  if (!contractHash.value) {
-    contractHash.value = await getContractHash();
-  }
-  if (!contractHash.value) {
-    throw new Error(t("missingContract"));
-  }
+const ensureContractAddress = async () => {
+  return contractAddress.value;
 };
 
 const loadRoundData = async () => {
-  await ensureContractHash();
+  await ensureContractAddress();
   const [roundRes, potRes, endRes, activeRes, buyerRes] = await Promise.all([
-    invokeRead({ contractHash: contractHash.value as string, operation: "CurrentRound" }),
-    invokeRead({ contractHash: contractHash.value as string, operation: "CurrentPot" }),
-    invokeRead({ contractHash: contractHash.value as string, operation: "EndTime" }),
-    invokeRead({ contractHash: contractHash.value as string, operation: "IsRoundActive" }),
-    invokeRead({ contractHash: contractHash.value as string, operation: "LastBuyer" }),
+    invokeRead({ scriptHash: contractAddress.value as string, operation: "CurrentRound" }),
+    invokeRead({ scriptHash: contractAddress.value as string, operation: "CurrentPot" }),
+    invokeRead({ scriptHash: contractAddress.value as string, operation: "EndTime" }),
+    invokeRead({ scriptHash: contractAddress.value as string, operation: "IsRoundActive" }),
+    invokeRead({ scriptHash: contractAddress.value as string, operation: "LastBuyer" }),
   ]);
   roundId.value = Number(parseInvokeResult(roundRes) || 0);
   totalPot.value = toGas(parseInvokeResult(potRes));
@@ -267,12 +275,12 @@ const loadRoundData = async () => {
 };
 
 const loadUserKeys = async () => {
-  if (!address.value || !roundId.value || !contractHash.value) {
+  if (!address.value || !roundId.value || !contractAddress.value) {
     userKeys.value = 0;
     return;
   }
   const res = await invokeRead({
-    contractHash: contractHash.value as string,
+    scriptHash: contractAddress.value as string,
     operation: "GetPlayerKeys",
     args: [
       { type: "Hash160", value: address.value as string },
@@ -366,7 +374,7 @@ const buyKeys = async () => {
     if (!address.value) {
       throw new Error(t("error"));
     }
-    await ensureContractHash();
+    await ensureContractAddress();
     const cost = count * KEY_PRICE_GAS;
     const payment = await payGAS(cost.toString(), `keys:${roundId.value}:${count}`);
     const receiptId = payment.receipt_id;
@@ -374,7 +382,7 @@ const buyKeys = async () => {
       throw new Error("Missing payment receipt");
     }
     await invokeContract({
-      scriptHash: contractHash.value as string,
+      scriptHash: contractAddress.value as string,
       operation: "BuyKeys",
       args: [
         { type: "Hash160", value: address.value as string },
@@ -411,8 +419,8 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: $space-4;

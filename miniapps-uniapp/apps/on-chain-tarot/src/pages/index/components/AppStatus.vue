@@ -1,24 +1,32 @@
 <template>
-  <view v-if="status" :class="['status-msg', status.type]">
-    <text>{{ status.msg }}</text>
-  </view>
+  <NeoCard v-if="status" :variant="getVariant(status.type)" class="status-card mb-4 text-center">
+    <text class="status-text-glass">{{ status.msg }}</text>
+  </NeoCard>
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { NeoCard } from "@/shared/components";
+import type { CardVariant } from "@/shared/components/NeoCard.vue";
+
+const props = defineProps<{
   status: { msg: string; type: string } | null;
 }>();
+
+const getVariant = (type: string): CardVariant => {
+  if (type === "error") return "danger";
+  if (type === "loading") return "warning";
+  return "erobo-neo";
+};
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
-
-.status-msg {
-  text-align: center; padding: $space-4; font-size: 14px; font-weight: $font-weight-black;
-  text-transform: uppercase; border: 4px solid var(--border-color, black); box-shadow: 8px 8px 0 var(--shadow-color, black); font-style: italic;
-  &.success { background: var(--neo-green); color: black; }
-  &.error { background: #ff7e7e; color: black; }
-  &.loading { background: #ffde59; color: black; }
+.status-text-glass {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  color: white;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
+.mb-4 { margin-bottom: 16px; }
 </style>

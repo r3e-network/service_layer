@@ -1,12 +1,24 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <view v-if="chainType === 'evm'" class="px-4 mb-4">
+      <NeoCard variant="danger">
+        <view class="flex flex-col items-center gap-2 py-1">
+          <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+          <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+          <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{
+            t("switchToNeo")
+          }}</NeoButton>
+        </view>
+      </NeoCard>
+    </view>
+
     <view v-if="activeTab === 'map'" class="tab-content">
       <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
         <text class="font-bold">{{ status.msg }}</text>
       </NeoCard>
 
       <!-- Pixel Art Territory Map -->
-      <NeoCard :title="t('territoryMap')" variant="default">
+      <NeoCard :title="t('territoryMap')" variant="erobo" class="map-card">
         <view class="map-container">
           <!-- Coordinate Display -->
           <view class="coordinate-display">
@@ -64,8 +76,8 @@
       </NeoCard>
 
       <!-- Territory Purchase Panel -->
-      <NeoCard :title="t('claimTerritory')" variant="accent">
-        <view class="territory-info">
+      <NeoCard :title="t('claimTerritory')" variant="erobo-neo">
+        <NeoCard variant="erobo-neo" flat class="territory-info">
           <view class="info-row">
             <text class="info-label">{{ t("position") }}:</text>
             <text class="info-value">{{ t("tile") }} #{{ selectedTile }} ({{ selectedX }}, {{ selectedY }})</text>
@@ -80,7 +92,7 @@
             <text class="info-label">{{ t("price") }}:</text>
             <text class="info-value price-value">{{ tilePrice }} GAS</text>
           </view>
-        </view>
+        </NeoCard>
         <NeoButton
           variant="primary"
           size="lg"
@@ -94,17 +106,17 @@
       </NeoCard>
 
       <!-- Territory Stats -->
-      <NeoCard :title="t('territoryStats')" variant="success">
+      <NeoCard :title="t('territoryStats')" variant="erobo">
         <view class="stats-grid">
-          <NeoCard flat variant="default" class="flex flex-col items-center p-3 border-none!">
+          <NeoCard flat variant="erobo-neo" class="flex flex-col items-center p-3 text-center">
             <text class="stat-value">{{ ownedTiles }}</text>
             <text class="stat-label">{{ t("tilesOwned") }}</text>
           </NeoCard>
-          <NeoCard flat variant="default" class="flex flex-col items-center p-3 border-none!">
+          <NeoCard flat variant="erobo-neo" class="flex flex-col items-center p-3 text-center">
             <text class="stat-value">{{ coverage }}%</text>
             <text class="stat-label">{{ t("mapControl") }}</text>
           </NeoCard>
-          <NeoCard flat variant="default" class="flex flex-col items-center p-3 border-none!">
+          <NeoCard flat variant="erobo-neo" class="flex flex-col items-center p-3 text-center">
             <text class="stat-value">{{ formatNum(totalSpent) }}</text>
             <text class="stat-label">{{ t("gasSpent") }}</text>
           </NeoCard>
@@ -114,7 +126,7 @@
 
     <!-- Stats Tab -->
     <view v-if="activeTab === 'stats'" class="tab-content scrollable">
-      <NeoCard :title="t('yourStats')" variant="accent">
+      <NeoCard :title="t('yourStats')" variant="erobo">
         <NeoStats :stats="statsData" />
       </NeoCard>
     </view>
@@ -197,6 +209,12 @@ const translations = {
     en: "Color-coded map shows your tiles vs others at a glance.",
     zh: "颜色编码的地图一目了然地显示您的地块与他人的地块。",
   },
+  wrongChain: { en: "Wrong Chain", zh: "链错误" },
+  wrongChainMessage: {
+    en: "This app requires Neo N3. Please switch networks.",
+    zh: "此应用需要 Neo N3 网络，请切换网络。",
+  },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 
 const t = createT(translations);
@@ -215,7 +233,7 @@ const docFeatures = computed(() => [
 ]);
 
 const APP_ID = "miniapp-millionpiecemap";
-const { address, connect, invokeContract, invokeRead, getContractHash } = useWallet();
+const { address, connect, invokeContract, invokeRead, chainType, switchChain } = useWallet() as any;
 const { payGAS } = usePayments(APP_ID);
 const { list: listEvents } = useEvents();
 
@@ -223,8 +241,17 @@ const GRID_SIZE = 64;
 const GRID_WIDTH = 8;
 const TILE_PRICE = 0.1;
 
-// Territory color palette
-const TERRITORY_COLORS = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A", "#98D8C8", "#F7DC6F", "#BB8FCE", "#85C1E2"];
+// Territory color palette - E-Robo Neon Theme
+const TERRITORY_COLORS = [
+  "#F472B6", // Pink
+  "#00E599", // Neo Green
+  "#7000FF", // Electric Purple
+  "#22D3EE", // Cyan
+  "#FDE047", // Yellow
+  "#A78BFA", // Soft Purple
+  "#FB923C", // Orange
+  "#60A5FA"  // Blue
+];
 
 type Tile = {
   owned: boolean;
@@ -251,7 +278,7 @@ const tilePrice = ref(TILE_PRICE);
 const isPurchasing = ref(false);
 const status = ref<{ msg: string; type: string } | null>(null);
 const zoomLevel = ref(1);
-const contractHash = ref<string | null>(null);
+const contractAddress = ref<string | null>(null);
 
 const selectedX = computed(() => selectedTile.value % GRID_WIDTH);
 const selectedY = computed(() => Math.floor(selectedTile.value / GRID_WIDTH));
@@ -266,14 +293,14 @@ const statsData = computed<StatItem[]>(() => [
   { label: t("coverage"), value: `${coverage.value}%`, variant: "success" },
 ]);
 
-const ensureContractHash = async () => {
-  if (!contractHash.value) {
-    contractHash.value = (await getContractHash()) as string;
+const ensureContractAddress = async () => {
+  if (!contractAddress.value) {
+    contractAddress.value = "0xc56f33fc6ec47edbd594472833cf57505d5f99aa";
   }
-  if (!contractHash.value) {
+  if (!contractAddress.value) {
     throw new Error(t("contractUnavailable"));
   }
-  return contractHash.value as string;
+  return contractAddress.value as string;
 };
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -342,7 +369,7 @@ const zoomOut = () => {
 
 const loadTiles = async () => {
   try {
-    const contract = await ensureContractHash();
+    const contract = await ensureContractAddress();
     const userHash = address.value ? normalizeScriptHash(addressToScriptHash(address.value)) : "";
     const updates = await Promise.all(
       tiles.value.map(async (tile) => {
@@ -387,7 +414,7 @@ const purchaseTile = async () => {
     if (!address.value) {
       throw new Error(t("connectWallet"));
     }
-    const contract = await ensureContractHash();
+    const contract = await ensureContractAddress();
     const tile = tiles.value[selectedTile.value];
     const payment = await payGAS(tilePrice.value.toString(), `map:claim:${tile.x}:${tile.y}`);
     const receiptId = payment.receipt_id;
@@ -428,8 +455,8 @@ watch(address, async () => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: $space-4;
@@ -446,50 +473,90 @@ watch(address, async () => {
 }
 
 .pixel-map-wrapper {
-  background: var(--bg-card, white);
-  border: 4px solid var(--border-color, black);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
   padding: $space-8;
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: auto;
-  box-shadow: inset 5px 5px 0 rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
 }
 
 .pixel-map {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
-  gap: 4px;
+  gap: 2px;
 }
 
 .pixel {
   width: 32px;
   height: 32px;
-  border: 2px solid var(--border-color, black);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
-  background: var(--bg-card, white);
+  background: rgba(255, 255, 255, 0.05);
   transition: all 0.2s;
+  border-radius: 2px;
+  
   &.has-selection {
     z-index: 10;
   }
   &.pixel-selected {
-    border-width: 4px;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    border: 2px solid #00e599;
+    box-shadow: 0 0 15px rgba(0, 229, 153, 0.5);
     transform: scale(1.1);
+    z-index: 20;
+  }
+  &.pixel-yours {
+    box-shadow: inset 0 0 10px rgba(0, 229, 153, 0.3);
   }
 }
+
+
 
 .coordinate-display {
   display: flex;
   justify-content: space-between;
   padding: $space-3 $space-4;
-  background: black;
+  background: rgba(255, 255, 255, 0.05);
   color: white;
-  border: 2px solid black;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
   font-family: $font-mono;
   font-size: 12px;
-  font-weight: $font-weight-black;
-  box-shadow: 4px 4px 0 var(--brutal-yellow);
+  font-weight: 700;
+  backdrop-filter: blur(5px);
+}
+
+.zoom-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+}
+.zoom-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  cursor: pointer;
+  font-weight: bold;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s;
+  &:active { background: rgba(255, 255, 255, 0.15); transform: scale(0.95); }
+}
+.zoom-level {
+  font-family: $font-mono;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .map-legend {
@@ -497,9 +564,10 @@ watch(address, async () => {
   grid-template-columns: repeat(3, 1fr);
   gap: $space-2;
   padding: $space-3;
-  background: var(--bg-elevated, #f0f0f0);
-  border: 2px solid var(--border-color, black);
-  color: var(--text-primary, black);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: white;
 }
 
 .legend-item {
@@ -508,23 +576,27 @@ watch(address, async () => {
   gap: $space-2;
 }
 .legend-color {
-  width: 16px;
-  height: 16px;
-  border: 2px solid var(--border-color, black);
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
 }
 .legend-available {
-  background: var(--bg-card, white);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 .legend-yours {
   background: var(--neo-green);
+  box-shadow: 0 0 5px rgba(0, 229, 153, 0.5);
 }
 .legend-others {
-  background: var(--brutal-orange);
+  background: #ff6b6b;
 }
 .legend-text {
-  font-size: 8px;
-  font-weight: $font-weight-black;
+  font-size: 9px;
+  font-weight: 700;
   text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.05em;
 }
 
 .territory-info {
@@ -532,10 +604,9 @@ watch(address, async () => {
   flex-direction: column;
   gap: $space-3;
   margin-bottom: $space-4;
-  background: var(--bg-card, white);
   padding: $space-4;
-  border: 2px solid var(--border-color, black);
-  color: var(--text-primary, black);
+  color: white;
+  background: transparent !important;
 }
 
 .info-row {
@@ -546,33 +617,36 @@ watch(address, async () => {
 
 .info-label {
   font-size: 10px;
-  font-weight: $font-weight-black;
+  font-weight: 700;
   opacity: 0.6;
   text-transform: uppercase;
 }
 .info-value {
-  font-weight: $font-weight-black;
+  font-weight: 700;
   font-family: $font-mono;
   font-size: 14px;
 }
+.status-owned { color: #ff6b6b; }
+.status-free { color: #00e599; }
+
 .price-value {
-  color: var(--neo-green);
+  color: #00e599;
   font-size: 20px;
-  text-shadow: 1px 1px 0 black;
+  text-shadow: 0 0 10px rgba(0, 229, 153, 0.3);
 }
 
 .stat-value {
-  font-size: 24px;
-  font-weight: $font-weight-black;
+  font-size: 20px;
+  font-weight: 700;
   font-family: $font-mono;
-  color: var(--text-primary, black);
+  color: white;
   line-height: 1;
 }
 .stat-label {
-  font-size: 8px;
-  font-weight: $font-weight-black;
+  font-size: 9px;
+  font-weight: 700;
   text-transform: uppercase;
-  opacity: 1;
+  color: rgba(255, 255, 255, 0.5);
   margin-top: 4px;
 }
 

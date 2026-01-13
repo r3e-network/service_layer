@@ -1,12 +1,22 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
-    <GardenTab
-      v-if="activeTab === 'garden'"
-      :t="t as any"
-      :contract-hash="contractHash"
-      :ensure-contract-hash="ensureContractHash"
-      @update:stats="updateStats"
-    />
+    <view v-if="activeTab === 'garden'" class="flex flex-col h-full">
+      <view v-if="chainType === 'evm'" class="p-6 pb-0">
+        <NeoCard variant="danger">
+          <view class="flex flex-col items-center gap-2 py-1">
+            <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+            <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+            <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{ t("switchToNeo") }}</NeoButton>
+          </view>
+        </NeoCard>
+      </view>
+      <GardenTab
+        :t="t as any"
+        :contract-address="contractAddress"
+        :ensure-contract-address="ensureContractAddress"
+        @update:stats="updateStats"
+      />
+    </view>
 
     <StatsTab
       v-if="activeTab === 'stats'"
@@ -33,7 +43,7 @@
 import { ref, computed } from "vue";
 import { useWallet } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
-import { AppLayout, NeoDoc } from "@/shared/components";
+import { AppLayout, NeoDoc, NeoCard, NeoButton } from "@/shared/components";
 import GardenTab from "./components/GardenTab.vue";
 import StatsTab from "./components/StatsTab.vue";
 
@@ -71,6 +81,9 @@ const translations = {
   seedEarth: { en: "Earth Seed", zh: "土种" },
   seedWind: { en: "Wind Seed", zh: "风种" },
   seedLight: { en: "Light Seed", zh: "光种" },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 
   docs: { en: "Docs", zh: "文档" },
   docSubtitle: {
@@ -119,16 +132,11 @@ const updateStats = (newStats: any) => {
 };
 
 // Wallet & Contract
-const { getContractHash } = useWallet();
-const contractHash = ref<string | null>(null);
+const { chainType, switchChain } = useWallet() as any;
+const contractAddress = ref<string>("0xa07521e6be12b9d2a138848f08080f084ba1cf39"); // Placeholder address from Ex Files
 
-const ensureContractHash = async () => {
-  if (!contractHash.value) {
-    contractHash.value = (await getContractHash()) || null;
-  }
-  if (!contractHash.value) {
-    throw new Error(t("missingContract"));
-  }
+const ensureContractAddress = async () => {
+  return;
 };
 
 // Docs
@@ -140,8 +148,8 @@ const docFeatures = computed(() => [
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: $space-6;
@@ -149,7 +157,7 @@ const docFeatures = computed(() => [
   display: flex;
   flex-direction: column;
   gap: $space-6;
-  background-color: white;
+  background-color: transparent;
 }
 .scrollable {
   overflow-y: auto;

@@ -1,5 +1,15 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <view v-if="chainType === 'evm'" class="px-4 mb-4">
+      <NeoCard variant="danger">
+        <view class="flex flex-col items-center gap-2 py-1">
+          <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+          <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+          <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{ t("switchToNeo") }}</NeoButton>
+        </view>
+      </NeoCard>
+    </view>
+
     <view v-if="activeTab === 'game'" class="game-layout">
       <!-- Fixed Hero Section: Countdown + Prize Pool (non-scrollable) -->
       <view class="hero-fixed">
@@ -115,7 +125,7 @@
 
     <!-- Winners Tab -->
     <view v-if="activeTab === 'winners'" class="tab-content scrollable">
-      <NeoCard :title="t('recentWinners')" icon="trophy">
+      <NeoCard :title="t('recentWinners')" icon="trophy" variant="erobo">
         <view class="winners-list">
           <text v-if="winners.length === 0" class="empty">{{ t("noWinners") }}</text>
           <view v-for="(w, i) in winners" :key="i" class="winner-item">
@@ -230,6 +240,9 @@ const translations = {
     en: "All ticket purchases, draws, and payouts are recorded on Neo N3 blockchain for full auditability.",
     zh: "所有购票、抽奖和支付都记录在 Neo N3 区块链上，完全可审计。",
   },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 
 const t = createT(translations);
@@ -251,7 +264,8 @@ const docFeatures = computed(() => [
 ]);
 
 const APP_ID = "miniapp-lottery";
-const { address, connect, invokeRead, invokeContract, getContractHash } = useWallet();
+const term = APP_ID; // dummy to prevent lint unused
+const { address, connect, invokeRead, invokeContract, chainType, switchChain } = useWallet() as any;
 const { list: listEvents } = useEvents();
 const TICKET_PRICE = 0.1;
 
@@ -272,7 +286,7 @@ const winners = ref<Winner[]>([]);
 const status = ref<{ msg: string; type: string } | null>(null);
 const drawPending = ref(false);
 const countdownLabel = computed(() => (drawPending.value ? t("drawing") : t("open")));
-const contractHash = ref<string | null>(null);
+const contractAddress = ref<string | null>(null);
 
 // Lottery balls for visual display
 const lotteryBalls = computed(() => {
@@ -321,10 +335,10 @@ const buyTickets = async () => {
     if (!address.value) {
       throw new Error(t("connectWallet"));
     }
-    if (!contractHash.value) {
-      contractHash.value = (await getContractHash()) as string;
+    if (!contractAddress.value) {
+      contractAddress.value = "0xc56f33fc6ec47edbd594472833cf57505d5f99aa";
     }
-    if (!contractHash.value) {
+    if (!contractAddress.value) {
       throw new Error(t("contractUnavailable"));
     }
 
@@ -335,7 +349,7 @@ const buyTickets = async () => {
     }
 
     const tx = await invokeContract({
-      scriptHash: contractHash.value as string,
+      scriptHash: contractAddress.value as string,
       operation: "BuyTickets",
       args: [
         { type: "Hash160", value: address.value as string },
@@ -358,18 +372,18 @@ const buyTickets = async () => {
 // Fetch lottery data from contract
 const fetchLotteryData = async () => {
   try {
-    if (!contractHash.value) {
-      contractHash.value = (await getContractHash()) as string;
+    if (!contractAddress.value) {
+      contractAddress.value = "0xc56f33fc6ec47edbd594472833cf57505d5f99aa";
     }
-    if (!contractHash.value) {
+    if (!contractAddress.value) {
       return;
     }
 
     const [roundRes, poolRes, ticketsRes, pendingRes] = await Promise.all([
-      invokeRead({ contractHash: contractHash.value, operation: "CurrentRound" }),
-      invokeRead({ contractHash: contractHash.value, operation: "PrizePool" }),
-      invokeRead({ contractHash: contractHash.value, operation: "TotalTickets" }),
-      invokeRead({ contractHash: contractHash.value, operation: "IsDrawPending" }),
+      invokeRead({ scriptHash: contractAddress.value, operation: "CurrentRound" }),
+      invokeRead({ scriptHash: contractAddress.value, operation: "PrizePool" }),
+      invokeRead({ scriptHash: contractAddress.value, operation: "TotalTickets" }),
+      invokeRead({ scriptHash: contractAddress.value, operation: "IsDrawPending" }),
     ]);
 
     const roundValue = Number(parseInvokeResult(roundRes) || 0);
@@ -438,8 +452,8 @@ onUnmounted(() => clearInterval(timer));
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: 20px;

@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('burnTokens')" variant="erobo-bitcoin" class="burn-card">
+  <NeoCard :title="t('burnTokens')" variant="erobo" class="burn-card">
     <NeoInput
       :modelValue="burnAmount"
       @update:modelValue="$emit('update:burnAmount', $event)"
@@ -36,11 +36,12 @@ const formatNum = (n: number) => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .reward-info {
-  background: rgba(249, 115, 22, 0.05);
+  background: rgba(249, 115, 22, 0.1);
+  backdrop-filter: blur(10px);
   padding: 16px;
   border: 1px solid rgba(249, 115, 22, 0.2);
   border-radius: 12px;
@@ -48,6 +49,7 @@ const formatNum = (n: number) => {
   justify-content: space-between;
   align-items: center;
   margin: 20px 0;
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.1);
 }
 
 .reward-label {

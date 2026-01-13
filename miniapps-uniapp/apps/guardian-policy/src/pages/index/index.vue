@@ -2,6 +2,16 @@
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <!-- Main Tab -->
     <view v-if="activeTab === 'main'" class="tab-content">
+      <view v-if="chainType === 'evm'" class="mb-4">
+        <NeoCard variant="danger">
+          <view class="flex flex-col items-center gap-2 py-1">
+            <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+            <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+            <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{ t("switchToNeo") }}</NeoButton>
+          </view>
+        </NeoCard>
+      </view>
+
       <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
         <text class="font-bold">{{ status.msg }}</text>
       </NeoCard>
@@ -58,8 +68,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import { useWallet } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
-import { AppLayout, NeoCard, NeoDoc } from "@/shared/components";
+import { AppLayout, NeoCard, NeoDoc, NeoButton } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
 import SecurityDashboard from "./components/SecurityDashboard.vue";
@@ -96,6 +107,9 @@ const translations = {
   levelMedium: { en: "Medium", zh: "中" },
   levelHigh: { en: "High", zh: "高" },
   levelCritical: { en: "Critical", zh: "严重" },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 
   docs: { en: "Docs", zh: "文档" },
   docSubtitle: {
@@ -135,6 +149,7 @@ const translations = {
 };
 
 const t = createT(translations);
+const { chainType, switchChain } = useWallet() as any;
 
 const navTabs: NavTab[] = [
   { id: "main", icon: "wallet", label: t("main") },
@@ -254,8 +269,8 @@ const createPolicy = () => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: $space-4;

@@ -28,17 +28,21 @@ defineEmits<{
 </script>
 
 <style lang="scss">
-@import "@/shared/styles/tokens.scss";
+@use "@/shared/styles/tokens.scss" as *;
 
 .top-navbar {
-  height: 44px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border-color);
+  padding: 0 16px;
+  background: var(--bg-card, rgba(12, 13, 22, 0.8));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-color, rgba(159, 157, 243, 0.18));
   flex-shrink: 0;
+  box-shadow: 0 4px 20px var(--shadow-color, rgba(0, 0, 0, 0.1));
+  z-index: 10;
 }
 
 .nav-left,
@@ -53,16 +57,21 @@ defineEmits<{
 }
 
 .nav-btn {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  color: var(--text-primary);
+  border-radius: 12px;
+  color: var(--text-primary, #ffffff);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--border-color, rgba(159, 157, 243, 0.18));
+  transition: all 0.2s ease;
+  cursor: pointer;
 
   &:active {
-    background: var(--bg-secondary);
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.2);
   }
 }
 
@@ -73,7 +82,11 @@ defineEmits<{
 
 .nav-title {
   font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
+  font-weight: 800;
+  font-family: $font-family;
+  color: var(--text-primary, #ffffff);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 </style>

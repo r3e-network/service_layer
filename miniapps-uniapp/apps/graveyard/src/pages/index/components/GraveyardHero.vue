@@ -41,8 +41,8 @@ const formatNum = (n: number) => formatNumber(n, 2);
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .graveyard-hero {
   background: var(--bg-card, white);

@@ -1,5 +1,15 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <view v-if="chainType === 'evm'" class="px-5 mb-4">
+      <NeoCard variant="danger">
+        <view class="flex flex-col items-center gap-2 py-1">
+          <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+          <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+          <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{ t("switchToNeo") }}</NeoButton>
+        </view>
+      </NeoCard>
+    </view>
+
     <SwapTab v-if="activeTab === 'swap'" :t="t as any" />
     <PoolTab v-if="activeTab === 'pool'" :t="t as any" />
 
@@ -18,8 +28,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import { useWallet } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
-import { AppLayout, NeoDoc } from "@/shared/components";
+import { AppLayout, NeoDoc, NeoCard, NeoButton } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 import SwapTab from "./components/SwapTab.vue";
 import PoolTab from "./components/PoolTab.vue";
@@ -84,9 +95,13 @@ const translations = {
     zh: "深度流动性池确保您的交易价格影响最小。",
   },
   error: { en: "Error", zh: "错误" },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 
 const t = createT(translations);
+const { chainType, switchChain } = useWallet() as any;
 
 const navTabs: NavTab[] = [
   { id: "swap", icon: "swap", label: t("tabSwap") },
@@ -104,8 +119,8 @@ const docFeatures = computed(() => [
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: 20px;

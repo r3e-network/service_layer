@@ -3,7 +3,7 @@
 // Runtime theming with CSS variables
 // ============================================
 
-@import "./tokens.scss";
+@use "./tokens.scss" as *;
 
 // === ROOT VARIABLES (Dark Theme Default) ===
 

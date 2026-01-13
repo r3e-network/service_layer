@@ -2,22 +2,32 @@
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <!-- Main Tab -->
     <view v-if="activeTab === 'main'" class="tab-content">
-      <!-- DEMO Mode Banner -->
-      <view class="demo-banner">
-        <text class="demo-badge">{{ t("demoMode") }}</text>
-        <text class="demo-note">{{ t("demoNote") }}</text>
+      <view v-if="chainType === 'evm'" class="mb-4">
+        <NeoCard variant="danger">
+          <view class="flex flex-col items-center gap-2 py-1">
+            <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+            <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+            <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{ t("switchToNeo") }}</NeoButton>
+          </view>
+        </NeoCard>
       </view>
 
+      <!-- DEMO Mode Banner -->
+      <NeoCard variant="warning" flat class="mb-4 text-center">
+        <text class="demo-badge">{{ t("demoMode") }}</text>
+        <text class="demo-note">{{ t("demoNote") }}</text>
+      </NeoCard>
+
       <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
-        <text class="font-bold">{{ status.msg }}</text>
+        <text class="font-bold status-msg">{{ status.msg }}</text>
       </NeoCard>
 
       <!-- Capsule Visualization -->
-      <NeoCard :title="t('vaultStats')" variant="accent" class="vault-card">
-        <view class="capsule-container">
+      <NeoCard :title="t('vaultStats')" variant="erobo" class="vault-card">
+        <view class="capsule-container-glass">
           <view class="capsule-visual">
-            <view class="capsule-body">
-              <view class="capsule-fill" :style="{ height: fillPercentage + '%' }">
+            <view class="capsule-body-glass">
+              <view class="capsule-fill-glass" :style="{ height: fillPercentage + '%' }">
                 <view class="capsule-shimmer"></view>
               </view>
               <view class="capsule-label">
@@ -27,12 +37,12 @@
             </view>
           </view>
           <view class="vault-stats-grid">
-            <view class="stat-item">
+            <view class="stat-item-glass">
               <text class="stat-label">{{ t("tvl") }}</text>
               <text class="stat-value tvl">{{ fmt(vault.tvl, 0) }}</text>
               <text class="stat-unit">GAS</text>
             </view>
-            <view class="stat-item">
+            <view class="stat-item-glass">
               <text class="stat-label">{{ t("compoundFreq") }}</text>
               <text class="stat-value freq">{{ vault.compoundFreq }}</text>
             </view>
@@ -41,11 +51,11 @@
       </NeoCard>
 
       <!-- Growth Chart & Position -->
-      <NeoCard :title="t('yourPosition')" variant="success" class="position-card">
-        <view class="growth-chart">
+      <NeoCard :title="t('yourPosition')" variant="erobo-neo" class="position-card">
+        <view class="growth-chart-glass">
           <view class="chart-bars">
             <view v-for="(bar, idx) in growthBars" :key="idx" class="chart-bar">
-              <view class="bar-fill" :style="{ height: bar.height + '%' }"></view>
+              <view class="bar-fill-glass" :style="{ height: bar.height + '%' }"></view>
               <text class="bar-label">{{ bar.label }}</text>
             </view>
           </view>
@@ -67,14 +77,14 @@
       </NeoCard>
 
       <!-- Lock Period Selector & Deposit -->
-      <NeoCard :title="t('createCapsule')" class="deposit-card">
+      <NeoCard :title="t('createCapsule')" class="deposit-card" variant="erobo-neo">
         <view class="lock-period-selector">
           <text class="selector-label">{{ t("lockPeriod") }}</text>
           <view class="period-options">
             <view
               v-for="period in lockPeriods"
               :key="period.days"
-              :class="['period-option', { active: selectedPeriod === period.days }]"
+              :class="['period-option-glass', { active: selectedPeriod === period.days }]"
               @click="selectedPeriod = period.days"
             >
               <text class="period-days">{{ period.days }}d</text>
@@ -83,7 +93,7 @@
           </view>
         </view>
 
-        <view class="projected-returns">
+        <view class="projected-returns-glass">
           <text class="returns-label">{{ t("projectedReturns") }}</text>
           <view class="returns-display">
             <text class="returns-value">{{ projectedReturns }}</text>
@@ -102,8 +112,8 @@
     <!-- Stats Tab -->
     <view v-if="activeTab === 'stats'" class="tab-content scrollable">
       <!-- Active Capsules -->
-      <NeoCard :title="t('activeCapsules')" variant="accent" class="capsules-card">
-        <view v-for="(capsule, idx) in activeCapsules" :key="idx" class="capsule-item">
+      <NeoCard :title="t('activeCapsules')" variant="erobo" class="capsules-card">
+        <view v-for="(capsule, idx) in activeCapsules" :key="idx" class="capsule-item-glass">
           <view class="capsule-header">
             <view class="capsule-icon">💊</view>
             <view class="capsule-info">
@@ -111,12 +121,14 @@
               <text class="capsule-period">{{ capsule.lockDays }}d lock</text>
             </view>
             <view class="capsule-status">
-              <text class="status-label">{{ capsule.status }}</text>
+              <view class="status-badge" :class="capsule.status === 'Ready' ? 'ready' : 'locked'">
+                <text class="status-badge-text">{{ capsule.status }}</text>
+              </view>
             </view>
           </view>
           <view class="capsule-progress">
-            <view class="progress-bar">
-              <view class="progress-fill" :style="{ width: capsule.progress + '%' }"></view>
+            <view class="progress-bar-glass">
+              <view class="progress-fill-glass" :style="{ width: capsule.progress + '%' }"></view>
             </view>
             <text class="progress-text">{{ capsule.progress }}%</text>
           </view>
@@ -135,27 +147,29 @@
       </NeoCard>
 
       <!-- Statistics -->
-      <NeoCard :title="t('statistics')" variant="success">
-        <view class="stat-row">
-          <text class="stat-label">{{ t("totalDeposits") }}</text>
-          <text class="stat-value">{{ stats.totalDeposits }}</text>
-        </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("totalCompounded") }}</text>
-          <text class="stat-value">{{ fmt(stats.totalCompounded, 4) }} GAS</text>
-        </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("avgAPY") }}</text>
-          <text class="stat-value">{{ stats.avgAPY }}%</text>
-        </view>
-        <view class="stat-row">
-          <text class="stat-label">{{ t("nextCompound") }}</text>
-          <text class="stat-value">{{ stats.nextCompound }}</text>
+      <NeoCard :title="t('statistics')" variant="erobo-neo">
+        <view class="stats-grid-glass">
+          <view class="stat-box-glass">
+            <text class="stat-label">{{ t("totalDeposits") }}</text>
+            <text class="stat-value">{{ stats.totalDeposits }}</text>
+          </view>
+          <view class="stat-box-glass">
+            <text class="stat-label">{{ t("totalCompounded") }}</text>
+            <text class="stat-value">{{ fmt(stats.totalCompounded, 4) }} GAS</text>
+          </view>
+          <view class="stat-box-glass">
+            <text class="stat-label">{{ t("avgAPY") }}</text>
+            <text class="stat-value">{{ stats.avgAPY }}%</text>
+          </view>
+          <view class="stat-box-glass">
+            <text class="stat-label">{{ t("nextCompound") }}</text>
+            <text class="stat-value">{{ stats.nextCompound }}</text>
+          </view>
         </view>
       </NeoCard>
 
       <!-- Recent Activity -->
-      <NeoCard :title="t('recentActivity')">
+      <NeoCard :title="t('recentActivity')" variant="erobo">
         <view v-for="(activity, idx) in recentActivity" :key="idx" class="activity-history">
           <text>{{ activity.icon }} {{ fmt(activity.amount, 2) }} GAS - {{ activity.timestamp }}</text>
         </view>
@@ -260,6 +274,9 @@ const translations = {
     en: "Batched transactions minimize gas costs for maximum efficiency.",
     zh: "批量交易最小化 gas 成本以获得最大效率。",
   },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 const t = createT(translations);
 
@@ -282,15 +299,11 @@ const docFeatures = computed(() => [
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 const APP_ID = "miniapp-compound-capsule";
-const { address, connect, getContractHash } = useWallet();
-const contractHash = ref<string | null>(null);
+const { address, connect, chainType, switchChain } = useWallet() as any;
+const contractAddress = ref<string>("0xc56f33fc6ec47edbd594472833cf57505d5f99aa"); // Placeholder/Demo Contract
 
-const ensureContractHash = async () => {
-  if (!contractHash.value) {
-    contractHash.value = await getContractHash();
-  }
-  if (!contractHash.value) throw new Error(t("contractUnavailable"));
-  return contractHash.value;
+const ensureContractAddress = async () => {
+  return contractAddress.value;
 };
 
 const vault = ref<Vault>({ apy: 18.5, tvl: 125000, compoundFreq: "Every 6h" });
@@ -357,7 +370,7 @@ const fetchData = async () => {
   if (!address.value) return;
 
   try {
-    const contract = await ensureContractHash();
+    const contract = await ensureContractAddress();
     const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
     if (!sdk?.invoke) {
       console.warn("[CompoundCapsule] SDK not available");
@@ -365,11 +378,11 @@ const fetchData = async () => {
     }
 
     // Get total capsules count from contract
-    const totalResult = await sdk.invoke("invokeRead", {
+    const totalResult = (await sdk.invoke("invokeRead", {
       contract,
       method: "TotalCapsules",
       args: [],
-    });
+    })) as any;
 
     const totalCapsules = parseInt(totalResult?.stack?.[0]?.value || "0");
     const userCapsules: typeof activeCapsules.value = [];
@@ -378,11 +391,11 @@ const fetchData = async () => {
 
     // Find user's capsules
     for (let i = 1; i <= totalCapsules; i++) {
-      const capsuleResult = await sdk.invoke("invokeRead", {
+      const capsuleResult = (await sdk.invoke("invokeRead", {
         contract,
         method: "GetCapsule",
         args: [{ type: "Integer", value: i.toString() }],
-      });
+      })) as any;
 
       if (capsuleResult?.stack?.[0]) {
         const data = capsuleResult.stack[0].value;
@@ -455,8 +468,8 @@ const deposit = async (): Promise<void> => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: 20px;
@@ -473,328 +486,123 @@ const deposit = async (): Promise<void> => {
   text-align: center;
   border-radius: 12px;
   margin-bottom: 24px;
-  backdrop-filter: blur(5px);
 }
+.demo-badge { font-weight: 800; text-transform: uppercase; font-size: 11px; display: block; color: #ffde59; letter-spacing: 0.1em; }
+.demo-note { font-size: 10px; font-weight: 600; opacity: 0.8; color: #ffde59; }
 
-.demo-badge {
-  font-weight: 800;
-  text-transform: uppercase;
-  font-size: 11px;
-  display: block;
-  color: #ffde59;
-  letter-spacing: 0.1em;
-}
-.demo-note {
-  font-size: 10px;
-  font-weight: 600;
-  opacity: 0.8;
-  color: #ffde59;
-}
+.status-msg { font-size: 14px; color: white; letter-spacing: 0.05em; }
 
-.capsule-container {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-.capsule-body {
-  width: 60px;
-  height: 100px;
-  background: var(--bg-card, rgba(255, 255, 255, 0.05));
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 30px;
-  position: relative;
-  overflow: hidden;
+.capsule-container-glass { display: flex; align-items: center; gap: 24px; }
+.capsule-body-glass {
+  width: 60px; height: 100px; background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 30px; position: relative; overflow: hidden;
   box-shadow: 0 0 20px rgba(0, 229, 153, 0.2);
 }
-
-.capsule-fill {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
+.capsule-fill-glass {
+  position: absolute; bottom: 0; left: 0; width: 100%;
   background: linear-gradient(to top, #00e599, rgba(0, 229, 153, 0.3));
-  border-top: 1px solid rgba(255, 255, 255, 0.5);
-  transition: height 0.5s ease;
+  border-top: 1px solid rgba(255, 255, 255, 0.5); transition: height 0.5s ease;
 }
 .capsule-label {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  z-index: 2;
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 2;
 }
-.capsule-apy {
-  font-weight: 800;
-  font-size: 14px;
-  color: white;
-  text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-}
-.capsule-apy-label {
-  font-size: 8px;
-  font-weight: 700;
-  color: white;
-  text-transform: uppercase;
-}
+.capsule-apy { font-weight: 800; font-size: 14px; color: white; text-shadow: 0 0 5px rgba(0,0,0,0.5); }
+.capsule-apy-label { font-size: 8px; font-weight: 700; color: white; text-transform: uppercase; }
 
-.vault-stats-grid {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.vault-stats-grid { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+.stat-item-glass {
+  padding: 12px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px;
 }
-.stat-item {
-  padding: 12px;
-  background: var(--bg-card, rgba(255, 255, 255, 0.05));
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
-  border-radius: 12px;
-}
-.stat-label {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
-  letter-spacing: 0.1em;
-}
-.stat-value {
-  font-weight: 800;
-  font-family: $font-mono;
-  font-size: 16px;
-  color: white;
-}
-.stat-unit {
-  font-size: 10px;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
-  margin-left: 4px;
-}
+.stat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: rgba(255, 255, 255, 0.5); letter-spacing: 0.1em; }
+.stat-value { font-weight: 800; font-family: $font-mono; font-size: 16px; color: white; }
+.stat-unit { font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-left: 4px; }
 
-.growth-chart {
-  height: 140px;
-  display: flex;
-  align-items: flex-end;
-  gap: 12px;
-  margin-bottom: 24px;
-  background: rgba(0, 0, 0, 0.2);
-  padding: 16px;
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
-  border-radius: 16px;
+.growth-chart-glass {
+  height: 140px; display: flex; align-items: flex-end; gap: 12px; margin-bottom: 24px;
+  background: rgba(0, 0, 0, 0.2); padding: 16px; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px;
 }
-.chart-bars {
-  flex: 1;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  height: 100%;
-  gap: 8px;
+.chart-bars { flex: 1; display: flex; align-items: flex-end; justify-content: space-between; height: 100%; gap: 8px; }
+.chart-bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+.bar-fill-glass {
+  width: 100%; background: linear-gradient(to top, #00C8FF, rgba(0, 200, 255, 0.3));
+  border-radius: 4px 4px 0 0; opacity: 0.8; min-height: 4px; border-top: 1px solid rgba(255,255,255,0.4);
 }
-.chart-bar {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  height: 100%;
-  justify-content: flex-end;
-}
-.bar-fill {
-  width: 100%;
-  background: linear-gradient(to top, var(--neo-purple), #a855f7);
-  border-radius: 4px 4px 0 0;
-  opacity: 0.8;
-  min-height: 4px;
-}
-.bar-label {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
-  margin-top: 4px;
-}
+.bar-label { font-size: 10px; font-weight: 600; color: rgba(255, 255, 255, 0.6); margin-top: 4px; }
 
 .position-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
-.position-row .label {
-  font-size: 11px;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
-}
-.position-row .value {
-  font-size: 13px;
-  font-weight: 700;
-  color: white;
-  font-family: $font-mono;
-}
-.position-row.earned .value {
-  color: #00e599;
-}
+.position-row .label { font-size: 11px; color: rgba(255, 255, 255, 0.5); }
+.position-row .value { font-size: 13px; font-weight: 700; color: white; font-family: $font-mono; }
+.position-row.earned .value { color: #00e599; }
 
-.period-options {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin: 16px 0;
-}
-.period-option {
-  padding: 12px 8px;
-  background: var(--bg-card, rgba(255, 255, 255, 0.05));
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
-  border-radius: 12px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.1);
-  }
-
+.period-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 16px 0; }
+.period-option-glass {
+  padding: 12px 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s;
+  &:hover { background: rgba(255, 255, 255, 0.1); }
   &.active {
-    background: rgba(0, 229, 153, 0.1);
-    border-color: #00e599;
+    background: rgba(0, 229, 153, 0.1); border-color: #00e599;
     box-shadow: 0 0 15px rgba(0, 229, 153, 0.2);
   }
 }
+.period-days { font-weight: 700; font-size: 13px; color: white; display: block; }
+.period-bonus { font-size: 9px; color: #00e599; font-weight: 600; }
 
-.period-days {
-  font-weight: 700;
-  font-size: 13px;
-  color: white;
-  display: block;
+.projected-returns-glass {
+  background: rgba(0, 0, 0, 0.2); padding: 12px; border-radius: 12px; margin-bottom: 16px; text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
-.period-bonus {
-  font-size: 9px;
-  color: #00e599;
-  font-weight: 600;
-}
+.returns-label { font-size: 10px; color: rgba(255, 255, 255, 0.5); display: block; margin-bottom: 4px; }
+.returns-value { font-size: 20px; font-weight: 800; color: white; font-family: $font-mono; }
+.returns-unit { font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-left: 4px; }
+.note { font-size: 10px; color: rgba(255, 255, 255, 0.4); text-align: center; display: block; margin-top: 12px; }
 
-.projected-returns {
-  background: var(--bg-card, rgba(255, 255, 255, 0.05));
-  padding: 12px;
-  border-radius: 12px;
-  margin-bottom: 16px;
-  text-align: center;
+.capsule-item-glass {
+  padding: 16px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 16px; border-radius: 16px;
 }
-.returns-label {
-  font-size: 10px;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
-  display: block;
-  margin-bottom: 4px;
+.capsule-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.capsule-icon { font-size: 24px; }
+.capsule-info { flex: 1; }
+.capsule-amount { font-size: 16px; font-weight: 700; color: white; display: block; }
+.capsule-period { font-size: 11px; color: rgba(255, 255, 255, 0.5); }
+.capsule-status { margin-left: auto; }
+
+.status-badge {
+  padding: 4px 8px; border-radius: 99px; border: 1px solid transparent;
+  &.ready { background: rgba(0, 229, 153, 0.1); border-color: rgba(0, 229, 153, 0.3); }
+  &.locked { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.1); }
 }
-.returns-value {
-  font-size: 20px;
-  font-weight: 800;
-  color: white;
-  font-family: $font-mono;
-}
-.returns-unit {
-  font-size: 12px;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
-  margin-left: 4px;
-}
-.note {
-  font-size: 10px;
-  color: var(--text-muted, rgba(255, 255, 255, 0.4));
-  text-align: center;
-  display: block;
-  margin-top: 12px;
+.status-badge-text {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  .ready & { color: #00E599; }
+  .locked & { color: rgba(255, 255, 255, 0.5); }
 }
 
-.capsule-item {
-  padding: 16px;
-  background: var(--bg-card, rgba(255, 255, 255, 0.03));
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
-  margin-bottom: 16px;
-  border-radius: 16px;
+.progress-bar-glass {
+  height: 6px; background: rgba(255, 255, 255, 0.1); margin: 8px 0; border-radius: 99px; overflow: hidden;
 }
-.capsule-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-.capsule-icon {
-  font-size: 24px;
-}
-.capsule-info {
-  flex: 1;
-}
-.capsule-amount {
-  font-size: 16px;
-  font-weight: 700;
-  color: white;
-  display: block;
-}
-.capsule-period {
-  font-size: 11px;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
-}
-.capsule-status {
-  margin-left: auto;
-}
-.status-label {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  padding: 4px 8px;
-  border-radius: 99px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-}
-
-.progress-bar {
-  height: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  margin: 8px 0;
-  border-radius: 99px;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  background: #00e599;
-  border-radius: 99px;
-}
+.progress-fill-glass { height: 100%; background: #00e599; border-radius: 99px; }
 .progress-text {
-  font-size: 10px;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
-  font-weight: 600;
-  text-align: right;
-  display: block;
+  font-size: 10px; color: rgba(255, 255, 255, 0.5); font-weight: 600; text-align: right; display: block;
 }
 
 .capsule-footer {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
-.countdown-label,
-.rewards-label {
-  font-size: 10px;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
-  display: block;
-}
-.countdown-value,
-.rewards-value {
-  font-size: 12px;
-  font-weight: 700;
-  color: white;
-  font-family: $font-mono;
-}
-.rewards-value {
-  color: #00e599;
+.countdown-label, .rewards-label { font-size: 10px; color: rgba(255, 255, 255, 0.5); display: block; }
+.countdown-value, .rewards-value { font-size: 12px; font-weight: 700; color: white; font-family: $font-mono; }
+.rewards-value { color: #00e599; }
+
+.stats-grid-glass { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.stat-box-glass {
+  padding: 12px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px;
 }
 
-.stat-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  &:last-child {
-    border-bottom: none;
-  }
-}
+.activity-history { font-size: 12px; color: rgba(255, 255, 255, 0.7); margin-bottom: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px; }
+.empty-text { font-size: 12px; color: rgba(255, 255, 255, 0.4); text-align: center; display: block; padding: 12px; }
+
 .activity-history {
   font-size: 11px;
   font-weight: 500;

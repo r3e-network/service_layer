@@ -2,6 +2,16 @@
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <!-- Main Tab -->
     <view v-if="activeTab === 'main'" class="tab-content">
+      <view v-if="chainType === 'evm'" class="mb-4">
+        <NeoCard variant="danger">
+          <view class="flex flex-col items-center gap-2 py-1">
+            <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+            <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+            <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{ t("switchToNeo") }}</NeoButton>
+          </view>
+        </NeoCard>
+      </view>
+
       <NeoCard
         v-if="status"
         :variant="status.type === 'error' ? 'danger' : status.type === 'loading' ? 'warning' : 'success'"
@@ -11,7 +21,7 @@
       </NeoCard>
 
       <!-- Trust Documents Section -->
-      <NeoCard :title="t('yourTrusts')" variant="default">
+      <NeoCard :title="t('yourTrusts')" variant="erobo">
         <view v-for="trust in trusts" :key="trust.id">
           <TrustCard :trust="trust" :t="t as any" />
         </view>
@@ -140,6 +150,9 @@ const translations = {
     en: "Beneficiary addresses are locked on-chain and cannot be changed without owner signature.",
     zh: "受益人地址锁定在链上，未经所有者签名无法更改。",
   },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 
 const t = createT(translations);
@@ -158,16 +171,12 @@ const docFeatures = computed(() => [
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 const APP_ID = "miniapp-heritage-trust";
-const { address, connect, getContractHash } = useWallet();
+const { address, connect, chainType, switchChain } = useWallet() as any;
 const { payGAS, isLoading } = usePayments(APP_ID);
-const contractHash = ref<string | null>(null);
+const contractAddress = ref<string>("0x50ac1c37690cc2cfc594472833cf57505d5f46de"); // Placeholder/Demo Contract
 
-const ensureContractHash = async () => {
-  if (!contractHash.value) {
-    contractHash.value = await getContractHash();
-  }
-  if (!contractHash.value) throw new Error(t("error"));
-  return contractHash.value;
+const ensureContractAddress = async () => {
+  return contractAddress.value;
 };
 
 const trusts = ref<Trust[]>([]);
@@ -188,7 +197,7 @@ const fetchData = async () => {
 
   isLoadingData.value = true;
   try {
-    const contract = await ensureContractHash();
+    const contract = await ensureContractAddress();
     const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
     if (!sdk?.invoke) {
       console.warn("[HeritageTrust] SDK not available");
@@ -196,22 +205,22 @@ const fetchData = async () => {
     }
 
     // Get total trusts count from contract
-    const totalResult = await sdk.invoke("invokeRead", {
+    const totalResult = (await sdk.invoke("invokeRead", {
       contract,
       method: "totalTrusts",
       args: [],
-    });
+    })) as any;
 
     const totalTrusts = parseInt(totalResult?.stack?.[0]?.value || "0");
     const userTrusts: Trust[] = [];
 
     // Iterate through all trusts and find ones owned by current user
     for (let i = 1; i <= totalTrusts; i++) {
-      const trustResult = await sdk.invoke("invokeRead", {
+      const trustResult = (await sdk.invoke("invokeRead", {
         contract,
         method: "getTrust",
         args: [{ type: "Integer", value: i.toString() }],
-      });
+      })) as any;
 
       if (trustResult?.stack?.[0]) {
         const trustData = trustResult.stack[0].value;
@@ -223,7 +232,8 @@ const fetchData = async () => {
             id: i.toString(),
             name: `Trust #${i}`,
             beneficiary: trustData?.heir || "Unknown",
-            value: parseInt(trustData?.principal || "0"),
+            gasValue: parseInt(trustData?.principal || "0"),
+            neoValue: 0,
             icon: "📜",
             status: trustData?.active ? "active" : "executed",
           });
@@ -309,8 +319,8 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: $space-4;

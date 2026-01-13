@@ -1,6 +1,6 @@
 <template>
   <view class="tab-content">
-    <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="status-card">
+    <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'erobo-neo'" class="status-card">
       <text class="status-text">{{ status.msg }}</text>
     </NeoCard>
 
@@ -48,7 +48,7 @@
     <NeoCard
       v-for="p in proposals"
       :key="p.id"
-      class="mb-6 erobo-proposal-card"
+      class="mb-6 erobo-proposal-card glass-panel"
       variant="erobo-neo"
       @click="$emit('select', p)"
     >
@@ -131,8 +131,8 @@ const getQuorumPercent = (p: any) => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: 20px;
@@ -184,7 +184,7 @@ const getQuorumPercent = (p: any) => {
   color: #00e599;
   border: 1px solid rgba(0, 229, 153, 0.2);
   border-radius: 99px;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(10px);
   width: fit-content;
   margin: 0 auto 16px;
 }
@@ -296,7 +296,7 @@ const getQuorumPercent = (p: any) => {
   font-weight: 800;
   font-family: $font-family;
   color: #00e599;
-  text-shadow: 0 0 20px rgba(0, 229, 153, 0.4);
+  text-shadow: 0 0 20px rgba(0, 229, 153, 0.6);
   line-height: 1;
 }
 .candidate-status {

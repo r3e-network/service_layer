@@ -49,8 +49,8 @@ const getMedalIcon = (rank: number): string => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .leaderboard-list {
   display: flex;
@@ -67,8 +67,8 @@ const getMedalIcon = (rank: number): string => {
   justify-content: space-between;
   align-items: center;
   padding: 12px;
-  background: var(--bg-card, rgba(255, 255, 255, 0.03));
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   transition: all 0.2s ease;
 

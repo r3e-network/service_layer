@@ -1,18 +1,28 @@
 <template>
   <AppLayout :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <view v-if="chainType === 'evm'" class="px-4 mb-4">
+      <NeoCard variant="danger">
+        <view class="flex flex-col items-center gap-2 py-1">
+          <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+          <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+          <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{
+            t("switchToNeo")
+          }}</NeoButton>
+        </view>
+      </NeoCard>
+    </view>
+
     <view v-if="activeTab === 'create' || activeTab === 'claim'" class="app-container">
       <EnvelopeHeader :t="t as any" />
 
-      <LuckyOverlay
-        :lucky-message="luckyMessage"
-        :t="t as any"
-        @close="luckyMessage = null"
-      />
+      <LuckyOverlay :lucky-message="luckyMessage" :t="t as any" @close="luckyMessage = null" />
 
       <AppStatus :status="status" />
 
       <view v-if="activeTab === 'create'" class="tab-content">
         <CreateEnvelopeForm
+          v-model:name="name"
+          v-model:description="description"
           v-model:amount="amount"
           v-model:count="count"
           v-model:expiryHours="expiryHours"
@@ -51,7 +61,7 @@ import { ref, computed, onMounted, watch } from "vue";
 import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
-import { AppLayout, NeoDoc } from "@/shared/components";
+import { AppLayout, NeoDoc, NeoCard, NeoButton } from "@/shared/components";
 import EnvelopeHeader from "./components/EnvelopeHeader.vue";
 import LuckyOverlay from "./components/LuckyOverlay.vue";
 import AppStatus from "./components/AppStatus.vue";
@@ -64,6 +74,8 @@ const translations = {
   createTab: { en: "Create", zh: "创建" },
   claimTab: { en: "Claim", zh: "领取" },
   createEnvelope: { en: "Create Envelope", zh: "创建红包" },
+  namePlaceholder: { en: "Envelope name (optional)", zh: "红包名称（可选）" },
+  descriptionPlaceholder: { en: "Blessing message", zh: "祝福语" },
   totalGasPlaceholder: { en: "Total GAS", zh: "总 GAS" },
   packetsPlaceholder: { en: "Number of packets", zh: "红包数量" },
   expiryPlaceholder: { en: "Expiry (hours)", zh: "过期时长 (小时)" },
@@ -96,6 +108,7 @@ const translations = {
   confirm: { en: "Confirm", zh: "确认" },
   loadingEnvelopes: { en: "Loading envelopes...", zh: "加载红包中..." },
   noEnvelopes: { en: "No envelopes available yet", zh: "暂无可领取红包" },
+  bestLuck: { en: "Best Luck", zh: "手气最佳" },
   docSubtitle: { en: "Social lucky packets on Neo N3.", zh: "Neo N3 上的社交幸运红包。" },
   docDescription: {
     en: "Red Envelope is a social MiniApp that lets you send and claim GAS in lucky packets. It uses NeoHub's secure RNG to fairly distribute GAS across recipients.",
@@ -115,11 +128,17 @@ const translations = {
   },
   feature2Name: { en: "Instant Claim", zh: "即时领取" },
   feature2Desc: { en: "GAS is transferred directly to your Neo wallet.", zh: "GAS 直接转移到你的 Neo 钱包。" },
+  wrongChain: { en: "Wrong Chain", zh: "链错误" },
+  wrongChainMessage: {
+    en: "This app requires Neo N3. Please switch networks.",
+    zh: "此应用需要 Neo N3 网络，请切换网络。",
+  },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 const t = createT(translations);
 
 const APP_ID = "miniapp-redenvelope";
-const { address, connect, invokeContract, invokeRead, getContractHash } = useWallet();
+const { address, connect, invokeContract, invokeRead, chainType, switchChain } = useWallet() as any;
 const { payGAS, isLoading } = usePayments(APP_ID);
 const { list: listEvents } = useEvents();
 
@@ -136,22 +155,28 @@ const docFeatures = computed(() => [
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 
+const name = ref("");
+const description = ref("");
 const amount = ref("");
 const count = ref("");
 const expiryHours = ref("24");
 const status = ref<{ msg: string; type: "success" | "error" } | null>(null);
 const luckyMessage = ref<{ amount: number; from: string } | null>(null);
 const openingId = ref<string | null>(null);
-const contractHash = ref<string | null>(null);
+const contractAddress = ref<string | null>(null);
 const loadingEnvelopes = ref(false);
 
 type EnvelopeItem = {
   id: string;
   creator: string;
   from: string;
+  name?: string;
+  description?: string;
   total: number;
   remaining: number;
   totalAmount: number;
+  bestLuckAddress?: string;
+  bestLuckAmount?: number;
   ready: boolean;
   expired: boolean;
   canClaim: boolean;
@@ -221,21 +246,21 @@ const waitForEvent = async (txid: string, eventName: string) => {
   return null;
 };
 
-const ensureContractHash = async () => {
-  if (!contractHash.value) {
-    contractHash.value = await getContractHash();
+const ensureContractAddress = async () => {
+  if (!contractAddress.value) {
+    contractAddress.value = "0xc56f33fc6ec47edbd594472833cf57505d5f99aa";
   }
-  if (!contractHash.value) {
+  if (!contractAddress.value) {
     throw new Error(t("contractUnavailable"));
   }
-  return contractHash.value;
+  return contractAddress.value;
 };
 
 const loadEnvelopes = async () => {
-  if (!contractHash.value) {
-    contractHash.value = await getContractHash();
+  if (!contractAddress.value) {
+    contractAddress.value = await ensureContractAddress();
   }
-  if (!contractHash.value) return;
+  if (!contractAddress.value) return;
   loadingEnvelopes.value = true;
   try {
     const res = await listEvents({ app_id: APP_ID, event_name: "EnvelopeCreated", limit: 25 });
@@ -252,7 +277,7 @@ const loadEnvelopes = async () => {
         const eventPackets = Number(values[3] ?? 0);
 
         const envRes = await invokeRead({
-          contractHash: contractHash.value!,
+          scriptHash: contractAddress.value!,
           operation: "GetEnvelope",
           args: [{ type: "Integer", value: envelopeId }],
         });
@@ -273,6 +298,8 @@ const loadEnvelopes = async () => {
           total: packetCount,
           remaining: remainingPackets,
           totalAmount,
+          bestLuckAddress: parsed?.bestLuckAddress || undefined,
+          bestLuckAmount: parsed?.bestLuckAmount || undefined,
           ready,
           expired,
           canClaim,
@@ -297,7 +324,7 @@ const create = async () => {
     if (!address.value) {
       throw new Error(t("connectWallet"));
     }
-    const contract = await ensureContractHash();
+    const contract = await ensureContractAddress();
 
     const totalValue = Number(amount.value);
     const packetCount = Number(count.value);
@@ -320,6 +347,8 @@ const create = async () => {
       operation: "CreateEnvelope",
       args: [
         { type: "Hash160", value: address.value },
+        { type: "String", value: name.value || "" },
+        { type: "String", value: description.value || "" },
         { type: "Integer", value: toFixed8(amount.value) },
         { type: "Integer", value: String(packetCount) },
         { type: "Integer", value: String(expirySeconds) },
@@ -334,6 +363,8 @@ const create = async () => {
     }
 
     status.value = { msg: t("envelopeSent"), type: "success" };
+    name.value = "";
+    description.value = "";
     amount.value = "";
     count.value = "";
     await loadEnvelopes();
@@ -352,14 +383,14 @@ const claim = async (env: EnvelopeItem) => {
     if (!address.value) {
       throw new Error(t("connectWallet"));
     }
-    const contract = await ensureContractHash();
+    const contract = await ensureContractAddress();
 
     if (env.expired) throw new Error(t("envelopeExpired"));
     if (!env.ready) throw new Error(t("envelopeNotReady"));
     if (env.remaining <= 0) throw new Error(t("envelopeEmpty"));
 
     const hasClaimedRes = await invokeRead({
-      contractHash: contract,
+      scriptHash: contract,
       operation: "HasClaimed",
       args: [
         { type: "Integer", value: env.id },
@@ -417,8 +448,8 @@ watch(activeTab, async (tab) => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .app-container {
   padding: 20px;

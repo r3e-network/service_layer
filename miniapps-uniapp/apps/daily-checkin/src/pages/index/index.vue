@@ -1,9 +1,21 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <view v-if="chainType === 'evm'" class="px-4 mb-4">
+      <NeoCard variant="danger">
+        <view class="flex flex-col items-center gap-2 py-1">
+          <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
+          <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+          <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{
+            t("switchToNeo")
+          }}</NeoButton>
+        </view>
+      </NeoCard>
+    </view>
+
     <!-- Check-in Tab -->
     <view v-if="activeTab === 'checkin'" class="tab-content">
-      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4">
-        <text class="text-center font-bold">{{ status.msg }}</text>
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'erobo-neo'" class="mb-4">
+        <text class="text-center font-bold status-msg">{{ status.msg }}</text>
       </NeoCard>
 
       <CountdownHero
@@ -127,6 +139,9 @@ const translations = {
   feature2Desc: { en: "Day 7: 1 GAS, Day 14+: +1.5 GAS every 7 days", zh: "第7天: 1 GAS，第14天起: 每7天+1.5 GAS" },
   notCheckedIn: { en: "Not checked in today", zh: "今日未签到" },
   checkedInToday: { en: "Checked in today!", zh: "今日已签到!" },
+  wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
+  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
 
 const t = createT(translations);
@@ -135,7 +150,7 @@ const APP_ID = "miniapp-dailycheckin";
 const CHECK_IN_FEE = 0.001;
 const MS_PER_DAY = 24 * 60 * 60 * 1000; // milliseconds per day
 
-const { address, connect, invokeContract, invokeRead, getContractHash } = useWallet();
+const { address, connect, invokeContract, invokeRead, chainType, switchChain } = useWallet() as any;
 const { payGAS, isLoading } = usePayments(APP_ID);
 const { list: listEvents } = useEvents();
 
@@ -161,7 +176,7 @@ const totalClaimed = ref(0);
 const totalUserCheckins = ref(0);
 const status = ref<{ msg: string; type: "success" | "error" } | null>(null);
 const isClaiming = ref(false);
-const contractHash = ref<string | null>(null);
+const contractAddress = ref<string | null>(null);
 
 // Global stats
 const globalStats = ref({
@@ -241,12 +256,12 @@ const formatGas = (value: number) => {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const ensureContractHash = async () => {
-  if (!contractHash.value) {
-    contractHash.value = await getContractHash();
+const ensureContractAddress = async () => {
+  if (!contractAddress.value) {
+    contractAddress.value = "0xc56f33fc6ec47edbd594472833cf57505d5f99aa";
   }
-  if (!contractHash.value) throw new Error("Contract unavailable");
-  return contractHash.value;
+  if (!contractAddress.value) throw new Error("Contract unavailable");
+  return contractAddress.value;
 };
 
 const waitForEvent = async (txid: string, eventName: string): Promise<{ event: any; pending: boolean }> => {
@@ -263,7 +278,7 @@ const waitForEvent = async (txid: string, eventName: string): Promise<{ event: a
 const loadUserStats = async () => {
   if (!address.value) return;
   try {
-    const contract = await ensureContractHash();
+    const contract = await ensureContractAddress();
     const res = await invokeRead({
       contractHash: contract,
       operation: "GetUserStats",
@@ -285,7 +300,7 @@ const loadUserStats = async () => {
 
 const loadGlobalStats = async () => {
   try {
-    const contract = await ensureContractHash();
+    const contract = await ensureContractAddress();
     const res = await invokeRead({
       contractHash: contract,
       operation: "GetGlobalStats",
@@ -337,7 +352,7 @@ const doCheckIn = async () => {
     }
     if (!address.value) throw new Error(t("connectWallet"));
 
-    const contract = await ensureContractHash();
+    const contract = await ensureContractAddress();
     const payment = await payGAS(String(CHECK_IN_FEE), "checkin");
     const receiptId = payment.receipt_id;
     if (!receiptId) throw new Error("Payment failed");
@@ -377,7 +392,7 @@ const claimRewards = async () => {
   try {
     if (!address.value) throw new Error(t("connectWallet"));
 
-    const contract = await ensureContractHash();
+    const contract = await ensureContractAddress();
     const tx = await invokeContract({
       scriptHash: contract,
       operation: "ClaimRewards",
@@ -420,8 +435,8 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: 20px;

@@ -1,6 +1,5 @@
 <template>
-  <view class="card borrow-card">
-    <text class="card-title">{{ t("takeSelfLoan") }}</text>
+  <NeoCard :title="t('takeSelfLoan')" variant="erobo-neo" class="borrow-card">
 
     <view class="input-section">
       <NeoInput
@@ -48,13 +47,13 @@
       <text>{{ isLoading ? t("processing") : t("borrowNow") }}</text>
     </NeoButton>
     <text class="note">{{ t("note") }}</text>
-  </view>
+  </NeoCard>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
 import { formatNumber } from "@/shared/utils/format";
-import { NeoInput, NeoButton } from "@/shared/components";
+import { NeoInput, NeoButton, NeoCard } from "@/shared/components";
 
 const props = defineProps<{
   modelValue: string;
@@ -90,27 +89,12 @@ const getLTVColor = () => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
-.card {
-  background: var(--bg-card);
-  border: $border-width-md solid var(--border-color);
-  box-shadow: $shadow-md;
-  padding: $space-4;
-  margin-bottom: $space-3;
-}
 
-.card-title {
-  color: var(--neo-green);
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  display: block;
-  margin-bottom: $space-3;
-  text-transform: uppercase;
-}
 
-.borrow-card { background: var(--bg-card); }
+
 
 .input-section { margin-bottom: $space-4; }
 

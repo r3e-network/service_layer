@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="'📋 ' + t('activePolicies')" class="policies-card">
+  <NeoCard :title="'📋 ' + t('activePolicies')" class="policies-card" variant="erobo">
     <view v-for="policy in policies" :key="policy.id" class="policy-row">
       <view class="policy-header">
         <view class="policy-icon" :class="'level-' + policy.level">🔒</view>
@@ -51,16 +51,17 @@ const getLevelText = (level: string) => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .policy-row {
   padding: $space-4;
-  background: var(--bg-card, white);
-  border: 3px solid var(--border-color, black);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
   margin-bottom: $space-4;
-  box-shadow: 5px 5px 0 var(--shadow-color, black);
-  color: var(--text-primary, black);
+  color: white;
+  transition: all 0.2s ease;
 }
 .policy-header {
   display: flex;
@@ -71,50 +72,47 @@ const getLevelText = (level: string) => {
 .policy-icon {
   width: 40px;
   height: 40px;
-  border: 3px solid var(--border-color, black);
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 20px;
-  &.level-low {
-    background: var(--brutal-yellow);
-  }
-  &.level-medium {
-    background: var(--neo-cyan);
-  }
-  &.level-high {
-    background: var(--neo-green);
-  }
-  &.level-critical {
-    background: var(--brutal-red);
-  }
+  &.level-low { background: rgba(255, 255, 255, 0.1); color: white; }
+  &.level-medium { background: rgba(0, 229, 153, 0.1); color: #00E599; border: 1px solid rgba(0, 229, 153, 0.2); }
+  &.level-high { background: rgba(249, 115, 22, 0.1); color: #F97316; border: 1px solid rgba(249, 115, 22, 0.2); }
+  &.level-critical { background: rgba(239, 68, 68, 0.1); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.2); }
 }
 .policy-name {
-  font-weight: $font-weight-black;
-  font-size: 16px;
+  font-weight: 700;
+  font-size: 14px;
   text-transform: uppercase;
+  color: white;
+  display: block;
 }
 .policy-desc {
-  font-size: 10px;
-  font-weight: $font-weight-black;
-  opacity: 0.6;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
 }
 .policy-controls {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--bg-elevated, #eee);
+  background: rgba(0, 0, 0, 0.2);
   padding: $space-2 $space-4;
-  border: 2px solid var(--border-color, black);
-  color: var(--text-primary, black);
+  border-radius: 8px;
+  color: white;
 }
 .policy-level {
-  font-size: 10px;
-  font-weight: $font-weight-black;
+  font-size: 9px;
+  font-weight: 700;
   text-transform: uppercase;
-  background: var(--bg-card, white);
-  padding: 2px 10px;
-  border: 1px solid var(--border-color, black);
-  color: var(--text-primary, black);
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  &.level-critical { color: #EF4444; background: rgba(239, 68, 68, 0.1); }
+  &.level-high { color: #F97316; background: rgba(249, 115, 22, 0.1); }
+  &.level-medium { color: #00E599; background: rgba(0, 229, 153, 0.1); }
 }
 </style>

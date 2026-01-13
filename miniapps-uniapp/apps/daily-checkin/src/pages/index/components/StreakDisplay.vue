@@ -1,15 +1,17 @@
 <template>
-  <view class="streak-display">
+  <NeoCard variant="erobo" class="streak-card pt-6 pb-6 text-center">
     <view class="streak-flames">
       <text v-for="i in Math.min(currentStreak, 7)" :key="i" class="flame">🔥</text>
       <text v-if="currentStreak === 0" class="flame-empty">💤</text>
     </view>
     <text class="streak-count">{{ currentStreak }} {{ t("dayStreak") }}</text>
     <text class="streak-best">{{ t("bestStreak") }}: {{ highestStreak }} {{ t("days") }}</text>
-  </view>
+  </NeoCard>
 </template>
 
 <script setup lang="ts">
+import { NeoCard } from "@/shared/components";
+
 defineProps<{
   currentStreak: number;
   highestStreak: number;
@@ -18,17 +20,10 @@ defineProps<{
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
-.streak-display {
-  text-align: center;
-  padding: 24px;
-  background: var(--bg-card, rgba(255, 255, 255, 0.03));
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
-  border-radius: 16px;
-  backdrop-filter: blur(10px);
-}
+
 
 .streak-flames {
   font-size: 32px;

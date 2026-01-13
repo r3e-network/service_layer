@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="'👥 ' + t('guardians')" class="guardians-card">
+  <NeoCard :title="'👥 ' + t('guardians')" class="guardians-card" variant="erobo">
     <view v-for="guardian in guardians" :key="guardian.id" class="guardian-row">
       <view class="guardian-avatar">{{ guardian.avatar }}</view>
       <view class="guardian-info">
@@ -32,67 +32,71 @@ defineProps<{
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .guardian-row {
   display: flex;
   align-items: center;
   gap: $space-4;
   padding: $space-4;
-  background: var(--bg-card, white);
-  border: 3px solid var(--border-color, black);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
   margin-bottom: $space-4;
-  transition: all $transition-fast;
-  box-shadow: 6px 6px 0 var(--shadow-color, black);
-  color: var(--text-primary, black);
+  transition: all 0.2s ease;
+  color: white;
   &:hover {
-    transform: translate(2px, 2px);
-    box-shadow: 4px 4px 0 var(--shadow-color, black);
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateY(-2px);
   }
 }
 .guardian-avatar {
-  width: 50px;
-  height: 50px;
-  background: var(--bg-elevated, #eee);
-  border: 3px solid var(--border-color, black);
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
+  font-size: 24px;
 }
 .guardian-name {
-  font-weight: $font-weight-black;
-  font-size: 16px;
+  font-weight: 700;
+  font-size: 14px;
   display: block;
-  border-bottom: 2px solid black;
-  margin-bottom: 4px; /* Added margin for spacing */
+  color: white;
+  margin-bottom: 2px;
 }
 .guardian-role {
   font-size: 10px;
-  font-weight: $font-weight-black;
+  font-weight: 600;
   text-transform: uppercase;
-  opacity: 1;
-  color: var(--text-secondary, #666);
+  color: rgba(255, 255, 255, 0.5);
+  display: block;
 }
 .guardian-status {
   margin-left: auto;
-  padding: 4px 12px;
-  border: 2px solid var(--border-color, black);
-  font-size: 10px;
-  font-weight: $font-weight-black;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 9px;
+  font-weight: 700;
   text-transform: uppercase;
-  box-shadow: 3px 3px 0 var(--shadow-color, black);
-  display: flex; /* Ensure dot and text align */
+  display: flex;
   align-items: center;
   gap: 4px;
+  
   &.active {
-    background: var(--neo-green);
-    color: black;
+    background: rgba(0, 229, 153, 0.1);
+    color: #00E599;
+    border: 1px solid rgba(0, 229, 153, 0.2);
   }
   &.inactive {
-    background: #bbb;
-    color: black;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 }
+.status-dot { font-size: 8px; }
 </style>

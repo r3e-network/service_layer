@@ -34,13 +34,15 @@ defineEmits<{
 </script>
 
 <style lang="scss">
-@import "@/shared/styles/tokens.scss";
+@use "@/shared/styles/tokens.scss" as *;
 
 .navbar {
   height: 64px;
   min-height: 64px;
-  background: var(--bg-card, #1a1a1a);
-  border-top: $border-width-md solid var(--border-color, rgba(255, 255, 255, 0.1));
+  background: var(--bg-card, rgba(12, 13, 22, 0.8));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border-color, rgba(159, 157, 243, 0.18));
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -57,8 +59,9 @@ defineEmits<{
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent 0%, var(--neo-green, #00e599) 50%, transparent 100%);
-    opacity: 0.3;
+    background: linear-gradient(90deg, transparent 0%, var(--erobo-purple, #9f9df3) 50%, transparent 100%);
+    opacity: 0.5;
+    box-shadow: 0 0 10px rgba(159, 157, 243, 0.3);
   }
 }
 
@@ -82,13 +85,13 @@ defineEmits<{
     transform: translateX(-50%) scaleX(0);
     width: 24px;
     height: 2px;
-    background: var(--neo-green, #00e599);
+    background: var(--erobo-purple, #9f9df3);
     border-radius: 1px;
     transition: transform 0.2s ease;
   }
 
   &.active {
-    color: var(--neo-green, #00e599);
+    color: var(--erobo-purple, #9f9df3);
 
     &::after {
       transform: translateX(-50%) scaleX(1);

@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('estimatedRewards')" class="mb-6">
+  <NeoCard :title="t('estimatedRewards')" class="mb-6" variant="erobo-bitcoin">
     <template #header-extra>
       <view class="rewards-badge">{{ t("daily") }}</view>
     </template>
@@ -25,8 +25,8 @@ defineProps<{
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .rewards-badge {
   background: linear-gradient(135deg, #fbbf24, #d97706);

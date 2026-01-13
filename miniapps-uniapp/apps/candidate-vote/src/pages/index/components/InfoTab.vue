@@ -1,6 +1,29 @@
 <template>
   <view class="tab-content scrollable">
-    <NeoCard :title="t('networkInfo')" variant="erobo">
+    <NeoCard :title="t('aboutVoting')" variant="erobo" class="mb-4">
+      <view class="info-section">
+        <text class="info-text">{{ t("votingDescription") }}</text>
+      </view>
+    </NeoCard>
+
+    <NeoCard :title="t('howItWorks')" variant="erobo-neo" class="mb-4">
+      <view class="steps-list">
+        <view class="step-item">
+          <view class="step-number">1</view>
+          <text class="step-text">{{ t("step1") }}</text>
+        </view>
+        <view class="step-item">
+          <view class="step-number">2</view>
+          <text class="step-text">{{ t("step2") }}</text>
+        </view>
+        <view class="step-item">
+          <view class="step-number">3</view>
+          <text class="step-text">{{ t("step3") }}</text>
+        </view>
+      </view>
+    </NeoCard>
+
+    <NeoCard :title="t('yourWallet')" variant="erobo">
       <NeoStats :stats="infoStats" />
     </NeoCard>
   </view>
@@ -13,38 +36,18 @@ import { NeoCard, NeoStats, type StatItem } from "@/shared/components";
 
 const props = defineProps<{
   address: string | null;
-  contractHash: string | null;
-  epochEndTime: number;
-  currentStrategy: string;
   t: (key: string) => string;
 }>();
 
-const toMillis = (value: number) => (value > 1_000_000_000_000 ? value : value * 1000);
-
-const formatEpochEnd = (value: number) => {
-  if (!value) return "--";
-  const date = new Date(toMillis(value));
-  if (Number.isNaN(date.getTime())) return "--";
-  return date.toLocaleString();
-};
-
-const strategyLabel = computed(() => {
-  if (props.currentStrategy === "self") return props.t("strategySelf");
-  if (props.currentStrategy === "neoburger") return props.t("strategyNeoBurger");
-  return props.currentStrategy || "--";
-});
-
 const infoStats = computed<StatItem[]>(() => [
-  { label: props.t("wallet"), value: props.address ? formatAddress(props.address) : "--" },
-  { label: props.t("contract"), value: props.contractHash ? formatAddress(props.contractHash) : "--" },
-  { label: props.t("epochEndsAt"), value: formatEpochEnd(props.epochEndTime) },
-  { label: props.t("currentStrategy"), value: strategyLabel.value },
+  { label: props.t("wallet"), value: props.address ? formatAddress(props.address) : props.t("notConnected") },
+  { label: props.t("votingPower"), value: props.address ? props.t("basedOnNeo") : "--" },
 ]);
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content {
   padding: 20px;
@@ -57,5 +60,48 @@ const infoStats = computed<StatItem[]>(() => [
 .scrollable {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.info-section {
+  padding: 8px 0;
+}
+
+.info-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+}
+
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.step-number {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00e599 0%, #00b377 100%);
+  color: #000;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.step-text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary, rgba(255, 255, 255, 0.9));
+  padding-top: 4px;
 }
 </style>

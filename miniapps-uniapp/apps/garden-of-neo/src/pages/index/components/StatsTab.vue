@@ -1,6 +1,6 @@
 <template>
-  <view class="tab-content">
-    <NeoCard :title="t('gardenStats')">
+  <view class="tab-content-glass">
+    <NeoCard :title="t('gardenStats')" variant="erobo-neo">
       <NeoStats :stats="statsData" />
     </NeoCard>
   </view>
@@ -26,12 +26,12 @@ const statsData = computed<StatItem[]>(() => [
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
-.tab-content {
+.tab-content-glass {
   padding: $space-6;
   flex: 1;
-  background-color: white;
+  background: transparent;
 }
 </style>

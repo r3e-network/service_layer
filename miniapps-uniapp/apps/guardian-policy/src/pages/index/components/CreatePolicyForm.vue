@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="'➕ ' + t('createPolicy')" class="create-card">
+  <NeoCard :title="'➕ ' + t('createPolicy')" class="create-card" variant="erobo-neo">
     <NeoInput
       :modelValue="policyName"
       @update:modelValue="$emit('update:policyName', $event)"
@@ -58,25 +58,19 @@ const getLevelText = (level: string) => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
-.create-card {
-  margin-top: $space-4;
-}
-.input {
-  margin-bottom: $space-4;
-}
-
-.level-selector {
-  margin-bottom: $space-4;
-}
+.create-card { margin-top: $space-6; }
+.level-selector { margin-bottom: $space-4; }
 .selector-label {
   font-size: 10px;
-  font-weight: $font-weight-black;
+  font-weight: 700;
   text-transform: uppercase;
   margin-bottom: $space-2;
   display: block;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.05em;
 }
 
 .level-options {
@@ -87,19 +81,22 @@ const getLevelText = (level: string) => {
 .level-option {
   flex: 1;
   padding: $space-3;
-  border: 3px solid var(--border-color, black);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   text-align: center;
-  font-size: 12px;
-  font-weight: $font-weight-black;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
   cursor: pointer;
-  background: var(--bg-card, white);
-  transition: all $transition-fast;
-  color: var(--text-primary, black);
+  background: rgba(255, 255, 255, 0.03);
+  transition: all 0.2s ease;
+  color: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  
   &.selected {
-    background: var(--brutal-yellow);
-    box-shadow: 4px 4px 0 var(--shadow-color, black);
-    transform: translate(2px, 2px);
+    background: rgba(0, 229, 153, 0.1);
+    border-color: #00E599;
+    color: #00E599;
+    box-shadow: 0 0 10px rgba(0, 229, 153, 0.2);
   }
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('yourRewards')" variant="default" class="mt-4">
+  <NeoCard :title="t('yourRewards')" variant="erobo" class="mt-4">
     <view class="rewards-grid">
       <view class="reward-item">
         <text class="reward-value">{{ formatGas(unclaimedRewards) }}</text>
@@ -42,8 +42,8 @@ const formatGas = (value: number) => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .rewards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 

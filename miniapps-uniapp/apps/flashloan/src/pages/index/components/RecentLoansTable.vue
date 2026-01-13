@@ -1,16 +1,16 @@
 <template>
-  <NeoCard variant="default" class="history-card">
-    <text class="stats-title">📜 {{ t("recentLoans") }}</text>
-    <view v-if="recentLoans.length > 0" class="loans-table">
-      <view class="table-header">
-        <text class="th th-amount">{{ t("amount") }}</text>
-        <text class="th th-fee">{{ t("feeShort") }}</text>
-        <text class="th th-time">{{ t("time") }}</text>
+  <NeoCard variant="erobo" class="history-card">
+    <text class="stats-title-glass">📜 {{ t("recentLoans") }}</text>
+    <view v-if="recentLoans.length > 0" class="loans-table-glass">
+      <view class="table-header-glass">
+        <text class="th-glass th-amount">{{ t("amount") }}</text>
+        <text class="th-glass th-fee">{{ t("feeShort") }}</text>
+        <text class="th-glass th-time">{{ t("time") }}</text>
       </view>
-      <view v-for="(loan, idx) in recentLoans" :key="idx" class="table-row">
-        <text class="td td-amount">{{ formatNum(loan.amount) }} GAS</text>
-        <text class="td td-fee">{{ (loan.amount * 0.0009).toFixed(4) }}</text>
-        <text class="td td-time">{{ loan.timestamp }}</text>
+      <view v-for="(loan, idx) in recentLoans" :key="idx" class="table-row-glass">
+        <text class="td-glass td-amount">{{ formatNum(loan.amount) }} GAS</text>
+        <text class="td-glass td-fee">{{ (loan.amount * 0.0009).toFixed(4) }}</text>
+        <text class="td-glass td-time">{{ loan.timestamp }}</text>
       </view>
     </view>
     <view v-else class="empty-state">
@@ -35,51 +35,60 @@ const formatNum = (n: number) => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
-.stats-title {
-  font-size: 16px;
-  font-weight: $font-weight-black;
+.stats-title-glass {
+  font-size: 14px;
+  font-weight: 700;
   text-transform: uppercase;
   margin-bottom: $space-4;
   display: block;
-}
-.loans-table {
-  border: 3px solid var(--border-color, black);
-  background: var(--bg-card, white);
-  color: var(--text-primary, black);
-}
-.table-header {
-  display: flex;
-  background: black;
   color: white;
+  letter-spacing: 0.05em;
 }
-.th {
+.loans-table-glass {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.table-header-glass {
+  display: flex;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+.th-glass {
   flex: 1;
   padding: $space-3;
   font-size: 10px;
-  font-weight: $font-weight-black;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
-.table-row {
+.table-row-glass {
   display: flex;
-  border-bottom: 2px solid black;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   &:last-child {
     border-bottom: none;
   }
 }
-.td {
+.td-glass {
   flex: 1;
   padding: $space-3;
   font-size: 12px;
   font-family: $font-mono;
-  font-weight: $font-weight-black;
+  font-weight: 700;
+  color: white;
+}
+.td-amount {
+  color: #00E599;
 }
 .empty-state {
   text-align: center;
   padding: $space-6;
   opacity: 0.6;
+  color: white;
 }
 .empty-icon {
   font-size: 32px;

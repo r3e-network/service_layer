@@ -1,10 +1,10 @@
 <template>
   <view class="tab-content">
-    <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="status-card">
+    <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'erobo-neo'" class="status-card">
       <text class="status-text">{{ status.msg }}</text>
     </NeoCard>
 
-    <NeoCard :title="t('createProposal')">
+    <NeoCard :title="t('createProposal')" variant="erobo-neo">
       <view class="form-group mb-6">
         <text class="form-label">{{ t("proposalType") }}</text>
         <view class="flex gap-2">
@@ -139,8 +139,8 @@ defineExpose({ reset: () => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .tab-content { padding: 20px; }
 

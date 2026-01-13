@@ -20,20 +20,20 @@ const APPS_DIR = path.join(__dirname, "../apps");
 const OUTPUT_FILE = path.join(__dirname, "../../platform/host-app/data/miniapps.json");
 const CONTRACTS_CONFIG = path.join(__dirname, "../../deploy/config/testnet_contracts.json");
 
-let contractHashMap = {};
+let contractAddressMap = {};
 try {
   if (fs.existsSync(CONTRACTS_CONFIG)) {
     const config = JSON.parse(fs.readFileSync(CONTRACTS_CONFIG, "utf-8"));
     const entries = Object.values(config?.miniapp_contracts || {});
-    contractHashMap = entries.reduce((acc, entry) => {
-      if (entry?.app_id && entry?.hash) {
-        acc[entry.app_id] = entry.hash;
+    contractAddressMap = entries.reduce((acc, entry) => {
+      if (entry?.app_id && entry?.address) {
+        acc[entry.app_id] = entry.address;
       }
       return acc;
     }, {});
   }
 } catch (e) {
-  console.warn("  Warning: Could not parse testnet_contracts.json for contract hashes");
+  console.warn("  Warning: Could not parse testnet_contracts.json for contract addresses");
 }
 
 // Category detection based on app name patterns
@@ -84,7 +84,7 @@ function normalizePermissions(raw) {
   return {
     payments: Boolean(permissions.payments),
     governance: Boolean(permissions.governance),
-    randomness: Boolean(permissions.randomness ?? permissions.rng),
+    rng: Boolean(permissions.rng),
     datafeed: Boolean(permissions.datafeed),
     automation: Boolean(permissions.automation),
   };
@@ -130,9 +130,33 @@ function discoverMiniapp(appDir) {
 
   const icon = toString(neoManifest?.icon) || `/miniapps/${appDir}/static/icon.svg`;
   const entryUrl = toString(neoManifest?.entry_url) || `/miniapps/${appDir}/index.html`;
-  let contractHash = toString(neoManifest?.contract_hash ?? neoManifest?.contractHash);
-  if (!contractHash && contractHashMap[appId]) {
-    contractHash = contractHashMap[appId];
+  const supportedChainsRaw = Array.isArray(neoManifest?.supported_chains) ? neoManifest.supported_chains : [];
+  const supportedChains = supportedChainsRaw.map((c) => toString(c).toLowerCase()).filter(Boolean);
+  const rawContracts =
+    neoManifest?.contracts && typeof neoManifest.contracts === "object" && !Array.isArray(neoManifest.contracts)
+      ? neoManifest.contracts
+      : {};
+  if (!rawContracts["neo-n3-testnet"] && contractAddressMap[appId]) {
+    rawContracts["neo-n3-testnet"] = { address: contractAddressMap[appId], active: true };
+  }
+  if (supportedChains.length === 0) {
+    Object.keys(rawContracts).forEach((chainId) => {
+      if (!supportedChains.includes(chainId)) supportedChains.push(chainId);
+    });
+  }
+
+  const chainContracts = {};
+  for (const [chainId, config] of Object.entries(rawContracts)) {
+    if (!config || typeof config !== "object") continue;
+    const address = toString(config.address) || null;
+    const active = config.active !== false;
+    const entryUrl =
+      typeof config.entry_url === "string"
+        ? config.entry_url
+        : typeof config.entryUrl === "string"
+          ? config.entryUrl
+          : undefined;
+    chainContracts[chainId] = { address, active, ...(entryUrl ? { entryUrl } : {}) };
   }
   const permissions = normalizePermissions(neoManifest?.permissions);
 
@@ -146,7 +170,8 @@ function discoverMiniapp(appDir) {
     entry_url: entryUrl,
     category,
     status: toString(neoManifest?.status) || "active",
-    contract_hash: contractHash || null,
+    supportedChains,
+    chainContracts,
     permissions,
     limits: neoManifest?.limits ?? null,
     stats_display: neoManifest?.stats_display ?? null,

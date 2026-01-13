@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('statistics')" variant="success">
+  <NeoCard :title="t('statistics')" variant="erobo">
     <view class="stats-grid-neo">
       <view class="stat-item-neo">
         <text class="stat-label">{{ t("totalTrusts") }}</text>
@@ -38,43 +38,46 @@ defineProps<{
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
 .stats-grid-neo {
+  display: list-item; /* This is weird, let's just use flex column */
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: $space-3;
 }
 .stat-item-neo {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: $space-4;
-  background: var(--bg-card, white);
-  border: 3px solid var(--border-color, black);
-  box-shadow: 4px 4px 0 var(--shadow-color, black);
-  color: var(--text-primary, black);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: white;
 
   &.gas {
-    border-left: 6px solid var(--brutal-yellow);
+    background: linear-gradient(90deg, rgba(255, 222, 89, 0.1), transparent);
+    border-left: 4px solid var(--brutal-yellow);
   }
 
   &.neo {
-    border-left: 6px solid var(--neo-green);
+    background: linear-gradient(90deg, rgba(0, 229, 153, 0.1), transparent);
+    border-left: 4px solid var(--neo-green);
   }
 }
 .stat-label {
-  font-size: 12px;
-  font-weight: $font-weight-black;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.05em;
 }
 .stat-value {
-  font-size: 18px;
-  font-weight: $font-weight-black;
+  font-size: 16px;
+  font-weight: 700;
   font-family: $font-mono;
-  background: black;
   color: white;
-  padding: 2px 10px;
 }
 </style>

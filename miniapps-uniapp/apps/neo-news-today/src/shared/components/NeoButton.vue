@@ -7,6 +7,8 @@
       { 'neo-btn--block': block, 'neo-btn--loading': loading },
     ]"
     :disabled="disabled || loading"
+    :aria-busy="loading"
+    :aria-disabled="disabled || loading"
     @click="$emit('click', $event)"
   >
     <view v-if="loading" class="neo-btn__spinner" />
@@ -18,21 +20,30 @@
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "success" | "warning" | "erobo";
 export type ButtonSize = "sm" | "md" | "lg";
 
-defineProps<{
-  variant?: ButtonVariant;
-  size?: ButtonSize;
-  block?: boolean;
-  disabled?: boolean;
-  loading?: boolean;
-}>();
+withDefaults(
+  defineProps<{
+    variant?: ButtonVariant;
+    size?: ButtonSize;
+    block?: boolean;
+    disabled?: boolean;
+    loading?: boolean;
+  }>(),
+  {
+    variant: "primary",
+    size: "md",
+    block: false,
+    disabled: false,
+    loading: false,
+  },
+);
 
 defineEmits<{
   (e: "click", event: MouseEvent): void;
 }>();
 </script>
 
-<style lang="scss">
-@import "@/shared/styles/tokens.scss";
+<style lang="scss" scoped>
+@use "@/shared/styles/tokens.scss" as *;
 
 .neo-btn {
   display: inline-flex;

@@ -1,5 +1,5 @@
 <template>
-  <view class="countdown-hero">
+  <NeoCard variant="erobo" class="countdown-hero-card">
     <!-- Main Info Group -->
     <view class="hero-header">
       <view class="status-indicator" :class="{ ready: canCheckIn, done: !canCheckIn }">
@@ -42,11 +42,11 @@
         </view>
       </view>
     </view>
-  </view>
+  </NeoCard>
 </template>
 
 <script setup lang="ts">
-import { AppIcon } from "@/shared/components";
+import { AppIcon, NeoCard } from "@/shared/components";
 
 defineProps<{
   countdownProgress: number;
@@ -58,18 +58,12 @@ defineProps<{
 </script>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/tokens.scss";
-@import "@/shared/styles/variables.scss";
+@use "@/shared/styles/tokens.scss" as *;
+@use "@/shared/styles/variables.scss";
 
-.countdown-hero {
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-card, rgba(255, 255, 255, 0.03));
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
-  border-radius: 20px;
+.countdown-hero-card {
   margin-bottom: 24px;
   overflow: hidden;
-  backdrop-filter: blur(10px);
 }
 
 .hero-header {
@@ -87,8 +81,9 @@ defineProps<{
   padding: 6px 12px;
   background: rgba(0, 0, 0, 0.4);
   color: white;
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 100px;
+  backdrop-filter: blur(5px);
 
   &.ready {
     background: rgba(255, 222, 89, 0.1);
@@ -227,10 +222,11 @@ defineProps<{
   align-items: center;
   gap: 16px;
   padding: 16px;
-  background: var(--bg-card, rgba(255, 255, 255, 0.03));
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   transition: all 0.3s;
+  backdrop-filter: blur(10px);
 
   &.glow {
     background: linear-gradient(90deg, rgba(255, 222, 89, 0.05) 0%, rgba(255, 222, 89, 0.01) 100%);

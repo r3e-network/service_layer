@@ -2,11 +2,24 @@
  * Neo MiniApp SDK Types for uni-app
  */
 
+export type ChainType = "neo-n3" | "evm";
+export type ChainId = string;
+
+export interface MiniAppChainContract {
+  address: string | null;
+  active?: boolean;
+  entryUrl?: string;
+}
+
+export type MiniAppChainContracts = Record<ChainId, MiniAppChainContract>;
+
 export interface PayGASResponse {
   request_id: string;
   user_id: string;
   intent: "payments";
   constraints: { settlement: "GAS_ONLY" };
+  chain_id: ChainId;
+  chain_type: ChainType;
   invocation: InvocationIntent;
   txid?: string | null;
   receipt_id?: string | null;
@@ -17,6 +30,8 @@ export interface VoteBNEOResponse {
   user_id: string;
   intent: "governance";
   constraints: { governance: "BNEO_ONLY" };
+  chain_id: ChainId;
+  chain_type: ChainType;
   invocation: InvocationIntent;
   txid?: string | null;
 }
@@ -24,6 +39,8 @@ export interface VoteBNEOResponse {
 export interface RNGResponse {
   request_id: string;
   app_id: string;
+  chain_id: ChainId;
+  chain_type: ChainType;
   randomness: string;
   signature?: string;
   public_key?: string;
@@ -44,7 +61,8 @@ export interface PriceResponse {
 export interface EventsListParams {
   app_id?: string;
   event_name?: string;
-  contract_hash?: string;
+  chain_id?: ChainId;
+  contract_address?: string;
   limit?: number;
   after_id?: string;
 }
@@ -52,8 +70,9 @@ export interface EventsListParams {
 export interface ContractEvent {
   id: string;
   tx_hash: string;
+  chain_id: ChainId;
   block_index: number;
-  contract_hash: string;
+  contract_address: string;
   event_name: string;
   app_id: string | null;
   state: unknown;
@@ -68,6 +87,7 @@ export interface EventsListResponse {
 
 export interface TransactionsListParams {
   app_id?: string;
+  chain_id?: ChainId;
   limit?: number;
   after_id?: string;
 }
@@ -78,6 +98,7 @@ export interface ChainTransaction {
   request_id: string;
   from_service: string;
   tx_type: string;
+  chain_id?: ChainId;
   contract_address: string;
   method_name: string;
   params: Record<string, unknown>;
@@ -96,17 +117,31 @@ export interface TransactionsListResponse {
   last_id: string | null;
 }
 
-export interface InvocationIntent {
-  contract_hash?: string;
-  contract?: string;
-  method: string;
-  params?: unknown[];
-  args?: unknown[];
-}
+export type InvocationIntent =
+  | {
+    chain_id: ChainId;
+    chain_type: "neo-n3";
+    contract_address: string;
+    method: string;
+    params?: unknown[];
+    args?: unknown[];
+  }
+  | {
+    chain_id: ChainId;
+    chain_type: "evm";
+    contract_address: string;
+    data: string;
+    value?: string;
+    gas?: string;
+    gas_price?: string;
+    method?: string;
+    args?: unknown[];
+  };
 
 /** App usage statistics */
 export interface AppUsageStats {
   app_id: string;
+  chain_id?: ChainId;
   date: string;
   transactions: number;
   volume_gas: string;
@@ -115,9 +150,11 @@ export interface AppUsageStats {
 
 export interface MiniAppSDK {
   invoke(method: string, params?: Record<string, unknown>): Promise<unknown>;
-  getConfig(): NeoSDKConfig;
+  getConfig(): MiniAppSDKConfig;
   wallet: {
     getAddress(): Promise<string>;
+    /** Request to switch the wallet to a specific chain */
+    switchChain(chainId: ChainId): Promise<void>;
     invokeIntent?(requestId: string): Promise<unknown>;
   };
   payments: {
@@ -144,9 +181,13 @@ export interface MiniAppSDK {
   };
 }
 
-export interface NeoSDKConfig {
+export interface MiniAppSDKConfig {
   appId: string;
-  contractHash?: string | null;
+  contractAddress?: string | null;
+  chainId?: ChainId | null;
+  chainType?: ChainType;
+  supportedChains?: ChainId[];
+  chainContracts?: MiniAppChainContracts;
   debug?: boolean;
 }
 
