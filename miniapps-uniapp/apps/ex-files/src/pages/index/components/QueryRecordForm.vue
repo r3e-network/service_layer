@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('queryRecord')" class="mb-6" variant="erobo">
+  <NeoCard class="mb-6" variant="erobo">
     <template #header-extra>
       <text class="section-icon">🔎</text>
     </template>

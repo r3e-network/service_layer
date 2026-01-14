@@ -11,5 +11,6 @@ onHide(() => {
 });
 </script>
 <style lang="scss">
+@use "@/shared/styles/variables.scss";
 @import "@/shared/styles/theme.scss";
 </style>

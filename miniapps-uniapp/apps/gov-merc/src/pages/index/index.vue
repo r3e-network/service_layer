@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <!-- Rent Tab -->
     <view v-if="activeTab === 'rent'" class="tab-content">
       <view v-if="chainType === 'evm'" class="mb-4">
@@ -16,43 +16,26 @@
         <text class="status-text font-bold uppercase tracking-wider">{{ status.msg }}</text>
       </NeoCard>
 
-      <NeoCard :title="t('yourDelegations')" variant="erobo-neo" class="mb-6">
-        <NeoStats :stats="rentStats" />
+      <NeoCard class="mb-6" variant="erobo">
+        <view class="form-group-neo">
+          <NeoInput v-model="depositAmount" type="number" placeholder="0" suffix="NEO" :label="t('depositAmount')" />
+          <NeoButton variant="primary" size="lg" block :loading="isBusy" @click="depositNeo">
+            {{ isBusy ? t("depositNeo") : t("depositNeo") }}
+          </NeoButton>
+        </view>
       </NeoCard>
 
-      <NeoCard title="Rent Out Your Votes" class="mb-6" variant="erobo">
+      <NeoCard class="mb-6" variant="erobo">
         <view class="form-group-neo">
           <NeoInput
-            v-model="rentAmount"
+            v-model="withdrawAmount"
             type="number"
-            placeholder="Voting power to rent"
-            label="VP Amount"
-            class="mb-2"
+            placeholder="0"
+            suffix="NEO"
+            :label="t('withdrawAmount')"
           />
-          <NeoInput
-            v-model="rentPrice"
-            type="number"
-            placeholder="Price per vote"
-            suffix="GAS"
-            label="Price"
-            class="mb-4"
-          />
-
-          <view class="duration-row-neo flex gap-2 mb-6">
-            <NeoButton
-              v-for="d in durations"
-              :key="d.hours"
-              :variant="rentDuration === d.hours ? 'success' : 'secondary'"
-              size="sm"
-              class="flex-1"
-              @click="rentDuration = d.hours"
-            >
-              {{ d.label }}
-            </NeoButton>
-          </view>
-
-          <NeoButton variant="primary" size="lg" block :loading="isLoading" @click="listVotes">
-            {{ isLoading ? "Listing..." : "List for Rent" }}
+          <NeoButton variant="secondary" size="lg" block :loading="isBusy" @click="withdrawNeo">
+            {{ isBusy ? t("withdrawNeo") : t("withdrawNeo") }}
           </NeoButton>
         </view>
       </NeoCard>
@@ -69,72 +52,31 @@
           </view>
         </NeoCard>
       </view>
-      <text class="section-title-neo mb-4 font-bold uppercase">{{ t("availableMercs") }}</text>
-      <view class="delegates-list">
-        <text v-if="delegates.length === 0" class="empty-neo text-center p-8 opacity-60 uppercase font-bold">{{
-          t("noDelegates")
-        }}</text>
-        <NeoCard
-          v-for="(d, i) in delegates"
-          :key="i"
-          variant="erobo"
-          class="mb-6"
-        >
-          <template #header-extra v-if="d.tier === 'elite'">
-            <text
-              class="elite-badge-neo bg-black text-warning text-xs font-black px-2 py-1 border border-black shadow-neo glass-badge"
-              >ELITE</text
-            >
-          </template>
+      <NeoCard variant="erobo" class="mb-6">
+        <view class="form-group-neo">
+          <NeoInput v-model="bidAmount" type="number" placeholder="0" suffix="GAS" :label="t('bidAmount')" />
+          <NeoButton variant="primary" size="lg" block :loading="isBusy" @click="placeBid">
+            {{ isBusy ? t("placeBid") : t("placeBid") }}
+          </NeoButton>
+        </view>
+      </NeoCard>
 
-          <view class="delegate-header-neo flex items-center gap-3 mb-4 pb-4 border-b border-dashed border-black/10">
-            <view
-              class="delegate-avatar-neo w-12 h-12 rounded-full border-2 border-neo-black flex items-center justify-center font-black text-xl"
-              :class="d.tier"
-            >
-              {{ d.name.substring(0, 2).toUpperCase() }}
-            </view>
-            <view class="delegate-info-neo">
-              <text class="delegate-name-neo font-black text-lg uppercase block">{{ d.name }}</text>
-              <text class="delegate-address-neo font-mono text-xs opacity-60 block text-white">{{ d.address }}</text>
-            </view>
-          </view>
-
-          <view class="delegate-stats-grid mb-4">
-            <NeoStats
-              :stats="[
-                { label: 'Rep', value: d.reputation + '%', variant: 'accent' },
-                { label: 'Success', value: d.successRate + '%', variant: 'success' },
-                { label: 'Comm', value: d.commission + '%', variant: 'warning' },
-              ]"
-            />
-          </view>
-
-          <view class="delegate-metrics-neo bg-black/5 p-3 rounded mb-4 flex gap-4 glass-metrics">
-            <view class="metric-neo flex-1">
-              <text class="metric-label-neo text-[10px] uppercase font-bold opacity-60 block text-white">Total Delegated</text>
-              <text class="metric-value-neo font-mono font-bold text-sm text-white">{{ formatNum(d.totalDelegated) }} VP</text>
-            </view>
-            <view class="metric-neo flex-1 text-right">
-              <text class="metric-label-neo text-[10px] uppercase font-bold opacity-60 block text-white">Votes Cast</text>
-              <text class="metric-value-neo font-mono font-bold text-sm text-white">{{ d.votesCast }}</text>
-            </view>
-          </view>
-
-          <view class="delegate-actions-neo pt-4 border-t border-dashed border-black/10">
-            <NeoInput v-model="d.delegateAmount" type="number" placeholder="Amount" size="sm" class="mb-2" />
-            <NeoButton
-              variant="primary"
-              size="md"
-              block
-              :loading="isLoading"
-              @click="delegateToMerc(d.id, d.delegateAmount)"
-            >
-              Delegate Now
-            </NeoButton>
-          </view>
-        </NeoCard>
-      </view>
+      <NeoCard variant="erobo">
+        <view v-if="bids.length === 0" class="empty-neo text-center p-8 opacity-60 uppercase font-bold">
+          {{ t("noBids") }}
+        </view>
+        <view v-for="bid in bids" :key="bid.address" class="bid-row">
+          <view class="bid-address">{{ bid.address }}</view>
+          <view class="bid-amount">{{ formatNum(bid.amount, 2) }} GAS</view>
+        </view>
+      </NeoCard>
+    </view>
+    
+    <!-- Stats Tab -->
+    <view v-if="activeTab === 'stats'" class="tab-content">
+      <NeoCard variant="erobo-neo">
+        <NeoStats :stats="poolStats" />
+      </NeoCard>
     </view>
 
     <!-- Docs Tab -->
@@ -151,29 +93,36 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
-import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { ref, computed, onMounted, watch } from "vue";
+import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import { formatNumber } from "@/shared/utils/format";
+import { addressToScriptHash, normalizeScriptHash, parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard, NeoStats } from "@/shared/components";
 import type { StatItem } from "@/shared/components/NeoStats.vue";
 
 const translations = {
   title: { en: "Gov Merc", zh: "治理雇佣兵" },
-  subtitle: { en: "Delegate voting power", zh: "委托投票权" },
-  rent: { en: "Rent", zh: "出租" },
-  market: { en: "Market", zh: "市场" },
-  availableMercs: { en: "Available Mercs", zh: "可用雇佣兵" },
-  yourDelegations: { en: "Your Delegations", zh: "您的委托" },
-  delegateVotes: { en: "Delegate Votes", zh: "委托投票" },
-  votesToDelegate: { en: "Votes to delegate", zh: "委托票数" },
-  mercAddress: { en: "Merc address", zh: "雇佣兵地址" },
-  delegating: { en: "Delegating...", zh: "委托中..." },
-  delegate: { en: "Delegate", zh: "委托" },
-  revoke: { en: "Revoke", zh: "撤销" },
-  minDelegate: { en: "Min delegate: 1 vote", zh: "最小委托：1票" },
-  delegationSuccess: { en: "Delegation successful!", zh: "委托成功！" },
-  noDelegates: { en: "No delegates available", zh: "没有可用的雇佣兵" },
+  subtitle: { en: "Bid for governance influence", zh: "竞价治理影响力" },
+  rent: { en: "Pool", zh: "池子" },
+  market: { en: "Bids", zh: "竞价" },
+  poolStats: { en: "Pool Stats", zh: "池子统计" },
+  totalPool: { en: "Total Pool", zh: "总池子" },
+  currentEpoch: { en: "Current Epoch", zh: "当前周期" },
+  yourDeposits: { en: "Your Deposits", zh: "你的存入" },
+  depositNeo: { en: "Deposit NEO", zh: "存入 NEO" },
+  withdrawNeo: { en: "Withdraw NEO", zh: "提取 NEO" },
+  depositAmount: { en: "Deposit amount", zh: "存入金额" },
+  withdrawAmount: { en: "Withdraw amount", zh: "提取金额" },
+  placeBid: { en: "Place Bid", zh: "提交竞价" },
+  bidAmount: { en: "Bid amount", zh: "竞价金额" },
+  bidLeaderboard: { en: "Bid Leaderboard", zh: "竞价榜" },
+  noBids: { en: "No bids yet", zh: "暂无竞价" },
+  tabStats: { en: "Stats", zh: "统计" },
+  depositSuccess: { en: "Deposit submitted", zh: "存入已提交" },
+  withdrawSuccess: { en: "Withdrawal submitted", zh: "提取已提交" },
+  bidSuccess: { en: "Bid submitted", zh: "竞价已提交" },
+  enterAmount: { en: "Enter an amount", zh: "请输入金额" },
   error: { en: "Error", zh: "错误" },
   wrongChain: { en: "Wrong Network", zh: "网络错误" },
   wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
@@ -181,38 +130,38 @@ const translations = {
 
   docs: { en: "Docs", zh: "文档" },
   docSubtitle: {
-    en: "Governance mercenary - rent out your voting power",
-    zh: "治理雇佣兵 - 出租您的投票权",
+    en: "Governance mercenary pool with competitive bidding",
+    zh: "基于竞价的治理雇佣池",
   },
   docDescription: {
-    en: "Gov Merc is a marketplace for governance voting power. List your idle votes for rent, or hire voting power for proposals you care about.",
-    zh: "Gov Merc 是治理投票权的市场。出租您闲置的投票权，或为您关心的提案雇用投票权。",
+    en: "Gov Merc lets you deposit NEO into a shared pool and place GAS bids to win governance influence for each epoch.",
+    zh: "Gov Merc 允许您将 NEO 存入共享池，并通过 GAS 竞价赢得每个周期的治理影响力。",
   },
   step1: {
     en: "Connect your Neo wallet",
     zh: "连接您的 Neo 钱包",
   },
   step2: {
-    en: "List your voting power for rent or browse available votes",
-    zh: "出租您的投票权或浏览可用投票",
+    en: "Deposit NEO to participate in the pool",
+    zh: "存入 NEO 参与资金池",
   },
   step3: {
-    en: "Set your price per vote or accept delegation requests",
-    zh: "设置每票价格或接受委托请求",
+    en: "Place a GAS bid for the current epoch",
+    zh: "为当前周期提交 GAS 竞价",
   },
   step4: {
-    en: "Earn GAS from your idle voting power",
-    zh: "从闲置投票权中赚取 GAS",
+    en: "Track bids and epoch outcomes on-chain",
+    zh: "链上跟踪竞价与周期结果",
   },
-  feature1Name: { en: "Vote Marketplace", zh: "投票市场" },
+  feature1Name: { en: "Epoch Bidding", zh: "周期竞价" },
   feature1Desc: {
-    en: "Transparent pricing for governance voting power.",
-    zh: "治理投票权的透明定价。",
+    en: "Bid with GAS to win the epoch.",
+    zh: "用 GAS 竞价赢得周期。",
   },
-  feature2Name: { en: "Reputation System", zh: "声誉系统" },
+  feature2Name: { en: "Shared Pool", zh: "共享池" },
   feature2Desc: {
-    en: "Build reputation for better rates and more requests.",
-    zh: "建立声誉以获得更好的费率和更多请求。",
+    en: "Deposited NEO powers the system.",
+    zh: "存入的 NEO 为系统提供支持。",
   },
 };
 
@@ -221,6 +170,7 @@ const t = createT(translations);
 const navTabs = [
   { id: "rent", icon: "wallet", label: t("rent") },
   { id: "market", icon: "cart", label: t("market") },
+  { id: "stats", icon: "chart", label: t("tabStats") },
   { id: "docs", icon: "book", label: t("docs") },
 ];
 
@@ -232,108 +182,112 @@ const docFeatures = computed(() => [
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 const APP_ID = "miniapp-gov-merc";
-const { address, connect, chainType, switchChain } = useWallet() as any;
-
-interface Delegate {
-  id: number;
-  name: string;
-  address: string;
-  tier: "elite" | "standard";
-  reputation: number;
-  successRate: number;
-  commission: number;
-  totalDelegated: number;
-  votesCast: number;
-  delegateAmount: string;
-}
-
+const { address, connect, invokeContract, invokeRead, chainType, switchChain, getContractAddress } = useWallet() as any;
+const { list: listEvents } = useEvents();
 const { payGAS, isLoading } = usePayments(APP_ID);
+const contractAddress = ref<string | null>(null);
 
-const rentAmount = ref("100");
-const rentPrice = ref("0.5");
-const rentDuration = ref(24);
-const votingPower = ref(0);
-const earned = ref(0);
-const activeRentals = ref(0);
+const depositAmount = ref("");
+const withdrawAmount = ref("");
+const bidAmount = ref("");
+const totalPool = ref(0);
+const currentEpoch = ref(0);
+const userDeposits = ref(0);
+const bids = ref<{ address: string; amount: number }[]>([]);
 const status = ref<{ msg: string; type: string } | null>(null);
-const dataLoading = ref(true);
+const dataLoading = ref(false);
 
-const durations = [
-  { hours: 6, label: "6h" },
-  { hours: 24, label: "24h" },
-  { hours: 72, label: "3d" },
-  { hours: 168, label: "7d" },
-];
+const isBusy = computed(() => isLoading.value || dataLoading.value);
 
-const delegates = ref<Delegate[]>([]);
+const formatNum = (n: number, d = 2) => formatNumber(n, d);
+const toGas = (value: unknown) => {
+  const num = Number(value ?? 0);
+  return Number.isFinite(num) ? num / 1e8 : 0;
+};
 
-const rentStats = computed<StatItem[]>(() => [
-  { label: "Your VP", value: formatNum(votingPower.value), variant: "default" },
-  { label: "Earned", value: formatNum(earned.value), variant: "success" },
-  { label: "Rentals", value: activeRentals.value, variant: "accent" },
+const ensureContractAddress = async () => {
+  if (!contractAddress.value) {
+    contractAddress.value = await getContractAddress();
+  }
+  if (!contractAddress.value) {
+    throw new Error(t("error"));
+  }
+  return contractAddress.value;
+};
+
+const ownerMatches = (value: unknown) => {
+  if (!address.value) return false;
+  const val = String(value || "");
+  if (val === address.value) return true;
+  const normalized = normalizeScriptHash(val);
+  const addrHash = addressToScriptHash(address.value);
+  return Boolean(normalized && addrHash && normalized === addrHash);
+};
+
+const listAllEvents = async (eventName: string) => {
+  const events: any[] = [];
+  let afterId: string | undefined;
+  let hasMore = true;
+  while (hasMore) {
+    const res = await listEvents({ app_id: APP_ID, event_name: eventName, limit: 50, after_id: afterId });
+    events.push(...res.events);
+    hasMore = Boolean(res.has_more && res.last_id);
+    afterId = res.last_id || undefined;
+  }
+  return events;
+};
+
+const poolStats = computed<StatItem[]>(() => [
+  { label: t("totalPool"), value: `${formatNum(totalPool.value, 0)} NEO`, variant: "success" },
+  { label: t("currentEpoch"), value: currentEpoch.value, variant: "default" },
+  { label: t("yourDeposits"), value: `${formatNum(userDeposits.value, 0)} NEO`, variant: "accent" },
 ]);
 
-const formatNum = (n: number) => formatNumber(n, 1);
-
-const listVotes = async () => {
-  if (isLoading.value) return;
-  const amount = parseFloat(rentAmount.value);
-  if (amount < 10) {
-    status.value = { msg: "Min: 10 VP", type: "error" };
-    return;
-  }
-  try {
-    status.value = { msg: "Listing votes...", type: "loading" };
-    await payGAS("0.1", `list:${rentAmount.value}:${rentPrice.value}:${rentDuration.value}`);
-    activeRentals.value++;
-    status.value = { msg: "Listed successfully!", type: "success" };
-  } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
-  }
+const fetchPoolData = async () => {
+  const contract = await ensureContractAddress();
+  const [poolRes, epochRes] = await Promise.all([
+    invokeRead({ contractAddress: contract, operation: "totalPool" }),
+    invokeRead({ contractAddress: contract, operation: "currentEpoch" }),
+  ]);
+  totalPool.value = Number(parseInvokeResult(poolRes) || 0);
+  currentEpoch.value = Number(parseInvokeResult(epochRes) || 0);
 };
 
-const delegateToMerc = async (id: number, amount: string) => {
-  if (isLoading.value) return;
-  const delegateAmount = parseFloat(amount);
-  if (!delegateAmount || delegateAmount < 1) {
-    status.value = { msg: "Min: 1 VP", type: "error" };
-    return;
-  }
-  try {
-    status.value = { msg: "Delegating votes...", type: "loading" };
-    const delegate = delegates.value.find((d) => d.id === id);
-    if (delegate) {
-      const fee = (delegateAmount * delegate.commission) / 100;
-      await payGAS(String(fee), `delegate:${id}:${delegateAmount}`);
-      votingPower.value -= delegateAmount;
-      status.value = { msg: `Delegated ${delegateAmount} VP to ${delegate.name}!`, type: "success" };
-      delegate.delegateAmount = "";
-    }
-  } catch (e: any) {
-    status.value = { msg: e.message || "Error", type: "error" };
-  }
+const fetchUserDeposits = async () => {
+  if (!address.value) return;
+  const deposits = await listAllEvents("MercDeposit");
+  const total = deposits.reduce((sum, evt) => {
+    const values = Array.isArray(evt?.state) ? evt.state.map(parseStackItem) : [];
+    if (!ownerMatches(values[0])) return sum;
+    const amount = Number(values[1] || 0);
+    return sum + amount;
+  }, 0);
+  userDeposits.value = total;
 };
 
-// Fetch data from contract
+const fetchBids = async () => {
+  const bidEvents = await listAllEvents("BidPlaced");
+  const epoch = currentEpoch.value;
+  const map = new Map<string, number>();
+  bidEvents.forEach((evt) => {
+    const values = Array.isArray(evt?.state) ? evt.state.map(parseStackItem) : [];
+    const eventEpoch = Number(values[0] || 0);
+    const candidate = String(values[1] || "");
+    const amount = toGas(values[2]);
+    if (eventEpoch !== epoch || !candidate) return;
+    map.set(candidate, (map.get(candidate) || 0) + amount);
+  });
+  bids.value = Array.from(map.entries())
+    .map(([addr, amount]) => ({ address: addr, amount }))
+    .sort((a, b) => b.amount - a.amount);
+};
+
 const fetchData = async () => {
   try {
     dataLoading.value = true;
-    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
-    if (!sdk?.invoke) return;
-
-    const data = (await sdk.invoke("govMerc.getData", { appId: APP_ID })) as {
-      votingPower: number;
-      earned: number;
-      activeRentals: number;
-      delegates: Delegate[];
-    } | null;
-
-    if (data) {
-      votingPower.value = data.votingPower;
-      earned.value = data.earned;
-      activeRentals.value = data.activeRentals;
-      delegates.value = data.delegates || [];
-    }
+    await fetchPoolData();
+    await fetchUserDeposits();
+    await fetchBids();
   } catch (e) {
     console.warn("[GovMerc] Failed to fetch data:", e);
   } finally {
@@ -341,7 +295,99 @@ const fetchData = async () => {
   }
 };
 
+const depositNeo = async () => {
+  if (isBusy.value) return;
+  const amount = Math.floor(parseFloat(depositAmount.value));
+  if (!(amount > 0)) {
+    status.value = { msg: t("enterAmount"), type: "error" };
+    return;
+  }
+  try {
+    if (!address.value) await connect();
+    if (!address.value) throw new Error(t("error"));
+    const contract = await ensureContractAddress();
+    await invokeContract({
+      scriptHash: contract,
+      operation: "depositNeo",
+      args: [
+        { type: "Hash160", value: address.value },
+        { type: "Integer", value: amount },
+      ],
+    });
+    status.value = { msg: t("depositSuccess"), type: "success" };
+    depositAmount.value = "";
+    await fetchData();
+  } catch (e: any) {
+    status.value = { msg: e.message || t("error"), type: "error" };
+  }
+};
+
+const withdrawNeo = async () => {
+  if (isBusy.value) return;
+  const amount = Math.floor(parseFloat(withdrawAmount.value));
+  if (!(amount > 0)) {
+    status.value = { msg: t("enterAmount"), type: "error" };
+    return;
+  }
+  try {
+    if (!address.value) await connect();
+    if (!address.value) throw new Error(t("error"));
+    const contract = await ensureContractAddress();
+    await invokeContract({
+      scriptHash: contract,
+      operation: "withdrawNeo",
+      args: [
+        { type: "Hash160", value: address.value },
+        { type: "Integer", value: amount },
+      ],
+    });
+    status.value = { msg: t("withdrawSuccess"), type: "success" };
+    withdrawAmount.value = "";
+    await fetchData();
+  } catch (e: any) {
+    status.value = { msg: e.message || t("error"), type: "error" };
+  }
+};
+
+const toFixed8 = (value: string) => {
+  const num = Number.parseFloat(value);
+  if (!Number.isFinite(num)) return "0";
+  return Math.floor(num * 1e8).toString();
+};
+
+const placeBid = async () => {
+  if (isBusy.value) return;
+  const amount = parseFloat(bidAmount.value);
+  if (!(amount > 0)) {
+    status.value = { msg: t("enterAmount"), type: "error" };
+    return;
+  }
+  try {
+    if (!address.value) await connect();
+    if (!address.value) throw new Error(t("error"));
+    const contract = await ensureContractAddress();
+    const payment = await payGAS(bidAmount.value, `bid:${currentEpoch.value}`);
+    const receiptId = payment.receipt_id;
+    if (!receiptId) throw new Error("Missing payment receipt");
+    await invokeContract({
+      scriptHash: contract,
+      operation: "placeBid",
+      args: [
+        { type: "Hash160", value: address.value },
+        { type: "Integer", value: toFixed8(bidAmount.value) },
+        { type: "Integer", value: receiptId },
+      ],
+    });
+    status.value = { msg: t("bidSuccess"), type: "success" };
+    bidAmount.value = "";
+    await fetchData();
+  } catch (e: any) {
+    status.value = { msg: e.message || t("error"), type: "error" };
+  }
+};
+
 onMounted(() => fetchData());
+watch(address, () => fetchData());
 </script>
 
 <style lang="scss" scoped>
@@ -449,6 +495,24 @@ onMounted(() => fetchData());
   border: 1px dashed rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.5);
   border-radius: 12px;
+}
+
+.bid-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-3 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.bid-address {
+  font-family: $font-mono;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.7);
+}
+.bid-amount {
+  font-family: $font-mono;
+  font-weight: 700;
+  color: #00e599;
 }
 .status-text {
   font-family: $font-mono;

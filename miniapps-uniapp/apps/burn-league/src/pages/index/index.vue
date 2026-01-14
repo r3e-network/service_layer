@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="chainType === 'evm'" class="px-5 mb-4">
       <NeoCard variant="danger">
         <view class="flex flex-col items-center gap-2 py-1">
@@ -15,12 +15,6 @@
         <text class="font-bold">{{ status.msg }}</text>
       </NeoCard>
 
-      <!-- Total Burned Hero Section with Fire Animation -->
-      <HeroSection :total-burned="totalBurned" :t="t as any" />
-
-      <!-- Stats Grid -->
-      <StatsGrid :user-burned="userBurned" :rank="rank" :t="t as any" />
-
       <!-- Burn Action Card -->
       <BurnActionCard
         v-model:burnAmount="burnAmount"
@@ -29,12 +23,15 @@
         :t="t as any"
         @burn="burnTokens"
       />
-
-      <!-- Leaderboard with Medal Icons -->
-      <LeaderboardList :leaderboard="leaderboard" :t="t as any" />
     </view>
 
     <view v-if="activeTab === 'stats'" class="tab-content scrollable">
+      <!-- Total Burned Hero Section with Fire Animation -->
+      <HeroSection :total-burned="totalBurned" :t="t as any" />
+
+      <!-- Stats Grid -->
+      <StatsGrid :user-burned="userBurned" :rank="rank" :t="t as any" />
+
       <StatsTab
         :burn-count="burnCount"
         :user-burned="userBurned"
@@ -43,6 +40,9 @@
         :estimated-reward="estimatedReward"
         :t="t as any"
       />
+
+      <!-- Leaderboard in Stats Tab -->
+      <LeaderboardList :leaderboard="leaderboard" :t="t as any" />
     </view>
 
     <!-- Docs Tab -->

@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('collateralStatus')" variant="erobo" class="collateral-card">
+  <NeoCard variant="erobo" class="collateral-card">
     <view class="collateral-visual">
       <view class="bar-container-glass">
         <view class="bar-fill-glass" :style="{ width: collateralUtilization + '%' }">
@@ -11,11 +11,11 @@
       <view class="info-grid-glass">
         <view class="info-box-glass">
           <text class="info-label">{{ t("locked") }}</text>
-          <text class="info-value locked">{{ fmt(loan.collateralLocked, 2) }} GAS</text>
+          <text class="info-value locked">{{ fmt(loan.collateralLocked, 2) }} NEO</text>
         </view>
         <view class="info-box-glass">
           <text class="info-label">{{ t("available") }}</text>
-          <text class="info-value available">{{ fmt(terms.maxBorrow * 1.5 - loan.collateralLocked, 2) }} GAS</text>
+          <text class="info-value available">{{ fmt(availableCollateral, 2) }} NEO</text>
         </view>
       </view>
     </view>
@@ -28,7 +28,7 @@ import { NeoCard } from "@/shared/components";
 
 const props = defineProps<{
   loan: any;
-  terms: any;
+  availableCollateral: number;
   collateralUtilization: number;
   t: (key: string) => string;
 }>();

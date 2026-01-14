@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('selectCandidate')" variant="erobo-neo" class="candidate-list-card">
+  <NeoCard variant="erobo-neo" class="candidate-list-card">
     <view v-if="isLoading" class="loading-state">
       <text class="loading-text">{{ t("loadingCandidates") }}</text>
     </view>

@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab === 'game'" class="tab-content">
       <view v-if="chainType === 'evm'" class="mb-4">
         <NeoCard variant="danger">
@@ -15,6 +15,15 @@
         <text class="font-bold">{{ status.msg }}</text>
       </NeoCard>
 
+      <!-- Buy Keys Section -->
+      <BuyKeysCard
+        v-model:keyCount="keyCount"
+        :estimated-cost="estimatedCost"
+        :is-paying="isPaying"
+        :t="t as any"
+        @buy="buyKeys"
+      />
+
       <!-- Dramatic Countdown Display -->
       <ClockFace
         :danger-level="dangerLevel"
@@ -25,7 +34,13 @@
         :current-event-description="currentEventDescription"
         :t="t as any"
       />
+    </view>
 
+    <view v-if="activeTab === 'history'" class="tab-content scrollable">
+      <HistoryList :history="history" :t="t as any" />
+    </view>
+
+    <view v-if="activeTab === 'stats'" class="tab-content">
       <!-- Stats Grid -->
       <GameStats
         :total-pot="totalPot"
@@ -35,19 +50,6 @@
         :is-round-active="isRoundActive"
         :t="t as any"
       />
-
-      <!-- Buy Keys Section -->
-      <BuyKeysCard
-        v-model:keyCount="keyCount"
-        :estimated-cost="estimatedCost"
-        :is-paying="isPaying"
-        :t="t as any"
-        @buy="buyKeys"
-      />
-    </view>
-
-    <view v-if="activeTab === 'history'" class="tab-content scrollable">
-      <HistoryList :history="history" :t="t as any" />
     </view>
 
     <!-- Docs Tab -->
@@ -152,6 +154,7 @@ const translations = {
   dangerHigh: { en: "HIGH ALERT", zh: "高度警戒" },
   dangerCritical: { en: "CRITICAL", zh: "危急" },
   wrongChain: { en: "Wrong Network", zh: "网络错误" },
+  tabStats: { en: "Stats", zh: "统计" },
   wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
   switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 };
@@ -159,7 +162,8 @@ const translations = {
 const t = createT(translations);
 
 const navTabs: NavTab[] = [
-  { id: "game", icon: "game", label: t("game") },
+  { id: "game", icon: "game", label: t("title") },
+  { id: "stats", icon: "chart", label: t("tabStats") },
   { id: "history", icon: "time", label: t("history") },
   { id: "docs", icon: "book", label: t("docs") },
 ];

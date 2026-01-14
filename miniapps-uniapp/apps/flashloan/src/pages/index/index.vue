@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <!-- Main Tab -->
     <view v-if="activeTab === 'main'" class="tab-content">
       <view v-if="chainType === 'evm'" class="mb-4">
@@ -12,58 +12,54 @@
         </NeoCard>
       </view>
 
-      <!-- DEMO Mode Banner -->
+      <!-- Instruction Mode Banner -->
       <NeoCard variant="warning" class="mb-4 text-center">
-        <text class="font-bold block text-glass-glow">{{ t("demoMode") }}</text>
-        <text class="text-xs opacity-80 text-glass">{{ t("demoNote") }}</text>
+        <text class="font-bold block text-glass-glow">{{ t("instructionMode") }}</text>
+        <text class="text-xs opacity-80 text-glass">{{ t("instructionNote") }}</text>
       </NeoCard>
 
       <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'erobo-neo'" class="mb-4 text-center">
         <text class="font-bold text-glass">{{ status.msg }}</text>
       </NeoCard>
 
-      <!-- Flash Loan Flow Visualization -->
-      <FlowVisualization :t="t as any" />
-
-      <!-- Liquidity Pool -->
-      <LiquidityPoolCard :gas-liquidity="gasLiquidity" :neo-liquidity="neoLiquidity" :t="t as any" />
-
-      <!-- Loan Request Form -->
       <LoanRequestForm
-        v-model:loanAmount="loanAmount"
-        v-model:selectedOperation="selectedOperation"
-        :risk-level="riskLevel"
-        :operation-types="operationTypes"
-        :estimated-profit="estimatedProfit"
-        :gas-liquidity="gasLiquidity"
+        v-model:loanId="loanIdInput"
+        :loan-details="loanDetails"
         :is-loading="isLoading"
         :t="t as any"
-        @request="requestLoan"
+        @lookup="lookupLoan"
       />
     </view>
 
     <!-- Stats Tab -->
     <view v-if="activeTab === 'stats'" class="tab-content scrollable">
-      <!-- Statistics Overview -->
+      <NeoCard class="mb-4" variant="erobo">
+        <FlowVisualization :t="t as any" />
+      </NeoCard>
+
+      <LiquidityPoolCard :pool-balance="poolBalance" :t="t as any" class="mb-4" />
+
       <SimulationStats :stats="stats" :t="t as any" />
 
-      <!-- Recent Loans Table -->
       <RecentLoansTable :recent-loans="recentLoans" :t="t as any" />
     </view>
 
     <!-- Docs Tab -->
     <view v-if="activeTab === 'docs'" class="tab-content scrollable">
-      <FlashloanDocs :t="t as any" />
+      <FlashloanDocs :t="t as any" :contract-address="contractAddress" />
     </view>
   </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
-import { useWallet } from "@neo/uniapp-sdk";
-import { formatNumber } from "@/shared/utils/format";
+import { ref, onMounted, watch } from "vue";
+import { useWallet, useEvents } from "@neo/uniapp-sdk";
+import { formatNumber, formatAddress } from "@/shared/utils/format";
+import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 import { createT } from "@/shared/utils/i18n";
-import { AppLayout, NeoCard, NeoDoc } from "@/shared/components";
+import { AppLayout, NeoCard, NeoButton } from "@/shared/components";
+import type { NavTab } from "@/shared/components/NavBar.vue";
+
 import FlowVisualization from "./components/FlowVisualization.vue";
 import LiquidityPoolCard from "./components/LiquidityPoolCard.vue";
 import LoanRequestForm from "./components/LoanRequestForm.vue";
@@ -72,70 +68,54 @@ import RecentLoansTable from "./components/RecentLoansTable.vue";
 import FlashloanDocs from "./components/FlashloanDocs.vue";
 
 const translations = {
-  title: { en: "Flash Loan Simulator", zh: "闪电贷模拟器" },
-  demoMode: { en: "DEMO MODE", zh: "演示模式" },
-  demoNote: { en: "Instructional only - no real flash loans executed", zh: "仅供教学 - 不执行真实闪电贷" },
+  title: { en: "Flash Loan", zh: "闪电贷" },
+  instructionMode: { en: "INSTRUCTIONAL MODE", zh: "教学模式" },
+  instructionNote: {
+    en: "Flash loans must be executed programmatically. Use this miniapp to monitor pool status and loan history.",
+    zh: "闪电贷必须以程序方式执行。本应用仅用于监控池子状态与历史记录。",
+  },
   flashLoanFlow: { en: "Flash Loan Flow", zh: "闪电贷流程" },
   borrow: { en: "Borrow", zh: "借款" },
   execute: { en: "Execute", zh: "执行" },
   repay: { en: "Repay", zh: "还款" },
   flowNote: { en: "All operations execute atomically in a single transaction", zh: "所有操作在单笔交易中原子化执行" },
-  availableLiquidity: { en: "Simulated Liquidity Pool", zh: "模拟流动性池" },
-  requestFlashLoan: { en: "Configure Simulation", zh: "配置模拟" },
-  selectOperation: { en: "Select Operation Type", zh: "选择操作类型" },
-  arbitrage: { en: "Arbitrage", zh: "套利" },
-  arbitrageDesc: { en: "Profit from price differences across DEXs", zh: "利用不同 DEX 间的价差获利" },
-  liquidation: { en: "Liquidation", zh: "清算" },
-  liquidationDesc: { en: "Liquidate undercollateralized positions", zh: "清算抵押不足的仓位" },
-  collateralSwap: { en: "Collateral Swap", zh: "抵押品交换" },
-  collateralSwapDesc: { en: "Swap collateral without closing position", zh: "无需平仓即可交换抵押品" },
-  amountPlaceholder: { en: "Enter amount", zh: "输入金额" },
-  loanAmount: { en: "Loan Amount", zh: "贷款金额" },
-  fee: { en: "Fee (0.09%)", zh: "手续费 (0.09%)" },
+  statusLookup: { en: "Loan Status Lookup", zh: "贷款状态查询" },
+  loanId: { en: "Loan ID", zh: "贷款 ID" },
+  loanIdPlaceholder: { en: "Enter loan ID", zh: "输入贷款 ID" },
+  checkStatus: { en: "Check Status", zh: "查询状态" },
+  checking: { en: "Checking...", zh: "查询中..." },
+  statusLabel: { en: "Status", zh: "状态" },
+  statusHint: { en: "Enter a loan ID to fetch its on-chain status.", zh: "输入贷款 ID 以查询链上状态。" },
+  statusPending: { en: "Pending", zh: "待处理" },
+  statusSuccess: { en: "Executed", zh: "已执行" },
+  statusFailed: { en: "Failed", zh: "失败" },
+  borrower: { en: "Borrower", zh: "借款人" },
+  callbackContract: { en: "Callback Contract", zh: "回调合约" },
+  callbackMethod: { en: "Callback Method", zh: "回调方法" },
+  timestamp: { en: "Timestamp", zh: "时间" },
+  amount: { en: "Amount", zh: "金额" },
   feeShort: { en: "Fee", zh: "手续费" },
-  totalRepay: { en: "Total Repayment", zh: "总还款额" },
-  estimatedProfit: { en: "Estimated Profit", zh: "预计利润" },
-  processing: { en: "Simulating...", zh: "模拟中..." },
-  executeLoan: { en: "Run Simulation", zh: "运行模拟" },
-  invalidAmount: { en: "Invalid amount", zh: "无效金额" },
-  loanExecuted: { en: "Simulation complete", zh: "模拟完成" },
-  simulationSuccess: { en: "Flash loan simulation successful!", zh: "闪电贷模拟成功！" },
-  error: { en: "Error", zh: "错误" },
-  main: { en: "Simulate", zh: "模拟" },
-  stats: { en: "Results", zh: "结果" },
-  statistics: { en: "Simulation Results", zh: "模拟结果" },
-  totalLoans: { en: "Simulations Run", zh: "模拟次数" },
+  poolBalance: { en: "Pool Balance", zh: "池子余额" },
+  poolBalanceNote: { en: "Available liquidity for flash loans", zh: "可用于闪电贷的流动性" },
+  statistics: { en: "Loan Activity", zh: "贷款活动" },
+  totalLoans: { en: "Loans Executed", zh: "已执行贷款" },
   totalVolume: { en: "Total Volume (GAS)", zh: "总交易量 (GAS)" },
   totalFees: { en: "Total Fees (GAS)", zh: "总手续费 (GAS)" },
-  avgLoanSize: { en: "Avg Size (GAS)", zh: "平均额度 (GAS)" },
-  recentLoans: { en: "Recent Simulations", zh: "最近模拟" },
-  amount: { en: "Amount", zh: "金额" },
-  time: { en: "Time", zh: "时间" },
-  operation: { en: "Operation", zh: "操作" },
-  profit: { en: "Profit", zh: "利润" },
-  noHistory: { en: "No simulations yet", zh: "暂无模拟记录" },
-  low: { en: "Low Risk", zh: "低风险" },
-  medium: { en: "Medium Risk", zh: "中风险" },
-  high: { en: "High Risk", zh: "高风险" },
-  highRiskWarning: { en: "Warning: Large loan amount may affect liquidity", zh: "警告：大额贷款可能影响流动性" },
+  avgLoanSize: { en: "Avg Loan Size (GAS)", zh: "平均额度 (GAS)" },
+  recentLoans: { en: "Recent Executions", zh: "最近执行" },
+  noHistory: { en: "No executions yet", zh: "暂无执行记录" },
+  loanStatusLoaded: { en: "Loan status loaded", zh: "贷款状态已加载" },
+  loanNotFound: { en: "Loan not found", zh: "未找到该贷款" },
+  invalidLoanId: { en: "Invalid loan ID", zh: "无效贷款 ID" },
+  error: { en: "Error", zh: "错误" },
+  main: { en: "Status", zh: "状态" },
+  stats: { en: "Activity", zh: "活动" },
   docs: { en: "Learn", zh: "学习" },
   docSubtitle: { en: "Understanding Flash Loans", zh: "理解闪电贷" },
   docDescription: {
-    en: "Flash loans enable uncollateralized borrowing with instant repayment in a single transaction. This simulator is instructional only; real flash loans must be executed programmatically.",
-    zh: "闪电贷支持无抵押借款，在单笔交易中即时还款。本模拟器仅用于教学，真实闪电贷需以程序方式执行。",
+    en: "Flash loans enable uncollateralized borrowing with instant repayment in a single transaction. This miniapp is instructional only; real flash loans must be executed programmatically.",
+    zh: "闪电贷支持无抵押借款，在单笔交易中即时还款。本应用仅用于教学，真实闪电贷需以程序方式执行。",
   },
-  step1: {
-    en: "Select an operation type (Arbitrage, Liquidation, or Collateral Swap)",
-    zh: "选择操作类型（套利、清算或抵押品交换）",
-  },
-  step2: { en: "Enter loan amount and review simulated fees", zh: "输入贷款金额并查看模拟手续费" },
-  step3: { en: "Run the simulation to see potential outcomes", zh: "运行模拟查看潜在结果" },
-  step4: { en: "Review results in the Stats tab and refine your strategy.", zh: "在统计标签页查看结果并优化策略。" },
-  feature1Name: { en: "Risk-Free Learning", zh: "无风险学习" },
-  feature1Desc: { en: "Practice flash loan strategies without real funds", zh: "无需真实资金即可练习闪电贷策略" },
-  feature2Name: { en: "Real Scenarios", zh: "真实场景" },
-  feature2Desc: { en: "Simulate arbitrage, liquidations, and collateral swaps", zh: "模拟套利、清算和抵押品交换" },
-  // Detailed docs translations
   docTitle: { en: "Flash Loan Documentation", zh: "闪电贷文档" },
   contractInfo: { en: "Contract Information", zh: "合约信息" },
   contractName: { en: "Contract Name", zh: "合约名称" },
@@ -165,6 +145,7 @@ const translations = {
     en: "Ensure your callback contract repays loan + 0.09% fee atomically",
     zh: "确保你的回调合约原子化偿还贷款 + 0.09% 手续费",
   },
+  notAvailable: { en: "Unavailable", zh: "不可用" },
   wrongChain: { en: "Wrong Network", zh: "网络错误" },
   wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
   switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
@@ -172,117 +153,199 @@ const translations = {
 
 const t = createT(translations);
 
-const navTabs = [
+const navTabs: NavTab[] = [
   { id: "main", icon: "wallet", label: t("main") },
   { id: "stats", icon: "chart", label: t("stats") },
   { id: "docs", icon: "book", label: t("docs") },
 ];
 
 const activeTab = ref("main");
-const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
-const docFeatures = computed(() => [
-  { name: t("feature1Name"), desc: t("feature1Desc") },
-  { name: t("feature2Name"), desc: t("feature2Desc") },
-]);
+
+type LoanStatus = "pending" | "success" | "failed";
+
+type LoanDetails = {
+  id: string;
+  borrower: string;
+  amount: string;
+  fee: string;
+  callbackContract: string;
+  callbackMethod: string;
+  timestamp: string;
+  status: LoanStatus;
+};
+
+type ExecutedLoan = {
+  id: number;
+  amount: number;
+  fee: number;
+  status: "success" | "failed";
+  timestamp: string;
+};
 
 const APP_ID = "miniapp-flashloan";
-const { address, connect, chainType, switchChain } = useWallet() as any;
+const { chainType, switchChain, invokeRead, getContractAddress } = useWallet() as any;
+const { list: listEvents } = useEvents();
 
+const contractAddress = ref<string | null>(null);
+const poolBalance = ref(0);
+const loanIdInput = ref("");
+const loanDetails = ref<LoanDetails | null>(null);
+const stats = ref({ totalLoans: 0, totalVolume: 0, totalFees: 0 });
+const recentLoans = ref<ExecutedLoan[]>([]);
+const status = ref<{ msg: string; type: "success" | "error" } | null>(null);
 const isLoading = ref(false);
-const dataLoading = ref(true);
-const gasLiquidity = ref(0);
-const neoLiquidity = ref(0);
-const loanAmount = ref("");
-const status = ref<{ msg: string; type: string } | null>(null);
 
-type OperationType = "arbitrage" | "liquidation" | "collateralSwap";
-const selectedOperation = ref<OperationType>("arbitrage");
+const ensureContractAddress = async () => {
+  if (!contractAddress.value) {
+    contractAddress.value = await getContractAddress();
+  }
+  if (!contractAddress.value) throw new Error(t("error"));
+  return contractAddress.value;
+};
 
-const operationTypes = computed(() => [
-  { id: "arbitrage" as OperationType, icon: "📈", profit: 0.5 },
-  { id: "liquidation" as OperationType, icon: "⚡", profit: 5.0 },
-  { id: "collateralSwap" as OperationType, icon: "🔄", profit: 0.1 },
-]);
+const toNumber = (value: unknown) => {
+  const num = Number(value ?? 0);
+  return Number.isFinite(num) ? num : 0;
+};
 
-const estimatedProfit = computed(() => {
-  const amount = parseFloat(loanAmount.value || "0");
-  const fee = amount * 0.0009;
-  const op = operationTypes.value.find((o) => o.id === selectedOperation.value);
-  const grossProfit = (amount * (op?.profit || 0)) / 100;
-  return Math.max(0, grossProfit - fee);
-});
+const toGas = (value: unknown) => toNumber(value) / 1e8;
 
-const stats = ref({ totalLoans: 0, totalVolume: 0, totalFees: 0, totalProfit: 0 });
-const recentLoans = ref<{ amount: number; timestamp: string; operation: string; profit: number }[]>([]);
+const formatGas = (value: number, decimals = 4) => formatNumber(value, decimals);
 
-const formatNum = (n: number) => formatNumber(n, 0);
+const formatTimestamp = (value: unknown) => {
+  const ts = toNumber(value);
+  if (!ts) return "N/A";
+  return new Date(ts * 1000).toLocaleString();
+};
 
-const riskLevel = computed(() => {
-  const amount = parseFloat(loanAmount.value || "0");
-  if (amount === 0) return "low";
-  if (amount > gasLiquidity.value * 0.5) return "high";
-  if (amount > gasLiquidity.value * 0.25) return "medium";
-  return "low";
-});
+const listAllEvents = async (eventName: string) => {
+  const events: any[] = [];
+  let afterId: string | undefined;
+  let hasMore = true;
+  while (hasMore) {
+    const res = await listEvents({ app_id: APP_ID, event_name: eventName, limit: 50, after_id: afterId });
+    events.push(...res.events);
+    hasMore = Boolean(res.has_more && res.last_id);
+    afterId = res.last_id || undefined;
+  }
+  return events;
+};
 
-const requestLoan = async () => {
-  if (isLoading.value) return;
-  const amount = parseFloat(loanAmount.value);
-  if (amount <= 0 || amount > gasLiquidity.value) {
-    status.value = { msg: t("invalidAmount"), type: "error" };
+const buildLoanDetails = (parsed: unknown, loanId: number): LoanDetails | null => {
+  if (!Array.isArray(parsed) || parsed.length < 8) return null;
+  const [borrower, amount, fee, callbackContract, callbackMethod, timestamp, executed, success] = parsed;
+  const amountRaw = toNumber(amount);
+  const feeRaw = toNumber(fee);
+  const callbackMethodText = String(callbackMethod || "");
+  const isEmpty = amountRaw === 0 && feeRaw === 0 && !callbackMethodText && !toNumber(timestamp);
+  if (isEmpty) return null;
+
+  const amountGas = toGas(amount);
+  const feeGas = toGas(fee);
+  const executedFlag = Boolean(executed);
+  const statusValue: LoanStatus = executedFlag ? (Boolean(success) ? "success" : "failed") : "pending";
+
+  return {
+    id: String(loanId),
+    borrower: formatAddress(String(borrower || "")),
+    amount: formatGas(amountGas),
+    fee: formatGas(feeGas),
+    callbackContract: formatAddress(String(callbackContract || "")),
+    callbackMethod: callbackMethodText || "--",
+    timestamp: formatTimestamp(timestamp),
+    status: statusValue,
+  };
+};
+
+const lookupLoan = async () => {
+  const loanId = Number(loanIdInput.value);
+  if (!Number.isFinite(loanId) || loanId <= 0) {
+    status.value = { msg: t("invalidLoanId"), type: "error" };
     return;
   }
 
-  isLoading.value = true;
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+  try {
+    isLoading.value = true;
+    const contract = await ensureContractAddress();
+    const res = await invokeRead({
+      contractAddress: contract,
+      operation: "getLoan",
+      args: [{ type: "Integer", value: String(loanId) }],
+    });
 
-  const fee = amount * 0.0009;
-  const profit = estimatedProfit.value;
+    const parsed = parseInvokeResult(res);
+    const details = buildLoanDetails(parsed, loanId);
+    if (!details) {
+      loanDetails.value = null;
+      status.value = { msg: t("loanNotFound"), type: "error" };
+      return;
+    }
 
-  stats.value.totalLoans++;
-  stats.value.totalVolume += amount;
-  stats.value.totalFees += fee;
-  stats.value.totalProfit += profit;
+    loanDetails.value = details;
+    status.value = { msg: t("loanStatusLoaded"), type: "success" };
+  } catch (e: any) {
+    status.value = { msg: e.message || t("error"), type: "error" };
+  } finally {
+    isLoading.value = false;
+  }
+};
 
-  recentLoans.value.unshift({
-    amount,
-    timestamp: new Date().toLocaleTimeString(),
-    operation: selectedOperation.value,
-    profit,
-  });
-  if (recentLoans.value.length > 10) recentLoans.value.pop();
+const fetchPoolBalance = async () => {
+  const contract = await ensureContractAddress();
+  const res = await invokeRead({ contractAddress: contract, operation: "getPoolBalance" });
+  poolBalance.value = toGas(parseInvokeResult(res));
+};
 
-  status.value = {
-    msg: `${t("simulationSuccess")} ${t("profit")}: +${profit.toFixed(4)} GAS`,
-    type: "success",
+const fetchLoanStats = async () => {
+  const executedEvents = await listAllEvents("LoanExecuted");
+  const loans: ExecutedLoan[] = executedEvents
+    .map((evt) => {
+      const values = Array.isArray(evt?.state) ? evt.state.map(parseStackItem) : [];
+      const id = Number(values[0] || 0);
+      const amount = toGas(values[2]);
+      const fee = toGas(values[3]);
+      const success = Boolean(values[4]);
+      const timestamp = String(evt.created_at || "");
+      if (!id) return null;
+      return {
+        id,
+        amount,
+        fee,
+        status: success ? "success" : "failed",
+        timestamp,
+      } as ExecutedLoan;
+    })
+    .filter(Boolean) as ExecutedLoan[];
+
+  const totalVolume = loans.reduce((sum, loan) => sum + loan.amount, 0);
+  const totalFees = loans.reduce((sum, loan) => sum + loan.fee, 0);
+
+  stats.value = {
+    totalLoans: loans.length,
+    totalVolume,
+    totalFees,
   };
 
-  isLoading.value = false;
+  recentLoans.value = loans
+    .slice()
+    .sort((a, b) => {
+      const aTime = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+      const bTime = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+      return bTime - aTime;
+    })
+    .slice(0, 10);
 };
 
 const fetchData = async () => {
   try {
-    dataLoading.value = true;
-    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
-    if (!sdk?.invoke) return;
-
-    const data = (await sdk.invoke("flashloan.getLiquidity", { appId: APP_ID })) as {
-      gasLiquidity: number;
-      neoLiquidity: number;
-    } | null;
-
-    if (data) {
-      gasLiquidity.value = data.gasLiquidity || 0;
-      neoLiquidity.value = data.neoLiquidity || 0;
-    }
+    await Promise.all([fetchPoolBalance(), fetchLoanStats()]);
   } catch (e) {
     console.warn("[Flashloan] Failed to fetch:", e);
-  } finally {
-    dataLoading.value = false;
   }
 };
 
 onMounted(() => fetchData());
+watch(chainType, () => fetchData());
 </script>
 
 <style lang="scss" scoped>
@@ -298,8 +361,6 @@ onMounted(() => fetchData());
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
-
-
 
 .scrollable {
   overflow-y: auto;

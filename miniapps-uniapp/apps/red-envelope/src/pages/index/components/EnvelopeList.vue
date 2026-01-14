@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('availableEnvelopes')" variant="erobo">
+  <NeoCard variant="erobo">
     <view v-if="loadingEnvelopes" class="empty-state">{{ t("loadingEnvelopes") }}</view>
     <view v-else-if="!envelopes.length" class="empty-state">{{ t("noEnvelopes") }}</view>
     <view v-else class="envelope-list">

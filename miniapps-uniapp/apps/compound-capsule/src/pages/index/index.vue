@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <!-- Main Tab -->
     <view v-if="activeTab === 'main'" class="tab-content">
       <view v-if="chainType === 'evm'" class="mb-4">
@@ -16,54 +16,10 @@
         <text class="font-bold status-msg">{{ status.msg }}</text>
       </NeoCard>
 
-      <!-- Capsule Visualization -->
-      <NeoCard :title="t('vaultStats')" variant="erobo" class="vault-card">
-        <view class="capsule-container-glass">
-          <view class="capsule-visual">
-            <view class="capsule-body-glass">
-              <view class="capsule-fill-glass" :style="{ height: fillPercentage + '%' }">
-                <view class="capsule-shimmer"></view>
-              </view>
-              <view class="capsule-label">
-                <text class="capsule-apy">{{ fmt(vault.totalLocked, 0) }}</text>
-                <text class="capsule-apy-label">{{ t("totalLocked") }}</text>
-              </view>
-            </view>
-          </view>
-          <view class="vault-stats-grid">
-            <view class="stat-item-glass">
-              <text class="stat-label">{{ t("totalLocked") }}</text>
-              <text class="stat-value tvl">{{ fmt(vault.totalLocked, 0) }}</text>
-              <text class="stat-unit">NEO</text>
-            </view>
-            <view class="stat-item-glass">
-              <text class="stat-label">{{ t("totalCapsules") }}</text>
-              <text class="stat-value freq">{{ vault.totalCapsules }}</text>
-            </view>
-          </view>
-        </view>
-      </NeoCard>
 
-      <!-- Your Summary -->
-      <NeoCard :title="t('yourPosition')" variant="erobo-neo" class="position-card">
-        <view class="position-stats">
-          <view class="position-row primary">
-            <text class="label">{{ t("deposited") }}</text>
-            <text class="value">{{ fmt(position.deposited, 0) }} NEO</text>
-          </view>
-          <view class="position-row earned">
-            <text class="label">{{ t("earned") }}</text>
-            <text class="value growth">+{{ fmt(position.earned, 4) }} GAS</text>
-          </view>
-          <view class="position-row projection">
-            <text class="label">{{ t("capsulesCount") }}</text>
-            <text class="value">{{ position.capsules }}</text>
-          </view>
-        </view>
-      </NeoCard>
 
       <!-- Lock Period Selector & Deposit -->
-      <NeoCard :title="t('createCapsule')" class="deposit-card" variant="erobo-neo">
+      <NeoCard class="deposit-card" variant="erobo-neo">
         <view class="lock-period-selector">
           <text class="selector-label">{{ t("lockPeriod") }}</text>
           <view class="period-options">
@@ -91,12 +47,58 @@
         </NeoButton>
         <text class="note">{{ t("minLock").replace("{days}", String(MIN_LOCK_DAYS)) }}</text>
       </NeoCard>
+
+      <!-- Your Summary -->
+      <NeoCard variant="erobo-neo" class="position-card">
+        <view class="position-stats">
+          <view class="position-row primary">
+            <text class="label">{{ t("deposited") }}</text>
+            <text class="value">{{ fmt(position.deposited, 0) }} NEO</text>
+          </view>
+          <view class="position-row earned">
+            <text class="label">{{ t("earned") }}</text>
+            <text class="value growth">+{{ fmt(position.earned, 4) }} GAS</text>
+          </view>
+          <view class="position-row projection">
+            <text class="label">{{ t("capsulesCount") }}</text>
+            <text class="value">{{ position.capsules }}</text>
+          </view>
+        </view>
+      </NeoCard>
     </view>
 
     <!-- Stats Tab -->
     <view v-if="activeTab === 'stats'" class="tab-content scrollable">
+      <!-- Capsule Visualization -->
+      <NeoCard variant="erobo" class="vault-card">
+        <view class="capsule-container-glass">
+          <view class="capsule-visual">
+            <view class="capsule-body-glass">
+              <view class="capsule-fill-glass" :style="{ height: fillPercentage + '%' }">
+                <view class="capsule-shimmer"></view>
+              </view>
+              <view class="capsule-label">
+                <text class="capsule-apy">{{ fmt(vault.totalLocked, 0) }}</text>
+                <text class="capsule-apy-label">{{ t("totalLocked") }}</text>
+              </view>
+            </view>
+          </view>
+          <view class="vault-stats-grid">
+            <view class="stat-item-glass">
+              <text class="stat-label">{{ t("totalLocked") }}</text>
+              <text class="stat-value tvl">{{ fmt(vault.totalLocked, 0) }}</text>
+              <text class="stat-unit">NEO</text>
+            </view>
+            <view class="stat-item-glass">
+              <text class="stat-label">{{ t("totalCapsules") }}</text>
+              <text class="stat-value freq">{{ vault.totalCapsules }}</text>
+            </view>
+          </view>
+        </view>
+      </NeoCard>
+
       <!-- Active Capsules -->
-      <NeoCard :title="t('activeCapsules')" variant="erobo" class="capsules-card">
+      <NeoCard variant="erobo" class="capsules-card">
         <view v-for="(capsule, idx) in activeCapsules" :key="idx" class="capsule-item-glass">
           <view class="capsule-header">
             <view class="capsule-icon">💊</view>
@@ -142,7 +144,7 @@
       </NeoCard>
 
       <!-- Statistics -->
-      <NeoCard :title="t('statistics')" variant="erobo-neo">
+      <NeoCard variant="erobo-neo">
         <view class="stats-grid-glass">
           <view class="stat-box-glass">
             <text class="stat-label">{{ t("totalCapsules") }}</text>

@@ -119,7 +119,7 @@ defineProps<{
   box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 .clock-time-glass {
-  font-size: 48px;
+  font-size: 36px;
   font-weight: $font-weight-black;
   font-family: $font-mono;
   line-height: 1;

@@ -1,6 +1,6 @@
 <template>
   <view class="tab-content-glass">
-    <NeoCard :title="t('gardenStats')" variant="erobo-neo">
+    <NeoCard variant="erobo-neo">
       <NeoStats :stats="statsData" />
     </NeoCard>
   </view>

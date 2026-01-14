@@ -22,7 +22,7 @@ defineProps<{
 @use "@/shared/styles/variables.scss";
 
 .hero-apy-card {
-  padding: 40px 20px !important;
+  padding: 20px 10px !important;
   position: relative;
   overflow: hidden;
   margin-bottom: 24px;
@@ -58,7 +58,7 @@ defineProps<{
 
 .hero-value-glass {
   display: block;
-  font-size: 64px;
+  font-size: 48px;
   font-weight: 800;
   line-height: 1;
   margin-bottom: 8px;
@@ -78,7 +78,7 @@ defineProps<{
 }
 
 .burger-icon {
-  margin-bottom: 24px;
+  margin-bottom: 12px;
   color: #FBBF24;
   filter: drop-shadow(0 0 15px rgba(251, 191, 36, 0.4));
   animation: float 6s ease-in-out infinite;

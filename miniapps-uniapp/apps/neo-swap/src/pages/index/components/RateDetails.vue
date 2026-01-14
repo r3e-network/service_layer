@@ -15,7 +15,7 @@
     <view v-if="showDetails" class="details-accordion">
       <view class="detail-row">
         <text class="detail-label">{{ t("priceImpact") }}</text>
-        <text :class="['detail-value', priceImpactClass]">{{ priceImpact }}</text>
+        <text :class="['detail-value', priceImpactClass]">{{ hasPriceImpact ? priceImpact : t("notAvailable") }}</text>
       </view>
       <view class="detail-row">
         <text class="detail-label">{{ t("slippage") }}</text>
@@ -41,7 +41,7 @@ const props = defineProps<{
   fromSymbol: string;
   toSymbol: string;
   exchangeRate: string;
-  priceImpact: string;
+  priceImpact?: string | null;
   slippage: string;
   liquidityPool: string;
   minReceived: string;
@@ -52,8 +52,14 @@ defineEmits(["refresh"]);
 
 const showDetails = ref(false);
 
+const hasPriceImpact = computed(() => {
+  const impact = parseFloat(props.priceImpact ?? "");
+  return Number.isFinite(impact);
+});
+
 const priceImpactClass = computed(() => {
-  const impact = parseFloat(props.priceImpact);
+  const impact = parseFloat(props.priceImpact ?? "");
+  if (!Number.isFinite(impact)) return "impact-na";
   if (impact < 1) return "impact-low";
   if (impact < 3) return "impact-medium";
   return "impact-high";
@@ -134,5 +140,6 @@ const priceImpactClass = computed(() => {
   &.impact-low { color: #10b981; }
   &.impact-medium { color: #F59E0B; }
   &.impact-high { color: #EF4444; }
+  &.impact-na { color: rgba(255, 255, 255, 0.6); }
 }
 </style>

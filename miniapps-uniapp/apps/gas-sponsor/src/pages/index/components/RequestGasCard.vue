@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('requestSponsoredGas')" class="request-card">
+  <NeoCard class="request-card">
     <view v-if="!isEligible" class="not-eligible-msg">
       <view class="warning-icon">⚠️</view>
       <text class="warning-title">{{ t("notEligibleTitle") }}</text>

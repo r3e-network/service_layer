@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="'📊 ' + t('statistics')" class="stats-card" variant="erobo-neo">
+  <NeoCard class="stats-card" variant="erobo-neo">
     <view class="stat-row">
       <text class="stat-label">{{ t("totalPolicies") }}</text>
       <text class="stat-value">{{ stats.totalPolicies }}</text>
@@ -9,16 +9,12 @@
       <text class="stat-value">{{ stats.activePolicies }}</text>
     </view>
     <view class="stat-row">
-      <text class="stat-label">{{ t("inactivePolicies") }}</text>
-      <text class="stat-value">{{ stats.inactivePolicies }}</text>
+      <text class="stat-label">{{ t("claimedPolicies") }}</text>
+      <text class="stat-value">{{ stats.claimedPolicies }}</text>
     </view>
     <view class="stat-row">
-      <text class="stat-label">{{ t("totalGuardians") }}</text>
-      <text class="stat-value">{{ totalGuardians }}</text>
-    </view>
-    <view class="stat-row">
-      <text class="stat-label">{{ t("activeGuardians") }}</text>
-      <text class="stat-value">{{ activeGuardians }}</text>
+      <text class="stat-label">{{ t("totalCoverage") }}</text>
+      <text class="stat-value">{{ stats.totalCoverage }} GAS</text>
     </view>
   </NeoCard>
 </template>
@@ -30,10 +26,9 @@ defineProps<{
   stats: {
     totalPolicies: number;
     activePolicies: number;
-    inactivePolicies: number;
+    claimedPolicies: number;
+    totalCoverage: number;
   };
-  totalGuardians: number;
-  activeGuardians: number;
   t: (key: string) => string;
 }>();
 </script>

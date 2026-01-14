@@ -11,11 +11,6 @@
         </NeoCard>
       </view>
 
-      <NeoCard variant="erobo" class="mb-6 text-center">
-        <text class="title block mb-1">{{ t("title") }}</text>
-        <text class="subtitle block">{{ t("subtitle") }}</text>
-      </NeoCard>
-
       <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'erobo-neo'" class="mb-4 text-center">
         <text class="font-bold status-msg">{{ status.msg }}</text>
       </NeoCard>

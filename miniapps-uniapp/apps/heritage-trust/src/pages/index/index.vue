@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <!-- Main Tab -->
     <view v-if="activeTab === 'main'" class="tab-content">
       <view v-if="chainType === 'evm'" class="mb-4">
@@ -21,9 +21,15 @@
       </NeoCard>
 
       <!-- Trust Documents Section -->
-      <NeoCard :title="t('yourTrusts')" variant="erobo">
+      <NeoCard variant="erobo">
         <view v-for="trust in trusts" :key="trust.id">
-          <TrustCard :trust="trust" :t="t as any" />
+          <TrustCard
+            :trust="trust"
+            :t="t as any"
+            @heartbeat="heartbeatTrust"
+            @claimYield="claimYield"
+            @execute="executeTrust"
+          />
         </view>
         <view v-if="trusts.length === 0" class="text-center p-4">
           <text>{{ t("noTrusts") || "No trusts found" }}</text>
@@ -34,7 +40,6 @@
       <CreateTrustForm
         v-model:name="newTrust.name"
         v-model:beneficiary="newTrust.beneficiary"
-        v-model:gas-value="newTrust.gasValue"
         v-model:neo-value="newTrust.neoValue"
         :is-loading="isLoading"
         :t="t as any"
@@ -62,10 +67,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { useWallet, useEvents } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
 import { AppLayout, NeoDoc, NeoCard } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
+import { addressToScriptHash, normalizeScriptHash, parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 
 import TrustCard, { type Trust } from "./components/TrustCard.vue";
 import CreateTrustForm from "./components/CreateTrustForm.vue";
@@ -79,8 +85,8 @@ const translations = {
   trustName: { en: "Trust name", zh: "信托名称" },
   beneficiaryAddress: { en: "Beneficiary address", zh: "受益人地址" },
   amount: { en: "Amount", zh: "金额" },
-  assetHint: { en: "Enter GAS and/or NEO amount to deposit", zh: "输入要存入的 GAS 和/或 NEO 金额" },
-  infoText: { en: "Trust activates after 90 days of inactivity", zh: "信托在90天不活跃后激活" },
+  assetHint: { en: "Enter the NEO amount to lock as principal", zh: "输入要锁定的 NEO 本金" },
+  infoText: { en: "Trust activates after 30 days of inactivity", zh: "信托在30天不活跃后激活" },
   creating: { en: "Creating...", zh: "创建中..." },
   trustCreated: { en: "Trust created!", zh: "信托已创建！" },
   error: { en: "Error", zh: "错误" },
@@ -88,7 +94,6 @@ const translations = {
   stats: { en: "Stats", zh: "统计" },
   statistics: { en: "Statistics", zh: "统计数据" },
   totalTrusts: { en: "Total Trusts", zh: "总信托数" },
-  totalGasValue: { en: "Total GAS", zh: "总 GAS" },
   totalNeoValue: { en: "Total NEO", zh: "总 NEO" },
   activeTrusts: { en: "Active Trusts", zh: "活跃信托" },
   noTrusts: { en: "No trusts yet", zh: "暂无信托" },
@@ -114,6 +119,12 @@ const translations = {
   active: { en: "ACTIVE", zh: "活跃" },
   pending: { en: "PENDING", zh: "待定" },
   triggered: { en: "TRIGGERED", zh: "已触发" },
+  executed: { en: "EXECUTED", zh: "已执行" },
+  ready: { en: "Ready", zh: "可执行" },
+  heartbeat: { en: "Heartbeat", zh: "续期" },
+  claimYield: { en: "Claim Yield", zh: "领取收益" },
+  executeTrust: { en: "Execute Trust", zh: "执行信托" },
+  insufficientNeo: { en: "Insufficient NEO balance", zh: "NEO 余额不足" },
 
   docs: { en: "Docs", zh: "文档" },
   docSubtitle: {
@@ -129,8 +140,8 @@ const translations = {
     zh: "连接您的 Neo 钱包并将资产存入新信托",
   },
   step2: {
-    en: "Set the beneficiary address and configure the inactivity period (default 90 days)",
-    zh: "设置受益人地址并配置不活跃期（默认 90 天）",
+    en: "Set the beneficiary address and maintain your heartbeat every 30 days",
+    zh: "设置受益人地址并每 30 天续期",
   },
   step3: {
     en: "The smart contract monitors your wallet activity automatically",
@@ -171,80 +182,132 @@ const docFeatures = computed(() => [
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 const APP_ID = "miniapp-heritage-trust";
-const { address, connect, chainType, switchChain, getContractAddress } = useWallet() as any;
-const { payGAS, isLoading } = usePayments(APP_ID);
+const { address, connect, invokeContract, invokeRead, getBalance, chainType, switchChain, getContractAddress } =
+  useWallet() as any;
+const { list: listEvents } = useEvents();
+const isLoading = ref(false);
 const contractAddress = ref<string | null>(null);
 
 const ensureContractAddress = async () => {
   if (!contractAddress.value) {
     contractAddress.value = await getContractAddress();
   }
+  if (!contractAddress.value) {
+    throw new Error(t("error"));
+  }
   return contractAddress.value;
 };
 
+const TRUST_NAME_KEY = "heritage-trust-names";
+const loadTrustNames = () => {
+  try {
+    const raw = uni.getStorageSync(TRUST_NAME_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+const trustNames = ref<Record<string, string>>(loadTrustNames());
+const saveTrustName = (id: string, name: string) => {
+  if (!id || !name) return;
+  trustNames.value = { ...trustNames.value, [id]: name };
+  try {
+    uni.setStorageSync(TRUST_NAME_KEY, JSON.stringify(trustNames.value));
+  } catch {
+    // ignore storage errors
+  }
+};
+
 const trusts = ref<Trust[]>([]);
-const newTrust = ref({ name: "", beneficiary: "", gasValue: "", neoValue: "" });
+const newTrust = ref({ name: "", beneficiary: "", neoValue: "" });
 const status = ref<{ msg: string; type: string } | null>(null);
 const isLoadingData = ref(false);
 
 const stats = computed(() => ({
   totalTrusts: trusts.value.length,
-  totalGasValue: trusts.value.reduce((sum, t) => sum + (t.gasValue || 0), 0),
   totalNeoValue: trusts.value.reduce((sum, t) => sum + (t.neoValue || 0), 0),
-  activeTrusts: trusts.value.length,
+  activeTrusts: trusts.value.filter((t) => t.status === "active" || t.status === "triggered").length,
 }));
+
+const ownerMatches = (value: unknown) => {
+  if (!address.value) return false;
+  const val = String(value || "");
+  if (val === address.value) return true;
+  const normalized = normalizeScriptHash(val);
+  const addrHash = addressToScriptHash(address.value);
+  return Boolean(normalized && addrHash && normalized === addrHash);
+};
+
+const toTimestampMs = (value: unknown) => {
+  const num = Number(value ?? 0);
+  if (!Number.isFinite(num) || num <= 0) return 0;
+  return num > 1e12 ? num : num * 1000;
+};
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const waitForEvent = async (txid: string, eventName: string) => {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const res = await listEvents({ app_id: APP_ID, event_name: eventName, limit: 25 });
+    const match = res.events.find((evt) => evt.tx_hash === txid);
+    if (match) return match;
+    await sleep(1500);
+  }
+  return null;
+};
 
 // Fetch trusts data from smart contract
 const fetchData = async () => {
-  if (!address.value) return;
-
-  isLoadingData.value = true;
   try {
-    const contract = await ensureContractAddress();
-    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
-    if (!sdk?.invoke) {
-      console.warn("[HeritageTrust] SDK not available");
-      return;
+    if (!address.value) {
+      await connect();
     }
+    if (!address.value) return;
+
+    isLoadingData.value = true;
+    const contract = await ensureContractAddress();
 
     // Get total trusts count from contract
-    const totalResult = (await sdk.invoke("invokeRead", {
-      contract,
-      method: "totalTrusts",
+    const totalResult = await invokeRead({
+      contractAddress: contract,
+      operation: "totalTrusts",
       args: [],
-    })) as any;
-
-    const totalTrusts = parseInt(totalResult?.stack?.[0]?.value || "0");
+    });
+    const totalTrusts = Number(parseInvokeResult(totalResult) || 0);
     const userTrusts: Trust[] = [];
+    const now = Date.now();
 
     // Iterate through all trusts and find ones owned by current user
     for (let i = 1; i <= totalTrusts; i++) {
-      const trustResult = (await sdk.invoke("invokeRead", {
-        contract,
-        method: "getTrust",
+      const trustResult = await invokeRead({
+        contractAddress: contract,
+        operation: "getTrust",
         args: [{ type: "Integer", value: i.toString() }],
-      })) as any;
+      });
+      const parsed = parseInvokeResult(trustResult);
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) continue;
+      const trustData = parsed as Record<string, unknown>;
+      const owner = trustData.owner;
+      if (!ownerMatches(owner)) continue;
 
-      if (trustResult?.stack?.[0]) {
-        const trustData = trustResult.stack[0].value;
-        const owner = trustData?.owner;
+      const deadlineMs = toTimestampMs(trustData.deadline);
+      const active = Boolean(trustData.active);
+      const status = active ? (deadlineMs && deadlineMs <= now ? "triggered" : "active") : "executed";
+      const daysRemaining = deadlineMs ? Math.max(0, Math.ceil((deadlineMs - now) / 86400000)) : 0;
 
-        // Check if this trust belongs to current user
-        if (owner === address.value) {
-          userTrusts.push({
-            id: i.toString(),
-            name: `Trust #${i}`,
-            beneficiary: trustData?.heir || "Unknown",
-            gasValue: parseInt(trustData?.principal || "0"),
-            neoValue: 0,
-            icon: "📜",
-            status: trustData?.active ? "active" : "executed",
-          });
-        }
-      }
+      userTrusts.push({
+        id: i.toString(),
+        name: trustNames.value?.[String(i)] || `Trust #${i}`,
+        beneficiary: String(trustData.heir || "Unknown"),
+        neoValue: Number(trustData.principal || 0),
+        icon: "📜",
+        status,
+        daysRemaining,
+        deadline: deadlineMs ? new Date(deadlineMs).toISOString().split("T")[0] : "N/A",
+        canExecute: active && deadlineMs > 0 && deadlineMs <= now,
+      });
     }
 
-    trusts.value = userTrusts;
+    trusts.value = userTrusts.sort((a, b) => Number(b.id) - Number(a.id));
   } catch (e) {
     console.warn("[HeritageTrust] Failed to fetch data:", e);
   } finally {
@@ -252,67 +315,125 @@ const fetchData = async () => {
   }
 };
 
-// Register trust for inactivity monitoring via Edge Function automation
-const registerInactivityMonitor = async (trustId: string) => {
-  try {
-    await fetch("/api/automation/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        appId: APP_ID,
-        taskName: `monitor-${trustId}`,
-        taskType: "conditional",
-        payload: {
-          action: "custom",
-          handler: "heritage:checkInactivity",
-          data: { trustId, inactivityDays: 90 },
-        },
-        schedule: { intervalSeconds: 24 * 60 * 60 }, // Check daily
-      }),
-    });
-  } catch (e) {
-    console.warn("[HeritageTrust] Failed to register monitor:", e);
-  }
-};
-
 const create = async () => {
-  const gasAmount = parseFloat(newTrust.value.gasValue) || 0;
-  const neoAmount = parseFloat(newTrust.value.neoValue) || 0;
-
-  if (isLoading.value || !newTrust.value.name || !newTrust.value.beneficiary || (gasAmount <= 0 && neoAmount <= 0))
-    return;
+  const neoAmount = Math.floor(parseFloat(newTrust.value.neoValue));
+  if (isLoading.value || !newTrust.value.name || !newTrust.value.beneficiary || !(neoAmount > 0)) return;
 
   try {
     status.value = { msg: t("creating"), type: "loading" };
 
-    // Pay GAS if specified
-    if (gasAmount > 0) {
-      await payGAS(newTrust.value.gasValue, `trust:gas:${Date.now()}`);
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) {
+      throw new Error(t("error"));
     }
 
-    // Pay NEO if specified (using payGAS for now, would need payNEO in production)
-    if (neoAmount > 0) {
-      // Note: In production, this would use a separate payNEO function
-      await payGAS(newTrust.value.neoValue, `trust:neo:${Date.now()}`);
+    const neo = await getBalance("NEO");
+    const balance = typeof neo === "string" ? parseFloat(neo) || 0 : typeof neo === "number" ? neo : 0;
+    if (neoAmount > balance) {
+      throw new Error(t("insufficientNeo"));
     }
 
-    const trustId = Date.now().toString();
-    trusts.value.push({
-      id: trustId,
-      name: newTrust.value.name,
-      beneficiary: newTrust.value.beneficiary,
-      gasValue: gasAmount,
-      neoValue: neoAmount,
-      icon: "📜",
-      status: "active",
+    const contract = await ensureContractAddress();
+    const tx = await invokeContract({
+      scriptHash: contract,
+      operation: "createTrust",
+      args: [
+        { type: "Hash160", value: address.value },
+        { type: "Hash160", value: newTrust.value.beneficiary },
+        { type: "Integer", value: neoAmount },
+      ],
     });
 
-    // Register for inactivity monitoring
-    await registerInactivityMonitor(trustId);
+    const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
+    if (txid) {
+      const event = await waitForEvent(txid, "TrustCreated");
+      if (event?.state) {
+        const values = Array.isArray(event.state) ? event.state.map(parseStackItem) : [];
+        const trustId = String(values[0] || "");
+        if (trustId) {
+          saveTrustName(trustId, newTrust.value.name);
+        }
+      }
+    }
+
     status.value = { msg: t("trustCreated"), type: "success" };
-    newTrust.value = { name: "", beneficiary: "", gasValue: "", neoValue: "" };
+    newTrust.value = { name: "", beneficiary: "", neoValue: "" };
+    await fetchData();
   } catch (e: any) {
     status.value = { msg: e.message || t("error"), type: "error" };
+  }
+};
+
+const heartbeatTrust = async (trust: Trust) => {
+  if (isLoading.value) return;
+  try {
+    isLoading.value = true;
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) throw new Error(t("error"));
+    const contract = await ensureContractAddress();
+    await invokeContract({
+      scriptHash: contract,
+      operation: "heartbeat",
+      args: [
+        { type: "Hash160", value: address.value },
+        { type: "Integer", value: trust.id },
+      ],
+    });
+    status.value = { msg: t("heartbeat"), type: "success" };
+    await fetchData();
+  } catch (e: any) {
+    status.value = { msg: e.message || t("error"), type: "error" };
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const claimYield = async (trust: Trust) => {
+  if (isLoading.value) return;
+  try {
+    isLoading.value = true;
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) throw new Error(t("error"));
+    const contract = await ensureContractAddress();
+    await invokeContract({
+      scriptHash: contract,
+      operation: "claimYield",
+      args: [
+        { type: "Hash160", value: address.value },
+        { type: "Integer", value: trust.id },
+      ],
+    });
+    status.value = { msg: t("claimYield"), type: "success" };
+    await fetchData();
+  } catch (e: any) {
+    status.value = { msg: e.message || t("error"), type: "error" };
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const executeTrust = async (trust: Trust) => {
+  if (isLoading.value) return;
+  try {
+    isLoading.value = true;
+    const contract = await ensureContractAddress();
+    await invokeContract({
+      scriptHash: contract,
+      operation: "executeTrust",
+      args: [{ type: "Integer", value: trust.id }],
+    });
+    status.value = { msg: t("executeTrust"), type: "success" };
+    await fetchData();
+  } catch (e: any) {
+    status.value = { msg: e.message || t("error"), type: "error" };
+  } finally {
+    isLoading.value = false;
   }
 };
 

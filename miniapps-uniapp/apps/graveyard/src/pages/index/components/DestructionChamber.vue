@@ -6,7 +6,6 @@
       <view class="icon-pulse">
         <text class="chamber-icon-glass">🔥</text>
       </view>
-      <text class="chamber-title-glass">{{ t("destroyAsset") }}</text>
     </view>
 
     <view class="input-container">
@@ -107,21 +106,12 @@ defineEmits(["update:assetHash", "initiate"]);
   font-size: 24px;
 }
 
-.chamber-title-glass {
-  font-size: 16px;
-  font-weight: 800;
-  color: #ef4444;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  text-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
-}
-
 .warning-box-glass {
   display: flex;
   gap: 12px;
   background: rgba(239, 68, 68, 0.1);
-  color: #fecaca;
-  padding: 16px;
+  color: #fec;
+  padding: $space-4;
   border-radius: 12px;
   border: 1px solid rgba(239, 68, 68, 0.3);
   margin-bottom: 24px;

@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('statistics')" variant="erobo-neo">
+  <NeoCard variant="erobo" class="mystical-card">
     <view class="stat-row-glass">
       <text class="stat-label-glass">{{ t("totalGames") }}</text>
       <text class="stat-value-glass">{{ readingsCount }}</text>

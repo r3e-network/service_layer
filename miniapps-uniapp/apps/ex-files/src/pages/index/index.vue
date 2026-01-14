@@ -1,6 +1,6 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
-    <view v-if="activeTab === 'files' || activeTab === 'upload'" class="app-container">
+  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <view v-if="activeTab === 'files' || activeTab === 'upload' || activeTab === 'stats'" class="app-container">
       <view v-if="chainType === 'evm'" class="mb-4">
         <NeoCard variant="danger">
           <view class="flex flex-col items-center gap-2 py-1">
@@ -15,12 +15,6 @@
 
       <!-- Files Archive Tab -->
       <view v-if="activeTab === 'files'" class="tab-content">
-        <!-- Archive Stats -->
-        <NeoCard class="mb-4" variant="erobo">
-          <NeoStats :stats="statsData" />
-        </NeoCard>
-
-        <!-- Query Record -->
         <QueryRecordForm
           v-model:queryInput="queryInput"
           :query-result="queryResult"
@@ -43,6 +37,13 @@
           :t="t as any"
           @create="createRecord"
         />
+      </view>
+
+      <!-- Stats Tab -->
+      <view v-if="activeTab === 'stats'" class="tab-content">
+        <NeoCard variant="erobo">
+          <NeoStats :stats="statsData" />
+        </NeoCard>
       </view>
     </view>
 
@@ -140,6 +141,7 @@ const translations = {
   // Tabs
   tabFiles: { en: "Archive", zh: "档案" },
   tabUpload: { en: "Upload", zh: "上传" },
+  tabStats: { en: "Stats", zh: "统计" },
   docs: { en: "Docs", zh: "文档" },
 
   // Docs
@@ -173,7 +175,7 @@ const APP_ID = "miniapp-exfiles";
 const CREATE_FEE = "0.1";
 const QUERY_FEE = "0.05";
 
-const { address, connect, invokeRead, invokeContract, chainType, switchChain } = useWallet() as any;
+const { address, connect, invokeRead, invokeContract, chainType, switchChain, getContractAddress } = useWallet() as any;
 const { payGAS, isLoading } = usePayments(APP_ID);
 const { list: listEvents } = useEvents();
 
@@ -181,10 +183,11 @@ const activeTab = ref("files");
 const navTabs: NavTab[] = [
   { id: "files", icon: "folder", label: t("tabFiles") },
   { id: "upload", icon: "upload", label: t("tabUpload") },
+  { id: "stats", icon: "chart", label: t("tabStats") },
   { id: "docs", icon: "book", label: t("docs") },
 ];
 
-const contractAddress = ref<string>("0xa07521e6be12b9d2a138848f08080f084ba1cf39"); // Placeholder/Demo Contract
+const contractAddress = ref<string | null>(null);
 const records = ref<RecordItem[]>([]);
 const recordContent = ref("");
 const recordRating = ref("3");
@@ -219,6 +222,12 @@ const showStatus = (msg: string, type: string) => {
 };
 
 const ensureContractAddress = async () => {
+  if (!contractAddress.value) {
+    contractAddress.value = await getContractAddress();
+  }
+  if (!contractAddress.value) {
+    throw new Error(t("missingContract"));
+  }
   return contractAddress.value;
 };
 

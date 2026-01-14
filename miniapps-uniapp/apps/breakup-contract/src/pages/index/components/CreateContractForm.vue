@@ -1,16 +1,5 @@
 <template>
   <NeoCard variant="erobo-neo" class="contract-card">
-    <view class="hologram-header">
-      <view class="header-content">
-        <text class="document-title">{{ t("contractTitle") }}</text>
-        <view class="id-badge">ID: {{ generateId() }}</view>
-      </view>
-      <view class="glowing-seal">
-        <text class="seal-icon">❤️</text>
-        <view class="seal-ring"></view>
-      </view>
-    </view>
-
     <view class="document-body">
       <view class="clause-box-glass">
         <view class="clause-deco top-left"></view>
@@ -91,7 +80,6 @@ defineProps<{
 
 defineEmits(["update:partnerAddress", "update:stakeAmount", "update:duration", "create"]);
 
-const generateId = () => Math.floor(Math.random() * 10000).toString().padStart(4, '0');
 </script>
 
 <style lang="scss" scoped>

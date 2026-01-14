@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="chainType === 'evm'" class="px-4 mb-4">
       <NeoCard variant="danger">
         <view class="flex flex-col items-center gap-2 py-1">
@@ -35,7 +35,7 @@
         @flip="flipCard"
       />
 
-      <ReadingDisplay v-if="hasDrawn && allFlipped" :title="t('yourReading')" :reading="getReading()" />
+      <ReadingDisplay v-if="hasDrawn && allFlipped" :reading="getReading()" />
     </view>
 
     <view v-if="activeTab === 'stats'" class="tab-content scrollable">

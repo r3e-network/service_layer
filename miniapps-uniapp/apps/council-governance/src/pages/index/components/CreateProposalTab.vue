@@ -4,7 +4,7 @@
       <text class="status-text">{{ status.msg }}</text>
     </NeoCard>
 
-    <NeoCard :title="t('createProposal')" variant="erobo-neo">
+    <NeoCard variant="erobo-neo">
       <view class="form-group mb-6">
         <text class="form-label">{{ t("proposalType") }}</text>
         <view class="flex gap-2">

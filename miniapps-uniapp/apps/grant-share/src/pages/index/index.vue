@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view class="app-container">
       <view v-if="chainType === 'evm'" class="mb-4">
         <NeoCard variant="danger">
@@ -20,30 +20,8 @@
 
       <!-- Grants Tab -->
       <view v-if="activeTab === 'grants'" class="tab-content">
-        <!-- Grant Pool Overview -->
-        <NeoCard variant="erobo" class="pool-overview-card">
-          <view class="pool-header">
-            <text class="pool-title text-glass-glow">{{ t("grantPool") }}</text>
-          </view>
-          <view class="pool-stats">
-            <view class="pool-stat-glass">
-              <text class="stat-label-glass">{{ t("totalPool") }}</text>
-              <text class="stat-value-glass">{{ formatCount(totalProposals) }}</text>
-            </view>
-            <view class="pool-stat-glass">
-              <text class="stat-label-glass">{{ t("activeProjects") }}</text>
-              <text class="stat-value-glass">{{ formatCount(activeProposals) }}</text>
-            </view>
-            <view class="pool-stat-glass">
-              <text class="stat-label-glass">{{ t("yourShare") }}</text>
-              <text class="stat-value-glass highlight">{{ formatCount(displayedProposals) }}</text>
-            </view>
-          </view>
-        </NeoCard>
-
         <!-- Active Grants Section -->
         <view class="grants-section">
-          <text class="section-title-glass">{{ t("activeGrants") }}</text>
 
           <view v-if="loading" class="empty-state">
             <text class="empty-text">{{ t("loading") }}</text>
@@ -96,6 +74,27 @@
         </view>
       </view>
 
+      <!-- Stats Tab -->
+      <view v-if="activeTab === 'stats'" class="tab-content">
+        <!-- Grant Pool Overview -->
+        <NeoCard variant="erobo" class="pool-overview-card">
+          <view class="pool-stats">
+            <view class="pool-stat-glass">
+              <text class="stat-label-glass">{{ t("totalPool") }}</text>
+              <text class="stat-value-glass">{{ formatCount(totalProposals) }}</text>
+            </view>
+            <view class="pool-stat-glass">
+              <text class="stat-label-glass">{{ t("activeProjects") }}</text>
+              <text class="stat-value-glass">{{ formatCount(activeProposals) }}</text>
+            </view>
+            <view class="pool-stat-glass">
+              <text class="stat-label-glass">{{ t("yourShare") }}</text>
+              <text class="stat-value-glass highlight">{{ formatCount(displayedProposals) }}</text>
+            </view>
+          </view>
+        </NeoCard>
+      </view>
+
       <!-- Docs Tab -->
       <view v-if="activeTab === 'docs'" class="tab-content scrollable">
         <NeoDoc
@@ -136,6 +135,7 @@ const translations = {
   votesFor: { en: "For", zh: "支持" },
   votesAgainst: { en: "Against", zh: "反对" },
   comments: { en: "Comments", zh: "评论" },
+  tabStats: { en: "Stats", zh: "统计" },
   tabGrants: { en: "Proposals", zh: "提案" },
   statusActive: { en: "Active", zh: "进行中" },
   statusReview: { en: "In Review", zh: "审核中" },
@@ -208,9 +208,10 @@ interface Grant {
   onchainId: number | null;
 }
 
-const activeTab = ref("grants");
+const activeTab = ref<string>("grants");
 const navTabs: NavTab[] = [
   { id: "grants", icon: "gift", label: t("tabGrants") },
+  { id: "stats", icon: "chart", label: t("tabStats") },
   { id: "docs", icon: "book", label: t("docs") },
 ];
 

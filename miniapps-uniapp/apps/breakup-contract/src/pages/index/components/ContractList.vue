@@ -1,6 +1,5 @@
 <template>
   <view class="contracts-list">
-    <text class="section-title">{{ t("activeContracts") }}</text>
 
     <ContractCard
       v-for="contract in contracts"

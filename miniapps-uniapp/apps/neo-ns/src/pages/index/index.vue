@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab !== 'docs'" class="app-container">
       <view v-if="chainType === 'evm'" class="mb-4">
         <NeoCard variant="danger">
@@ -68,7 +68,7 @@
 
       <!-- Domains Tab -->
       <view v-if="activeTab === 'domains'" class="tab-content">
-        <NeoCard :title="t('tabDomains')" icon="folder">
+        <NeoCard icon="folder">
           <view v-if="myDomains.length === 0" class="empty-state">
             <text>{{ t("noDomains") }}</text>
           </view>
@@ -440,7 +440,7 @@ watch(address, async (newAddr) => {
 @use "@/shared/styles/variables.scss";
 
 .app-container {
-  padding: 20px;
+  padding: $space-4;
   flex: 1;
   display: flex;
   flex-direction: column;

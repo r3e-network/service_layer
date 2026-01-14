@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="chainType === 'evm'" class="px-4 mb-4">
       <NeoCard variant="danger">
         <view class="flex flex-col items-center gap-2 py-1">
@@ -18,7 +18,7 @@
       </NeoCard>
 
       <!-- Pixel Art Territory Map -->
-      <NeoCard :title="t('territoryMap')" variant="erobo" class="map-card">
+      <NeoCard variant="erobo" class="map-card">
         <view class="map-container">
           <!-- Coordinate Display -->
           <view class="coordinate-display">
@@ -76,7 +76,7 @@
       </NeoCard>
 
       <!-- Territory Purchase Panel -->
-      <NeoCard :title="t('claimTerritory')" variant="erobo-neo">
+      <NeoCard variant="erobo-neo">
         <NeoCard variant="erobo-neo" flat class="territory-info">
           <view class="info-row">
             <text class="info-label">{{ t("position") }}:</text>
@@ -104,9 +104,12 @@
           {{ isPurchasing ? t("claiming") : tiles[selectedTile].owned ? t("alreadyClaimed") : t("claimNow") }}
         </NeoButton>
       </NeoCard>
+    </view>
 
+    <!-- Stats Tab -->
+    <view v-if="activeTab === 'stats'" class="tab-content scrollable">
       <!-- Territory Stats -->
-      <NeoCard :title="t('territoryStats')" variant="erobo">
+      <NeoCard variant="erobo" class="mb-4">
         <view class="stats-grid">
           <NeoCard flat variant="erobo-neo" class="flex flex-col items-center p-3 text-center">
             <text class="stat-value">{{ ownedTiles }}</text>
@@ -122,11 +125,8 @@
           </NeoCard>
         </view>
       </NeoCard>
-    </view>
 
-    <!-- Stats Tab -->
-    <view v-if="activeTab === 'stats'" class="tab-content scrollable">
-      <NeoCard :title="t('yourStats')" variant="erobo">
+      <NeoCard variant="erobo">
         <NeoStats :stats="statsData" />
       </NeoCard>
     </view>
@@ -476,7 +476,7 @@ watch(address, async () => {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 16px;
-  padding: $space-8;
+  padding: $space-4;
   display: flex;
   justify-content: center;
   align-items: center;

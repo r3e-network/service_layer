@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="chainType === 'evm'" class="px-5 mb-4">
       <NeoCard variant="danger">
         <view class="flex flex-col items-center gap-2 py-1">
@@ -12,7 +12,7 @@
 
     <view v-if="activeTab === 'game'" class="tab-content">
       <!-- Error Message -->
-      <NeoCard v-if="errorMessage" variant="danger" class="mb-4 glass-danger">
+      <NeoCard v-if="errorMessage" variant="danger" class="mb-4">
         <text class="text-center font-bold">{{ errorMessage }}</text>
       </NeoCard>
 
@@ -39,7 +39,7 @@
 
     <!-- Stats Tab -->
     <view v-if="activeTab === 'stats'" class="tab-content scrollable">
-      <NeoCard :title="t('statistics')" variant="erobo" class="mb-6">
+      <NeoCard variant="erobo" class="mb-6">
         <NeoStats :stats="gameStats" />
       </NeoCard>
     </view>
@@ -96,8 +96,8 @@ const translations = {
   totalWon: { en: "Total Earnings", zh: "总收益" },
   docSubtitle: { en: "Provably fair coin toss powered by NeoHub TEE.", zh: "由 NeoHub TEE 驱动的可证明公平的抛硬币。" },
   docDescription: {
-    en: "Coin Flip is a simple yet powerful demonstration of NeoHub's secure random number generation. Every flip is transparent, immutable, and provably fair.",
-    zh: "抛硬币是 NeoHub 安全随机数生成的简单而强大的演示。每一次抛掷都是透明、不可篡改且可证明公平的。",
+    en: "Coin Flip uses NeoHub's secure random number generation to deliver provably fair outcomes. Every flip is transparent, immutable, and verifiable on-chain.",
+    zh: "抛硬币使用 NeoHub 的安全随机数生成，提供可证明公平的结果。每一次抛掷都是透明、不可篡改且可在链上验证。",
   },
   step1: { en: "Choose your side: Heads or Tails.", zh: "选择你的面：正面或反面。" },
   step2: { en: "Enter the amount of GAS you want to wager.", zh: "输入你想下注的 GAS 金额。" },
@@ -318,12 +318,7 @@ onUnmounted(() => {
   margin-top: 8px;
 }
 
-.glass-danger {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.2);
-}
+
 
 .scrollable {
   overflow-y: auto;

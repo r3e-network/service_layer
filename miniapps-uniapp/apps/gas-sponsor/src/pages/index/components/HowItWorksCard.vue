@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('howItWorks')" variant="default">
+  <NeoCard variant="default">
     <view class="help-item">
       <text class="help-num">1</text>
       <text class="help-text">{{ t("step1") }}</text>

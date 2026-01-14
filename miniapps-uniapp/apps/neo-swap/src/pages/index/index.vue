@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="chainType === 'evm'" class="px-5 mb-4">
       <NeoCard variant="danger">
         <view class="flex flex-col items-center gap-2 py-1">
@@ -43,10 +43,14 @@ const translations = {
   balance: { en: "Balance", zh: "余额" },
   exchangeRate: { en: "Exchange Rate", zh: "兑换率" },
   priceImpact: { en: "Price Impact", zh: "价格影响" },
+  notAvailable: { en: "Unavailable", zh: "不可用" },
   slippage: { en: "Slippage Tolerance", zh: "滑点容差" },
   liquidityPool: { en: "Liquidity Pool", zh: "流动性池" },
   minReceived: { en: "Minimum Received", zh: "最少收到" },
   enterAmount: { en: "Enter amount", zh: "输入数量" },
+  rateUnavailable: { en: "Rate unavailable", zh: "汇率不可用" },
+  loadingRate: { en: "Loading rate...", zh: "正在加载汇率..." },
+  refreshRate: { en: "Refresh rate", zh: "刷新汇率" },
   insufficientBalance: { en: "Insufficient balance", zh: "余额不足" },
   swapping: { en: "Swapping...", zh: "兑换中..." },
   selectToken: { en: "Select Token", zh: "选择代币" },
@@ -55,10 +59,15 @@ const translations = {
   tabSwap: { en: "Swap", zh: "兑换" },
   tabPool: { en: "Pool", zh: "流动池" },
   poolSubtitle: { en: "Provide liquidity and earn fees", zh: "提供流动性并赚取手续费" },
+  poolInfo: {
+    en: "Liquidity management is executed on Flamingo DEX. Use the live price feed here to plan your position.",
+    zh: "流动性管理在 Flamingo DEX 执行。此处提供实时价格数据以辅助规划。",
+  },
+  routerLabel: { en: "Swap Router", zh: "兑换路由" },
+  openDex: { en: "Open Flamingo DEX", zh: "打开 Flamingo DEX" },
   yourPosition: { en: "Your Position", zh: "您的仓位" },
   poolShare: { en: "Pool Share", zh: "池份额" },
   addLiquidity: { en: "Add Liquidity", zh: "添加流动性" },
-  comingSoon: { en: "Coming Soon", zh: "即将推出" },
   docs: { en: "Docs", zh: "文档" },
   docSubtitle: {
     en: "Instant token swaps via Flamingo DEX",
@@ -123,7 +132,7 @@ const docFeatures = computed(() => [
 @use "@/shared/styles/variables.scss";
 
 .tab-content {
-  padding: 20px;
+  padding: $space-4;
   flex: 1;
   display: flex;
   flex-direction: column;

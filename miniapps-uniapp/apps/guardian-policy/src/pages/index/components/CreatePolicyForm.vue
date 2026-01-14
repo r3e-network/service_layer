@@ -1,30 +1,44 @@
 <template>
-  <NeoCard :title="'➕ ' + t('createPolicy')" class="create-card" variant="erobo-neo">
+  <NeoCard class="create-card" variant="erobo-neo">
     <NeoInput
-      :modelValue="policyName"
-      @update:modelValue="$emit('update:policyName', $event)"
-      :placeholder="t('policyName')"
+      :modelValue="assetType"
+      @update:modelValue="$emit('update:assetType', $event)"
+      :placeholder="t('assetType')"
       class="input"
     />
     <NeoInput
-      :modelValue="policyRule"
-      @update:modelValue="$emit('update:policyRule', $event)"
-      :placeholder="t('policyRule')"
+      :modelValue="coverage"
+      @update:modelValue="$emit('update:coverage', $event)"
+      :placeholder="t('coverageAmount')"
+      type="number"
+      suffix="GAS"
       class="input"
     />
-    <view class="level-selector">
-      <text class="selector-label">{{ t("securityLevel") }}:</text>
-      <view class="level-options">
-        <view
-          v-for="level in LEVELS"
-          :key="level"
-          :class="['level-option', { selected: newPolicyLevel === level }]"
-          @click="$emit('update:newPolicyLevel', level)"
-        >
-          <text>{{ getLevelText(level) }}</text>
-        </view>
-      </view>
+    <NeoInput
+      :modelValue="threshold"
+      @update:modelValue="$emit('update:threshold', $event)"
+      :placeholder="t('thresholdPercent')"
+      type="number"
+      suffix="%"
+      class="input"
+    />
+
+    <view class="price-row">
+      <NeoInput
+        :modelValue="startPrice"
+        @update:modelValue="$emit('update:startPrice', $event)"
+        :placeholder="t('startPrice')"
+        type="number"
+        suffix="USD"
+        class="input"
+      />
+      <NeoButton size="sm" variant="secondary" class="price-btn" :loading="isFetchingPrice" @click="$emit('fetchPrice')">
+        {{ t("fetchPrice") }}
+      </NeoButton>
     </view>
+
+    <text class="premium-note">{{ t("premiumNote").replace("{premium}", premium || "0") }}</text>
+
     <NeoButton variant="primary" size="lg" block @click="$emit('create')">
       {{ t("createPolicy") }}
     </NeoButton>
@@ -34,27 +48,24 @@
 <script setup lang="ts">
 import { NeoCard, NeoInput, NeoButton } from "@/shared/components";
 
-const LEVELS = ["low", "medium", "high", "critical"] as const;
-type Level = (typeof LEVELS)[number];
-
 const props = defineProps<{
-  policyName: string;
-  policyRule: string;
-  newPolicyLevel: Level;
+  assetType: string;
+  coverage: string;
+  threshold: string;
+  startPrice: string;
+  premium: string;
+  isFetchingPrice: boolean;
   t: (key: string) => string;
 }>();
 
-defineEmits(["update:policyName", "update:policyRule", "update:newPolicyLevel", "create"]);
-
-const getLevelText = (level: string) => {
-  const levelMap: Record<string, string> = {
-    low: props.t("levelLow"),
-    medium: props.t("levelMedium"),
-    high: props.t("levelHigh"),
-    critical: props.t("levelCritical"),
-  };
-  return levelMap[level] || level;
-};
+defineEmits([
+  "update:assetType",
+  "update:coverage",
+  "update:threshold",
+  "update:startPrice",
+  "fetchPrice",
+  "create",
+]);
 </script>
 
 <style lang="scss" scoped>
@@ -62,41 +73,22 @@ const getLevelText = (level: string) => {
 @use "@/shared/styles/variables.scss";
 
 .create-card { margin-top: $space-6; }
-.level-selector { margin-bottom: $space-4; }
-.selector-label {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  margin-bottom: $space-2;
-  display: block;
-  color: rgba(255, 255, 255, 0.6);
-  letter-spacing: 0.05em;
+.price-row {
+  display: flex;
+  align-items: flex-end;
+  gap: $space-3;
+  margin-bottom: $space-3;
 }
 
-.level-options {
-  display: flex;
-  gap: $space-3;
-  margin-bottom: $space-6;
+.price-btn {
+  height: 36px;
 }
-.level-option {
-  flex: 1;
-  padding: $space-3;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  text-align: center;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  cursor: pointer;
-  background: rgba(255, 255, 255, 0.03);
-  transition: all 0.2s ease;
+
+.premium-note {
+  font-size: 10px;
+  font-weight: 600;
   color: rgba(255, 255, 255, 0.6);
-  border-radius: 8px;
-  
-  &.selected {
-    background: rgba(0, 229, 153, 0.1);
-    border-color: #00E599;
-    color: #00E599;
-    box-shadow: 0 0 10px rgba(0, 229, 153, 0.2);
-  }
+  margin-bottom: $space-4;
+  display: block;
 }
 </style>

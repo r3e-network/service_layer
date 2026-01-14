@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('createEnvelope')" variant="erobo-neo">
+  <NeoCard variant="erobo-neo">
     <view class="input-group">
       <NeoInput
         :modelValue="name"

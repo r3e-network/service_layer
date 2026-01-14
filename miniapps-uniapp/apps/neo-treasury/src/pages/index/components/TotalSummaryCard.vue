@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('totalTreasury')" class="summary-card" variant="erobo">
+  <NeoCard class="summary-card" variant="erobo">
     <view class="summary-container">
       <view class="usd-value-row">
         <text class="usd-sign">$</text>

@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('yourRewards')" variant="erobo" class="mt-4">
+  <NeoCard variant="erobo" class="mt-4">
     <view class="rewards-grid">
       <view class="reward-item">
         <text class="reward-value">{{ formatGas(unclaimedRewards) }}</text>

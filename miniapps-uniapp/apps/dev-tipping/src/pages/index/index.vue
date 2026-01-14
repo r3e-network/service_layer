@@ -1,6 +1,6 @@
 <template>
   <AppLayout :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
-    <view v-if="activeTab === 'developers' || activeTab === 'send'" class="app-container">
+    <view v-if="activeTab === 'developers' || activeTab === 'send' || activeTab === 'stats'" class="app-container">
       <view v-if="chainType === 'evm'" class="mb-4">
         <NeoCard variant="danger">
           <view class="flex flex-col items-center gap-2 py-1">
@@ -13,16 +13,12 @@
         </NeoCard>
       </view>
 
-      <view class="header">
-        <text class="title text-glass-glow">{{ t("title") }}</text>
-        <text class="subtitle text-glass">{{ t("subtitle") }}</text>
-      </view>
       <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'erobo-neo'" class="mb-4">
         <text class="text-center font-bold text-glass">{{ status.msg }}</text>
       </NeoCard>
 
       <view v-if="activeTab === 'developers'" class="tab-content">
-        <NeoCard :title="t('topDevelopers')" variant="erobo">
+        <NeoCard variant="erobo">
           <view v-for="dev in developers" :key="dev.id" class="dev-card-glass" @click="selectDev(dev)">
             <view class="dev-card-header">
               <view class="dev-avatar-glass">
@@ -52,7 +48,7 @@
       </view>
 
       <view v-if="activeTab === 'send'" class="tab-content">
-        <NeoCard :title="t('sendTip')" variant="erobo-neo">
+        <NeoCard variant="erobo-neo">
           <view class="form-group">
             <!-- Developer Selection -->
             <view class="input-section">
@@ -102,18 +98,30 @@
               <text v-if="!isLoading">💚 {{ t("sendTipBtn") }}</text>
               <text v-else>{{ t("sending") }}</text>
             </NeoButton>
+          </view>
+        </NeoCard>
+      </view>
 
-            <!-- Recent Tips -->
-            <view v-if="recentTips.length > 0" class="recent-tips-glass">
-              <text class="recent-tips-title-glass">{{ t("recentTips") }}</text>
-              <view v-for="tip in recentTips" :key="tip.id" class="recent-tip-item-glass">
-                <text class="recent-tip-emoji">✨</text>
-                <view class="recent-tip-info">
-                  <text class="recent-tip-to-glass">{{ tip.to }}</text>
-                  <text class="recent-tip-time-glass">{{ tip.time }}</text>
-                </view>
-                <text class="recent-tip-amount-glass">{{ tip.amount }} GAS</text>
+      <view v-if="activeTab === 'stats'" class="tab-content">
+        <NeoCard variant="erobo">
+          <view class="stats-grid-neo">
+            <view class="stat-item-neo">
+              <text class="stat-label-neo">{{ t("totalDonated") }}</text>
+              <text class="stat-value-neo">{{ formatNum(totalDonated) }} GAS</text>
+            </view>
+          </view>
+        </NeoCard>
+
+        <!-- Recent Tips in Stats -->
+        <NeoCard v-if="recentTips.length > 0" variant="erobo-neo">
+          <view class="recent-tips-glass">
+            <view v-for="tip in recentTips" :key="tip.id" class="recent-tip-item-glass">
+              <text class="recent-tip-emoji">✨</text>
+              <view class="recent-tip-info">
+                <text class="recent-tip-to-glass">{{ tip.to }}</text>
+                <text class="recent-tip-time-glass">{{ tip.time }}</text>
               </view>
+              <text class="recent-tip-amount-glass">{{ tip.amount }} GAS</text>
             </view>
           </view>
         </NeoCard>
@@ -135,9 +143,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { useWallet, useEvents } from "@neo/uniapp-sdk";
+import { useWallet, useEvents, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
-import { parseStackItem } from "@/shared/utils/neo";
+import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 import { createT } from "@/shared/utils/i18n";
 import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
@@ -160,8 +168,15 @@ const translations = {
   sendTipBtn: { en: "Send Tip", zh: "发送打赏" },
   selected: { en: "Selected", zh: "已选择" },
   tipSent: { en: "Tip sent successfully!", zh: "打赏发送成功！" },
+  invalidAmount: { en: "Invalid amount", zh: "无效金额" },
+  minTip: { en: "Minimum tip is 0.001 GAS", zh: "最低打赏为 0.001 GAS" },
+  receiptMissing: { en: "Payment receipt missing", zh: "支付凭证缺失" },
+  contractUnavailable: { en: "Contract unavailable", zh: "合约不可用" },
   error: { en: "Error", zh: "错误" },
   recentTips: { en: "Recent Tips", zh: "最近打赏" },
+  stats: { en: "Stats", zh: "统计" },
+  statistics: { en: "Statistics", zh: "统计数据" },
+  totalDonated: { en: "Total Donated", zh: "总打赏额" },
 
   docs: { en: "Docs", zh: "文档" },
   docSubtitle: {
@@ -211,14 +226,17 @@ const docFeatures = computed(() => [
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 const APP_ID = "miniapp-dev-tipping";
-const { address, connect, invokeContract, chainType, switchChain } = useWallet() as any;
+const MIN_TIP = 0.001;
+const { address, connect, invokeContract, invokeRead, chainType, switchChain, getContractAddress } = useWallet() as any;
 const { list: listEvents } = useEvents();
+const { payGAS } = usePayments(APP_ID);
 const isLoading = ref(false);
 
-const activeTab = ref<string>("developers");
+const activeTab = ref<string>("send");
 const navTabs: NavTab[] = [
-  { id: "developers", label: "Developers", icon: "👨‍💻" },
   { id: "send", label: "Send Tip", icon: "💰" },
+  { id: "developers", label: "Developers", icon: "👨‍💻" },
+  { id: "stats", label: t("stats"), icon: "chart" },
   { id: "docs", icon: "book", label: t("docs") },
 ];
 
@@ -254,9 +272,13 @@ const developers = ref<Developer[]>([]);
 const recentTips = ref<RecentTip[]>([]);
 
 const formatNum = (n: number) => formatNumber(n, 2);
-const toGas = (value: any) => {
+const toNumber = (value: any) => {
   const num = Number(value ?? 0);
-  return Number.isFinite(num) ? num / 1e8 : 0;
+  return Number.isFinite(num) ? num : 0;
+};
+const toGas = (value: any) => {
+  const num = toNumber(value);
+  return num / 1e8;
 };
 const toFixed8 = (value: string) => {
   const num = Number.parseFloat(value);
@@ -264,25 +286,60 @@ const toFixed8 = (value: string) => {
   return Math.floor(num * 1e8).toString();
 };
 
+const contractAddress = ref<string | null>(null);
+const ensureContractAddress = async () => {
+  if (!contractAddress.value) {
+    contractAddress.value = await getContractAddress();
+  }
+  if (!contractAddress.value) throw new Error(t("contractUnavailable"));
+  return contractAddress.value;
+};
+
 const loadDevelopers = async () => {
   try {
-    const response = await fetch("/api/dev-tipping/developers");
-    if (!response.ok) throw new Error("Failed to fetch developers");
-    const data = await response.json();
-    developers.value = (data.developers || []).map((dev: any, idx: number) => ({
-      id: dev.id,
-      name: dev.name || `Dev #${dev.id}`,
-      role: dev.role || "Neo Developer",
-      wallet: dev.wallet || "",
-      totalTips: dev.total_tips || 0,
-      tipCount: dev.tip_count || 0,
-      balance: 0,
-      rank: `#${idx + 1}`,
-    }));
-    // Calculate total donated from all developers
-    totalDonated.value = developers.value.reduce((sum, dev) => sum + dev.totalTips, 0);
+    const contract = await ensureContractAddress();
+    const totalRes = await invokeRead({ contractAddress: contract, operation: "totalDevelopers", args: [] });
+    const total = toNumber(parseInvokeResult(totalRes));
+    if (!total) {
+      developers.value = [];
+      totalDonated.value = 0;
+      return;
+    }
+    const ids = Array.from({ length: total }, (_, i) => i + 1);
+    const devs = await Promise.all(
+      ids.map(async (id) => {
+        const [nameRes, roleRes, walletRes, totalTipsRes, tipCountRes, balanceRes] = await Promise.all([
+          invokeRead({ contractAddress: contract, operation: "getDevName", args: [{ type: "Integer", value: id }] }),
+          invokeRead({ contractAddress: contract, operation: "getDevRole", args: [{ type: "Integer", value: id }] }),
+          invokeRead({ contractAddress: contract, operation: "getDevWallet", args: [{ type: "Integer", value: id }] }),
+          invokeRead({ contractAddress: contract, operation: "getDevTotalTips", args: [{ type: "Integer", value: id }] }),
+          invokeRead({ contractAddress: contract, operation: "getDevTipCount", args: [{ type: "Integer", value: id }] }),
+          invokeRead({ contractAddress: contract, operation: "getDevBalance", args: [{ type: "Integer", value: id }] }),
+        ]);
+        const name = String(parseInvokeResult(nameRes) ?? "").trim();
+        const role = String(parseInvokeResult(roleRes) ?? "").trim();
+        const wallet = String(parseInvokeResult(walletRes) ?? "").trim();
+        return {
+          id,
+          name: name || `Dev #${id}`,
+          role: role || "Neo Developer",
+          wallet,
+          totalTips: toGas(parseInvokeResult(totalTipsRes)),
+          tipCount: toNumber(parseInvokeResult(tipCountRes)),
+          balance: toGas(parseInvokeResult(balanceRes)),
+          rank: "",
+        };
+      }),
+    );
+    const donatedRes = await invokeRead({ contractAddress: contract, operation: "totalDonated", args: [] });
+    totalDonated.value = toGas(parseInvokeResult(donatedRes));
+    devs.sort((a, b) => b.totalTips - a.totalTips);
+    devs.forEach((dev, idx) => {
+      dev.rank = `#${idx + 1}`;
+    });
+    developers.value = devs;
   } catch (e) {
-    console.warn("Failed to load developers from API", e);
+    console.warn("Failed to load developers from contract", e);
   }
 };
 
@@ -291,7 +348,7 @@ const loadRecentTips = async () => {
   const devMap = new Map(developers.value.map((dev) => [dev.id, dev.name]));
   recentTips.value = res.events.map((evt) => {
     const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
-    const devId = Number(values[1] ?? 0);
+    const devId = toNumber(values[1] ?? 0);
     const amount = toGas(values[2]);
     const to = devMap.get(devId) || `Dev #${devId}`;
     return {
@@ -318,17 +375,6 @@ const selectDev = (dev: Developer) => {
   activeTab.value = "send";
 };
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-const waitForEvent = async (txid: string, eventName: string) => {
-  for (let attempt = 0; attempt < 20; attempt += 1) {
-    const res = await listEvents({ app_id: APP_ID, event_name: eventName, limit: 20 });
-    const match = res.events.find((evt) => evt.tx_hash === txid);
-    if (match) return match;
-    await sleep(1500);
-  }
-  return null;
-};
-
 const sendTip = async () => {
   if (!selectedDevId.value || !tipAmount.value || isLoading.value) return;
   isLoading.value = true;
@@ -339,37 +385,35 @@ const sendTip = async () => {
     if (!address.value) {
       throw new Error(t("error"));
     }
-    // Find the selected developer
-    const dev = developers.value.find((d) => d.id === selectedDevId.value);
-    if (!dev || !dev.wallet) {
-      throw new Error("Developer wallet not found");
+    const contract = await ensureContractAddress();
+    const amount = Number.parseFloat(tipAmount.value);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw new Error(t("invalidAmount"));
     }
-    // Transfer GAS directly to developer's wallet
-    const GAS_CONTRACT = "0xd2a4cff31913016155e38e474a2c06d08be276cf";
-    const tx = await invokeContract({
-      contractAddress: GAS_CONTRACT,
-      operation: "transfer",
+    if (amount < MIN_TIP) {
+      throw new Error(t("minTip"));
+    }
+    const amountInt = toFixed8(tipAmount.value);
+
+    const payment = await payGAS(String(amount), `tip:${selectedDevId.value}`);
+    const receiptId = payment.receipt_id;
+    if (!receiptId) {
+      throw new Error(t("receiptMissing"));
+    }
+
+    await invokeContract({
+      contractAddress: contract,
+      operation: "tip",
       args: [
         { type: "Hash160", value: address.value as string },
-        { type: "Hash160", value: dev.wallet },
-        { type: "Integer", value: toFixed8(tipAmount.value) },
-        { type: "Any", value: null },
+        { type: "Integer", value: String(selectedDevId.value) },
+        { type: "Integer", value: amountInt },
+        { type: "String", value: tipMessage.value || "" },
+        { type: "String", value: tipperName.value || "" },
+        { type: "Integer", value: String(receiptId) },
       ],
     });
-    const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
-    // Record tip to Supabase API
-    await fetch("/api/dev-tipping/developers", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        tipper_address: address.value,
-        tipper_name: tipperName.value || "Anonymous",
-        developer_id: selectedDevId.value,
-        amount: parseFloat(tipAmount.value),
-        message: tipMessage.value || "",
-        tx_hash: txid,
-      }),
-    });
+
     status.value = { msg: t("tipSent"), type: "success" };
     tipAmount.value = "1";
     tipMessage.value = "";
@@ -604,6 +648,31 @@ onMounted(() => {
   align-items: center;
   gap: $space-4;
   color: white;
+}
+
+.stats-grid-neo {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-4;
+}
+.stat-item-neo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: $space-4;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+}
+.stat-label-neo {
+  font-size: 12px;
+  opacity: 0.6;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.stat-value-neo {
+  font-size: 24px;
+  font-weight: 800;
+  color: #34d399;
 }
 .recent-tip-info {
   flex: 1;

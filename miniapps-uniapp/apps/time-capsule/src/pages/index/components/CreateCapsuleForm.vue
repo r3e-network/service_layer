@@ -1,16 +1,5 @@
 <template>
-  <NeoCard :title="t('createCapsule')" variant="erobo-neo">
-
-    <view class="form-section">
-      <text class="form-label">{{ t("capsuleName") }}</text>
-      <view class="input-wrapper-clean">
-        <NeoInput
-          :modelValue="name"
-          @update:modelValue="$emit('update:name', $event)"
-          :placeholder="t('capsuleNamePlaceholder')"
-        />
-      </view>
-    </view>
+  <NeoCard variant="erobo-neo">
 
     <view class="form-section">
       <text class="form-label">{{ t("secretMessage") }}</text>
@@ -23,6 +12,7 @@
           class="textarea-field"
         />
       </view>
+      <text class="helper-text neutral">{{ t("contentStorageNote") }}</text>
     </view>
 
     <view class="form-section">
@@ -40,6 +30,23 @@
         <text class="days-text">{{ t("days") }}</text>
       </view>
       <text class="helper-text">{{ t("unlockDateHelper") }}</text>
+    </view>
+
+    <view class="form-section">
+      <text class="form-label">{{ t("visibility") }}</text>
+      <view class="visibility-actions">
+        <NeoButton
+          size="sm"
+          :variant="isPublic ? 'secondary' : 'primary'"
+          @click="$emit('update:isPublic', false)"
+        >
+          {{ t("private") }}
+        </NeoButton>
+        <NeoButton size="sm" :variant="isPublic ? 'primary' : 'secondary'" @click="$emit('update:isPublic', true)">
+          {{ t("public") }}
+        </NeoButton>
+      </view>
+      <text class="helper-text">{{ isPublic ? t("publicHint") : t("privateHint") }}</text>
     </view>
 
     <NeoButton
@@ -60,15 +67,15 @@
 import { NeoCard, NeoInput, NeoButton } from "@/shared/components";
 
 defineProps<{
-  name: string;
   content: string;
   days: string;
+  isPublic: boolean;
   isLoading: boolean;
   canCreate: boolean;
   t: (key: string) => string;
 }>();
 
-defineEmits(["update:name", "update:content", "update:days", "create"]);
+defineEmits(["update:content", "update:days", "update:isPublic", "create"]);
 </script>
 
 <style lang="scss" scoped>
@@ -113,5 +120,16 @@ defineEmits(["update:name", "update:content", "update:days", "create"]);
   font-weight: 600;
   text-transform: uppercase;
   color: #00E599;
+}
+
+.helper-text.neutral {
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: $space-2;
+}
+
+.visibility-actions {
+  display: flex;
+  gap: $space-3;
+  margin-bottom: $space-2;
 }
 </style>

@@ -26,7 +26,7 @@
         </view>
       </view>
 
-      <NeoButton variant="success" size="lg" block :disabled="totalRewards <= 0" @click="$emit('claim')">
+      <NeoButton variant="success" size="lg" block @click="$emit('claim')">
         {{ t("claimRewards") }}
       </NeoButton>
     </NeoCard>

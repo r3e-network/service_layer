@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <NeoCard v-if="statusMessage" :variant="statusType === 'error' ? 'danger' : 'success'" class="mb-4">
       <text class="status-text">{{ statusMessage }}</text>
     </NeoCard>
@@ -17,22 +17,6 @@
     </view>
 
     <view v-if="activeTab === 'stake' || activeTab === 'unstake'" class="app-container">
-      <!-- Hero APY Card -->
-      <NeoBurgerHero :animated-apy="animatedApy" :t="t as any" />
-
-      <!-- Stats Dashboard -->
-      <NeoCard class="mb-6">
-        <NeoStats :stats="statsData" />
-      </NeoCard>
-
-      <!-- Rewards Summary Card -->
-      <RewardsSummaryCard
-        :daily-rewards="dailyRewards"
-        :daily-rewards-usd="dailyRewardsUsd"
-        :rewards-progress="rewardsProgress"
-        :t="t as any"
-      />
-
       <!-- Stake Panel -->
       <StakePanel
         v-if="activeTab === 'stake'"
@@ -58,6 +42,23 @@
         :t="t as any"
         @setAmount="setUnstakeAmount"
         @unstake="handleUnstake"
+      />
+
+      <!-- Hero APY Card -->
+      <NeoBurgerHero :animated-apy="animatedApy" :t="t as any" />
+    </view>
+
+    <!-- Stats Tab -->
+    <view v-if="activeTab === 'stats'" class="app-container">
+      <NeoCard class="mb-6">
+        <NeoStats :stats="statsData" />
+      </NeoCard>
+
+      <RewardsSummaryCard
+        :daily-rewards="dailyRewards"
+        :daily-rewards-usd="dailyRewardsUsd"
+        :rewards-progress="rewardsProgress"
+        :t="t as any"
       />
     </view>
 
@@ -114,7 +115,8 @@ const translations = {
   yourNeo: { en: "Your NEO", zh: "您的 NEO" },
   currentApy: { en: "Current APY", zh: "当前年化收益" },
   estimatedRewards: { en: "Estimated Rewards", zh: "预估奖励" },
-  daily: { en: "Daily", zh: "每日" },
+  daily: { en: "Est. Daily", zh: "预估每日" },
+  utcProgress: { en: "UTC day progress", zh: "UTC 日进度" },
   stake: { en: "Stake", zh: "质押" },
   unstake: { en: "Unstake", zh: "解除质押" },
   rewards: { en: "Rewards", zh: "奖励" },
@@ -132,7 +134,7 @@ const translations = {
   stakeNeo: { en: "Stake NEO", zh: "质押 NEO" },
   unstakeBneo: { en: "Unstake bNEO", zh: "解除质押 bNEO" },
   claimRewards: { en: "Claim Rewards", zh: "领取奖励" },
-  totalRewards: { en: "Total Rewards", zh: "总奖励" },
+  totalRewards: { en: "Estimated Rewards (30d)", zh: "预估奖励（30天）" },
   stakedAmount: { en: "Staked Amount", zh: "质押金额" },
   dailyRewards: { en: "Daily Rewards", zh: "每日奖励" },
   weeklyRewards: { en: "Weekly Rewards", zh: "每周奖励" },
@@ -146,6 +148,8 @@ const translations = {
   tabStake: { en: "Stake", zh: "质押" },
   tabUnstake: { en: "Unstake", zh: "解除质押" },
   tabRewards: { en: "Rewards", zh: "奖励" },
+  tabStats: { en: "Stats", zh: "统计" },
+  statistics: { en: "Statistics", zh: "数据" },
   docs: { en: "Docs", zh: "文档" },
   docSubtitle: {
     en: "Liquid staking protocol for NEO with bNEO rewards",
@@ -192,13 +196,16 @@ const t = createT(translations);
 const { getAddress, invokeContract, getBalance, chainType, switchChain, getContractAddress } = useWallet() as any;
 
 // Navigation tabs
+const activeTab = ref("stake");
+
+// Navigation tabs
 const navTabs: NavTab[] = [
   { id: "stake", icon: "lock", label: t("tabStake") },
   { id: "unstake", icon: "unlock", label: t("tabUnstake") },
   { id: "rewards", icon: "gift", label: t("tabRewards") },
+  { id: "stats", icon: "chart", label: t("tabStats") },
   { id: "docs", icon: "book", label: t("docs") },
 ];
-const activeTab = ref("stake");
 
 // State
 const stakeAmount = ref("");
@@ -208,7 +215,7 @@ const bNeoBalance = ref(0);
 const loading = ref(false);
 const statusMessage = ref("");
 const statusType = ref<"success" | "error">("success");
-const apy = ref(19.5);
+const apy = ref(0);
 const animatedApy = ref("0.0");
 const loadingApy = ref(true);
 const priceData = ref<PriceData | null>(null);
@@ -268,7 +275,8 @@ const monthlyRewards = computed(() => {
 });
 
 const totalRewards = computed(() => {
-  return parseFloat(dailyRewards.value) * 30; // Mock: 30 days of rewards
+  const monthly = parseFloat(monthlyRewards.value);
+  return Number.isFinite(monthly) ? monthly : 0;
 });
 
 const dailyRewardsUsd = computed(() => {
@@ -282,11 +290,10 @@ const totalRewardsUsd = computed(() => {
 });
 
 const rewardsProgress = computed(() => {
-  // Mock progress based on time of day
   const now = new Date();
-  const secondsToday = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-  const secondsInDay = 86400;
-  return Math.min((secondsToday / secondsInDay) * 100, 100);
+  const secondsToday =
+    now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds();
+  return Math.min((secondsToday / 86400) * 100, 100);
 });
 
 // Methods
@@ -360,13 +367,47 @@ async function loadBalances() {
   }
 }
 
+const APY_CACHE_KEY = "neoburger_apy_cache";
+
+const readCachedApy = () => {
+  try {
+    const uniApi = (globalThis as any)?.uni;
+    const raw = uniApi?.getStorageSync?.(APY_CACHE_KEY) ?? (typeof localStorage !== "undefined" ? localStorage.getItem(APY_CACHE_KEY) : null);
+    const value = Number(raw);
+    return Number.isFinite(value) && value >= 0 ? value : null;
+  } catch {
+    return null;
+  }
+};
+
+const writeCachedApy = (value: number) => {
+  try {
+    const uniApi = (globalThis as any)?.uni;
+    if (uniApi?.setStorageSync) {
+      uniApi.setStorageSync(APY_CACHE_KEY, String(value));
+    } else if (typeof localStorage !== "undefined") {
+      localStorage.setItem(APY_CACHE_KEY, String(value));
+    }
+  } catch {
+    // Ignore cache write failures
+  }
+};
+
 async function loadApy() {
   try {
     loadingApy.value = true;
+    const cached = readCachedApy();
+    if (cached !== null) {
+      apy.value = cached;
+    }
     const response = await fetch("/api/neoburger/stats");
     if (response.ok) {
       const data = await response.json();
-      apy.value = parseFloat(data.apr) || 19.5;
+      const nextApy = parseFloat(data.apr);
+      if (Number.isFinite(nextApy) && nextApy >= 0) {
+        apy.value = nextApy;
+        writeCachedApy(nextApy);
+      }
     }
   } catch (e) {
     console.error("Failed to load APY:", e);

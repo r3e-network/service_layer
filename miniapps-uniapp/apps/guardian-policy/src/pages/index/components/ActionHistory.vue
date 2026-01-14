@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="'📜 ' + t('actionHistory')" class="history-card" variant="erobo">
+  <NeoCard class="history-card" variant="erobo">
     <view v-for="action in actionHistory" :key="action.id" class="history-item">
       <view class="history-icon" :class="action.type">{{ getActionIcon(action.type) }}</view>
       <view class="history-content">
@@ -17,7 +17,7 @@ export interface ActionHistoryItem {
   id: string;
   action: string;
   time: string;
-  type: "create" | "enable" | "disable" | "update";
+  type: "create" | "claim" | "processed";
 }
 
 defineProps<{
@@ -28,9 +28,8 @@ defineProps<{
 const getActionIcon = (type: string) => {
   const iconMap: Record<string, string> = {
     create: "➕",
-    enable: "✅",
-    disable: "❌",
-    update: "🔄",
+    claim: "📤",
+    processed: "✅",
   };
   return iconMap[type] || "📝";
 };

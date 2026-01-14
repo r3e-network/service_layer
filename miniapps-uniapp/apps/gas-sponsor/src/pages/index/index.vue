@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view class="app-container">
       <NeoCard
         v-if="status"
@@ -23,23 +23,6 @@
 
       <!-- Sponsor Tab -->
       <view v-if="activeTab === 'sponsor'" class="tab-content">
-        <!-- Gas Tank Visualization -->
-        <GasTank
-          :fuel-level-percent="fuelLevelPercent"
-          :gas-balance="gasBalance"
-          :is-eligible="isEligible"
-          :t="t as any"
-        />
-
-        <!-- User Balance Info -->
-        <UserBalanceInfo
-          :loading="loading"
-          :user-address="userAddress"
-          :gas-balance="gasBalance"
-          :is-eligible="isEligible"
-          :t="t as any"
-        />
-
         <!-- Request Sponsored Gas -->
         <RequestGasCard
           :is-eligible="isEligible"
@@ -51,14 +34,18 @@
           :t="t as any"
           @request="requestSponsorship"
         />
-
-        <!-- How It Works -->
-        <HowItWorksCard :t="t as any" />
+        <!-- Gas Tank Visualization -->
+        <GasTank
+          :fuel-level-percent="fuelLevelPercent"
+          :gas-balance="gasBalance"
+          :is-eligible="isEligible"
+          :t="t as any"
+        />
       </view>
 
       <!-- Donate Tab -->
       <view v-if="activeTab === 'donate'" class="tab-content">
-        <NeoCard :title="t('donateTitle')" variant="accent" class="glass-container">
+        <NeoCard variant="accent" class="glass-container">
           <view class="donate-form">
             <text class="form-subtitle">{{ t("donateSubtitle") }}</text>
             <text class="form-description">{{ t("donateDescription") }}</text>
@@ -86,7 +73,7 @@
 
       <!-- Send Tab -->
       <view v-if="activeTab === 'send'" class="tab-content">
-        <NeoCard :title="t('sendTitle')" variant="accent" class="glass-container">
+        <NeoCard variant="accent" class="glass-container">
           <view class="send-form">
             <text class="form-subtitle">{{ t("sendSubtitle") }}</text>
             <view class="input-section">
@@ -116,7 +103,16 @@
       </view>
 
       <!-- Stats Tab -->
-      <view v-if="activeTab === 'stats'" class="tab-content">
+      <view v-if="activeTab === 'stats'" class="tab-content scrollable">
+        <!-- User Balance Info -->
+        <UserBalanceInfo
+          :loading="loading"
+          :user-address="userAddress"
+          :gas-balance="gasBalance"
+          :is-eligible="isEligible"
+          :t="t as any"
+        />
+
         <DailyQuotaCard
           :quota-percent="quotaPercent"
           :daily-limit="dailyLimit"
@@ -151,6 +147,7 @@
           :steps="docSteps"
           :features="docFeatures"
         />
+        <HowItWorksCard :t="t as any" />
       </view>
     </view>
   </AppLayout>
@@ -176,7 +173,6 @@ const translations = {
   dailyQuota: { en: "Daily Quota", zh: "每日配额" },
   remainingToday: { en: "Remaining Today", zh: "今日剩余" },
   resetsIn: { en: "Resets In", zh: "重置时间" },
-  requestSponsoredGas: { en: "Request Sponsored Gas", zh: "请求赞助 Gas" },
   balanceExceeds: { en: "Your GAS balance exceeds 0.1 GAS.", zh: "您的 GAS 余额超过 0.1 GAS。" },
   newUsersOnly: { en: "This service is for new users only.", zh: "此服务仅供新用户使用。" },
   quotaExhausted: { en: "Daily quota exhausted", zh: "每日配额已用完" },
@@ -451,11 +447,11 @@ const docFeatures = computed(() => [
 @use "@/shared/styles/variables.scss";
 
 .app-container {
-  padding: 20px;
+  padding: 12px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .tab-content {

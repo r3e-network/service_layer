@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('uploadMemory')" variant="erobo-neo">
+  <NeoCard variant="erobo-neo">
     <template #header-extra>
       <text class="upload-icon">📤</text>
     </template>

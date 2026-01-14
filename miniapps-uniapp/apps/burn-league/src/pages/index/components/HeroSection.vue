@@ -33,7 +33,7 @@ const formatNum = (n: number) => {
 
 .hero-card {
   text-align: center;
-  padding: 32px 24px;
+  padding: 16px 16px;
   position: relative;
   overflow: hidden;
   margin-bottom: 24px;
@@ -91,7 +91,7 @@ const formatNum = (n: number) => {
 }
 
 .hero-value {
-  font-size: 48px;
+  font-size: 32px;
   font-weight: 800;
   font-family: $font-family;
   background: linear-gradient(135deg, #FF6B6B 0%, #FFD93D 100%);

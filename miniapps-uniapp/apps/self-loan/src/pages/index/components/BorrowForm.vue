@@ -1,13 +1,13 @@
 <template>
-  <NeoCard :title="t('takeSelfLoan')" variant="erobo-neo" class="borrow-card">
+  <NeoCard variant="erobo-neo" class="borrow-card">
     <view class="input-section">
       <NeoInput
         :modelValue="modelValue"
         @update:modelValue="$emit('update:modelValue', $event)"
         type="number"
-        :label="t('borrowAmount')"
-        :placeholder="t('amountToBorrow')"
-        suffix="GAS"
+        :label="t('collateralAmount')"
+        :placeholder="t('amountToLock')"
+        suffix="NEO"
       />
     </view>
 
@@ -32,17 +32,17 @@
 
     <view class="calculator-receipt">
       <view class="calc-row">
-        <text class="calc-label">{{ t("collateralRequired") }}</text>
-        <text class="calc-value mono collateral-req">{{ fmt(parseFloat(modelValue || "0") * 1.5, 2) }} GAS</text>
+        <text class="calc-label">{{ t("estimatedBorrow") }}</text>
+        <text class="calc-value mono collateral-req">{{ fmt(estimatedBorrow, 2) }} GAS</text>
       </view>
       <view class="calc-row">
-        <text class="calc-label">{{ t("monthlyPayment") }}</text>
-        <text class="calc-value mono payment">{{ fmt(parseFloat(modelValue || "0") * 0.085, 3) }} GAS</text>
+        <text class="calc-label">{{ t("collateralRatio") }}</text>
+        <text class="calc-value mono payment">{{ fmt(collateralRatio, 2) }}x</text>
       </view>
       <view class="calc-divider"></view>
       <view class="calc-row total">
-        <text class="calc-label">{{ t("totalRepayment") }}</text>
-        <text class="calc-value mono total">{{ fmt(parseFloat(modelValue || "0") * 1.02, 2) }} GAS</text>
+        <text class="calc-label">{{ t("minDuration") }}</text>
+        <text class="calc-value mono total">{{ terms.minDurationHours }}h</text>
       </view>
     </view>
 
@@ -69,11 +69,14 @@ const emit = defineEmits(["update:modelValue", "takeLoan"]);
 
 const fmt = (n: number, d = 2) => formatNumber(n, d);
 
+const ltvPercent = computed(() => Number(props.terms?.ltvPercent ?? 20));
+const collateralAmount = computed(() => parseFloat(props.modelValue || "0") || 0);
+const estimatedBorrow = computed(() => (collateralAmount.value * ltvPercent.value) / 100);
+const collateralRatio = computed(() => (ltvPercent.value > 0 ? 100 / ltvPercent.value : 0));
+
 const calculatedLTV = computed(() => {
-  const amount = parseFloat(props.modelValue || "0");
-  const collateral = amount * 1.5;
-  if (collateral === 0) return 0;
-  return Math.min(Math.round((amount / collateral) * 100), 100);
+  if (!collateralAmount.value) return 0;
+  return Math.min(Math.round(ltvPercent.value), 100);
 });
 
 const getLTVClass = () => {

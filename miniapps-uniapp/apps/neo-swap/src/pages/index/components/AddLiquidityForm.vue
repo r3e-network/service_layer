@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('addLiquidity')" variant="erobo" class="mb-4">
+  <NeoCard variant="erobo" class="mb-4">
     <view class="token-input-section">
       <view class="section-header">
         <text class="input-label">NEO</text>

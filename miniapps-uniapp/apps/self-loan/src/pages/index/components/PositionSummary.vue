@@ -36,17 +36,17 @@
       <view class="metric-card-glass">
         <text class="metric-label">{{ t("collateralLocked") }}</text>
         <text class="metric-value collateral">{{ fmt(loan.collateralLocked, 2) }}</text>
-        <text class="metric-unit">GAS</text>
+        <text class="metric-unit">NEO</text>
       </view>
       <view class="metric-card-glass">
         <text class="metric-label">{{ t("currentLTV") }}</text>
         <text class="metric-value ltv">{{ currentLTV }}%</text>
-        <text class="metric-unit">{{ t("maxLTV") }}: 66.7%</text>
+        <text class="metric-unit">{{ t("maxLTV") }}: {{ terms.ltvPercent }}%</text>
       </view>
       <view class="metric-card-glass">
-        <text class="metric-label">{{ t("interestRate") }}</text>
-        <text class="metric-value rate">{{ terms.interestRate }}%</text>
-        <text class="metric-unit">APR</text>
+        <text class="metric-label">{{ t("minDuration") }}</text>
+        <text class="metric-value rate">{{ terms.minDurationHours }}</text>
+        <text class="metric-unit">{{ t("hours") }}</text>
       </view>
     </view>
   </NeoCard>

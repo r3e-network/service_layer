@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('estimatedRewards')" class="mb-6" variant="erobo-bitcoin">
+  <NeoCard class="mb-6" variant="erobo-bitcoin">
     <template #header-extra>
       <view class="rewards-badge">{{ t("daily") }}</view>
     </template>
@@ -10,6 +10,7 @@
     <view class="rewards-progress-container">
       <view class="rewards-progress-bar" :style="{ width: rewardsProgress + '%' }"></view>
     </view>
+    <text class="rewards-progress-label">{{ t("utcProgress") }}</text>
   </NeoCard>
 </template>
 
@@ -76,5 +77,16 @@ defineProps<{
   background: #FBBF24;
   border-radius: 3px;
   box-shadow: 0 0 10px rgba(251, 191, 36, 0.6);
+}
+
+.rewards-progress-label {
+  display: block;
+  margin-top: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  letter-spacing: 0.1em;
+  text-align: center;
 }
 </style>

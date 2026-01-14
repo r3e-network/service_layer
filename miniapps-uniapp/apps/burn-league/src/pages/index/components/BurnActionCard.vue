@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('burnTokens')" variant="erobo" class="burn-card">
+  <NeoCard variant="erobo">
     <NeoInput
       :modelValue="burnAmount"
       @update:modelValue="$emit('update:burnAmount', $event)"

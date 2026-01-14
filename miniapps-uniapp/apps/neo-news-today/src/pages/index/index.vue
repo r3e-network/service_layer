@@ -1,18 +1,8 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     
     <!-- News Tab -->
     <view v-if="activeTab === 'news'" class="nnt-container">
-      <!-- Header -->
-      <view class="nnt-header-glass mb-6">
-        <image
-          src="https://neonewstoday.com/wp-content/uploads/2020/01/nnt-logo.png"
-          class="nnt-logo"
-          mode="aspectFit"
-        />
-        <text class="nnt-tagline-glass">{{ t("tagline") }}</text>
-      </view>
-
       <!-- Loading State -->
       <view v-if="loading" class="nnt-loading">
         <view class="nnt-spinner" />
@@ -320,6 +310,7 @@ function openArticle(article: Article) {
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

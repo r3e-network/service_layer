@@ -4,7 +4,7 @@
       <text class="status-text-glass">{{ localStatus.msg }}</text>
     </NeoCard>
 
-    <NeoCard :title="t('yourGarden')" variant="erobo-neo" class="garden-card-glass">
+    <NeoCard variant="erobo-neo" class="garden-card-glass">
       <view class="garden-container-glass">
         <view class="garden-grid-glass">
           <view
@@ -29,7 +29,7 @@
       </view>
     </NeoCard>
 
-    <NeoCard :title="t('availableSeeds')" variant="erobo" class="mb-4">
+    <NeoCard variant="erobo" class="mb-4">
       <view class="seeds-list">
         <view v-for="seed in seeds" :key="seed.id" class="seed-item-glass" @click="plantSeed(seed)">
           <view class="seed-icon-wrapper-glass">
@@ -47,7 +47,7 @@
       </view>
     </NeoCard>
 
-    <NeoCard :title="t('actions')" variant="erobo-bitcoin" class="mb-4">
+    <NeoCard variant="erobo-bitcoin" class="mb-4">
       <view class="action-btns-glass flex gap-3">
         <NeoButton variant="primary" size="md" block :loading="isBusy" @click="refreshGarden">
           🔄 {{ isBusy ? t("refreshing") : t("refreshStatus") }}
@@ -339,10 +339,10 @@ watch(address, async () => {
 @use "@/shared/styles/variables.scss";
 
 .tab-container-glass {
-  padding: $space-6;
+  padding: $space-4;
   display: flex;
   flex-direction: column;
-  gap: $space-6;
+  gap: $space-4;
   background: transparent;
   color: white;
 }

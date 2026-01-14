@@ -1,13 +1,9 @@
 <template>
-  <NeoCard :title="t('statistics')" variant="erobo">
+  <NeoCard variant="erobo">
     <view class="stats-grid-neo">
       <view class="stat-item-neo">
         <text class="stat-label">{{ t("totalTrusts") }}</text>
         <text class="stat-value">{{ stats.totalTrusts }}</text>
-      </view>
-      <view class="stat-item-neo gas">
-        <text class="stat-label">{{ t("totalGasValue") }}</text>
-        <text class="stat-value">{{ stats.totalGasValue }} GAS</text>
       </view>
       <view class="stat-item-neo neo">
         <text class="stat-label">{{ t("totalNeoValue") }}</text>
@@ -26,7 +22,6 @@ import { NeoCard } from "@/shared/components";
 
 export interface TrustStats {
   totalTrusts: number;
-  totalGasValue: number;
   totalNeoValue: number;
   activeTrusts: number;
 }
@@ -56,11 +51,6 @@ defineProps<{
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   color: white;
-
-  &.gas {
-    background: linear-gradient(90deg, rgba(255, 222, 89, 0.1), transparent);
-    border-left: 4px solid var(--brutal-yellow);
-  }
 
   &.neo {
     background: linear-gradient(90deg, rgba(0, 229, 153, 0.1), transparent);

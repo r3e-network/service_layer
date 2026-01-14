@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="'👥 ' + t('guardians')" class="guardians-card" variant="erobo">
+  <NeoCard class="guardians-card" variant="erobo">
     <view class="guardians-grid">
       <view v-for="guardian in guardians" :key="guardian.id" class="guardian-item-glass">
         <view class="guardian-avatar-wrapper">

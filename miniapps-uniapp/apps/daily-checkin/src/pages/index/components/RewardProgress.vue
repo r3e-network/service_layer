@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('rewardProgress')" variant="erobo-neo" class="reward-card">
+  <NeoCard variant="erobo-neo" class="reward-card">
     <view class="reward-milestones">
       <view
         v-for="milestone in milestones"

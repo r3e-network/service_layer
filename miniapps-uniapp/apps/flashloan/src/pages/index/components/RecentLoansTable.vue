@@ -3,13 +3,18 @@
     <text class="stats-title-glass">📜 {{ t("recentLoans") }}</text>
     <view v-if="recentLoans.length > 0" class="loans-table-glass">
       <view class="table-header-glass">
-        <text class="th-glass th-amount">{{ t("amount") }}</text>
+        <text class="th-glass th-loan">{{ t("loanId") }}</text>
         <text class="th-glass th-fee">{{ t("feeShort") }}</text>
-        <text class="th-glass th-time">{{ t("time") }}</text>
+        <text class="th-glass th-status">{{ t("statusLabel") }}</text>
+        <text class="th-glass th-time">{{ t("timestamp") }}</text>
       </view>
       <view v-for="(loan, idx) in recentLoans" :key="idx" class="table-row-glass">
-        <text class="td-glass td-amount">{{ formatNum(loan.amount) }} GAS</text>
-        <text class="td-glass td-fee">{{ (loan.amount * 0.0009).toFixed(4) }}</text>
+        <view class="td-glass td-loan">
+          <text class="loan-id">#{{ loan.id }}</text>
+          <text class="loan-amount">{{ formatNum(loan.amount) }} GAS</text>
+        </view>
+        <text class="td-glass td-fee">{{ formatNum(loan.fee, 4) }} GAS</text>
+        <text class="td-glass td-status" :class="loan.status">{{ statusText(loan.status) }}</text>
         <text class="td-glass td-time">{{ loan.timestamp }}</text>
       </view>
     </view>
@@ -22,15 +27,23 @@
 
 <script setup lang="ts">
 import { NeoCard } from "@/shared/components";
+import { formatNumber } from "@/shared/utils/format";
 
-defineProps<{
-  recentLoans: { amount: number; timestamp: string; operation: string; profit: number }[];
+type LoanStatus = "success" | "failed";
+
+const props = defineProps<{
+  recentLoans: { id: number; amount: number; fee: number; status: LoanStatus; timestamp: string }[];
   t: (key: string) => string;
 }>();
 
-const formatNum = (n: number) => {
-  if (n === undefined || n === null) return "0";
-  return n.toLocaleString("en-US", { maximumFractionDigits: 0 });
+const formatNum = (n: number, decimals = 2) => formatNumber(n, decimals);
+
+const statusText = (status: LoanStatus) => {
+  const map = {
+    success: props.t("statusSuccess"),
+    failed: props.t("statusFailed"),
+  };
+  return map[status] || status;
 };
 </script>
 
@@ -81,8 +94,22 @@ const formatNum = (n: number) => {
   font-weight: 700;
   color: white;
 }
-.td-amount {
+.td-loan {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.loan-id {
+  font-size: 10px;
+  opacity: 0.6;
+}
+.loan-amount {
   color: #00E599;
+}
+.td-status {
+  text-transform: uppercase;
+  &.success { color: #00e599; }
+  &.failed { color: #ef4444; }
 }
 .empty-state {
   text-align: center;

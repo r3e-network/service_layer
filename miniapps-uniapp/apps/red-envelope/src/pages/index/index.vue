@@ -13,8 +13,6 @@
     </view>
 
     <view v-if="activeTab === 'create' || activeTab === 'claim'" class="app-container">
-      <EnvelopeHeader :t="t as any" />
-
       <LuckyOverlay :lucky-message="luckyMessage" :t="t as any" @close="luckyMessage = null" />
 
       <AppStatus :status="status" />

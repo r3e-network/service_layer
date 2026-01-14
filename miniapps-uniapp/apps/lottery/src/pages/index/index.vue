@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="chainType === 'evm'" class="px-4 mb-4">
       <NeoCard variant="danger">
         <view class="flex flex-col items-center gap-2 py-1">
@@ -11,6 +11,45 @@
     </view>
 
     <view v-if="activeTab === 'game'" class="game-layout">
+      <!-- Scrollable Buy Section -->
+      <view class="buy-section">
+        <NeoCard variant="erobo-neo" class="ticket-purchase-card">
+          <!-- Ticket Selector -->
+          <view class="ticket-selector">
+            <NeoButton variant="secondary" @click="adjustTickets(-1)" class="adjust-btn">−</NeoButton>
+            <view class="ticket-display">
+              <view class="ticket-visual">
+                <view
+                  v-for="n in Math.min(tickets, 5)"
+                  :key="n"
+                  class="mini-ticket"
+                  :style="{ transform: `translateX(${(n - 1) * -8}px) rotate(${(n - 1) * 5}deg)` }"
+                >
+                  <AppIcon name="ticket" :size="40" />
+                </view>
+                <text v-if="tickets > 5" class="ticket-overflow">+{{ tickets - 5 }}</text>
+              </view>
+              <text class="ticket-count">{{ tickets }} {{ t("ticketsLabel") }}</text>
+            </view>
+            <NeoButton variant="secondary" @click="adjustTickets(1)" class="adjust-btn">+</NeoButton>
+          </view>
+
+          <!-- Total Cost -->
+          <view class="total-row glass-panel mb-4 flex justify-between items-center">
+            <text class="total-label text-secondary font-medium">{{ t("totalCost") }}</text>
+            <text class="total-value font-bold text-lg">{{ formatNum(totalCost, 1) }} GAS</text>
+          </view>
+
+          <!-- Buy Button -->
+          <NeoButton variant="primary" size="lg" block :loading="isLoading" @click="buyTickets">
+            <view class="flex items-center justify-center gap-2">
+              <text>{{ isLoading ? t("processing") : t("buyNow") }}</text>
+              <AppIcon name="money" :size="20" />
+            </view>
+          </NeoButton>
+        </NeoCard>
+      </view>
+
       <!-- Fixed Hero Section: Countdown + Prize Pool (non-scrollable) -->
       <view class="hero-fixed">
         <NeoCard
@@ -62,70 +101,12 @@
             </view>
           </view>
         </NeoCard>
-
-        <!-- Stats Grid -->
-        <view class="stats-grid">
-          <view class="stat-box glass-panel">
-            <AppIcon name="target" :size="32" class="mb-2 icon-dim" />
-            <text class="stat-value">#{{ round }}</text>
-            <text class="stat-label">{{ t("round") }}</text>
-          </view>
-          <view class="stat-box glass-panel">
-            <AppIcon name="ticket" :size="32" class="mb-2 icon-dim" />
-            <text class="stat-value">{{ totalTickets }}</text>
-            <text class="stat-label">{{ t("total") }}</text>
-          </view>
-          <view class="stat-box glass-panel highlight">
-            <AppIcon name="sparkle" :size="32" class="mb-2 icon-glow" />
-            <text class="stat-value highlight-text">{{ userTickets }}</text>
-            <text class="stat-label">{{ t("yours") }}</text>
-          </view>
-        </view>
-      </view>
-
-      <!-- Scrollable Buy Section -->
-      <view class="buy-section">
-        <NeoCard :title="t('buyTickets')" variant="erobo-neo" class="ticket-purchase-card">
-          <!-- Ticket Selector -->
-          <view class="ticket-selector">
-            <NeoButton variant="secondary" @click="adjustTickets(-1)" class="adjust-btn">−</NeoButton>
-            <view class="ticket-display">
-              <view class="ticket-visual">
-                <view
-                  v-for="n in Math.min(tickets, 5)"
-                  :key="n"
-                  class="mini-ticket"
-                  :style="{ transform: `translateX(${(n - 1) * -8}px) rotate(${(n - 1) * 5}deg)` }"
-                >
-                  <AppIcon name="ticket" :size="40" />
-                </view>
-                <text v-if="tickets > 5" class="ticket-overflow">+{{ tickets - 5 }}</text>
-              </view>
-              <text class="ticket-count">{{ tickets }} {{ t("ticketsLabel") }}</text>
-            </view>
-            <NeoButton variant="secondary" @click="adjustTickets(1)" class="adjust-btn">+</NeoButton>
-          </view>
-
-          <!-- Total Cost -->
-          <view class="total-row glass-panel mb-4 flex justify-between items-center">
-            <text class="total-label text-secondary font-medium">{{ t("totalCost") }}</text>
-            <text class="total-value font-bold text-lg">{{ formatNum(totalCost, 1) }} GAS</text>
-          </view>
-
-          <!-- Buy Button -->
-          <NeoButton variant="primary" size="lg" block :loading="isLoading" @click="buyTickets">
-            <view class="flex items-center justify-center gap-2">
-              <text>{{ isLoading ? t("processing") : t("buyNow") }}</text>
-              <AppIcon name="money" :size="20" />
-            </view>
-          </NeoButton>
-        </NeoCard>
       </view>
     </view>
 
     <!-- Winners Tab -->
     <view v-if="activeTab === 'winners'" class="tab-content scrollable">
-      <NeoCard :title="t('recentWinners')" icon="trophy" variant="erobo">
+      <NeoCard variant="erobo">
         <view class="winners-list">
           <text v-if="winners.length === 0" class="empty">{{ t("noWinners") }}</text>
           <view v-for="(w, i) in winners" :key="i" class="winner-item glass-panel">
@@ -144,6 +125,23 @@
 
     <!-- Stats Tab -->
     <view v-if="activeTab === 'stats'" class="tab-content scrollable">
+      <view class="stats-grid mb-6">
+        <view class="stat-box glass-panel">
+          <AppIcon name="target" :size="24" class="mb-1 icon-dim" />
+          <text class="stat-value">#{{ round }}</text>
+          <text class="stat-label">{{ t("round") }}</text>
+        </view>
+        <view class="stat-box glass-panel">
+          <AppIcon name="ticket" :size="24" class="mb-1 icon-dim" />
+          <text class="stat-value">{{ totalTickets }}</text>
+          <text class="stat-label">{{ t("total") }}</text>
+        </view>
+        <view class="stat-box glass-panel highlight">
+          <AppIcon name="sparkle" :size="24" class="mb-1 icon-glow" />
+          <text class="stat-value highlight-text">{{ userTickets }}</text>
+          <text class="stat-label">{{ t("yours") }}</text>
+        </view>
+      </view>
       <NeoStats :title="t('statistics')" :stats="statsItems" />
     </view>
 
@@ -264,7 +262,6 @@ const docFeatures = computed(() => [
 ]);
 
 const APP_ID = "miniapp-lottery";
-const term = APP_ID; // dummy to prevent lint unused
 const { address, connect, invokeRead, invokeContract, chainType, switchChain, getContractAddress } = useWallet() as any;
 const { list: listEvents } = useEvents();
 const TICKET_PRICE = 0.1;
@@ -495,7 +492,7 @@ onUnmounted(() => clearInterval(timer));
 }
 
 .hero-card {
-  padding: 20px;
+  padding: 12px;
 }
 
 .glass-panel {
@@ -508,11 +505,11 @@ onUnmounted(() => clearInterval(timer));
 .countdown-container {
   display: flex;
   justify-content: center;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 .countdown-circle {
-  width: 180px;
-  height: 180px;
+  width: 100px;
+  height: 100px;
   background: rgba(0, 0, 0, 0.2);
   border-radius: 50%;
   display: flex;
@@ -555,9 +552,9 @@ onUnmounted(() => clearInterval(timer));
 .countdown-time {
   font-family: $font-mono;
   font-weight: 800;
-  font-size: 32px;
+  font-size: 24px;
   color: white;
-  text-shadow: 0 0 15px rgba(0, 229, 153, 0.5);
+  text-shadow: 0 0 10px rgba(0, 229, 153, 0.5);
   letter-spacing: 0.05em;
 }
 .countdown-label {
@@ -572,13 +569,13 @@ onUnmounted(() => clearInterval(timer));
 .lottery-balls {
   display: flex;
   justify-content: center;
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 12px;
+  margin-bottom: 16px;
   perspective: 1000px;
 }
 .lottery-ball {
-  width: 52px;
-  height: 52px;
+  width: 40px;
+  height: 40px;
   background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.95), rgba(200,200,255,0.1));
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 50%;
@@ -587,7 +584,7 @@ onUnmounted(() => clearInterval(timer));
   justify-content: center;
   font-family: $font-mono;
   font-weight: 800;
-  font-size: 20px;
+  font-size: 16px;
   color: #1a1a1a;
   box-shadow: 
     inset -5px -5px 15px rgba(0,0,0,0.3),
@@ -626,11 +623,11 @@ onUnmounted(() => clearInterval(timer));
 .prize-pool-display {
   text-align: center;
   background: linear-gradient(135deg, rgba(255, 222, 10, 0.1), rgba(255, 107, 107, 0.1));
-  padding: 24px;
+  padding: 16px;
   border: 1px solid rgba(255, 222, 10, 0.2);
-  border-radius: 20px;
+  border-radius: 16px;
   backdrop-filter: blur(10px);
-  box-shadow: 0 0 30px rgba(255, 107, 107, 0.1);
+  box-shadow: 0 0 20px rgba(255, 107, 107, 0.1);
 }
 .prize-label {
   font-size: 12px;
@@ -650,12 +647,12 @@ onUnmounted(() => clearInterval(timer));
 .prize-amount {
   font-family: $font-mono;
   font-weight: 900;
-  font-size: 48px;
+  font-size: 32px;
   background: linear-gradient(180deg, #fff, #ffde59);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-shadow: 0 0 30px rgba(255, 222, 10, 0.3);
+  text-shadow: 0 0 20px rgba(255, 222, 10, 0.3);
   line-height: 1;
 }
 .prize-currency {

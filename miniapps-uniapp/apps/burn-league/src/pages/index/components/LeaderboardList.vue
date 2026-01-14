@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('leaderboard')" variant="erobo" class="leaderboard-card">
+  <NeoCard variant="erobo" class="leaderboard-card">
     <view class="leaderboard-list">
       <view
         v-for="(entry, i) in leaderboard"

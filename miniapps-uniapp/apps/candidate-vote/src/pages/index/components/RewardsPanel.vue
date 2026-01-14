@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('rewards')" variant="erobo-neo">
+  <NeoCard variant="erobo-neo">
     <view class="rewards-row">
       <view class="reward-info">
         <text class="reward-label">{{ t("pendingRewards") }}</text>

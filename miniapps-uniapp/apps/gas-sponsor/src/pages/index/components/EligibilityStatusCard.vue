@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('eligibilityStatus')" variant="default">
+  <NeoCard variant="default">
     <view class="eligibility-check">
       <view class="check-item">
         <text class="check-icon">{{ parseFloat(gasBalance) < 0.1 ? "✓" : "✗" }}</text>

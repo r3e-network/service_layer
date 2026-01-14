@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="chainType === 'evm'" class="mb-4">
       <NeoCard variant="danger">
         <view class="flex flex-col items-center gap-2 py-1">
@@ -20,16 +20,6 @@
 
       <!-- Leaderboard Tab -->
       <view v-if="activeTab === 'leaderboard'" class="tab-content">
-        <!-- Header Card -->
-        <NeoCard variant="erobo" class="header-card-glass">
-          <view class="header-content-glass">
-            <text class="header-icon-glass">🏆</text>
-            <text class="header-title-glass">{{ t("title") }}</text>
-          </view>
-          <text class="header-subtitle-glass">{{ t("subtitle") }}</text>
-          <text class="header-tagline-glass">{{ t("tagline") }}</text>
-        </NeoCard>
-
         <!-- Category Tabs -->
         <view class="category-tabs-glass">
           <view
@@ -75,7 +65,7 @@
                 <text class="entrant-name-glass">{{ entrant.name }}</text>
                 <view class="score-row">
                   <text class="fire-glass">🔥</text>
-                  <text class="score-glass">{{ formatNumber(entrant.displayScore) }} GAS</text>
+                  <text class="score-glass">{{ formatNumber(entrant.score) }} GAS</text>
                 </view>
               </view>
 
@@ -96,7 +86,7 @@
               <view
                 class="progress-bar-glass"
                 :class="{ gold: index === 0 }"
-                :style="{ width: getProgressWidth(entrant.displayScore) }"
+                :style="{ width: getProgressWidth(entrant.score) }"
               >
                 <view class="progress-glow" v-if="index === 0"></view>
               </view>
@@ -182,14 +172,13 @@ const { address, connect, chainType, switchChain } = useWallet() as any;
 const { payGAS } = usePayments(APP_ID);
 
 type Category = "people" | "community" | "developer";
-type Period = "day" | "week" | "month" | "year";
+type Period = "day" | "week" | "month" | "all";
 
 interface Entrant {
   id: string;
   name: string;
   category: Category;
   score: number;
-  displayScore?: number;
 }
 
 const activeTab = ref("leaderboard");
@@ -208,7 +197,7 @@ const periods = computed(() => [
   { id: "day", label: t("period24h") },
   { id: "week", label: t("period7d") },
   { id: "month", label: t("period30d") },
-  { id: "year", label: t("periodAll") },
+  { id: "all", label: t("periodAll") },
 ]);
 
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
@@ -226,12 +215,21 @@ const statusType = ref<"success" | "error">("success");
 const isLoading = ref(false);
 const fetchError = ref(false);
 
+const buildLeaderboardUrl = () => {
+  const params = new URLSearchParams();
+  if (activePeriod.value !== "all") {
+    params.set("period", activePeriod.value);
+  }
+  const query = params.toString();
+  return query ? `/api/hall-of-fame/leaderboard?${query}` : "/api/hall-of-fame/leaderboard";
+};
+
 // Fetch leaderboard data from API
 const fetchLeaderboard = async () => {
   isLoading.value = true;
   fetchError.value = false;
   try {
-    const response = await fetch("/api/hall-of-fame/leaderboard");
+    const response = await fetch(buildLeaderboardUrl());
     if (!response.ok) {
       throw new Error("Leaderboard fetch failed");
     }
@@ -249,20 +247,10 @@ const fetchLeaderboard = async () => {
 
 const leaderboard = computed(() => {
   const base = entrants.value.filter((e) => e.category === activeCategory.value);
-  const factor =
-    activePeriod.value === "day"
-      ? 0.05
-      : activePeriod.value === "week"
-        ? 0.25
-        : activePeriod.value === "month"
-          ? 1
-          : 12;
-  return base
-    .map((e) => ({ ...e, displayScore: Math.floor(e.score * factor) }))
-    .sort((a, b) => (b.displayScore || 0) - (a.displayScore || 0));
+  return base.slice().sort((a, b) => b.score - a.score);
 });
 
-const topScore = computed(() => (leaderboard.value.length > 0 ? leaderboard.value[0].displayScore || 1 : 1));
+const topScore = computed(() => (leaderboard.value.length > 0 ? leaderboard.value[0].score || 1 : 1));
 
 function setCategory(id: string) {
   activeCategory.value = id as Category;
@@ -270,6 +258,7 @@ function setCategory(id: string) {
 
 function setPeriod(id: string) {
   activePeriod.value = id as Period;
+  fetchLeaderboard();
 }
 
 function formatNumber(num?: number) {
@@ -310,17 +299,8 @@ async function handleVote(entrant: Entrant) {
       throw new Error(t("voteRecordFailed"));
     }
 
-    const result = await response.json();
-    // Update local state with server-confirmed score
-    const idx = entrants.value.findIndex((e) => e.id === entrant.id);
-    if (idx !== -1) {
-      if (result.newScore !== undefined) {
-        entrants.value[idx].score = result.newScore;
-      } else {
-        entrants.value[idx].score += 100;
-      }
-    }
-
+    await response.json();
+    await fetchLeaderboard();
     showStatus(t("voteSuccess"), "success");
   } catch (e: any) {
     showStatus(e.message || t("voteFailed"), "error");

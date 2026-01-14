@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('dailyQuota')">
+  <NeoCard>
     <view class="quota-display">
       <view class="quota-header">
         <text class="quota-title">{{ t("todayUsage") }}</text>

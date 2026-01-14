@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('makeChoice')" variant="erobo-neo">
+  <NeoCard variant="erobo-neo">
     <view class="choice-container">
       <view
         :class="['choice-btn', choice === 'heads' ? 'active-heads' : 'inactive']"

@@ -1,30 +1,31 @@
 <template>
-  <NeoCard :title="'📋 ' + t('activePolicies')" class="policies-card" variant="erobo">
+  <NeoCard class="policies-card" variant="erobo">
     <view class="policies-grid">
-      <view v-for="policy in policies" :key="policy.id" class="policy-item-glass" :class="[policy.level, { 'disabled': !policy.enabled }]">
+      <view v-for="policy in policies" :key="policy.id" class="policy-item-glass" :class="[policy.level, { disabled: !policy.active }]">
         <view class="level-stripe" :class="policy.level"></view>
-        
+
         <view class="policy-content">
           <view class="policy-header">
             <text class="policy-name">{{ policy.name }}</text>
             <view class="level-badge" :class="policy.level">{{ getLevelText(policy.level) }}</view>
+            <view class="status-badge" :class="{ active: policy.active, claimed: policy.claimed }">
+              {{ policy.claimed ? t("claimed") : policy.active ? t("active") : t("expired") }}
+            </view>
           </view>
           <text class="policy-desc">{{ policy.description }}</text>
         </view>
 
         <view class="policy-action">
-          <NeoButton 
-            :variant="policy.enabled ? 'primary' : 'secondary'" 
-            size="sm" 
-            class="toggle-btn"
-            :class="{ 'active': policy.enabled }"
-            @click="$emit('toggle', policy.id)"
+          <NeoButton
+            v-if="policy.active && !policy.claimed"
+            variant="primary"
+            size="sm"
+            class="claim-btn"
+            @click="$emit('claim', policy.id)"
           >
-            <view class="toggle-track">
-              <view class="toggle-thumb"></view>
-            </view>
-            <text class="toggle-label">{{ policy.enabled ? "ON" : "OFF" }}</text>
+            {{ t("requestClaim") }}
           </NeoButton>
+          <text v-else class="policy-status">{{ policy.claimed ? t("claimed") : t("expired") }}</text>
         </view>
       </view>
     </view>
@@ -41,8 +42,10 @@ export interface Policy {
   id: string;
   name: string;
   description: string;
-  enabled: boolean;
+  active: boolean;
+  claimed: boolean;
   level: Level;
+  coverageValue?: number;
 }
 
 const props = defineProps<{
@@ -50,7 +53,7 @@ const props = defineProps<{
   t: (key: string) => string;
 }>();
 
-defineEmits(["toggle"]);
+defineEmits(["claim"]);
 
 const getLevelText = (level: string) => {
   const levelMap: Record<string, string> = {
@@ -148,52 +151,34 @@ const getLevelText = (level: string) => {
   font-weight: 500;
 }
 
-.toggle-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 80px;
-  justify-content: center;
-  
-  &.active .toggle-thumb {
-    background: #00e599;
-    box-shadow: 0 0 8px #00e599;
+.status-badge {
+  margin-left: auto;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+
+  &.active {
+    background: rgba(0, 229, 153, 0.12);
+    color: #00e599;
+  }
+  &.claimed {
+    background: rgba(59, 130, 246, 0.12);
+    color: #3b82f6;
   }
 }
 
-.toggle-track {
-  width: 24px;
-  height: 12px;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 99px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  padding: 2px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.claim-btn {
+  min-width: 90px;
 }
 
-.toggle-thumb {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  transition: all 0.3s;
-  
-  /* Active state handled by parent class or manual transform if needed, 
-     but for simplicity relying on color change for now. 
-     To animate pos: transform: translateX(12px) when active */
-}
-
-.toggle-btn.active .toggle-thumb {
-  transform: translateX(12px);
-  background: #00e599;
-}
-
-.toggle-label {
+.policy-status {
   font-size: 10px;
   font-weight: 800;
-  width: 20px;
-  text-align: center;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
 }
 </style>

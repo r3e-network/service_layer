@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('yourCapsules')" variant="erobo">
+  <NeoCard variant="erobo">
 
     <view v-if="capsules.length === 0" class="empty-state">
       <view class="empty-icon"><AppIcon name="archive" :size="64" class="text-secondary" /></view>
@@ -23,36 +23,41 @@
 
       <!-- Capsule Info -->
       <view class="capsule-details">
-        <text class="capsule-name">{{ cap.name }}</text>
+        <text class="capsule-name">Capsule #{{ cap.id }}</text>
+        <view class="capsule-tags">
+          <text class="capsule-tag">{{ cap.isPublic ? t("public") : t("private") }}</text>
+        </view>
 
         <!-- Countdown Timer for Locked Capsules -->
         <view v-if="cap.locked" class="countdown-section">
           <text class="countdown-label">{{ t("timeRemaining") }}</text>
           <view class="countdown-display">
             <view class="countdown-unit">
-              <text class="countdown-value">{{ getCountdown(cap.unlockDate).days }}</text>
+              <text class="countdown-value">{{ getCountdown(cap.unlockTime).days }}</text>
               <text class="countdown-unit-label">{{ t("daysShort") }}</text>
             </view>
             <text class="countdown-separator">:</text>
             <view class="countdown-unit">
-              <text class="countdown-value">{{ getCountdown(cap.unlockDate).hours }}</text>
+              <text class="countdown-value">{{ getCountdown(cap.unlockTime).hours }}</text>
               <text class="countdown-unit-label">{{ t("hoursShort") }}</text>
             </view>
             <text class="countdown-separator">:</text>
             <view class="countdown-unit">
-              <text class="countdown-value">{{ getCountdown(cap.unlockDate).minutes }}</text>
+              <text class="countdown-value">{{ getCountdown(cap.unlockTime).minutes }}</text>
               <text class="countdown-unit-label">{{ t("minShort") }}</text>
             </view>
           </view>
           <text class="unlock-date">{{ t("unlocks") }} {{ cap.unlockDate }}</text>
+          <text v-if="cap.contentHash" class="content-hash">{{ t("hashLabel") }} {{ cap.contentHash }}</text>
         </view>
 
         <!-- Unlocked Status -->
         <view v-else class="unlocked-section">
-          <text class="unlocked-label">{{ t("unlocked") }}</text>
+          <text class="unlocked-label">{{ cap.revealed ? t("revealed") : t("unlocked") }}</text>
           <NeoButton variant="success" size="md" @click="$emit('open', cap)">
-            {{ t("open") }}
+            {{ cap.revealed ? t("open") : t("reveal") }}
           </NeoButton>
+          <text v-if="cap.contentHash" class="content-hash">{{ t("hashLabel") }} {{ cap.contentHash }}</text>
         </view>
       </view>
     </view>
@@ -64,10 +69,13 @@ import { NeoCard, AppIcon, NeoButton } from "@/shared/components";
 
 export interface Capsule {
   id: string;
-  name: string;
-  content: string;
+  contentHash: string;
   unlockDate: string;
+  unlockTime: number;
   locked: boolean;
+  revealed: boolean;
+  isPublic: boolean;
+  content?: string;
 }
 
 const props = defineProps<{
@@ -78,9 +86,9 @@ const props = defineProps<{
 
 defineEmits(["open"]);
 
-const getCountdown = (unlockDate: string) => {
+const getCountdown = (unlockTime: number) => {
   const now = props.currentTime;
-  const target = new Date(unlockDate).getTime();
+  const target = unlockTime * 1000;
   const diff = Math.max(0, target - now);
 
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -212,6 +220,21 @@ const getCountdown = (unlockDate: string) => {
   color: white;
 }
 
+.capsule-tags {
+  display: flex;
+  gap: $space-2;
+  margin-bottom: $space-2;
+}
+.capsule-tag {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+}
+
 .countdown-display {
   display: flex;
   align-items: center;
@@ -257,5 +280,12 @@ const getCountdown = (unlockDate: string) => {
   text-transform: uppercase;
   margin-bottom: 8px;
   text-shadow: 0 0 10px rgba(0, 229, 153, 0.3);
+}
+
+.content-hash {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: $font-mono;
+  word-break: break-all;
 }
 </style>

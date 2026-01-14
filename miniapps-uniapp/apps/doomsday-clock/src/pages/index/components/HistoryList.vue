@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('eventHistory')" variant="erobo">
+  <NeoCard variant="erobo">
     <view v-if="history.length === 0" class="empty-state">
       <text>{{ t("noHistory") }}</text>
     </view>

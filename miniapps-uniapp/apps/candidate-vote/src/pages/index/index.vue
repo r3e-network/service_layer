@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="chainType === 'evm'" class="px-5 mb-4">
       <NeoCard variant="danger">
         <view class="flex flex-col items-center gap-2 py-1">
@@ -22,24 +22,6 @@
         <text>{{ status.msg }}</text>
       </NeoCard>
 
-      <!-- Network Stats -->
-      <NeoCard :title="t('networkStats')" variant="erobo-neo" class="mb-4">
-        <view class="stats-grid">
-          <view class="stat-item">
-            <text class="stat-label">{{ t("totalCandidates") }}</text>
-            <text class="stat-value">{{ candidates.length }}</text>
-          </view>
-          <view class="stat-item">
-            <text class="stat-label">{{ t("totalNetworkVotes") }}</text>
-            <text class="stat-value">{{ formatVotes(totalNetworkVotes) }}</text>
-          </view>
-          <view class="stat-item">
-            <text class="stat-label">{{ t("blockHeight") }}</text>
-            <text class="stat-value">{{ blockHeight.toLocaleString() }}</text>
-          </view>
-        </view>
-      </NeoCard>
-
       <!-- Candidate List -->
       <CandidateList
         :candidates="candidates"
@@ -53,7 +35,7 @@
       />
 
       <!-- Vote Form -->
-      <NeoCard :title="t('castVote')" variant="erobo">
+      <NeoCard variant="erobo">
         <view class="vote-form">
           <NeoCard v-if="selectedCandidate" variant="erobo-neo" flat class="selected-candidate-card glass-panel">
             <text class="selected-label">{{ t("votingFor") }}</text>
@@ -481,13 +463,7 @@ onMounted(async () => {
 
 
 
-.warning-text {
-  font-weight: 700;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #ffde59;
-}
+
 
 .connect-hint {
   text-align: center;

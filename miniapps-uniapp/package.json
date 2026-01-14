@@ -9,7 +9,8 @@
     "generate": "node scripts/generate-templates.js",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "lint": "pnpm -r lint"
   },
   "devDependencies": {
     "@dcloudio/types": "^3.4.28",

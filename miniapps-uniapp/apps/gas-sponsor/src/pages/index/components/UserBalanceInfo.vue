@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('yourBalance')">
+  <NeoCard>
     <view v-if="loading" class="loading">
       <text>{{ t("checkingEligibility") }}</text>
     </view>

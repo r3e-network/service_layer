@@ -1,9 +1,5 @@
 <template>
   <view class="archive-section">
-    <view class="section-header-neo mb-4">
-      <text class="section-icon">📁</text>
-      <text class="section-title font-bold">{{ t("memoryArchive") }}</text>
-    </view>
 
     <view class="timeline">
       <NeoCard

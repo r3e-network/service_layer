@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('search')" variant="erobo-neo" class="mb-6">
+  <NeoCard variant="erobo-neo" class="mb-6">
     <view class="search-box-neo mb-4">
       <NeoInput
         :modelValue="searchQuery"

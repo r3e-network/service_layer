@@ -1,8 +1,6 @@
 <template>
   <NeoCard variant="erobo-neo" class="flow-card">
-    <view class="flow-header">
-      <text class="flow-title">⚡ {{ t("flashLoanFlow") }}</text>
-    </view>
+
     
     <view class="flow-diagram-glass">
       <!-- Step 1: Borrow -->

@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="activeTab === 'garden'" class="flex flex-col h-full">
       <view v-if="chainType === 'evm'" class="p-6 pb-0">
         <NeoCard variant="danger">

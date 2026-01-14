@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('registerVote')" variant="erobo">
+  <NeoCard variant="erobo">
     <view class="vote-form">
       <!-- Selected Candidate Display -->
       <view v-if="selectedCandidate" class="selected-candidate">

@@ -1,8 +1,10 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
-    <view v-if="activeTab === 'search' || activeTab === 'history'" class="app-container">
-      <!-- Network Stats Cards -->
-      <NetworkStats :mainnet-stats="mainnetStats" :testnet-stats="testnetStats" :t="t as any" />
+  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+    <view class="app-container">
+      <!-- Network Tab -->
+      <view v-if="activeTab === 'network'" class="tab-content">
+        <NetworkStats :mainnet-stats="mainnetStats" :testnet-stats="testnetStats" :t="t as any" />
+      </view>
 
       <view v-if="chainType === 'evm'" class="mb-4">
         <NeoCard variant="danger">
@@ -43,6 +45,7 @@
         <RecentTransactions :transactions="recentTxs" :t="t as any" @viewTx="viewTx" />
       </view>
     </view>
+
 
     <!-- Docs Tab -->
     <view v-if="activeTab === 'docs'" class="tab-content scrollable">
@@ -165,6 +168,7 @@ const docFeatures = computed(() => [
 const activeTab = ref("search");
 const navTabs: NavTab[] = [
   { id: "search", icon: "search", label: t("tabSearch") },
+  { id: "network", icon: "activity", label: t("mainnet") },
   { id: "history", icon: "clock", label: t("tabHistory") },
   { id: "docs", icon: "book", label: t("docs") },
 ];
@@ -342,11 +346,11 @@ onUnmounted(() => {
 @use "@/shared/styles/variables.scss";
 
 .app-container {
-  padding: 20px;
+  padding: 12px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -354,7 +358,7 @@ onUnmounted(() => {
 .tab-content {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .status-text {

@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="chainType === 'evm'" class="px-4 mb-4">
       <NeoCard variant="danger">
         <view class="flex flex-col items-center gap-2 py-1">
@@ -16,7 +16,7 @@
     <view v-if="activeTab === 'destroy'" class="tab-content">
       <StatusMessage :status="status" />
 
-      <GraveyardHero :total-destroyed="totalDestroyed" :gas-reclaimed="gasReclaimed" :t="t as any" />
+
 
       <DestructionChamber
         v-model:assetHash="assetHash"
@@ -33,6 +33,11 @@
         @cancel="showConfirm = false"
         @confirm="executeDestroy"
       />
+    </view>
+
+    <!-- Stats Tab -->
+    <view v-if="activeTab === 'stats'" class="tab-content">
+      <GraveyardHero :total-destroyed="totalDestroyed" :gas-reclaimed="gasReclaimed" :t="t as any" />
     </view>
 
     <!-- History Tab -->
@@ -90,6 +95,7 @@ const translations = {
   records: { en: "records", zh: "条记录" },
   destroyed: { en: "DESTROYED", zh: "已销毁" },
   noDestructions: { en: "No destruction records yet", zh: "暂无销毁记录" },
+  tabStats: { en: "Stats", zh: "统计" },
   confirmTitle: { en: "Confirm Destruction", zh: "确认销毁" },
   confirmText: { en: "Are you absolutely sure? This cannot be undone.", zh: "您确定吗？此操作无法撤销。" },
   confirmDestroy: { en: "Yes, Destroy It", zh: "确认销毁" },
@@ -122,6 +128,7 @@ const t = createT(translations);
 
 const navTabs = [
   { id: "destroy", icon: "trash", label: t("destroy") },
+  { id: "stats", icon: "chart", label: t("tabStats") },
   { id: "history", icon: "time", label: t("history") },
   { id: "docs", icon: "book", label: t("docs") },
 ];

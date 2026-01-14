@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="title" variant="erobo-bitcoin" class="reading-card-container">
+  <NeoCard variant="erobo-bitcoin" class="reading-card-container">
     <view class="fortune-container-glass">
       <text class="fortune-icon">🔮</text>
       <text class="reading-text-glass">{{ reading }}</text>
@@ -14,7 +14,6 @@
 import { NeoCard } from "@/shared/components";
 
 defineProps<{
-  title: string;
   reading: string;
 }>();
 </script>

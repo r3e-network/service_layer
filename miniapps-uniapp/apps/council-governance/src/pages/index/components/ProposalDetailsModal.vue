@@ -1,7 +1,7 @@
 <template>
   <view class="modal-overlay" @click.self="$emit('close')">
     <view class="modal-content">
-      <NeoCard :title="t('proposalDetails')" variant="erobo-neo">
+      <NeoCard variant="erobo-neo">
         <template #header-extra>
           <view class="close-btn" @click="$emit('close')">×</view>
         </template>

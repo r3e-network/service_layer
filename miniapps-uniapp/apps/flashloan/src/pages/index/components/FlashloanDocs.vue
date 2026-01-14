@@ -47,7 +47,7 @@
       <view class="hash-box mt-4">
         <text class="info-label">Contract Hash</text>
         <view class="hash-value">
-          <text class="mono-small">0xee51e5b399f7727267b7d296ff34ec6bb9283131</text>
+          <text class="mono-small">{{ contractAddress || t("notAvailable") }}</text>
         </view>
       </view>
     </NeoCard>
@@ -183,6 +183,7 @@ import { NeoCard, AppIcon } from "@/shared/components";
 
 defineProps<{
   t: (key: string) => string;
+  contractAddress?: string | null;
 }>();
 </script>
 

@@ -2,7 +2,6 @@
   <view class="neo-doc">
     <view class="doc-header">
       <view class="title-row">
-        <text class="doc-title">{{ title }}</text>
         <view class="doc-badge">DOCUMENTATION</view>
       </view>
       <text class="doc-subtitle">{{ subtitle }}</text>
@@ -89,16 +88,6 @@ const t = createT(translations);
   margin-bottom: 8px;
 }
 
-.doc-title {
-  font-size: 32px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  font-family: $font-family;
-  background: var(--text-gradient, linear-gradient(to right, var(--text-primary, #fff), var(--text-secondary, #aaa)));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
 
 .doc-badge {
   background: rgba(159, 157, 243, 0.12);

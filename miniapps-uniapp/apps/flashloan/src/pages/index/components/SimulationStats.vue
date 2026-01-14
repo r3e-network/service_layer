@@ -1,6 +1,5 @@
 <template>
   <NeoCard variant="erobo" class="stats-overview">
-    <text class="stats-title">📊 {{ t("statistics") }}</text>
     <view class="stats-grid">
       <NeoCard variant="erobo-neo" flat class="flex-1 text-center stat-card">
         <text class="stat-value">{{ stats.totalLoans }}</text>
@@ -11,7 +10,7 @@
         <text class="stat-label">{{ t("totalVolume") }}</text>
       </NeoCard>
       <NeoCard variant="erobo-neo" flat class="flex-1 text-center stat-card">
-        <text class="stat-value">{{ stats.totalFees.toFixed(2) }}</text>
+        <text class="stat-value">{{ stats.totalFees.toFixed(4) }}</text>
         <text class="stat-label">{{ t("totalFees") }}</text>
       </NeoCard>
       <NeoCard variant="erobo-neo" flat class="flex-1 text-center stat-card">
@@ -26,21 +25,18 @@
 
 <script setup lang="ts">
 import { NeoCard } from "@/shared/components";
+import { formatNumber } from "@/shared/utils/format";
 
 defineProps<{
   stats: {
     totalLoans: number;
     totalVolume: number;
     totalFees: number;
-    totalProfit: number;
   };
   t: (key: string) => string;
 }>();
 
-const formatNum = (n: number) => {
-  if (n === undefined || n === null) return "0";
-  return n.toLocaleString("en-US", { maximumFractionDigits: 0 });
-};
+const formatNum = (n: number) => formatNumber(n, 2);
 </script>
 
 <style lang="scss" scoped>

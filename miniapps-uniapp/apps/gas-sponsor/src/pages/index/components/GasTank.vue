@@ -1,5 +1,5 @@
 <template>
-  <NeoCard title="" class="gas-tank-card">
+  <NeoCard class="gas-tank-card">
     <view class="gas-tank-container">
       <view class="gas-tank">
         <!-- Technical Grid Background -->

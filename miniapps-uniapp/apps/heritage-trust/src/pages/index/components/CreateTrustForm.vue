@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('createTrust')" variant="erobo-neo">
+  <NeoCard variant="erobo-neo">
     <view class="form-section">
       <view class="form-label">
         <text class="label-icon">📋</text>
@@ -25,28 +25,14 @@
         <text class="label-icon">💰</text>
         <text class="label-text">{{ t("assetAmount") }}</text>
       </view>
-      <view class="dual-asset-inputs">
-        <view class="asset-input">
-          <NeoInput
-            :modelValue="gasValue"
-            @update:modelValue="$emit('update:gasValue', $event)"
-            type="number"
-            placeholder="0"
-            suffix-icon="gas"
-            suffix="GAS"
-          />
-        </view>
-        <view class="asset-input">
-          <NeoInput
-            :modelValue="neoValue"
-            @update:modelValue="$emit('update:neoValue', $event)"
-            type="number"
-            placeholder="0"
-            suffix-icon="neo"
-            suffix="NEO"
-          />
-        </view>
-      </view>
+      <NeoInput
+        :modelValue="neoValue"
+        @update:modelValue="$emit('update:neoValue', $event)"
+        type="number"
+        placeholder="0"
+        suffix-icon="neo"
+        suffix="NEO"
+      />
       <text class="asset-hint">{{ t("assetHint") }}</text>
     </view>
 
@@ -70,13 +56,12 @@ import { NeoCard, NeoInput, NeoButton } from "@/shared/components";
 defineProps<{
   name: string;
   beneficiary: string;
-  gasValue: string;
   neoValue: string;
   isLoading: boolean;
   t: (key: string) => string;
 }>();
 
-defineEmits(["update:name", "update:beneficiary", "update:gasValue", "update:neoValue", "create"]);
+defineEmits(["update:name", "update:beneficiary", "update:neoValue", "create"]);
 </script>
 
 <style lang="scss" scoped>
@@ -125,15 +110,6 @@ defineEmits(["update:name", "update:beneficiary", "update:gasValue", "update:neo
   font-weight: 600;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.8);
-}
-
-.dual-asset-inputs {
-  display: flex;
-  gap: $space-3;
-}
-
-.asset-input {
-  flex: 1;
 }
 
 .asset-hint {

@@ -33,7 +33,7 @@
 
     <!-- Exchange Rate & Details -->
     <RateDetails
-      v-if="exchangeRate"
+      v-if="exchangeRate && !rateLoading"
       :from-symbol="fromToken.symbol"
       :to-symbol="toToken.symbol"
       :exchange-rate="exchangeRate"
@@ -44,6 +44,20 @@
       :t="t as any"
       @refresh="fetchExchangeRate"
     />
+    <NeoCard v-else class="rate-empty" variant="erobo">
+      <view class="rate-empty-content">
+        <text class="rate-empty-text">{{ rateLoading ? t("loadingRate") : t("rateUnavailable") }}</text>
+        <NeoButton
+          size="sm"
+          variant="secondary"
+          :loading="rateLoading"
+          :disabled="rateLoading"
+          @click="fetchExchangeRate"
+        >
+          {{ t("refreshRate") }}
+        </NeoButton>
+      </view>
+    </NeoCard>
 
     <!-- Swap Button -->
     <NeoButton
@@ -108,6 +122,7 @@ const toToken = ref<Token>({ ...TOKENS[1] });
 const fromAmount = ref("");
 const toAmount = ref("");
 const exchangeRate = ref("");
+const rateLoading = ref(false);
 const loading = ref(false);
 const status = ref<{ msg: string; type: string } | null>(null);
 const showSelector = ref(false);
@@ -116,28 +131,30 @@ const isSwapping = ref(false);
 
 const availableTokens = computed(() => TOKENS);
 
+const hasRate = computed(() => {
+  const rate = parseFloat(exchangeRate.value);
+  return Number.isFinite(rate) && rate > 0;
+});
+
 const canSwap = computed(() => {
   const amount = parseFloat(fromAmount.value);
-  return amount > 0 && amount <= fromToken.value.balance;
+  return hasRate.value && amount > 0 && amount <= fromToken.value.balance;
 });
 
 const swapButtonText = computed(() => {
   if (loading.value) return props.t("swapping");
   if (!fromAmount.value) return props.t("enterAmount");
+  if (rateLoading.value) return props.t("loadingRate");
+  if (!hasRate.value) return props.t("rateUnavailable");
   if (parseFloat(fromAmount.value) > fromToken.value.balance) return props.t("insufficientBalance");
   return `Swap ${fromToken.value.symbol} → ${toToken.value.symbol}`;
 });
 
 // DeFi metrics
-const priceImpact = computed(() => {
-  const amount = parseFloat(fromAmount.value) || 0;
-  if (amount === 0) return "0.00%";
-  const impact = (amount / 1000) * 100;
-  return impact > 0.01 ? `${impact.toFixed(2)}%` : "< 0.01%";
-});
+const priceImpact = computed<string | null>(() => null);
 
 const slippage = computed(() => "0.5%");
-const liquidityPool = computed(() => "NEO/GAS");
+const liquidityPool = computed(() => `${fromToken.value.symbol}/${toToken.value.symbol}`);
 const minReceived = computed(() => {
   const amount = parseFloat(toAmount.value) || 0;
   return (amount * 0.995).toFixed(4);
@@ -166,6 +183,9 @@ async function loadBalances() {
 }
 
 async function fetchExchangeRate() {
+  if (rateLoading.value) return;
+  rateLoading.value = true;
+  exchangeRate.value = "";
   try {
     // Try to fetch real exchange rate from datafeed API
     const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
@@ -174,26 +194,36 @@ async function fetchExchangeRate() {
       const toPrice = await sdk.datafeed.getPrice(`${toToken.value.symbol}-USD`);
       if (fromPrice?.price && toPrice?.price) {
         const rate = parseFloat(fromPrice.price) / parseFloat(toPrice.price);
-        exchangeRate.value = rate.toFixed(6);
-        return;
+        if (Number.isFinite(rate) && rate > 0) {
+          exchangeRate.value = rate.toFixed(6);
+          return;
+        }
       }
     }
   } catch (e) {
-    console.warn("[SwapTab] Failed to fetch real exchange rate, using fallback:", e);
+    console.warn("[SwapTab] Failed to fetch exchange rate:", e);
+  } finally {
+    rateLoading.value = false;
   }
-  // Fallback to approximate rates if API unavailable
-  const fallbackRates: Record<string, string> = {
-    "NEO-GAS": "8.5",
-    "GAS-NEO": "0.118",
-  };
-  const key = `${fromToken.value.symbol}-${toToken.value.symbol}`;
-  exchangeRate.value = fallbackRates[key] || "1";
+}
+
+async function loadRouter() {
+  if (SWAP_ROUTER.value) return;
+  try {
+    SWAP_ROUTER.value = await getContractAddress();
+  } catch (e) {
+    console.warn("[SwapTab] Failed to load swap router:", e);
+  }
 }
 
 function onFromAmountChange(val: string) {
   fromAmount.value = val;
   const amount = parseFloat(fromAmount.value) || 0;
-  const rate = parseFloat(exchangeRate.value) || 0;
+  const rate = parseFloat(exchangeRate.value);
+  if (!Number.isFinite(rate) || rate <= 0) {
+    toAmount.value = "";
+    return;
+  }
   toAmount.value = (amount * rate).toFixed(4);
 }
 
@@ -278,6 +308,7 @@ async function executeSwap() {
 
 onMounted(() => {
   loadBalances();
+  loadRouter();
   fetchExchangeRate();
 });
 </script>
@@ -336,5 +367,21 @@ onMounted(() => {
   &.rotating {
     transform: rotate(180deg);
   }
+}
+
+.rate-empty {
+  margin-bottom: 8px;
+}
+
+.rate-empty-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rate-empty-text {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
 }
 </style>

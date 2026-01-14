@@ -1,6 +1,6 @@
 <template>
   <view class="tab-content scrollable">
-    <NeoCard :title="t('statistics')" variant="erobo">
+    <NeoCard variant="erobo">
       <view class="flex flex-col gap-3">
         <NeoCard variant="default" flat class="flex justify-between items-center p-3 border-none!">
           <text class="stat-label">{{ t("totalLoans") }}</text>
@@ -25,7 +25,7 @@
     <view class="stats-card">
       <text class="stats-title">{{ t("loanHistory") }}</text>
       <view v-for="(item, idx) in loanHistory" :key="idx" class="history-item">
-        <text>{{ item.icon }} {{ fmt(item.amount, 2) }} GAS - {{ item.timestamp }}</text>
+        <text>{{ item.icon }} {{ item.label }}: {{ fmt(item.amount, 2) }} GAS - {{ item.timestamp }}</text>
       </view>
       <text v-if="loanHistory.length === 0" class="empty-text">{{ t("noHistory") }}</text>
     </view>

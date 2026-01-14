@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('drawYourCards')" variant="erobo" class="mystical-card">
+  <NeoCard variant="erobo" class="mystical-card">
     <view class="question-input">
       <NeoInput
         :modelValue="question"

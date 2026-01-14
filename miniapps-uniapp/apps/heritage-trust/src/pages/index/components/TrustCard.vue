@@ -1,5 +1,7 @@
 <template>
-  <view class="trust-document">
+  <NeoCard variant="erobo" class="trust-document-card">
+    <view class="official-banner">OFFICIAL TRUST</view>
+    
     <!-- Document Header -->
     <view class="document-header">
       <view class="document-seal">
@@ -24,12 +26,7 @@
         <text class="asset-label">{{ t("totalAssets") }}</text>
       </view>
       <view class="dual-assets">
-        <view v-if="trust.gasValue > 0" class="asset-item gas">
-          <AppIcon name="gas" :size="24" class="asset-icon" />
-          <text class="asset-amount">{{ trust.gasValue }}</text>
-          <text class="asset-symbol">GAS</text>
-        </view>
-        <view v-if="trust.neoValue > 0" class="asset-item neo">
+        <view class="asset-item neo">
           <AppIcon name="neo" :size="24" class="asset-icon" />
           <text class="asset-amount">{{ trust.neoValue }}</text>
           <text class="asset-symbol">NEO</text>
@@ -69,7 +66,9 @@
           <view class="timeline-dot"></view>
           <view class="timeline-content">
             <text class="timeline-title">{{ t("inactivityPeriod") }}</text>
-            <text class="timeline-date">90 {{ t("days") }}</text>
+            <text class="timeline-date">
+              {{ trust.daysRemaining > 0 ? `${trust.daysRemaining} ${t("days")}` : t("ready") }}
+            </text>
           </view>
         </view>
         <view class="timeline-line"></view>
@@ -77,10 +76,22 @@
           <view class="timeline-dot"></view>
           <view class="timeline-content">
             <text class="timeline-title">{{ t("trustActivates") }}</text>
-            <text class="timeline-date">{{ t("automatic") }}</text>
+            <text class="timeline-date">{{ trust.deadline }}</text>
           </view>
         </view>
       </view>
+    </view>
+
+    <view class="document-actions">
+      <NeoButton variant="secondary" size="sm" @click="$emit('heartbeat', trust)">
+        {{ t("heartbeat") }}
+      </NeoButton>
+      <NeoButton variant="primary" size="sm" @click="$emit('claimYield', trust)">
+        {{ t("claimYield") }}
+      </NeoButton>
+      <NeoButton variant="warning" size="sm" :disabled="!trust.canExecute" @click="$emit('execute', trust)">
+        {{ t("executeTrust") }}
+      </NeoButton>
     </view>
 
     <!-- Document Footer -->
@@ -88,64 +99,60 @@
       <text class="footer-text">{{ t("documentId") }}: {{ trust.id }}</text>
       <text class="footer-signature">✍️ {{ t("digitalSignature") }}</text>
     </view>
-  </view>
+  </NeoCard>
 </template>
 
 <script setup lang="ts">
-import { AppIcon } from "@/shared/components";
+import { AppIcon, NeoButton, NeoCard } from "@/shared/components";
 
 export interface Trust {
   id: string;
   name: string;
   beneficiary: string;
-  gasValue: number;
   neoValue: number;
   icon: string;
   status: "active" | "pending" | "triggered" | "executed";
+  daysRemaining: number;
+  deadline: string;
+  canExecute: boolean;
 }
 
 defineProps<{
   trust: Trust;
   t: (key: string) => string;
 }>();
+
+defineEmits(["heartbeat", "claimYield", "execute"]);
 </script>
 
 <style lang="scss" scoped>
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
-.trust-document {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
+.trust-document-card {
   margin-bottom: $space-6;
-  padding: $space-6;
   position: relative;
-  backdrop-filter: blur(20px);
-  color: white;
   overflow: hidden;
+}
 
-  &::before {
-    content: "OFFICIAL TRUST";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 24px;
-    background: rgba(255, 255, 255, 0.05);
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 9px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    letter-spacing: 0.2em;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  }
+.official-banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.2em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .document-header {
-
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -196,6 +203,11 @@ defineProps<{
     background: rgba(239, 68, 68, 0.1);
     color: #ef4444;
     border-color: rgba(239, 68, 68, 0.3);
+  }
+  &.executed {
+    background: rgba(148, 163, 184, 0.1);
+    color: #94a3b8;
+    border-color: rgba(148, 163, 184, 0.3);
   }
 }
 
@@ -391,6 +403,13 @@ defineProps<{
   font-size: 10px;
   color: #ffde59;
   font-weight: 600;
+}
+
+.document-actions {
+  display: flex;
+  gap: $space-2;
+  justify-content: space-between;
+  margin: $space-4 0;
 }
 
 .document-footer {

@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('unstakeBneoTitle')" class="mb-6" variant="erobo">
+  <NeoCard class="mb-6" variant="erobo">
     <text class="panel-subtitle mb-4 text-center block">{{ t("unstakeSubtitle") }}</text>
 
     <view class="input-group">

@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('epochOverview')" variant="erobo">
+  <NeoCard variant="erobo">
     <NeoStats :stats="epochStats" />
   </NeoCard>
 </template>

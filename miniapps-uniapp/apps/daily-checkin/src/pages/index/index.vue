@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="chainType === 'evm'" class="px-4 mb-4">
       <NeoCard variant="danger">
         <view class="flex flex-col items-center gap-2 py-1">
@@ -18,18 +18,6 @@
         <text class="text-center font-bold status-msg">{{ status.msg }}</text>
       </NeoCard>
 
-      <CountdownHero
-        :countdown-progress="countdownProgress"
-        :countdown-label="countdownLabel"
-        :can-check-in="canCheckIn"
-        :utc-time-display="utcTimeDisplay"
-        :t="t as any"
-      />
-
-      <StreakDisplay :current-streak="currentStreak" :highest-streak="highestStreak" :t="t as any" />
-
-      <RewardProgress :milestones="milestones" :current-streak="currentStreak" :t="t as any" />
-
       <NeoButton
         variant="primary"
         size="lg"
@@ -45,23 +33,36 @@
         </view>
       </NeoButton>
 
+      <CountdownHero
+        :countdown-progress="countdownProgress"
+        :countdown-label="countdownLabel"
+        :can-check-in="canCheckIn"
+        :utc-time-display="utcTimeDisplay"
+        :t="t as any"
+      />
+
+      <StreakDisplay :current-streak="currentStreak" :highest-streak="highestStreak" :t="t as any" />
+
+    </view>
+
+    <!-- Stats Tab -->
+    <view v-if="activeTab === 'stats'" class="tab-content scrollable">
+      <RewardProgress :milestones="milestones" :current-streak="currentStreak" :t="t as any" />
       <UserRewards
         :unclaimed-rewards="unclaimedRewards"
         :total-claimed="totalClaimed"
         :is-claiming="isClaiming"
         :t="t as any"
         @claim="claimRewards"
+        class="mb-4"
+      />
+      <StatsTab
+        :global-stats="globalStats"
+        :user-stats="userStats"
+        :checkin-history="checkinHistory"
+        :t="t as any"
       />
     </view>
-
-    <!-- Stats Tab -->
-    <StatsTab
-      v-if="activeTab === 'stats'"
-      :global-stats="globalStats"
-      :user-stats="userStats"
-      :checkin-history="checkinHistory"
-      :t="t as any"
-    />
 
     <!-- Docs Tab -->
     <view v-if="activeTab === 'docs'" class="tab-content scrollable">
@@ -439,11 +440,11 @@ onUnmounted(() => {
 @use "@/shared/styles/variables.scss";
 
 .tab-content {
-  padding: 20px;
+  padding: 12px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .checkin-btn {

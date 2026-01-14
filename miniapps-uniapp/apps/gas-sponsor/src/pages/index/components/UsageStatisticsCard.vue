@@ -1,5 +1,5 @@
 <template>
-  <NeoCard :title="t('statistics')" variant="accent">
+  <NeoCard variant="accent">
     <view class="stat-grid">
       <NeoCard variant="default" class="flex-1 text-center">
         <AppIcon name="gas" :size="24" class="stat-icon" />
