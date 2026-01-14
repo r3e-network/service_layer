@@ -6,7 +6,9 @@
           <view class="flex flex-col items-center gap-2 py-1">
             <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
             <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
-            <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{ t("switchToNeo") }}</NeoButton>
+            <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{
+              t("switchToNeo")
+            }}</NeoButton>
           </view>
         </NeoCard>
       </view>
@@ -19,64 +21,68 @@
       <!-- Grants Tab -->
       <view v-if="activeTab === 'grants'" class="tab-content">
         <!-- Grant Pool Overview -->
-        <NeoCard variant="accent" class="pool-overview-card">
+        <NeoCard variant="erobo" class="pool-overview-card">
           <view class="pool-header">
-            <text class="pool-title">{{ t("grantPool") }}</text>
-            <text class="pool-round">{{ t("round") }} #1</text>
+            <text class="pool-title text-glass-glow">{{ t("grantPool") }}</text>
+            <view class="pool-round-glass">
+              <text class="round-text">{{ t("round") }} #1</text>
+            </view>
           </view>
           <view class="pool-stats">
-            <view class="pool-stat">
-              <text class="stat-label">{{ t("totalPool") }}</text>
-              <text class="stat-value">{{ formatAmount(totalFunded) }} GAS</text>
+            <view class="pool-stat-glass">
+              <text class="stat-label-glass">{{ t("totalPool") }}</text>
+              <text class="stat-value-glass">{{ formatAmount(totalFunded) }} GAS</text>
             </view>
-            <view class="pool-stat">
-              <text class="stat-label">{{ t("activeProjects") }}</text>
-              <text class="stat-value">{{ totalGrants }}</text>
+            <view class="pool-stat-glass">
+              <text class="stat-label-glass">{{ t("activeProjects") }}</text>
+              <text class="stat-value-glass">{{ totalGrants }}</text>
             </view>
-            <view class="pool-stat">
-              <text class="stat-label">{{ t("yourShare") }}</text>
-              <text class="stat-value highlight">{{ userShare }} GAS</text>
+            <view class="pool-stat-glass">
+              <text class="stat-label-glass">{{ t("yourShare") }}</text>
+              <text class="stat-value-glass highlight">{{ userShare }} GAS</text>
             </view>
           </view>
         </NeoCard>
 
         <!-- Active Grants Section -->
         <view class="grants-section">
-          <text class="section-title">{{ t("activeGrants") }}</text>
+          <text class="section-title-glass">{{ t("activeGrants") }}</text>
 
           <view v-if="grants.length === 0" class="empty-state">
             <text class="empty-text">{{ t("noActiveGrants") }}</text>
           </view>
 
           <!-- Grant Cards -->
-          <NeoCard v-for="grant in grants" :key="grant.id" class="grant-card-neo">
+          <NeoCard v-for="grant in grants" :key="grant.id" variant="erobo-neo" class="grant-card-neo">
             <view class="grant-card-header">
               <view class="grant-info">
-                <text class="grant-title">{{ grant.title }}</text>
-                <text class="grant-creator">{{ t("by") }} {{ grant.creator }}</text>
+                <text class="grant-title-glass">{{ grant.title }}</text>
+                <text class="grant-creator-glass">{{ t("by") }} {{ grant.creator }}</text>
               </view>
-              <view :class="['grant-badge', grant.status]">
+              <view :class="['grant-badge-glass', grant.status]">
                 <text class="badge-text">{{ getStatusLabel(grant.status) }}</text>
               </view>
             </view>
 
-            <text class="grant-description">{{ grant.description }}</text>
+            <text class="grant-description-glass">{{ grant.description }}</text>
 
             <!-- Funding Progress -->
-            <view class="funding-section">
+            <view class="funding-section-glass">
               <view class="funding-header">
-                <text class="funding-label">{{ t("fundingProgress") }}</text>
-                <text class="funding-percentage">{{ getProgress(grant) }}%</text>
+                <text class="funding-label-glass">{{ t("fundingProgress") }}</text>
+                <text class="funding-percentage-glass">{{ getProgress(grant) }}%</text>
               </view>
 
-              <view class="progress-track">
-                <view class="progress-bar" :style="{ width: getProgress(grant) + '%' }"></view>
+              <view class="progress-track-glass">
+                <view class="progress-bar-glass" :style="{ width: getProgress(grant) + '%' }">
+                  <view class="progress-glow"></view>
+                </view>
               </view>
 
               <view class="funding-amounts">
-                <text class="amount-raised">{{ formatAmount(grant.funded) }} GAS</text>
-                <text class="amount-divider">/</text>
-                <text class="amount-goal">{{ formatAmount(grant.goal) }} GAS</text>
+                <text class="amount-raised-glass">{{ formatAmount(grant.funded) }} GAS</text>
+                <text class="amount-divider-glass">/</text>
+                <text class="amount-goal-glass">{{ formatAmount(grant.goal) }} GAS</text>
               </view>
             </view>
 
@@ -90,9 +96,7 @@
 
       <!-- Apply Tab -->
       <view v-if="activeTab === 'apply'" class="tab-content">
-        <view class="apply-section">
-          <text class="section-title">{{ t("applyForGrant") }}</text>
-
+        <NeoCard variant="erobo-neo" :title="t('applyForGrant')">
           <view class="form-container">
             <NeoInput v-model="newGrant.title" :label="t('grantTitle')" :placeholder="t('enterTitle')" type="text" />
 
@@ -116,7 +120,7 @@
               {{ loading ? t("creating") : t("createGrant") }}
             </NeoButton>
           </view>
-        </view>
+        </NeoCard>
       </view>
 
       <!-- Fund Modal -->
@@ -242,7 +246,7 @@ const docFeatures = computed(() => [
 
 const APP_ID = "miniapp-grant-share";
 const { address, connect, chainType, switchChain } = useWallet() as any;
-const { payGAS, isLoading: paymentLoading } = usePayments(APP_ID);
+const { payGAS } = usePayments(APP_ID);
 
 interface Grant {
   id: string;
@@ -437,22 +441,23 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: $space-6;
-  border-bottom: 4px solid black;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: $space-3;
 }
 .pool-title {
   font-weight: $font-weight-black;
-  font-size: 28px;
+  font-size: 24px;
   text-transform: uppercase;
-  color: var(--text-primary, black);
+  color: white;
 }
-.pool-round {
-  font-size: 12px;
+.pool-round-glass {
+  font-size: 10px;
   font-weight: $font-weight-black;
-  border: 2px solid var(--border-color, black);
+  border: 1px solid rgba(0, 229, 153, 0.3);
   padding: 4px 12px;
-  background: var(--brutal-yellow);
-  box-shadow: 2px 2px 0 var(--shadow-color, black);
+  background: rgba(0, 229, 153, 0.1);
+  border-radius: 20px;
+  color: #00e599;
 }
 
 .pool-stats {
@@ -460,50 +465,61 @@ onMounted(async () => {
   grid-template-columns: repeat(3, 1fr);
   gap: $space-4;
 }
-.pool-stat {
+.pool-stat-glass {
   padding: $space-4;
-  background: var(--bg-card, white);
-  border: 3px solid var(--border-color, black);
-  box-shadow: 4px 4px 0 var(--shadow-color, black);
-  color: var(--text-primary, black);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
-.stat-label {
+.stat-label-glass {
   font-size: 10px;
-  font-weight: $font-weight-black;
+  font-weight: $font-weight-bold;
   text-transform: uppercase;
-  opacity: 1;
+  opacity: 0.6;
   margin-bottom: 4px;
-  display: block;
+  color: white;
 }
-.stat-value {
+.stat-value-glass {
   font-weight: $font-weight-black;
   font-family: $font-mono;
-  display: block;
   font-size: 16px;
-  border-bottom: 2px solid black;
-}
-.stat-value.highlight {
-  color: var(--neo-purple);
-  background: var(--bg-elevated, #eee);
-  padding: 0 4px;
+  color: white;
+  &.highlight {
+    color: #34d399;
+    text-shadow: 0 0 10px rgba(52, 211, 153, 0.4);
+  }
 }
 
-.section-title {
+.section-title-glass {
   font-weight: $font-weight-black;
   text-transform: uppercase;
   font-size: 12px;
   margin-bottom: $space-4;
-  background: black;
-  color: white;
-  padding: 2px 10px;
-  display: inline-block;
+  color: rgba(255, 255, 255, 0.6);
+  padding-left: 4px;
+  border-left: 2px solid #00e599;
+  padding-left: 8px;
+  display: block;
+}
+
+.empty-state {
+  padding: 32px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+.empty-text {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 14px;
 }
 
 .grant-card-neo {
   margin-bottom: $space-6;
-  border: 4px solid var(--border-color, black);
-  box-shadow: 10px 10px 0 var(--shadow-color, black);
-  padding: $space-6;
 }
 .grant-card-header {
   display: flex;
@@ -511,54 +527,61 @@ onMounted(async () => {
   margin-bottom: $space-4;
   align-items: flex-start;
 }
-.grant-title {
-  font-weight: $font-weight-black;
-  text-transform: uppercase;
+.grant-title-glass {
+  font-weight: $font-weight-bold;
   font-size: 18px;
-  border-bottom: 3px solid black;
-  padding-bottom: 2px;
+  color: white;
+  display: block;
+  margin-bottom: 4px;
 }
-.grant-creator {
+.grant-creator-glass {
   font-size: 10px;
-  font-weight: $font-weight-black;
+  font-weight: $font-weight-bold;
   opacity: 0.6;
   text-transform: uppercase;
-  margin-top: 4px;
-  display: block;
+  color: white;
 }
 
-.grant-badge {
-  padding: 4px 12px;
-  font-size: 10px;
+.grant-badge-glass {
+  padding: 4px 10px;
+  font-size: 9px;
   font-weight: $font-weight-black;
   text-transform: uppercase;
-  border: 2px solid var(--border-color, black);
-  box-shadow: 3px 3px 0 var(--shadow-color, black);
+  border-radius: 6px;
   &.active {
-    background: var(--brutal-yellow);
-    color: black;
+    background: rgba(253, 224, 71, 0.1);
+    color: #fde047;
+    border: 1px solid rgba(253, 224, 71, 0.3);
   }
   &.funded {
-    background: var(--neo-green);
-    color: black;
+    background: rgba(52, 211, 153, 0.1);
+    color: #34d399;
+    border: 1px solid rgba(52, 211, 153, 0.3);
+  }
+  &.completed {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
   }
 }
 
-.grant-description {
+.grant-description-glass {
   font-size: 14px;
-  font-weight: $font-weight-black;
+  font-weight: $font-weight-medium;
   margin: $space-4 0;
-  line-height: 1.4;
-  border-left: 4px solid black;
-  padding-left: 12px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 12px;
+  border-radius: 8px;
 }
 
-.funding-section {
-  background: var(--bg-elevated, #f0f0f0);
-  padding: $space-4;
-  border: 2px solid var(--border-color, black);
+.funding-section-glass {
   margin-bottom: $space-5;
-  color: var(--text-primary, black);
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 .funding-header {
   display: flex;
@@ -566,41 +589,62 @@ onMounted(async () => {
   align-items: center;
   margin-bottom: 8px;
 }
-.funding-label {
+.funding-label-glass {
   font-size: 10px;
-  font-weight: $font-weight-black;
+  font-weight: $font-weight-bold;
   text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
 }
-.funding-percentage {
-  font-size: 16px;
-  font-weight: $font-weight-black;
+.funding-percentage-glass {
+  font-size: 14px;
+  font-weight: $font-weight-bold;
   font-family: $font-mono;
-  background: black;
-  color: white;
-  padding: 2px 8px;
+  color: #34d399;
 }
 
-.progress-track {
-  height: 20px;
-  background: var(--bg-card, white);
-  border: 3px solid var(--border-color, black);
-  margin: $space-3 0;
-  position: relative;
-  padding: 2px;
+.progress-track-glass {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  margin-bottom: 8px;
+  overflow: hidden;
 }
-.progress-bar {
+.progress-bar-glass {
   height: 100%;
-  background: var(--neo-green);
-  border-right: 2px solid black;
+  background: #00e599;
+  position: relative;
+  border-radius: 3px;
+}
+.progress-glow {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 10px;
+  background: white;
+  filter: blur(4px);
+  opacity: 0.5;
 }
 
 .funding-amounts {
   font-family: $font-mono;
   font-size: 10px;
-  font-weight: $font-weight-black;
+  font-weight: $font-weight-bold;
   text-align: right;
-  margin-top: 4px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
 }
+.amount-raised-glass {
+  color: white;
+}
+.amount-divider-glass {
+  color: rgba(255, 255, 255, 0.3);
+}
+.amount-goal-glass {
+  color: rgba(255, 255, 255, 0.5);
+}
+
 .form-container {
   display: flex;
   flex-direction: column;

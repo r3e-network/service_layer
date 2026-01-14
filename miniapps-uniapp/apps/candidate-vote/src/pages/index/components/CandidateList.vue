@@ -5,6 +5,7 @@
     </view>
 
     <view v-else-if="candidates.length === 0" class="empty-state">
+      <text class="empty-icon">🗳️</text>
       <text class="empty-text">{{ t("noCandidates") }}</text>
     </view>
 
@@ -129,6 +130,12 @@ const getRankClass = (index: number) => {
 .empty-state {
   padding: 24px;
   text-align: center;
+}
+
+.empty-icon {
+  font-size: 32px;
+  display: block;
+  margin-bottom: 8px;
 }
 
 .loading-text,

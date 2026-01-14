@@ -12,23 +12,26 @@
 
     <view v-if="activeTab === 'game'" class="tab-content">
       <!-- Error Message -->
-      <!-- Error Message -->
-      <NeoCard v-if="errorMessage" variant="danger" class="mb-4">
-        <text class="text-center">{{ errorMessage }}</text>
+      <NeoCard v-if="errorMessage" variant="danger" class="mb-4 glass-danger">
+        <text class="text-center font-bold">{{ errorMessage }}</text>
       </NeoCard>
 
       <!-- Coin Arena -->
-      <CoinArena :display-outcome="displayOutcome" :is-flipping="isFlipping" :result="result" :t="t as any" />
+      <view class="arena-container">
+        <CoinArena :display-outcome="displayOutcome" :is-flipping="isFlipping" :result="result" :t="t as any" />
+      </view>
 
       <!-- Bet Controls -->
-      <BetControls
-        v-model:choice="choice"
-        v-model:betAmount="betAmount"
-        :is-flipping="isFlipping"
-        :can-bet="canBet"
-        :t="t as any"
-        @flip="flip"
-      />
+      <view class="controls-container">
+        <BetControls
+          v-model:choice="choice"
+          v-model:betAmount="betAmount"
+          :is-flipping="isFlipping"
+          :can-bet="canBet"
+          :t="t as any"
+          @flip="flip"
+        />
+      </view>
 
       <!-- Result Modal -->
       <ResultOverlay :visible="showWinOverlay" :win-amount="winAmount" :t="t as any" @close="showWinOverlay = false" />
@@ -36,7 +39,9 @@
 
     <!-- Stats Tab -->
     <view v-if="activeTab === 'stats'" class="tab-content scrollable">
-      <NeoStats :stats="gameStats" />
+      <NeoCard :title="t('statistics')" variant="erobo" class="mb-6">
+        <NeoStats :stats="gameStats" />
+      </NeoCard>
     </view>
 
     <!-- Docs Tab -->
@@ -58,7 +63,7 @@ import { usePayments, useWallet, useEvents } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 import { parseStackItem } from "@/shared/utils/neo";
 import { createT } from "@/shared/utils/i18n";
-import { AppLayout, NeoStats, NeoDoc, type StatItem } from "@/shared/components";
+import { AppLayout, NeoCard, NeoStats, NeoDoc, NeoButton, type StatItem } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
 import CoinArena, { type GameResult } from "./components/CoinArena.vue";
@@ -188,7 +193,7 @@ const gameStats = computed<StatItem[]>(() => [
   { label: t("totalGames"), value: wins.value + losses.value },
   { label: t("wins"), value: wins.value, variant: "success" },
   { label: t("losses"), value: losses.value, variant: "danger" },
-  { label: t("totalWon"), value: formatNum(totalWon.value), variant: "accent" },
+  { label: t("totalWon"), value: `${formatNum(totalWon.value)} GAS`, variant: "accent" },
 ]);
 
 const flip = async () => {
@@ -294,17 +299,34 @@ onUnmounted(() => {
 @use "@/shared/styles/variables.scss";
 
 .tab-content {
-  padding: $space-4;
+  padding: 20px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: 16px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.arena-container {
+  margin-bottom: 8px;
+  perspective: 1000px;
+  z-index: 10;
+}
+
+.controls-container {
+  margin-top: 8px;
+}
+
+.glass-danger {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.2);
 }
 
 .scrollable {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
-
-
 </style>

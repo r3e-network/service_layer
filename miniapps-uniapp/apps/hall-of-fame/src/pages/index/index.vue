@@ -1,6 +1,6 @@
 <template>
   <AppLayout :title="t('title')" show-top-nav :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
-    <view v-if="chainType === 'evm'" class="px-4 mb-4">
+    <view v-if="chainType === 'evm'" class="mb-4">
       <NeoCard variant="danger">
         <view class="flex flex-col items-center gap-2 py-1">
           <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
@@ -21,21 +21,21 @@
       <!-- Leaderboard Tab -->
       <view v-if="activeTab === 'leaderboard'" class="tab-content">
         <!-- Header Card -->
-        <NeoCard variant="accent" class="header-card">
-          <view class="header-content">
-            <text class="header-icon">🏆</text>
-            <text class="header-title">{{ t("title") }}</text>
+        <NeoCard variant="erobo" class="header-card-glass">
+          <view class="header-content-glass">
+            <text class="header-icon-glass">🏆</text>
+            <text class="header-title-glass">{{ t("title") }}</text>
           </view>
-          <text class="header-subtitle">{{ t("subtitle") }}</text>
-          <text class="header-tagline">{{ t("tagline") }}</text>
+          <text class="header-subtitle-glass">{{ t("subtitle") }}</text>
+          <text class="header-tagline-glass">{{ t("tagline") }}</text>
         </NeoCard>
 
         <!-- Category Tabs -->
-        <view class="category-tabs">
+        <view class="category-tabs-glass">
           <view
             v-for="c in categories"
             :key="c.id"
-            class="category-tab"
+            class="category-tab-glass"
             :class="{ active: activeCategory === c.id }"
             @click="setCategory(c.id)"
           >
@@ -44,11 +44,11 @@
         </view>
 
         <!-- Period Filter -->
-        <view class="period-filter">
+        <view class="period-filter-glass">
           <view
             v-for="p in periods"
             :key="p.id"
-            class="period-btn"
+            class="period-btn-glass"
             :class="{ active: activePeriod === p.id }"
             @click="setPeriod(p.id)"
           >
@@ -58,24 +58,24 @@
 
         <!-- Leaderboard List -->
         <view class="leaderboard-list">
-          <NeoCard v-for="(entrant, index) in leaderboard" :key="entrant.id" class="entrant-card">
+          <NeoCard v-for="(entrant, index) in leaderboard" :key="entrant.id" :variant="index === 0 ? 'erobo-neo' : 'erobo'" class="entrant-card-glass">
             <view class="entrant-inner">
               <!-- Rank -->
-              <view class="rank" :class="'rank-' + (index + 1)">
+              <view class="rank-glass" :class="'rank-' + (index + 1)">
                 <text>#{{ index + 1 }}</text>
               </view>
 
               <!-- Avatar -->
-              <view class="avatar">
-                <text class="avatar-text">{{ entrant.name.charAt(0) }}</text>
+              <view class="avatar-glass">
+                <text class="avatar-text-glass">{{ entrant.name.charAt(0) }}</text>
               </view>
 
               <!-- Info -->
               <view class="entrant-info">
-                <text class="entrant-name">{{ entrant.name }}</text>
+                <text class="entrant-name-glass">{{ entrant.name }}</text>
                 <view class="score-row">
-                  <text class="fire">🔥</text>
-                  <text class="score">{{ formatNumber(entrant.displayScore) }} GAS</text>
+                  <text class="fire-glass">🔥</text>
+                  <text class="score-glass">{{ formatNumber(entrant.displayScore) }} GAS</text>
                 </view>
               </view>
 
@@ -92,12 +92,14 @@
             </view>
 
             <!-- Progress Bar -->
-            <view class="progress-track">
+            <view class="progress-track-glass">
               <view
-                class="progress-bar"
+                class="progress-bar-glass"
                 :class="{ gold: index === 0 }"
                 :style="{ width: getProgressWidth(entrant.displayScore) }"
-              ></view>
+              >
+                <view class="progress-glow" v-if="index === 0"></view>
+              </view>
             </view>
           </NeoCard>
         </view>
@@ -359,12 +361,11 @@ onMounted(async () => {
   gap: $space-4;
 }
 
-.header-card {
+.header-card-glass {
   text-align: center;
-  padding: $space-6;
 }
 
-.header-content {
+.header-content-glass {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -372,72 +373,84 @@ onMounted(async () => {
   margin-bottom: $space-3;
 }
 
-.header-icon {
+.header-icon-glass {
   font-size: 32px;
+  filter: drop-shadow(0 0 10px rgba(253, 224, 71, 0.4));
 }
 
-.header-title {
-  font-weight: $font-weight-black;
+.header-title-glass {
+  font-weight: 800;
   font-size: 24px;
   text-transform: uppercase;
-  letter-spacing: -1px;
+  color: white;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
 }
 
-.header-subtitle {
-  font-weight: $font-weight-bold;
+.header-subtitle-glass {
+  font-weight: 600;
   font-size: 14px;
   display: block;
   margin-bottom: $space-2;
+  color: #00E599;
 }
 
-.header-tagline {
+.header-tagline-glass {
   font-size: 12px;
   opacity: 0.7;
   display: block;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
 }
 
-.category-tabs {
+.category-tabs-glass {
   display: flex;
   gap: $space-3;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
-.category-tab {
-  padding: $space-2 $space-4;
-  background: var(--bg-secondary);
-  border: 2px solid var(--border-color);
-  font-weight: $font-weight-bold;
+.category-tab-glass {
+  padding: 6px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-weight: 700;
   text-transform: uppercase;
-  font-size: 12px;
-  box-shadow: 2px 2px 0 var(--border-color);
+  font-size: 11px;
   cursor: pointer;
-  transition: all 0.1s;
+  transition: all 0.2s;
+  border-radius: 99px;
+  color: rgba(255, 255, 255, 0.6);
 
   &.active {
-    background: var(--neo-green);
-    color: black;
-    transform: translate(2px, 2px);
-    box-shadow: none;
+    background: rgba(0, 229, 153, 0.15);
+    color: #00E599;
+    border-color: rgba(0, 229, 153, 0.3);
+    box-shadow: 0 0 10px rgba(0, 229, 153, 0.2);
   }
 }
 
-.period-filter {
+.period-filter-glass {
   display: flex;
   gap: $space-2;
   justify-content: flex-end;
+  margin-top: -8px;
+  margin-bottom: $space-2;
 }
 
-.period-btn {
-  padding: $space-1 $space-3;
-  border: 2px solid var(--border-color);
-  font-size: 11px;
-  font-weight: $font-weight-bold;
+.period-btn-glass {
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  font-size: 10px;
+  font-weight: 700;
   cursor: pointer;
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.4);
+  transition: all 0.2s;
 
   &.active {
-    background: var(--neo-green);
-    color: black;
-    box-shadow: 2px 2px 0 var(--border-color);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.1);
   }
 }
 
@@ -447,51 +460,47 @@ onMounted(async () => {
   gap: $space-4;
 }
 
-.entrant-card {
-  padding: $space-4;
+.entrant-card-glass {
+  margin-bottom: 0;
 }
 
 .entrant-inner {
   display: flex;
   align-items: center;
   gap: $space-3;
+  margin-bottom: $space-3;
 }
 
-.rank {
-  font-size: 20px;
-  font-weight: $font-weight-black;
+.rank-glass {
+  font-size: 16px;
+  font-weight: 800;
   font-style: italic;
-  width: 36px;
+  width: 32px;
   text-align: center;
-  opacity: 0.5;
+  opacity: 0.4;
+  color: white;
 
-  &.rank-1 {
-    color: #fbbf24;
-    opacity: 1;
-  }
-  &.rank-2 {
-    color: #94a3b8;
-    opacity: 1;
-  }
-  &.rank-3 {
-    color: #b45309;
-    opacity: 1;
-  }
+  &.rank-1 { color: #FCD34D; opacity: 1; text-shadow: 0 0 10px rgba(252, 211, 77, 0.5); font-size: 20px; }
+  &.rank-2 { color: #E5E7EB; opacity: 0.8; font-size: 18px; }
+  &.rank-3 { color: #FDBA74; opacity: 0.7; font-size: 18px; }
 }
 
-.avatar {
-  width: 44px;
-  height: 44px;
-  background: var(--bg-tertiary);
-  border: 2px solid var(--border-color);
+.avatar-glass {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 50%;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
 }
 
-.avatar-text {
-  font-size: 18px;
-  font-weight: $font-weight-black;
+.avatar-text-glass {
+  font-size: 16px;
+  font-weight: 800;
+  color: white;
 }
 
 .entrant-info {
@@ -499,11 +508,12 @@ onMounted(async () => {
   min-width: 0;
 }
 
-.entrant-name {
+.entrant-name-glass {
   font-size: 14px;
-  font-weight: $font-weight-black;
+  font-weight: 700;
   display: block;
-  margin-bottom: $space-1;
+  margin-bottom: 2px;
+  color: white;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -512,38 +522,49 @@ onMounted(async () => {
 .score-row {
   display: flex;
   align-items: center;
-  gap: $space-1;
+  gap: 4px;
 }
 
-.fire {
+.fire-glass {
   font-size: 12px;
 }
 
-.score {
+.score-glass {
   font-size: 11px;
-  font-weight: $font-weight-semibold;
-  opacity: 0.7;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
   font-family: $font-mono;
 }
 
-.progress-track {
-  margin-top: $space-3;
+.progress-track-glass {
   height: 6px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
   position: relative;
+  overflow: hidden;
 }
 
-.progress-bar {
+.progress-bar-glass {
   position: absolute;
   left: 0;
   top: 0;
   bottom: 0;
-  background: var(--neo-green);
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
 
   &.gold {
-    background: #fbbf24;
+    background: linear-gradient(90deg, #F59E0B, #FCD34D);
   }
+}
+.progress-glow {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 10px;
+  background: white;
+  filter: blur(4px);
+  opacity: 0.7;
 }
 
 .scrollable {

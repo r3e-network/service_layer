@@ -116,18 +116,17 @@ class OriginValidator {
       }
     }
 
-    // 5. Fallback to production
-    return PRODUCTION_ORIGINS[0];
+    // 5. SECURITY: Fail-secure - throw error instead of falling back to production
+    // This prevents accidental message leakage to unintended origins
+    throw new Error("Cannot determine safe target origin - no valid origin found");
   }
 
   /** Get safe target origin (throws if unknown) */
   getSafeTargetOrigin(): string {
     const target = this.getTargetOrigin();
     if (!target || target === "null") {
-      // In production, reject unknown origins for security
-      // Fall back to first production origin as last resort
-      console.warn("[MiniApp SDK] Could not determine target origin, using production fallback");
-      return PRODUCTION_ORIGINS[0];
+      // SECURITY: Fail-secure - reject unknown origins
+      throw new Error("Cannot determine safe target origin - origin is null or undefined");
     }
     return target;
   }
@@ -205,7 +204,14 @@ function createPostMessageSDK(): MiniAppSDK {
         return cachedConfig;
       }
       // Return default config (will be updated async)
-      return { appId: "", contractAddress: null, chainId: null, chainType: undefined, supportedChains: [], debug: false };
+      return {
+        appId: "",
+        contractAddress: null,
+        chainId: null,
+        chainType: undefined,
+        supportedChains: [],
+        debug: false,
+      };
     },
     getAddress: () => invoke("getAddress") as Promise<string>,
     wallet: {

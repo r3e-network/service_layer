@@ -4,15 +4,15 @@
       <NeoCard
         v-if="status"
         :variant="status.type === 'error' ? 'danger' : status.type === 'loading' ? 'warning' : 'success'"
-        class="mb-4 text-center"
+        class="mb-4 text-center glass-status"
       >
-        <text class="status-text">{{ status.msg }}</text>
+        <text class="status-msg">{{ status.msg }}</text>
       </NeoCard>
 
       <view v-if="chainType === 'evm'" class="mb-4">
         <NeoCard variant="danger">
           <view class="flex flex-col items-center gap-2 py-1">
-            <text class="status-text text-red-400">{{ t("wrongChain") }}</text>
+            <text class="status-msg text-red-400">{{ t("wrongChain") }}</text>
             <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
             <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{
               t("switchToNeo")
@@ -58,7 +58,7 @@
 
       <!-- Donate Tab -->
       <view v-if="activeTab === 'donate'" class="tab-content">
-        <NeoCard :title="t('donateTitle')" variant="accent">
+        <NeoCard :title="t('donateTitle')" variant="accent" class="glass-container">
           <view class="donate-form">
             <text class="form-subtitle">{{ t("donateSubtitle") }}</text>
             <text class="form-description">{{ t("donateDescription") }}</text>
@@ -68,7 +68,7 @@
                 <view
                   v-for="amt in [0.1, 0.5, 1, 5]"
                   :key="amt"
-                  :class="['preset-btn', { active: donateAmount === amt.toString() }]"
+                  :class="['preset-btn glass-btn', { active: donateAmount === amt.toString() }]"
                   @click="donateAmount = amt.toString()"
                 >
                   <text class="preset-value">{{ amt }}</text>
@@ -86,7 +86,7 @@
 
       <!-- Send Tab -->
       <view v-if="activeTab === 'send'" class="tab-content">
-        <NeoCard :title="t('sendTitle')" variant="accent">
+        <NeoCard :title="t('sendTitle')" variant="accent" class="glass-container">
           <view class="send-form">
             <text class="form-subtitle">{{ t("sendSubtitle") }}</text>
             <view class="input-section">
@@ -99,7 +99,7 @@
                 <view
                   v-for="amt in [0.05, 0.1, 0.2, 0.5]"
                   :key="amt"
-                  :class="['preset-btn', { active: sendAmount === amt.toString() }]"
+                  :class="['preset-btn glass-btn', { active: sendAmount === amt.toString() }]"
                   @click="sendAmount = amt.toString()"
                 >
                   <text class="preset-value">{{ amt }}</text>
@@ -117,7 +117,6 @@
 
       <!-- Stats Tab -->
       <view v-if="activeTab === 'stats'" class="tab-content">
-        <!-- Daily Quota Display -->
         <DailyQuotaCard
           :quota-percent="quotaPercent"
           :daily-limit="dailyLimit"
@@ -127,7 +126,6 @@
           :t="t as any"
         />
 
-        <!-- Usage Statistics -->
         <UsageStatisticsCard
           :used-quota="usedQuota"
           :remaining-quota="remainingQuota"
@@ -136,7 +134,6 @@
           :t="t as any"
         />
 
-        <!-- Eligibility Status -->
         <EligibilityStatusCard
           :gas-balance="gasBalance"
           :remaining-quota="remainingQuota"
@@ -439,6 +436,7 @@ const handleSend = async () => {
 
 onMounted(() => {
   loadUserData();
+  // We can't auto-refresh due to rate limits potentially, but could add a timer if needed
 });
 
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
@@ -466,11 +464,12 @@ const docFeatures = computed(() => [
   gap: 16px;
 }
 
-.status-text {
+.status-msg {
   font-weight: 700;
   text-transform: uppercase;
   font-family: $font-mono;
   font-size: 12px;
+  color: white;
 }
 
 .scrollable {
@@ -486,15 +485,18 @@ const docFeatures = computed(() => [
 }
 
 .form-subtitle {
-  font-weight: 700;
+  font-weight: 800;
   font-size: 14px;
-  color: var(--text-primary, white);
+  color: white;
+  text-transform: uppercase;
+  margin-bottom: 4px;
 }
 
 .form-description {
   font-size: 12px;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+  color: rgba(255, 255, 255, 0.7);
   line-height: 1.5;
+  margin-bottom: 8px;
 }
 
 .input-section {
@@ -504,45 +506,62 @@ const docFeatures = computed(() => [
 }
 
 .input-label {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  color: var(--text-primary, white);
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.05em;
 }
 
 .preset-amounts {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .preset-btn {
-  padding: 12px 8px;
-  background: var(--bg-card, rgba(255, 255, 255, 0.1));
-  border: 2px solid var(--border-color, rgba(255, 255, 255, 0.2));
-  border-radius: 8px;
+  padding: 16px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  backdrop-filter: blur(5px);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+  }
 
   &.active {
-    background: var(--neo-green, #00e599);
-    border-color: var(--neo-green, #00e599);
+    background: rgba(0, 229, 153, 0.15);
+    border-color: #00e599;
+    box-shadow: 0 0 15px rgba(0, 229, 153, 0.2);
   }
 }
 
 .preset-value {
-  font-weight: 700;
-  font-size: 16px;
-  display: block;
-  color: var(--text-primary, white);
+  font-weight: 800;
+  font-size: 18px;
+  color: white;
+  font-family: $font-mono;
 }
 
 .preset-unit {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
+  text-transform: uppercase;
   opacity: 0.7;
-  color: var(--text-primary, white);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.glass-status {
+  backdrop-filter: blur(10px);
 }
 </style>

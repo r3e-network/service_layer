@@ -24,9 +24,16 @@
 
       <!-- Your Position -->
       <NeoCard :title="t('yourPosition')" variant="erobo">
-        <view class="position-info">
-          <text class="lp-amount">0.0000</text>
-          <text class="lp-label">NEO/GAS LP {{ t("poolShare") }}</text>
+        <view class="position-info-glass">
+          <view class="position-glow"></view>
+          <view class="position-content">
+            <text class="lp-label">NEO/GAS LP {{ t("poolShare") }}</text>
+            <text class="lp-amount">0.0000</text>
+            <view class="lp-tags">
+              <text class="lp-tag">Active</text>
+              <text class="lp-tag">0.25% Fee</text>
+            </view>
+          </view>
         </view>
       </NeoCard>
     </view>
@@ -123,30 +130,72 @@ function addLiquidity() {
   margin-bottom: 16px;
 }
 
-.position-info {
+.position-info-glass {
+  position: relative;
   text-align: center;
-  padding: 24px;
-  background: var(--bg-card, rgba(255, 255, 255, 0.03));
-  border-radius: 12px;
+  padding: 32px 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.position-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(circle, rgba(159, 157, 243, 0.15) 0%, transparent 70%);
+  filter: blur(30px);
+  z-index: 0;
+}
+
+.position-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .lp-amount {
   display: block;
-  font-size: 36px;
-  font-weight: 800;
-  margin-bottom: 8px;
+  font-size: 42px;
+  font-weight: 900;
+  margin: 12px 0;
   font-family: $font-mono;
   color: white;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+  text-shadow: 0 0 25px rgba(255, 255, 255, 0.15);
+  letter-spacing: -0.02em;
 }
 
 .lp-label {
   display: block;
   font-size: 11px;
   font-weight: 700;
-  opacity: 0.6;
+  opacity: 0.7;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: white;
+  letter-spacing: 0.15em;
+  color: #9f9df3;
+}
+
+.lp-tags {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.lp-tag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 99px;
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 </style>

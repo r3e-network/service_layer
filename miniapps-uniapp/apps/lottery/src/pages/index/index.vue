@@ -16,7 +16,7 @@
         <NeoCard
           v-if="status"
           :variant="status.type === 'error' ? 'danger' : status.type === 'loading' ? 'accent' : 'success'"
-          class="mb-4"
+          class="mb-4 status-card"
         >
           <text class="text-center font-bold">{{ status.msg }}</text>
         </NeoCard>
@@ -65,19 +65,19 @@
 
         <!-- Stats Grid -->
         <view class="stats-grid">
-          <view class="stat-box">
-            <AppIcon name="target" :size="32" class="mb-2" />
+          <view class="stat-box glass-panel">
+            <AppIcon name="target" :size="32" class="mb-2 icon-dim" />
             <text class="stat-value">#{{ round }}</text>
             <text class="stat-label">{{ t("round") }}</text>
           </view>
-          <view class="stat-box">
-            <AppIcon name="ticket" :size="32" class="mb-2" />
+          <view class="stat-box glass-panel">
+            <AppIcon name="ticket" :size="32" class="mb-2 icon-dim" />
             <text class="stat-value">{{ totalTickets }}</text>
             <text class="stat-label">{{ t("total") }}</text>
           </view>
-          <view class="stat-box highlight">
-            <AppIcon name="sparkle" :size="32" class="mb-2" />
-            <text class="stat-value">{{ userTickets }}</text>
+          <view class="stat-box glass-panel highlight">
+            <AppIcon name="sparkle" :size="32" class="mb-2 icon-glow" />
+            <text class="stat-value highlight-text">{{ userTickets }}</text>
             <text class="stat-label">{{ t("yours") }}</text>
           </view>
         </view>
@@ -88,7 +88,7 @@
         <NeoCard :title="t('buyTickets')" variant="erobo-neo" class="ticket-purchase-card">
           <!-- Ticket Selector -->
           <view class="ticket-selector">
-            <NeoButton variant="secondary" @click="adjustTickets(-1)">−</NeoButton>
+            <NeoButton variant="secondary" @click="adjustTickets(-1)" class="adjust-btn">−</NeoButton>
             <view class="ticket-display">
               <view class="ticket-visual">
                 <view
@@ -103,11 +103,11 @@
               </view>
               <text class="ticket-count">{{ tickets }} {{ t("ticketsLabel") }}</text>
             </view>
-            <NeoButton variant="secondary" @click="adjustTickets(1)">+</NeoButton>
+            <NeoButton variant="secondary" @click="adjustTickets(1)" class="adjust-btn">+</NeoButton>
           </view>
 
           <!-- Total Cost -->
-          <view class="total-row mb-4 flex justify-between items-center">
+          <view class="total-row glass-panel mb-4 flex justify-between items-center">
             <text class="total-label text-secondary font-medium">{{ t("totalCost") }}</text>
             <text class="total-value font-bold text-lg">{{ formatNum(totalCost, 1) }} GAS</text>
           </view>
@@ -128,7 +128,7 @@
       <NeoCard :title="t('recentWinners')" icon="trophy" variant="erobo">
         <view class="winners-list">
           <text v-if="winners.length === 0" class="empty">{{ t("noWinners") }}</text>
-          <view v-for="(w, i) in winners" :key="i" class="winner-item">
+          <view v-for="(w, i) in winners" :key="i" class="winner-item glass-panel">
             <view class="winner-medal">
               <text>{{ i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "🎖️" }}</text>
             </view>
@@ -421,6 +421,7 @@ const fetchLotteryData = async () => {
       userTickets.value = 0;
       return;
     }
+    // Optimization: Don't load ALL ticket events, logic should be improved for scale but ok for miniapp demo
     const purchases = await listEvents({ app_id: APP_ID, event_name: "TicketPurchased", limit: 200 });
     const purchaseEvents = Array.isArray(purchases?.events) ? purchases.events : [];
     let userCount = 0;
@@ -478,6 +479,13 @@ onUnmounted(() => clearInterval(timer));
   padding: 20px;
 }
 
+.glass-panel {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
 .countdown-container {
   display: flex;
   justify-content: center;
@@ -486,36 +494,41 @@ onUnmounted(() => clearInterval(timer));
 .countdown-circle {
   width: 180px;
   height: 180px;
-  background: transparent;
-  border: none;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
-  box-shadow: none;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.05);
 }
 .countdown-ring {
   width: 100%;
   height: 100%;
   transform: rotate(-90deg);
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 .countdown-ring-bg {
   fill: none;
   stroke: rgba(255, 255, 255, 0.05);
-  stroke-width: 14;
+  stroke-width: 10;
 }
 .countdown-ring-progress {
   fill: none;
   stroke: #00e599;
-  stroke-width: 14;
+  stroke-width: 10;
   stroke-linecap: round;
   stroke-dasharray: 622;
   transition: stroke-dashoffset 1s linear;
-  filter: drop-shadow(0 0 10px rgba(0, 229, 153, 0.3));
+  filter: drop-shadow(0 0 5px rgba(0, 229, 153, 0.5));
 }
 .countdown-text {
-  position: absolute;
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -523,83 +536,114 @@ onUnmounted(() => clearInterval(timer));
 .countdown-time {
   font-family: $font-mono;
   font-weight: 800;
-  font-size: 36px;
+  font-size: 32px;
   color: white;
-  border-bottom: none;
-  font-style: normal;
-  text-shadow: 0 0 20px rgba(0, 229, 153, 0.3);
+  text-shadow: 0 0 15px rgba(0, 229, 153, 0.5);
+  letter-spacing: 0.05em;
 }
 .countdown-label {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
   color: var(--text-secondary, rgba(255, 255, 255, 0.5));
   margin-top: 4px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.2em;
 }
 
 .lottery-balls {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 16px;
   margin-bottom: 24px;
+  perspective: 1000px;
 }
 .lottery-ball {
-  width: 48px;
-  height: 48px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  width: 52px;
+  height: 52px;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.95), rgba(200,200,255,0.1));
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: $font-mono;
-  font-weight: 700;
-  font-size: 18px;
-  color: white;
-  box-shadow: 0 0 15px rgba(0, 229, 153, 0.1);
-  transition: all 0.3s;
+  font-weight: 800;
+  font-size: 20px;
+  color: #1a1a1a;
+  box-shadow: 
+    inset -5px -5px 15px rgba(0,0,0,0.3),
+    0 0 20px rgba(255,255,255,0.2);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  backdrop-filter: blur(4px);
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 5px; left: 10px;
+    width: 15px; height: 10px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 50%;
+    filter: blur(2px);
+  }
+
+  /* Neon Variants based on nth-type or just specific active state */
+  &:nth-child(1) { color: #db2777; text-shadow: 0 0 2px rgba(219,39,119,0.3); }
+  &:nth-child(2) { color: #ea580c; text-shadow: 0 0 2px rgba(234,88,12,0.3); }
+  &:nth-child(3) { color: #16a34a; text-shadow: 0 0 2px rgba(22,163,74,0.3); }
+  &:nth-child(4) { color: #2563eb; text-shadow: 0 0 2px rgba(37,99,235,0.3); }
+  &:nth-child(5) { color: #9333ea; text-shadow: 0 0 2px rgba(147,51,234,0.3); }
 
   &.active {
-    background: #00e599;
+    transform: scale(1.1);
+    background: radial-gradient(circle at 30% 30%, #fff, #00e599);
+    border-color: #00e599;
+    box-shadow: 0 0 30px #00e599;
     color: black;
-    box-shadow: 0 0 20px rgba(0, 229, 153, 0.4);
   }
 }
 
 .prize-pool-display {
   text-align: center;
-  background: rgba(0, 0, 0, 0.2);
-  padding: 20px;
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
-  border-radius: 16px;
-  box-shadow: none;
+  background: linear-gradient(135deg, rgba(255, 222, 10, 0.1), rgba(255, 107, 107, 0.1));
+  padding: 24px;
+  border: 1px solid rgba(255, 222, 10, 0.2);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 30px rgba(255, 107, 107, 0.1);
 }
 .prize-label {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
   color: #ffde59;
-  letter-spacing: 0.1em;
-  font-style: normal;
+  letter-spacing: 0.2em;
+  margin-bottom: 8px;
+  display: block;
 }
 .prize-amount-container {
   display: flex;
   align-items: baseline;
   justify-content: center;
+  gap: 8px;
 }
 .prize-amount {
   font-family: $font-mono;
-  font-weight: 800;
-  font-size: 40px;
-  color: white;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  font-weight: 900;
+  font-size: 48px;
+  background: linear-gradient(180deg, #fff, #ffde59);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 30px rgba(255, 222, 10, 0.3);
+  line-height: 1;
 }
 .prize-currency {
   font-size: 16px;
-  font-weight: 600;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
-  margin-left: 8px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
 }
 
 .stats-grid {
@@ -610,33 +654,40 @@ onUnmounted(() => clearInterval(timer));
 }
 .stat-box {
   padding: 16px;
-  background: var(--bg-card, rgba(255, 255, 255, 0.05));
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
-  border-radius: 16px;
-  text-align: center;
-  box-shadow: none;
-
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+  
   &.highlight {
     background: rgba(0, 229, 153, 0.1);
-    border-color: #00e599;
-    box-shadow: 0 0 15px rgba(0, 229, 153, 0.1);
+    border-color: rgba(0, 229, 153, 0.3);
+    box-shadow: 0 0 20px rgba(0, 229, 153, 0.1);
   }
 }
+.icon-dim { opacity: 0.6; }
+.icon-glow { filter: drop-shadow(0 0 5px rgba(0, 229, 153, 0.5)); color: #00e599; }
+
 .stat-value {
   font-weight: 700;
   font-family: $font-mono;
-  font-size: 18px;
-  border-bottom: none;
+  font-size: 20px;
   display: block;
   margin-bottom: 4px;
-  font-style: normal;
   color: white;
+  
+  &.highlight-text {
+    color: #00e599;
+    text-shadow: 0 0 10px rgba(0, 229, 153, 0.3);
+  }
 }
 .stat-label {
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 9px;
+  font-weight: 700;
   text-transform: uppercase;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.05em;
 }
 
 .ticket-selector {
@@ -645,16 +696,25 @@ onUnmounted(() => clearInterval(timer));
   justify-content: center;
   gap: 24px;
   margin: 24px 0;
-  background: transparent;
   padding: 0;
-  border: none;
-  box-shadow: none;
 }
+.adjust-btn {
+  font-weight: 900;
+  font-size: 24px;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
 .ticket-display {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 .ticket-visual {
   height: 60px;
@@ -663,17 +723,18 @@ onUnmounted(() => clearInterval(timer));
   justify-content: center;
 }
 .mini-ticket {
-  background: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
   padding: 8px;
   border-radius: 8px;
-  color: white;
+  color: #ffde59;
+  border: 1px solid rgba(255, 222, 10, 0.3);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 .ticket-count {
-  font-size: 40px;
+  font-size: 32px;
   font-weight: 800;
   font-family: $font-mono;
   color: white;
-  font-style: normal;
 }
 .ticket-overflow {
   font-size: 12px;
@@ -683,6 +744,29 @@ onUnmounted(() => clearInterval(timer));
   padding: 4px 8px;
   border-radius: 99px;
   margin-left: 8px;
+  border: 1px solid rgba(0, 229, 153, 0.3);
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+.total-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.05em;
+}
+.total-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: white;
+  font-family: $font-mono;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
 }
 
 .winners-list {
@@ -695,27 +779,21 @@ onUnmounted(() => clearInterval(timer));
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  background: var(--bg-card, rgba(255, 255, 255, 0.03));
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
-  border-radius: 16px;
-  box-shadow: none;
   transition: background 0.2s;
 
   &:hover {
-    background: var(--bg-card, rgba(255, 255, 255, 0.05));
-    transform: none;
-    box-shadow: none;
+    background: rgba(255, 255, 255, 0.08);
   }
 }
 .winner-medal {
   font-size: 24px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   width: 48px;
   height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 50%;
 }
 .winner-info {
@@ -725,14 +803,11 @@ onUnmounted(() => clearInterval(timer));
   margin-left: 16px;
 }
 .winner-round {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  border-bottom: none;
-  display: block;
-  width: fit-content;
-  font-style: normal;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.05em;
 }
 .winner-addr {
   font-family: $font-mono;
@@ -745,38 +820,16 @@ onUnmounted(() => clearInterval(timer));
   font-weight: 700;
   font-family: $font-mono;
   color: #00e599;
-  background: transparent;
-  padding: 0;
   font-size: 16px;
-  border: none;
-  box-shadow: none;
+  text-shadow: 0 0 10px rgba(0, 229, 153, 0.3);
 }
 
 .empty {
   text-align: center;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
-  font-size: 14px;
-  padding: 24px;
-}
-
-.total-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  margin-bottom: 24px;
-}
-.total-label {
-  font-size: 14px;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
-}
-.total-value {
-  font-size: 20px;
-  font-weight: 700;
-  color: white;
-  font-family: $font-mono;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  padding: 32px;
+  font-style: italic;
 }
 
 .scrollable {

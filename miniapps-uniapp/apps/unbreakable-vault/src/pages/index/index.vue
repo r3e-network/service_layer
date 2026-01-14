@@ -13,39 +13,62 @@
     </view>
 
     <view v-if="activeTab === 'vault'" class="tab-content scrollable">
-      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
+      <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center glass-status">
         <text class="font-bold uppercase status-text">{{ status.msg }}</text>
       </NeoCard>
 
-      <NeoCard :title="t('vaultBalance')" variant="erobo">
-        <view class="balance-container">
-          <view class="balance-display">
-            <text class="balance">{{ formatNum(vaultBalance) }}</text>
-            <text class="balance-label">GAS</text>
-          </view>
-          <view class="security-badge">
-            <text class="security-icon">🔒</text>
-            <text class="security-text">{{ t("maximum") }} {{ t("securityLevel") }}</text>
-          </view>
+      <!-- Vault Balance Main Card -->
+      <view class="vault-hero-card">
+        <view class="vault-glow"></view>
+        <view class="vault-content">
+           <view class="security-level">
+              <view class="level-indicator active"></view>
+              <view class="level-indicator active"></view>
+              <view class="level-indicator active"></view>
+              <view class="level-indicator active"></view>
+              <text class="security-label">{{ t("maximum") }} {{ t("securityLevel") }}</text>
+           </view>
+           
+           <view class="balance-wrapper">
+             <text class="balance-value">{{ formatNum(vaultBalance) }}</text>
+             <text class="balance-unit">GAS</text>
+           </view>
+           
+           <view class="vault-id">
+              <text class="id-label">VAULT ID</text>
+              <text class="id-value">0x...71A2</text>
+           </view>
         </view>
-      </NeoCard>
+      </view>
 
-      <NeoCard :title="t('deposit')" variant="erobo-neo">
-        <NeoInput v-model="depositAmount" type="number" :placeholder="t('amountToDeposit')" class="mb-4" />
-        <NeoButton variant="primary" block :loading="isLoading" @click="deposit">
-          {{ isLoading ? t("processing") : t("depositToVault") }}
-        </NeoButton>
-      </NeoCard>
+      <!-- Action Cards -->
+      <view class="action-grid">
+        <NeoCard :title="t('deposit')" variant="erobo-neo" class="action-card">
+          <view class="action-body">
+            <view class="input-wrapper">
+              <NeoInput v-model="depositAmount" type="number" :placeholder="t('amountToDeposit')" suffix="GAS" />
+            </view>
+            <NeoButton variant="primary" block size="lg" :loading="isLoading" @click="deposit">
+              {{ isLoading ? t("processing") : t("depositToVault") }}
+            </NeoButton>
+          </view>
+        </NeoCard>
 
-      <NeoCard :title="t('withdraw')" variant="erobo">
-        <NeoInput v-model="withdrawAmount" type="number" :placeholder="t('amountToWithdraw')" class="mb-2" />
-        <view class="warning-badge mb-4">
-          <text class="warning-text">{{ t("timeLockWarning") }}</text>
-        </view>
-        <NeoButton variant="secondary" block @click="withdraw">
-          {{ t("requestWithdrawal") }}
-        </NeoButton>
-      </NeoCard>
+        <NeoCard :title="t('withdraw')" variant="erobo" class="action-card">
+          <view class="action-body">
+             <view class="input-wrapper">
+               <NeoInput v-model="withdrawAmount" type="number" :placeholder="t('amountToWithdraw')" suffix="GAS" />
+             </view>
+             <view class="warning-badge-glass mb-4">
+               <text class="warning-icon">⚠</text>
+               <text class="warning-text">{{ t("timeLockWarning") }}</text>
+             </view>
+             <NeoButton variant="secondary" block size="lg" @click="withdraw">
+               {{ t("requestWithdrawal") }}
+             </NeoButton>
+          </view>
+        </NeoCard>
+       </view>
     </view>
 
     <!-- Docs Tab -->
@@ -72,20 +95,20 @@ const translations = {
   title: { en: "Unbreakable Vault", zh: "坚不可摧的保险库" },
   subtitle: { en: "Secure asset storage", zh: "安全资产存储" },
   vaultBalance: { en: "Vault Balance", zh: "保险库余额" },
-  securityLevel: { en: "Security Level", zh: "安全级别" },
-  maximum: { en: "🔒 Maximum", zh: "🔒 最高" },
+  securityLevel: { en: "Security", zh: "安全级别" },
+  maximum: { en: "MAXIMUM", zh: "最高" },
   deposit: { en: "Deposit", zh: "存款" },
-  amountToDeposit: { en: "Amount to deposit", zh: "存款金额" },
-  depositToVault: { en: "Deposit to Vault", zh: "存入保险库" },
+  amountToDeposit: { en: "Amount", zh: "存款金额" },
+  depositToVault: { en: "Deposit Assets", zh: "存入资产" },
   processing: { en: "Processing...", zh: "处理中..." },
   withdraw: { en: "Withdraw", zh: "取款" },
-  amountToWithdraw: { en: "Amount to withdraw", zh: "取款金额" },
-  timeLockWarning: { en: "⚠ 24h time lock applies", zh: "⚠ 适用24小时时间锁" },
+  amountToWithdraw: { en: "Amount", zh: "取款金额" },
+  timeLockWarning: { en: "24h Time Lock Active", zh: "24小时时间锁已激活" },
   requestWithdrawal: { en: "Request Withdrawal", zh: "请求取款" },
   invalidAmount: { en: "Invalid amount", zh: "无效金额" },
   deposited: { en: "Deposited {amount} GAS", zh: "已存入 {amount} GAS" },
   error: { en: "Error", zh: "错误" },
-  withdrawalRequested: { en: "Withdrawal request submitted. Available in 24h", zh: "取款请求已提交。24小时后可用" },
+  withdrawalRequested: { en: "Withdrawal requested", zh: "已请求取款" },
   vault: { en: "Vault", zh: "保险库" },
   docs: { en: "Docs", zh: "文档" },
   docSubtitle: { en: "Secure your assets in the vault.", zh: "在保险库中保护您的资产。" },
@@ -175,7 +198,7 @@ const withdraw = () => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: $space-6;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -186,75 +209,157 @@ const withdraw = () => {
   color: white;
 }
 
-.balance-container {
+/* Hero Vault Card */
+.vault-hero-card {
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(20, 20, 30, 0.4) 0%, rgba(10, 10, 20, 0.6) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  padding: $space-6;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(15px);
+}
+
+.vault-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(0, 229, 153, 0.2) 0%, transparent 70%);
+  filter: blur(40px);
+  z-index: 0;
+}
+
+.vault-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16px 0;
+  gap: $space-4;
 }
 
-.balance-display {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.balance {
-  font-size: 48px;
-  font-weight: 800;
-  color: white;
-  display: block;
-  font-family: $font-family;
-  line-height: 1;
-  text-shadow: 0 0 20px rgba(159, 157, 243, 0.4);
-}
-
-.balance-label {
-  font-size: 14px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.6);
-  text-transform: uppercase;
-  margin-top: 4px;
-  display: block;
-  letter-spacing: 0.1em;
-}
-
-.security-badge {
+.security-level {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(0, 229, 153, 0.1);
+  background: rgba(0, 0, 0, 0.3);
+  padding: 6px 16px;
+  border-radius: 20px;
   border: 1px solid rgba(0, 229, 153, 0.2);
-  padding: 8px 16px;
-  border-radius: 99px;
-  box-shadow: 0 0 15px rgba(0, 229, 153, 0.1);
 }
 
-.security-text {
-  font-size: 12px;
-  font-weight: 700;
-  color: #00E599;
+.level-indicator {
+  width: 4px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  
+  &.active {
+    background: #00e599;
+    box-shadow: 0 0 8px rgba(0, 229, 153, 0.5);
+  }
+}
+
+.security-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: #00e599;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
+  margin-left: 4px;
 }
 
-.security-icon {
-  font-size: 14px;
-}
-
-.warning-badge {
-  background: rgba(255, 222, 10, 0.1);
-  border: 1px solid rgba(255, 222, 10, 0.2);
-  padding: 8px;
-  border-radius: 8px;
+.balance-wrapper {
   text-align: center;
+}
+
+.balance-value {
+  font-size: 56px;
+  font-weight: 900;
+  color: white;
+  line-height: 1;
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+  font-family: $font-family;
+  letter-spacing: -0.02em;
+}
+
+.balance-unit {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  margin-top: 4px;
+  display: block;
+}
+
+.vault-id {
+  position: absolute;
+  bottom: -40px;
+  right: -10px;
+  text-align: right;
+  opacity: 0.3;
+  transform: rotate(-5deg);
+}
+
+.id-label {
+  display: block;
+  font-size: 8px;
+  font-weight: 800;
+}
+.id-value {
+  font-family: monospace;
+  font-size: 10px;
+}
+
+/* Action Grid */
+.action-grid {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.input-wrapper {
+  margin-bottom: $space-4;
+}
+
+.warning-badge-glass {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: $space-3;
+  background: rgba(255, 222, 89, 0.1);
+  border: 1px solid rgba(255, 222, 89, 0.2);
+  border-radius: 8px;
+  margin-bottom: $space-4;
+}
+
+.warning-icon {
+  font-size: 16px;
+  color: #ffde59;
 }
 
 .warning-text {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: #ffde59;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.glass-status {
+  padding: 12px;
+  backdrop-filter: blur(10px);
 }
 
 .scrollable {

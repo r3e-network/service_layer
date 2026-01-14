@@ -1,6 +1,5 @@
 <template>
   <NeoCard :title="t('takeSelfLoan')" variant="erobo-neo" class="borrow-card">
-
     <view class="input-section">
       <NeoInput
         :modelValue="modelValue"
@@ -8,18 +7,21 @@
         type="number"
         :label="t('borrowAmount')"
         :placeholder="t('amountToBorrow')"
+        suffix="GAS"
       />
     </view>
 
-    <view class="ltv-section">
+    <view class="ltv-section-glass">
       <view class="ltv-header">
         <text class="ltv-label">{{ t("loanToValue") }}</text>
         <text :class="['ltv-value', getLTVClass()]">{{ calculatedLTV }}%</text>
       </view>
-      <view class="ltv-bar">
-        <view class="ltv-fill" :style="{ width: calculatedLTV + '%', background: getLTVColor() }"></view>
-        <view class="ltv-marker safe" style="left: 50%"></view>
-        <view class="ltv-marker warning" style="left: 66.7%"></view>
+      <view class="ltv-track">
+        <view class="ltv-fill-glass" :style="{ width: calculatedLTV + '%', background: getLTVColor() }">
+          <view class="ltv-glimmer"></view>
+        </view>
+        <view class="ltv-marker" style="left: 50%"></view>
+        <view class="ltv-marker" style="left: 66.7%"></view>
       </view>
       <view class="ltv-labels">
         <text class="ltv-min">0%</text>
@@ -28,25 +30,26 @@
       </view>
     </view>
 
-    <view class="calculation-grid">
+    <view class="calculator-receipt">
       <view class="calc-row">
         <text class="calc-label">{{ t("collateralRequired") }}</text>
-        <text class="calc-value collateral-req">{{ fmt(parseFloat(modelValue || "0") * 1.5, 2) }} GAS</text>
+        <text class="calc-value mono collateral-req">{{ fmt(parseFloat(modelValue || "0") * 1.5, 2) }} GAS</text>
       </view>
       <view class="calc-row">
         <text class="calc-label">{{ t("monthlyPayment") }}</text>
-        <text class="calc-value payment">{{ fmt(parseFloat(modelValue || "0") * 0.085, 3) }} GAS</text>
+        <text class="calc-value mono payment">{{ fmt(parseFloat(modelValue || "0") * 0.085, 3) }} GAS</text>
       </view>
-      <view class="calc-row">
+      <view class="calc-divider"></view>
+      <view class="calc-row total">
         <text class="calc-label">{{ t("totalRepayment") }}</text>
-        <text class="calc-value total">{{ fmt(parseFloat(modelValue || "0") * 1.02, 2) }} GAS</text>
+        <text class="calc-value mono total">{{ fmt(parseFloat(modelValue || "0") * 1.02, 2) }} GAS</text>
       </view>
     </view>
 
-    <NeoButton variant="primary" size="lg" block :loading="isLoading" @click="$emit('takeLoan')">
+    <NeoButton variant="primary" size="lg" block :loading="isLoading" @click="$emit('takeLoan')" class="borrow-btn">
       <text>{{ isLoading ? t("processing") : t("borrowNow") }}</text>
     </NeoButton>
-    <text class="note">{{ t("note") }}</text>
+    <text class="note-glass">{{ t("note") }}</text>
   </NeoCard>
 </template>
 
@@ -82,9 +85,9 @@ const getLTVClass = () => {
 
 const getLTVColor = () => {
   const ltv = calculatedLTV.value;
-  if (ltv <= 50) return "var(--neo-green)";
-  if (ltv <= 66.7) return "var(--brutal-yellow)";
-  return "var(--brutal-red)";
+  if (ltv <= 50) return "linear-gradient(90deg, #059669, #00e599)";
+  if (ltv <= 66.7) return "linear-gradient(90deg, #ca8a04, #fde047)";
+  return "linear-gradient(90deg, #b91c1c, #ef4444)";
 };
 </script>
 
@@ -92,92 +95,113 @@ const getLTVColor = () => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+.input-section { margin-bottom: $space-6; }
 
-
-
-
-.input-section { margin-bottom: $space-4; }
-
-.ltv-section {
-  margin-bottom: $space-4;
-  padding: $space-3;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
+.ltv-section-glass {
+  margin-bottom: $space-6;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
 }
 
 .ltv-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: $space-3;
+  margin-bottom: 12px;
 }
 
 .ltv-label {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-semibold;
-  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.6);
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .ltv-value {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-black;
-  &.safe { color: var(--neo-green); }
-  &.warning { color: var(--brutal-yellow); }
-  &.danger { color: var(--brutal-red); }
+  font-size: 20px;
+  font-weight: 900;
+  font-family: $font-mono;
+  &.safe { color: #00e599; text-shadow: 0 0 10px rgba(0, 229, 153, 0.3); }
+  &.warning { color: #fde047; text-shadow: 0 0 10px rgba(253, 224, 71, 0.3); }
+  &.danger { color: #ef4444; text-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
 }
 
-.ltv-bar {
-  height: 24px;
-  background: var(--bg-primary);
-  border: $border-width-sm solid var(--border-color);
+.ltv-track {
+  height: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
   position: relative;
-  margin-bottom: $space-2;
+  margin-bottom: 8px;
   overflow: hidden;
 }
 
-.ltv-fill {
-  flex: 1;
-  min-height: 0;
-  transition: width $transition-normal, background $transition-normal;
+.ltv-fill-glass {
+  height: 100%;
+  border-radius: 4px;
+  position: relative;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ltv-glimmer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  transform: translateX(-100%);
+  animation: glimmer 2s infinite;
 }
 
 .ltv-marker {
-  position: absolute; top: 0; width: 2px; flex: 1; min-height: 0;
-  background: var(--border-color); z-index: 1;
-  &.safe { background: var(--neo-green); }
-  &.warning { background: var(--brutal-yellow); }
+  position: absolute; top: 0; bottom: 0; width: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  z-index: 1;
 }
 
 .ltv-labels {
   display: flex; justify-content: space-between;
-  font-size: $font-size-xs; color: var(--text-muted);
+  font-size: 9px; color: rgba(255, 255, 255, 0.4); font-weight: 600;
 }
 
-.ltv-min, .ltv-mid, .ltv-max { font-weight: $font-weight-medium; }
-
-.calculation-grid {
-  display: flex; flex-direction: column; gap: $space-2; margin-bottom: $space-4;
+.calculator-receipt {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: $space-6;
 }
 
 .calc-row {
   display: flex; justify-content: space-between;
-  padding: $space-3; background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
+  margin-bottom: 8px;
 }
 
-.calc-label { font-size: $font-size-sm; color: var(--text-secondary); }
+.calc-label { font-size: 11px; color: rgba(255, 255, 255, 0.6); }
 
 .calc-value {
-  font-size: $font-size-sm; font-weight: $font-weight-bold;
-  &.collateral-req { color: var(--brutal-yellow); }
-  &.payment { color: var(--neo-green); }
-  &.total { color: var(--brutal-blue); }
+  font-size: 12px; font-weight: 700; font-family: $font-mono;
+  &.collateral-req { color: #fde047; }
+  &.payment { color: #00e599; }
+  &.total { color: #3b82f6; }
 }
 
-.note {
-  display: block; margin-top: $space-3;
-  font-size: $font-size-sm; color: var(--text-secondary);
+.calc-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 8px 0;
+}
+
+.borrow-btn { margin-top: 4px; }
+
+.note-glass {
+  display: block; margin-top: 12px;
+  font-size: 10px; color: rgba(255, 255, 255, 0.4);
   text-align: center;
+}
+
+@keyframes glimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 </style>

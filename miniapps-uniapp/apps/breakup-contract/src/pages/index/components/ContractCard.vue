@@ -1,59 +1,79 @@
 <template>
-  <NeoCard :variant="getContractVariant(contract.status)" class="contract-card">
+  <NeoCard :variant="getContractVariant(contract.status)" class="contract-card" :class="contract.status">
     <template #header-extra>
       <view class="contract-status-badge" :class="contract.status">
-        <text class="status-icon" v-if="contract.status === 'active'">💕</text>
-        <text class="status-icon" v-else-if="contract.status === 'broken'">💔</text>
+        <view class="status-indicator">
+          <view class="pulse-dot"></view>
+          <view class="pulse-ring"></view>
+        </view>
         <text class="status-text">{{ t(contract.status) }}</text>
       </view>
     </template>
 
-    <view class="contract-info">
-      <view class="info-row">
-        <text class="info-label">{{ t("partner") }}</text>
-        <text class="info-value mono">{{ contract.partner }}</text>
+    <view class="crack-overlay" v-if="contract.status === 'broken'"></view>
+    
+    <view class="contract-content">
+      <view class="relationship-connector">
+        <view class="avatar me">
+          {{ (address || "").slice(0, 2) }}
+        </view>
+        <view class="connection-line" :class="contract.status">
+          <view class="heart-node">
+            <text class="heart-icon">{{ contract.status === 'broken' ? '💔' : '❤️' }}</text>
+          </view>
+        </view>
+        <view class="avatar partner">
+          {{ contract.partner.slice(0, 2) }}
+        </view>
       </view>
-      <view class="info-row">
-        <text class="info-label">{{ t("stake") }}</text>
-        <text class="info-value text-accent">{{ contract.stake }} GAS</text>
-      </view>
-      <view class="info-row">
-        <text class="info-label">{{ t("duration") }}</text>
-        <text class="info-value">{{ contract.daysLeft }} {{ t("daysLeft") }}</text>
-      </view>
-    </view>
 
-    <view class="contract-progress-section mt-4">
-      <view class="flex justify-between mb-1">
-        <text class="progress-label">{{ t("progress") }}</text>
-        <text class="progress-val">{{ contract.progress }}%</text>
+      <view class="info-grid-glass">
+        <view class="info-item">
+          <text class="info-label">{{ t("stake") }}</text>
+          <text class="info-value stake">{{ contract.stake }} GAS</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">{{ t("duration") }}</text>
+          <text class="info-value">{{ contract.daysLeft }} {{ t("daysLeft") }}</text>
+        </view>
       </view>
-      <view class="progress-track-glass">
-        <view class="progress-fill-glass" :style="{ width: contract.progress + '%' }"></view>
-      </view>
-    </view>
 
-    <view class="contract-actions mt-4">
-      <NeoButton
-        v-if="contract.status === 'pending' && canSign"
-        variant="primary"
-        size="sm"
-        block
-        @click="$emit('sign', contract)"
-      >
-        {{ t("signContract") }}
-      </NeoButton>
-      <NeoButton
-        v-else-if="contract.status === 'active'"
-        variant="danger"
-        size="sm"
-        block
-        @click="$emit('break', contract)"
-      >
-        {{ t("breakContract") }}
-      </NeoButton>
-      <view v-else class="status-display text-center p-2 rounded glass-panel">
-        <text class="status-display-text">{{ t(contract.status) }}</text>
+      <view class="progress-section-glass">
+        <view class="progress-header">
+          <text class="progress-label">{{ t("progress") }}</text>
+          <text class="progress-val">{{ contract.progress }}%</text>
+        </view>
+        <view class="progress-track-glass">
+          <view class="progress-fill-glass" :style="{ width: contract.progress + '%' }">
+            <view class="shimmer"></view>
+          </view>
+        </view>
+      </view>
+
+      <view class="action-area mt-4">
+        <NeoButton
+          v-if="contract.status === 'pending' && canSign"
+          variant="primary"
+          size="sm"
+          block
+          class="glow-btn"
+          @click="$emit('sign', contract)"
+        >
+          {{ t("signContract") }}
+        </NeoButton>
+        <NeoButton
+          v-else-if="contract.status === 'active'"
+          variant="danger"
+          size="sm"
+          block
+          class="break-btn"
+          @click="$emit('break', contract)"
+        >
+          {{ t("breakContract") }}
+        </NeoButton>
+        <view v-else class="status-panel-glass">
+          <text class="status-display-text">{{ t(contract.status) }}</text>
+        </view>
       </view>
     </view>
   </NeoCard>
@@ -101,64 +121,177 @@ const canSign = computed(() =>
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+.contract-card {
+  position: relative;
+  transition: all 0.3s;
+  
+  &.broken {
+    border-color: #ef4444;
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+  }
+  
+  &.active {
+    box-shadow: 0 0 20px rgba(255, 105, 180, 0.2);
+  }
+}
+
+.crack-overlay {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0 L20 40 L10 60 L40 50 L60 80 L80 40 L100 0' fill='none' stroke='rgba(255,255,255,0.1)' stroke-width='1'/%3E%3C/svg%3E");
+  background-size: cover;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 1;
+}
+
 .contract-status-badge {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
+  gap: 6px;
+  padding: 4px 10px;
   border-radius: 99px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  &.active { border-color: #ff6b6b; color: #ff6b6b; }
+  &.broken { border-color: #ef4444; color: #ef4444; }
+  &.pending { border-color: #fde047; color: #fde047; }
+}
+
+.status-indicator {
+  position: relative;
+  width: 8px; height: 8px;
+}
+
+.pulse-dot {
+  width: 8px; height: 8px;
+  background: currentColor;
+  border-radius: 50%;
+}
+
+.pulse-ring {
+  position: absolute;
+  top: -4px; left: -4px; right: -4px; bottom: -4px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  opacity: 0;
+  animation: ripple 2s infinite;
+}
+
+.status-text {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  
-  &.active { background: rgba(0, 229, 153, 0.1); color: #00E599; border: 1px solid rgba(0, 229, 153, 0.2); }
-  &.pending { background: rgba(255, 222, 10, 0.1); color: #ffde59; border: 1px solid rgba(255, 222, 10, 0.2); }
-  &.broken { background: rgba(239, 68, 68, 0.1); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.2); }
-  &.ended { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); }
 }
 
-.contract-info {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.info-row {
+.relationship-connector {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 4px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 24px;
+  padding: 0 16px;
+}
+
+.avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  text-transform: uppercase;
+  z-index: 2;
+}
+
+.connection-line {
+  flex: 1;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0 12px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &.active {
+    background: linear-gradient(90deg, #ff6b6b, #ff9f43);
+    box-shadow: 0 0 10px rgba(255, 107, 107, 0.4);
+  }
+  
+  &.broken {
+    background: transparent;
+    border-top: 2px dashed #ef4444;
+  }
+}
+
+.heart-node {
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.heart-icon { font-size: 12px; }
+
+.info-grid-glass {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.info-item {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  text-align: center;
 }
 
 .info-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 9px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.5);
+  display: block;
+  margin-bottom: 4px;
 }
 
 .info-value {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   color: white;
-  &.mono { font-family: $font-mono; font-size: 11px; }
-  &.text-accent { color: #FF6B6B; }
+  font-family: $font-mono;
+  
+  &.stake {
+    color: #00e599;
+    text-shadow: 0 0 10px rgba(0, 229, 153, 0.3);
+  }
 }
 
-.progress-label {
-  font-size: 10px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.6);
-  text-transform: uppercase;
+.progress-section-glass {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.progress-val {
-  font-size: 10px;
-  font-weight: 700;
-  color: #FF6B6B;
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
 }
+
+.progress-label { font-size: 10px; font-weight: 700; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; }
+.progress-val { font-size: 10px; font-weight: 700; color: #ff6b6b; font-family: $font-mono; }
 
 .progress-track-glass {
   height: 6px;
@@ -169,19 +302,48 @@ const canSign = computed(() =>
 
 .progress-fill-glass {
   height: 100%;
-  background: linear-gradient(90deg, #FF6B6B, #FFD93D);
-  border-radius: 99px;
+  background: linear-gradient(90deg, #ff6b6b, #ff9f43);
+  position: relative;
 }
 
-.glass-panel {
+.shimmer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+  transform: translateX(-100%);
+  animation: glimmer 2s infinite;
+}
+
+.status-panel-glass {
+  text-align: center;
+  padding: 8px;
   background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .status-display-text {
   font-size: 11px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  font-weight: 700;
   text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.glow-btn {
+  box-shadow: 0 0 15px rgba(253, 224, 71, 0.2);
+}
+
+.break-btn:hover {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+}
+
+@keyframes ripple {
+  0% { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+@keyframes glimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 </style>

@@ -1,18 +1,20 @@
 <template>
   <NeoCard :title="t('collateralStatus')" variant="erobo" class="collateral-card">
     <view class="collateral-visual">
-      <view class="collateral-bar">
-        <view class="collateral-fill" :style="{ width: collateralUtilization + '%' }">
-          <text class="collateral-percent">{{ collateralUtilization }}%</text>
+      <view class="bar-container-glass">
+        <view class="bar-fill-glass" :style="{ width: collateralUtilization + '%' }">
+          <view class="bar-shine"></view>
+          <text class="bar-text-glass">{{ collateralUtilization }}%</text>
         </view>
       </view>
-      <view class="collateral-info">
-        <view class="info-row">
-          <text class="info-label">{{ t("locked") }}:</text>
+      
+      <view class="info-grid-glass">
+        <view class="info-box-glass">
+          <text class="info-label">{{ t("locked") }}</text>
           <text class="info-value locked">{{ fmt(loan.collateralLocked, 2) }} GAS</text>
         </view>
-        <view class="info-row">
-          <text class="info-label">{{ t("available") }}:</text>
+        <view class="info-box-glass">
+          <text class="info-label">{{ t("available") }}</text>
           <text class="info-value available">{{ fmt(terms.maxBorrow * 1.5 - loan.collateralLocked, 2) }} GAS</text>
         </view>
       </view>
@@ -38,66 +40,84 @@ const fmt = (n: number, d = 2) => formatNumber(n, d);
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
-
-
-
-
 .collateral-visual {
   display: flex;
   flex-direction: column;
-  gap: $space-3;
+  gap: 16px;
 }
 
-.collateral-bar {
-  height: 40px;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
+.bar-container-glass {
+  height: 24px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 99px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
   position: relative;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
 }
 
-.collateral-fill {
-  flex: 1;
-  min-height: 0;
-  background: var(--neo-green);
+.bar-fill-glass {
+  height: 100%;
+  background: linear-gradient(90deg, #059669, #00e599);
+  border-radius: 99px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  transition: width $transition-normal;
-  border-right: $border-width-sm solid var(--border-color);
+  justify-content: flex-end;
+  padding-right: 8px;
+  position: relative;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 40px;
 }
 
-.collateral-percent {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: $neo-black;
+.bar-shine {
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transform: skewX(-20deg) translateX(-150%);
+  animation: shine 2.5s infinite;
 }
 
-.collateral-info {
+.bar-text-glass {
+  font-size: 10px;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.7);
+  z-index: 2;
+}
+
+.info-grid-glass {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.info-box-glass {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: $space-2;
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  padding: $space-2;
-  background: var(--bg-secondary);
-  border: $border-width-sm solid var(--border-color);
+  gap: 4px;
 }
 
 .info-label {
-  color: var(--text-secondary);
-  font-size: $font-size-sm;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
 }
 
 .info-value {
-  font-weight: $font-weight-bold;
-  font-size: $font-size-sm;
-  &.locked { color: var(--brutal-yellow); }
-  &.available { color: var(--neo-green); }
+  font-size: 14px;
+  font-weight: 700;
+  font-family: $font-mono;
+  &.locked { color: #fde047; }
+  &.available { color: #00e599; }
+}
+
+@keyframes shine {
+  0% { transform: skewX(-20deg) translateX(-150%); }
+  50% { transform: skewX(-20deg) translateX(250%); }
+  100% { transform: skewX(-20deg) translateX(250%); }
 }
 </style>

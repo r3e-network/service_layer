@@ -1,18 +1,31 @@
 <template>
   <NeoCard :title="'📋 ' + t('activePolicies')" class="policies-card" variant="erobo">
-    <view v-for="policy in policies" :key="policy.id" class="policy-row">
-      <view class="policy-header">
-        <view class="policy-icon" :class="'level-' + policy.level">🔒</view>
-        <view class="policy-info">
-          <text class="policy-name">{{ policy.name }}</text>
+    <view class="policies-grid">
+      <view v-for="policy in policies" :key="policy.id" class="policy-item-glass" :class="[policy.level, { 'disabled': !policy.enabled }]">
+        <view class="level-stripe" :class="policy.level"></view>
+        
+        <view class="policy-content">
+          <view class="policy-header">
+            <text class="policy-name">{{ policy.name }}</text>
+            <view class="level-badge" :class="policy.level">{{ getLevelText(policy.level) }}</view>
+          </view>
           <text class="policy-desc">{{ policy.description }}</text>
         </view>
-      </view>
-      <view class="policy-controls">
-        <text :class="['policy-level', 'level-' + policy.level]">{{ getLevelText(policy.level) }}</text>
-        <NeoButton :variant="policy.enabled ? 'primary' : 'secondary'" size="sm" @click="$emit('toggle', policy.id)">
-          {{ policy.enabled ? "ON" : "OFF" }}
-        </NeoButton>
+
+        <view class="policy-action">
+          <NeoButton 
+            :variant="policy.enabled ? 'primary' : 'secondary'" 
+            size="sm" 
+            class="toggle-btn"
+            :class="{ 'active': policy.enabled }"
+            @click="$emit('toggle', policy.id)"
+          >
+            <view class="toggle-track">
+              <view class="toggle-thumb"></view>
+            </view>
+            <text class="toggle-label">{{ policy.enabled ? "ON" : "OFF" }}</text>
+          </NeoButton>
+        </view>
       </view>
     </view>
   </NeoCard>
@@ -54,65 +67,133 @@ const getLevelText = (level: string) => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
-.policy-row {
-  padding: $space-4;
+.policies-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.policy-item-glass {
+  display: flex;
+  align-items: center;
+  position: relative;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
-  margin-bottom: $space-4;
-  color: white;
-  transition: all 0.2s ease;
+  overflow: hidden;
+  padding: 16px;
+  padding-left: 20px; /* Space for stripe */
+  gap: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateX(4px);
+  }
+  
+  &.disabled {
+    opacity: 0.6;
+    background: rgba(0, 0, 0, 0.2);
+    .level-stripe { background: rgba(255, 255, 255, 0.2); box-shadow: none; }
+  }
 }
+
+.level-stripe {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  
+  &.low { background: #94a3b8; }
+  &.medium { background: #00e599; box-shadow: 0 0 10px rgba(0, 229, 153, 0.3); }
+  &.high { background: #f59e0b; box-shadow: 0 0 10px rgba(245, 158, 11, 0.3); }
+  &.critical { background: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+}
+
+.policy-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .policy-header {
   display: flex;
   align-items: center;
-  gap: $space-4;
-  margin-bottom: $space-4;
+  gap: 8px;
 }
-.policy-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  &.level-low { background: rgba(255, 255, 255, 0.1); color: white; }
-  &.level-medium { background: rgba(0, 229, 153, 0.1); color: #00E599; border: 1px solid rgba(0, 229, 153, 0.2); }
-  &.level-high { background: rgba(249, 115, 22, 0.1); color: #F97316; border: 1px solid rgba(249, 115, 22, 0.2); }
-  &.level-critical { background: rgba(239, 68, 68, 0.1); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.2); }
-}
+
 .policy-name {
   font-weight: 700;
   font-size: 14px;
-  text-transform: uppercase;
   color: white;
-  display: block;
 }
+
+.level-badge {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  
+  &.low { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); }
+  &.medium { background: rgba(0, 229, 153, 0.1); color: #00e599; }
+  &.high { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+  &.critical { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+}
+
 .policy-desc {
   font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
 }
-.policy-controls {
+
+.toggle-btn {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  background: rgba(0, 0, 0, 0.2);
-  padding: $space-2 $space-4;
-  border-radius: 8px;
-  color: white;
+  gap: 8px;
+  min-width: 80px;
+  justify-content: center;
+  
+  &.active .toggle-thumb {
+    background: #00e599;
+    box-shadow: 0 0 8px #00e599;
+  }
 }
-.policy-level {
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.8);
-  &.level-critical { color: #EF4444; background: rgba(239, 68, 68, 0.1); }
-  &.level-high { color: #F97316; background: rgba(249, 115, 22, 0.1); }
-  &.level-medium { color: #00E599; background: rgba(0, 229, 153, 0.1); }
+
+.toggle-track {
+  width: 24px;
+  height: 12px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 99px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.toggle-thumb {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.3s;
+  
+  /* Active state handled by parent class or manual transform if needed, 
+     but for simplicity relying on color change for now. 
+     To animate pos: transform: translateX(12px) when active */
+}
+
+.toggle-btn.active .toggle-thumb {
+  transform: translateX(12px);
+  background: #00e599;
+}
+
+.toggle-label {
+  font-size: 10px;
+  font-weight: 800;
+  width: 20px;
+  text-align: center;
 }
 </style>

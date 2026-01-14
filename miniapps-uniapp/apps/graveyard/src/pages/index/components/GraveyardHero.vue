@@ -1,35 +1,32 @@
 <template>
-  <view class="graveyard-hero">
-    <view class="tombstone-scene">
-      <view class="moon"></view>
+  <NeoCard variant="erobo-neo" class="graveyard-hero-card">
+    <view class="tombstone-scene-glass">
+      <view class="moon-glass"></view>
       <view class="fog fog-1"></view>
       <view class="fog fog-2"></view>
-      <view v-for="i in 3" :key="i" :class="['tombstone', `tombstone-${i}`]">
-        <view class="tombstone-top"></view>
-        <view class="tombstone-body">
-          <text class="rip">R.I.P</text>
-        </view>
+      <view v-for="i in 3" :key="i" :class="['tombstone-glass', `tombstone-${i}`]">
+        <text class="rip-glass">R.I.P</text>
       </view>
-      <view class="ground"></view>
     </view>
-    <view class="hero-stats">
-      <view class="hero-stat">
+    
+    <view class="hero-stats-glass">
+      <view class="hero-stat-glass">
         <text class="hero-stat-icon">💀</text>
-        <text class="hero-stat-value">{{ totalDestroyed }}</text>
-        <text class="hero-stat-label">{{ t("itemsDestroyed") }}</text>
+        <text class="hero-stat-value-glass">{{ totalDestroyed }}</text>
+        <text class="hero-stat-label-glass">{{ t("itemsDestroyed") }}</text>
       </view>
-      <view class="hero-stat">
+      <view class="hero-stat-glass">
         <AppIcon name="gas" :size="28" class="hero-stat-icon" />
-        <text class="hero-stat-value">{{ formatNum(gasReclaimed) }}</text>
-        <text class="hero-stat-label">{{ t("gasReclaimed") }}</text>
+        <text class="hero-stat-value-glass">{{ formatNum(gasReclaimed) }}</text>
+        <text class="hero-stat-label-glass">{{ t("gasReclaimed") }}</text>
       </view>
     </view>
-  </view>
+  </NeoCard>
 </template>
 
 <script setup lang="ts">
 import { formatNumber } from "@/shared/utils/format";
-import { AppIcon } from "@/shared/components";
+import { AppIcon, NeoCard } from "@/shared/components";
 
 defineProps<{
   totalDestroyed: number;
@@ -44,100 +41,110 @@ const formatNum = (n: number) => formatNumber(n, 2);
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
-.graveyard-hero {
-  background: var(--bg-card, white);
-  border: 4px solid var(--border-color, black);
-  padding: $space-8;
-  position: relative;
+.graveyard-hero-card {
   overflow: hidden;
-  box-shadow: 12px 12px 0 var(--shadow-color, black);
-  color: var(--text-primary, black);
 }
 
-.tombstone-scene {
+.tombstone-scene-glass {
   height: 140px;
   display: flex;
   justify-content: space-around;
   align-items: flex-end;
-  margin-bottom: $space-8;
+  margin-bottom: $space-6;
   position: relative;
-  border-bottom: 6px solid var(--border-color, black);
-  background: var(--bg-elevated, #f0f0f0);
+  background: linear-gradient(180deg, rgba(20, 20, 40, 0.4), rgba(40, 40, 60, 0.6));
+  border-radius: 8px;
   padding: 0 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
-.moon {
+.moon-glass {
   position: absolute;
   top: 15px;
   right: 30px;
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   background: #ffde59;
-  border: 4px solid var(--border-color, black);
+  border-radius: 50%;
+  box-shadow: 0 0 20px rgba(255, 222, 89, 0.6);
+  opacity: 0.8;
 }
 
-.tombstone {
-  width: 60px;
-  height: 90px;
-  background: var(--bg-card, white);
-  border: 4px solid var(--border-color, black);
+.tombstone-glass {
+  width: 50px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 25px 25px 4px 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   z-index: 2;
-  box-shadow: 4px -4px 0 var(--shadow-color, black);
-  &.tombstone-1 {
-    transform: rotate(-5deg);
-  }
-  &.tombstone-3 {
-    transform: rotate(5deg);
-  }
+  backdrop-filter: blur(4px);
+  &.tombstone-1 { bottom: 0; transform: scale(0.9); }
+  &.tombstone-2 { bottom: 0; transform: scale(1.1); z-index: 3; }
+  &.tombstone-3 { bottom: 0; transform: scale(0.95); }
 }
 
-.rip {
-  font-size: 14px;
-  color: var(--text-primary, black);
-  font-weight: $font-weight-black;
-  letter-spacing: 2px;
-  font-style: italic;
+.rip-glass {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 700;
+  letter-spacing: 1px;
 }
 
-.hero-stats {
+.hero-stats-glass {
   display: flex;
   gap: $space-4;
 }
-.hero-stat {
+
+.hero-stat-glass {
   flex: 1;
   text-align: center;
-  background: #ffde59;
+  background: rgba(255, 255, 255, 0.05);
   padding: $space-4;
-  border: 4px solid var(--border-color, black);
-  box-shadow: 6px 6px 0 var(--shadow-color, black);
-  transition: transform 0.2s;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background 0.2s;
+  
   &:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 8px 8px 0 var(--shadow-color, black);
+    background: rgba(255, 255, 255, 0.1);
   }
 }
+
 .hero-stat-icon {
-  font-size: 32px;
-  display: block;
+  font-size: 24px;
   margin-bottom: 8px;
 }
-.hero-stat-value {
-  font-size: 24px;
-  font-weight: $font-weight-black;
-  color: var(--text-primary, black);
+
+.hero-stat-value-glass {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
   font-family: $font-mono;
   display: block;
-  font-style: italic;
 }
-.hero-stat-label {
+
+.hero-stat-label-glass {
   font-size: 10px;
-  font-weight: $font-weight-black;
+  font-weight: 700;
   text-transform: uppercase;
-  color: var(--text-primary, black);
+  color: rgba(255, 255, 255, 0.5);
   letter-spacing: 1px;
+  margin-top: 4px;
+  display: block;
+}
+
+.fog {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(0deg, rgba(255, 255, 255, 0.1), transparent);
+  filter: blur(8px);
+  z-index: 10;
 }
 </style>

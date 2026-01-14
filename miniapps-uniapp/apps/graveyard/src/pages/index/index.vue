@@ -233,7 +233,7 @@ const executeDestroy = async () => {
 
 const loadStats = async () => {
   if (!contractAddress.value) {
-    contractAddress.value = (await getContractAddress()) as string;
+    contractAddress.value = (await ensureContractAddress()) as string;
   }
   if (!contractAddress.value) return;
   try {
