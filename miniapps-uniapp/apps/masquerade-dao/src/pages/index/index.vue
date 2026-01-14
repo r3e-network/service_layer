@@ -22,7 +22,7 @@
           <view class="form-group">
             <view class="input-group">
               <text class="input-label">{{ t("identitySeed") }}</text>
-              <NeoInput v-model="identitySeed" :placeholder="t("identityPlaceholder")" />
+              <NeoInput v-model="identitySeed" :placeholder="t('identityPlaceholder')" />
             </view>
 
             <view v-if="identityHash" class="hash-preview">
@@ -73,7 +73,7 @@
           <view class="form-group">
             <view class="input-group">
               <text class="input-label">{{ t("proposalId") }}</text>
-              <NeoInput v-model="proposalId" type="number" :placeholder="t("proposalPlaceholder")" />
+              <NeoInput v-model="proposalId" type="number" :placeholder="t('proposalPlaceholder')" />
             </view>
 
             <view class="input-group">
@@ -92,7 +92,7 @@
 
             <view class="input-group">
               <text class="input-label">{{ t("zkProof") }}</text>
-              <NeoInput v-model="proof" :placeholder="t("proofPlaceholder")" />
+              <NeoInput v-model="proof" :placeholder="t('proofPlaceholder')" />
             </view>
 
             <view class="vote-actions">
