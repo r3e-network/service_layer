@@ -12,12 +12,6 @@
         </NeoCard>
       </view>
 
-      <!-- DEMO Mode Banner -->
-      <NeoCard variant="warning" flat class="mb-4 text-center">
-        <text class="demo-badge">{{ t("demoMode") }}</text>
-        <text class="demo-note">{{ t("demoNote") }}</text>
-      </NeoCard>
-
       <NeoCard v-if="status" :variant="status.type === 'error' ? 'danger' : 'success'" class="mb-4 text-center">
         <text class="font-bold status-msg">{{ status.msg }}</text>
       </NeoCard>
@@ -31,47 +25,39 @@
                 <view class="capsule-shimmer"></view>
               </view>
               <view class="capsule-label">
-                <text class="capsule-apy">{{ vault.apy }}%</text>
-                <text class="capsule-apy-label">APY</text>
+                <text class="capsule-apy">{{ fmt(vault.totalLocked, 0) }}</text>
+                <text class="capsule-apy-label">{{ t("totalLocked") }}</text>
               </view>
             </view>
           </view>
           <view class="vault-stats-grid">
             <view class="stat-item-glass">
-              <text class="stat-label">{{ t("tvl") }}</text>
-              <text class="stat-value tvl">{{ fmt(vault.tvl, 0) }}</text>
-              <text class="stat-unit">GAS</text>
+              <text class="stat-label">{{ t("totalLocked") }}</text>
+              <text class="stat-value tvl">{{ fmt(vault.totalLocked, 0) }}</text>
+              <text class="stat-unit">NEO</text>
             </view>
             <view class="stat-item-glass">
-              <text class="stat-label">{{ t("compoundFreq") }}</text>
-              <text class="stat-value freq">{{ vault.compoundFreq }}</text>
+              <text class="stat-label">{{ t("totalCapsules") }}</text>
+              <text class="stat-value freq">{{ vault.totalCapsules }}</text>
             </view>
           </view>
         </view>
       </NeoCard>
 
-      <!-- Growth Chart & Position -->
+      <!-- Your Summary -->
       <NeoCard :title="t('yourPosition')" variant="erobo-neo" class="position-card">
-        <view class="growth-chart-glass">
-          <view class="chart-bars">
-            <view v-for="(bar, idx) in growthBars" :key="idx" class="chart-bar">
-              <view class="bar-fill-glass" :style="{ height: bar.height + '%' }"></view>
-              <text class="bar-label">{{ bar.label }}</text>
-            </view>
-          </view>
-        </view>
         <view class="position-stats">
           <view class="position-row primary">
             <text class="label">{{ t("deposited") }}</text>
-            <text class="value">{{ fmt(position.deposited, 2) }} GAS</text>
+            <text class="value">{{ fmt(position.deposited, 0) }} NEO</text>
           </view>
           <view class="position-row earned">
             <text class="label">{{ t("earned") }}</text>
             <text class="value growth">+{{ fmt(position.earned, 4) }} GAS</text>
           </view>
           <view class="position-row projection">
-            <text class="label">{{ t("est30d") }}</text>
-            <text class="value">{{ fmt(position.est30d, 2) }} GAS</text>
+            <text class="label">{{ t("capsulesCount") }}</text>
+            <text class="value">{{ position.capsules }}</text>
           </view>
         </view>
       </NeoCard>
@@ -88,24 +74,22 @@
               @click="selectedPeriod = period.days"
             >
               <text class="period-days">{{ period.days }}d</text>
-              <text class="period-bonus">+{{ period.bonus }}%</text>
             </view>
           </view>
         </view>
 
         <view class="projected-returns-glass">
-          <text class="returns-label">{{ t("projectedReturns") }}</text>
+          <text class="returns-label">{{ t("unlockDate") }}</text>
           <view class="returns-display">
-            <text class="returns-value">{{ projectedReturns }}</text>
-            <text class="returns-unit">GAS</text>
+            <text class="returns-value">{{ unlockDateLabel }}</text>
           </view>
         </view>
 
-        <NeoInput v-model="amount" type="number" :placeholder="t('amountPlaceholder')" suffix="GAS" />
-        <NeoButton variant="primary" size="lg" block :loading="isLoading" @click="deposit">
+        <NeoInput v-model="amount" type="number" :placeholder="t('amountPlaceholder')" suffix="NEO" />
+        <NeoButton variant="primary" size="lg" block :loading="isLoading" @click="createCapsule">
           {{ isLoading ? t("processing") : t("deposit") }}
         </NeoButton>
-        <text class="note">{{ t("mockDepositFee").replace("{fee}", depositFee) }}</text>
+        <text class="note">{{ t("minLock").replace("{days}", String(MIN_LOCK_DAYS)) }}</text>
       </NeoCard>
     </view>
 
@@ -117,29 +101,40 @@
           <view class="capsule-header">
             <view class="capsule-icon">💊</view>
             <view class="capsule-info">
-              <text class="capsule-amount">{{ fmt(capsule.amount, 2) }} GAS</text>
-              <text class="capsule-period">{{ capsule.lockDays }}d lock</text>
+              <text class="capsule-amount">{{ fmt(capsule.amount, 0) }} NEO</text>
+              <text class="capsule-period">{{ capsule.unlockDate }}</text>
             </view>
-            <view class="capsule-status">
-              <view class="status-badge" :class="capsule.status === 'Ready' ? 'ready' : 'locked'">
-                <text class="status-badge-text">{{ capsule.status }}</text>
+            <view class="capsule-actions">
+              <view class="capsule-status">
+                <view class="status-badge" :class="capsule.status === 'Ready' ? 'ready' : 'locked'">
+                  <text class="status-badge-text">{{ capsule.status === 'Ready' ? t("ready") : t("locked") }}</text>
+                </view>
               </view>
+              <NeoButton
+                v-if="capsule.status === 'Ready'"
+                size="sm"
+                variant="primary"
+                :loading="isLoading"
+                @click="unlockCapsule(capsule.id)"
+              >
+                {{ t("unlock") }}
+              </NeoButton>
             </view>
           </view>
           <view class="capsule-progress">
             <view class="progress-bar-glass">
-              <view class="progress-fill-glass" :style="{ width: capsule.progress + '%' }"></view>
+              <view class="progress-fill-glass" :style="{ width: capsule.status === 'Ready' ? '100%' : '0%' }"></view>
             </view>
-            <text class="progress-text">{{ capsule.progress }}%</text>
+            <text class="progress-text">{{ capsule.status === 'Ready' ? t("ready") : t("locked") }}</text>
           </view>
           <view class="capsule-footer">
             <view class="countdown">
               <text class="countdown-label">{{ t("maturesIn") }}</text>
-              <text class="countdown-value">{{ capsule.countdown }}</text>
+              <text class="countdown-value">{{ capsule.remaining }}</text>
             </view>
             <view class="rewards">
               <text class="rewards-label">{{ t("rewards") }}</text>
-              <text class="rewards-value">+{{ fmt(capsule.rewards, 4) }} GAS</text>
+              <text class="rewards-value">+{{ fmt(capsule.compound, 4) }} GAS</text>
             </view>
           </view>
         </view>
@@ -150,30 +145,18 @@
       <NeoCard :title="t('statistics')" variant="erobo-neo">
         <view class="stats-grid-glass">
           <view class="stat-box-glass">
-            <text class="stat-label">{{ t("totalDeposits") }}</text>
-            <text class="stat-value">{{ stats.totalDeposits }}</text>
+            <text class="stat-label">{{ t("totalCapsules") }}</text>
+            <text class="stat-value">{{ stats.totalCapsules }}</text>
           </view>
           <view class="stat-box-glass">
-            <text class="stat-label">{{ t("totalCompounded") }}</text>
-            <text class="stat-value">{{ fmt(stats.totalCompounded, 4) }} GAS</text>
+            <text class="stat-label">{{ t("totalLocked") }}</text>
+            <text class="stat-value">{{ fmt(stats.totalLocked, 0) }} NEO</text>
           </view>
           <view class="stat-box-glass">
-            <text class="stat-label">{{ t("avgAPY") }}</text>
-            <text class="stat-value">{{ stats.avgAPY }}%</text>
-          </view>
-          <view class="stat-box-glass">
-            <text class="stat-label">{{ t("nextCompound") }}</text>
-            <text class="stat-value">{{ stats.nextCompound }}</text>
+            <text class="stat-label">{{ t("totalAccrued") }}</text>
+            <text class="stat-value">{{ fmt(stats.totalAccrued, 4) }} GAS</text>
           </view>
         </view>
-      </NeoCard>
-
-      <!-- Recent Activity -->
-      <NeoCard :title="t('recentActivity')" variant="erobo">
-        <view v-for="(activity, idx) in recentActivity" :key="idx" class="activity-history">
-          <text>{{ activity.icon }} {{ fmt(activity.amount, 2) }} GAS - {{ activity.timestamp }}</text>
-        </view>
-        <text v-if="recentActivity.length === 0" class="empty-text">{{ t("noHistory") }}</text>
       </NeoCard>
     </view>
 
@@ -197,82 +180,76 @@ import { formatNumber } from "@/shared/utils/format";
 import { createT } from "@/shared/utils/i18n";
 import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard } from "@/shared/components";
 
-// Simulation mode - no real payments
 const isLoading = ref(false);
 
 const translations = {
-  title: { en: "Yield Simulator", zh: "收益模拟器" },
-  demoMode: { en: "EDUCATIONAL DEMO", zh: "教育演示" },
-  demoNote: { en: "Simulated yields - no real funds involved", zh: "模拟收益 - 不涉及真实资金" },
-  vaultStats: { en: "Example Vault", zh: "示例金库" },
-  apy: { en: "APY", zh: "年化收益率" },
-  tvl: { en: "TVL", zh: "总锁仓量" },
-  compoundFreq: { en: "Compound freq", zh: "复利频率" },
-  yourPosition: { en: "Simulated Position", zh: "模拟仓位" },
-  deposited: { en: "Deposited", zh: "已存入" },
-  earned: { en: "Earned", zh: "已赚取" },
-  est30d: { en: "Est. 30d", zh: "预计30天" },
-  manage: { en: "Manage", zh: "管理" },
-  createCapsule: { en: "Simulate Deposit", zh: "模拟存款" },
+  title: { en: "Compound Capsule", zh: "复利胶囊" },
+  vaultStats: { en: "Vault Overview", zh: "金库概览" },
+  totalLocked: { en: "Total Locked", zh: "总锁定量" },
+  totalCapsules: { en: "Total Capsules", zh: "胶囊总数" },
+  yourPosition: { en: "Your Summary", zh: "你的概览" },
+  deposited: { en: "Locked (NEO)", zh: "已锁定 (NEO)" },
+  earned: { en: "Accrued GAS", zh: "累计 GAS" },
+  capsulesCount: { en: "Capsules", zh: "胶囊数量" },
+  createCapsule: { en: "Create Capsule", zh: "创建胶囊" },
   lockPeriod: { en: "Lock Period", zh: "锁定期限" },
-  projectedReturns: { en: "Projected Returns", zh: "预计收益" },
-  amountPlaceholder: { en: "Amount (GAS)", zh: "金额 (GAS)" },
-  processing: { en: "Simulating...", zh: "模拟中..." },
-  deposit: { en: "Run Simulation", zh: "运行模拟" },
-  exampleRates: { en: "Example rates for educational purposes", zh: "仅供教育目的的示例利率" },
-  enterValidAmount: { en: "Enter a valid amount", zh: "请输入有效金额" },
-  depositedAmount: { en: "Simulation: {amount} GAS deposited scenario", zh: "模拟：{amount} GAS 存款场景" },
-  mockDepositFee: { en: "Simulation deposit fee: {fee} GAS", zh: "模拟存款费用：{fee} GAS" },
-  simulationError: { en: "Simulation error", zh: "模拟错误" },
+  unlockDate: { en: "Unlock Date", zh: "解锁日期" },
+  amountPlaceholder: { en: "Amount (NEO)", zh: "金额 (NEO)" },
+  processing: { en: "Creating...", zh: "创建中..." },
+  deposit: { en: "Create Capsule", zh: "创建胶囊" },
+  minLock: { en: "Minimum lock: {days} days", zh: "最短锁定：{days} 天" },
+  enterValidAmount: { en: "Enter a whole-number NEO amount", zh: "请输入整数 NEO 金额" },
   contractUnavailable: { en: "Contract unavailable", zh: "合约不可用" },
-  main: { en: "Simulate", zh: "模拟" },
-  stats: { en: "Stats", zh: "统计" },
-  activeCapsules: { en: "Active Capsules", zh: "活跃胶囊" },
-  maturesIn: { en: "Matures in", zh: "到期时间" },
-  rewards: { en: "Rewards", zh: "奖励" },
-  noCapsules: { en: "No active capsules", zh: "暂无活跃胶囊" },
-  statistics: { en: "Statistics", zh: "统计数据" },
-  totalDeposits: { en: "Total Deposits", zh: "总存款数" },
-  totalCompounded: { en: "Total Compounded", zh: "总复利收益" },
-  avgAPY: { en: "Avg APY", zh: "平均年化" },
-  nextCompound: { en: "Next Compound", zh: "下次复利" },
-  recentActivity: { en: "Recent Activity", zh: "最近活动" },
-  noHistory: { en: "No history yet", zh: "暂无记录" },
+  connectWallet: { en: "Please connect your wallet", zh: "请连接钱包" },
+  capsuleCreated: { en: "Capsule created", zh: "胶囊已创建" },
+  capsuleUnlocked: { en: "Capsule unlocked", zh: "胶囊已解锁" },
+  unlockFailed: { en: "Unlock failed", zh: "解锁失败" },
+  main: { en: "Overview", zh: "概览" },
+  stats: { en: "My Capsules", zh: "我的胶囊" },
+  activeCapsules: { en: "Your Capsules", zh: "你的胶囊" },
+  maturesIn: { en: "Time remaining", zh: "剩余时间" },
+  rewards: { en: "Accrued GAS", zh: "累计 GAS" },
+  ready: { en: "Ready", zh: "可解锁" },
+  locked: { en: "Locked", zh: "已锁定" },
+  unlock: { en: "Unlock", zh: "解锁" },
+  noCapsules: { en: "No capsules yet", zh: "暂无胶囊" },
+  statistics: { en: "Totals", zh: "合计" },
+  totalAccrued: { en: "Total Accrued", zh: "累计收益" },
 
   docs: { en: "Docs", zh: "文档" },
   docSubtitle: {
-    en: "Auto-compounding yield optimizer for Neo assets",
-    zh: "Neo 资产自动复利收益优化器",
+    en: "Time-locked NEO capsules with auto-compounding",
+    zh: "自动复利的 NEO 时间锁胶囊",
   },
   docDescription: {
-    en: "Compound Capsule automatically reinvests your staking rewards to maximize yield through the power of compound interest. Set it and forget it - your assets grow automatically.",
-    zh: "Compound Capsule 自动将您的质押奖励再投资，通过复利的力量最大化收益。设置后即可忘记 - 您的资产自动增长。",
+    en: "Compound Capsule locks NEO in a time capsule until maturity. When it unlocks, you receive your principal back and any accrued GAS.",
+    zh: "Compound Capsule 将 NEO 锁定至到期。解锁时返还本金及累计 GAS。",
   },
   step1: {
-    en: "Connect your Neo wallet and select assets to deposit",
-    zh: "连接您的 Neo 钱包并选择要存入的资产",
+    en: "Connect your Neo wallet",
+    zh: "连接您的 Neo 钱包",
   },
   step2: {
-    en: "Choose your compounding frequency (daily, weekly, etc.)",
-    zh: "选择复利频率（每日、每周等）",
+    en: "Choose a lock period and NEO amount",
+    zh: "选择锁定期限和 NEO 金额",
   },
   step3: {
-    en: "Confirm deposit and let the smart contract handle compounding",
-    zh: "确认存款，让智能合约处理复利",
+    en: "Create the capsule on-chain",
+    zh: "在链上创建胶囊",
   },
   step4: {
-    en: "Withdraw anytime with accumulated compound interest",
-    zh: "随时提取累积的复利收益",
+    en: "Unlock when the capsule matures",
+    zh: "到期后解锁胶囊",
   },
-  feature1Name: { en: "Auto-Compounding", zh: "自动复利" },
+  feature1Name: { en: "Time Lock", zh: "时间锁" },
   feature1Desc: {
-    en: "Smart contract automatically reinvests rewards at optimal intervals.",
-    zh: "智能合约在最佳间隔自动再投资奖励。",
+    en: "NEO stays locked until the unlock date.",
+    zh: "NEO 将锁定至解锁日期。",
   },
-  feature2Name: { en: "Gas Optimized", zh: "Gas 优化" },
+  feature2Name: { en: "Auto-Compounding", zh: "自动复利" },
   feature2Desc: {
-    en: "Batched transactions minimize gas costs for maximum efficiency.",
-    zh: "批量交易最小化 gas 成本以获得最大效率。",
+    en: "Accrued GAS is released on unlock.",
+    zh: "解锁时释放累计 GAS。",
   },
   wrongChain: { en: "Wrong Network", zh: "网络错误" },
   wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
@@ -290,85 +267,78 @@ const activeTab = ref("main");
 
 type StatusType = "success" | "error";
 type Status = { msg: string; type: StatusType };
-type Vault = { apy: number; tvl: number; compoundFreq: string };
-type Position = { deposited: number; earned: number; est30d: number };
+type Vault = { totalLocked: number; totalCapsules: number };
+type Position = { deposited: number; earned: number; capsules: number };
+type Capsule = {
+  id: string;
+  amount: number;
+  unlockTime: number;
+  unlockDate: string;
+  remaining: string;
+  compound: number;
+  status: "Ready" | "Locked";
+};
 
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
-const APP_ID = "miniapp-compound-capsule";
-const { address, connect, chainType, switchChain } = useWallet() as any;
-const contractAddress = ref<string>("0xc56f33fc6ec47edbd594472833cf57505d5f99aa"); // Placeholder/Demo Contract
+const { address, connect, chainType, switchChain, getContractAddress, invokeContract } = useWallet() as any;
+const contractAddress = ref<string | null>(null);
 
 const ensureContractAddress = async () => {
+  if (!contractAddress.value) {
+    contractAddress.value = await getContractAddress();
+  }
+  if (!contractAddress.value) throw new Error(t("contractUnavailable"));
   return contractAddress.value;
 };
 
-const vault = ref<Vault>({ apy: 18.5, tvl: 125000, compoundFreq: "Every 6h" });
-const position = ref<Position>({ deposited: 100, earned: 1.2345, est30d: 1.54 });
+const MIN_LOCK_DAYS = 7;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const vault = ref<Vault>({ totalLocked: 0, totalCapsules: 0 });
+const position = ref<Position>({ deposited: 0, earned: 0, capsules: 0 });
+const stats = ref({ totalCapsules: 0, totalLocked: 0, totalAccrued: 0 });
+const activeCapsules = ref<Capsule[]>([]);
 const amount = ref<string>("");
-const depositFee = "0.010";
 const status = ref<Status | null>(null);
 const selectedPeriod = ref<number>(30);
 
-// Lock period options with bonus APY
-const lockPeriods = [
-  { days: 7, bonus: 0 },
-  { days: 30, bonus: 2 },
-  { days: 90, bonus: 5 },
-  { days: 180, bonus: 10 },
-];
+const lockPeriods = [{ days: 7 }, { days: 30 }, { days: 90 }, { days: 180 }];
 
-// Capsule fill percentage (visual effect)
-const fillPercentage = computed(() => {
-  const maxTvl = 200000;
-  return Math.min((vault.value.tvl / maxTvl) * 100, 100);
+const fillPercentage = computed(() => (vault.value.totalLocked > 0 ? 100 : 0));
+
+const unlockDateLabel = computed(() => {
+  const unlockTime = Date.now() + selectedPeriod.value * DAY_MS;
+  return new Date(unlockTime).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 });
-
-// Growth chart data
-const growthBars = computed(() => {
-  const base = position.value.deposited;
-  return [
-    { label: "Now", height: 100 },
-    { label: "7d", height: 100 + (vault.value.apy / 365) * 7 * 5 },
-    { label: "30d", height: 100 + (vault.value.apy / 365) * 30 * 5 },
-    { label: "90d", height: 100 + (vault.value.apy / 365) * 90 * 5 },
-  ];
-});
-
-// Projected returns calculator
-const projectedReturns = computed(() => {
-  const amt = parseFloat(amount.value) || 0;
-  const period = lockPeriods.find((p) => p.days === selectedPeriod.value);
-  if (!period || amt <= 0) return "0.00";
-  const totalAPY = vault.value.apy + period.bonus;
-  const returns = (amt * totalAPY * period.days) / (365 * 100);
-  return returns.toFixed(4);
-});
-
-// Active capsules - fetched from contract
-const activeCapsules = ref<
-  {
-    amount: number;
-    lockDays: number;
-    progress: number;
-    countdown: string;
-    rewards: number;
-    status: string;
-  }[]
->([]);
-
-const stats = ref({ totalDeposits: 0, totalCompounded: 0, avgAPY: 18.5, nextCompound: "5h 23m" });
-const recentActivity = ref<{ icon: string; amount: number; timestamp: string }[]>([]);
 
 const fmt = (n: number, d = 2) => formatNumber(n, d);
+const formatCountdown = (ms: number) => {
+  if (ms <= 0) return t("ready");
+  const totalSeconds = Math.floor(ms / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
+};
+const formatUnlockDate = (ms: number) =>
+  new Date(ms).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 
 // Fetch capsules from smart contract
 const fetchData = async () => {
-  if (!address.value) return;
-
   try {
     const contract = await ensureContractAddress();
     const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
@@ -377,7 +347,6 @@ const fetchData = async () => {
       return;
     }
 
-    // Get total capsules count from contract
     const totalResult = (await sdk.invoke("invokeRead", {
       contract,
       method: "TotalCapsules",
@@ -385,11 +354,13 @@ const fetchData = async () => {
     })) as any;
 
     const totalCapsules = parseInt(totalResult?.stack?.[0]?.value || "0");
-    const userCapsules: typeof activeCapsules.value = [];
-    let totalDeposited = 0;
-    let totalCompounded = 0;
+    const userCapsules: Capsule[] = [];
+    let totalLocked = 0;
+    let userLocked = 0;
+    let userAccrued = 0;
+    const now = Date.now();
+    const userAddress = address.value;
 
-    // Find user's capsules
     for (let i = 1; i <= totalCapsules; i++) {
       const capsuleResult = (await sdk.invoke("invokeRead", {
         contract,
@@ -400,70 +371,117 @@ const fetchData = async () => {
       if (capsuleResult?.stack?.[0]) {
         const data = capsuleResult.stack[0].value;
         const owner = data?.owner;
+        const principal = parseInt(data?.principal || "0");
+        const unlockTime = parseInt(data?.unlockTime || "0");
+        const compoundRaw = parseInt(data?.compound || "0");
 
-        if (owner === address.value) {
-          const principal = parseInt(data?.principal || "0");
-          const unlockTime = parseInt(data?.unlockTime || "0");
-          const compound = parseInt(data?.compound || "0") / 1e8;
-          const now = Date.now();
-          const lockDays = Math.ceil((unlockTime - now) / (24 * 60 * 60 * 1000));
-          const progress = unlockTime <= now ? 100 : Math.max(0, 100 - (lockDays / 90) * 100);
+        totalLocked += principal;
 
+        if (userAddress && owner === userAddress) {
+          const isReady = unlockTime <= now;
+          const compound = compoundRaw / 1e8;
           userCapsules.push({
+            id: i.toString(),
             amount: principal,
-            lockDays: Math.max(0, lockDays),
-            progress: Math.round(progress),
-            countdown: lockDays > 0 ? `${lockDays}d` : "Ready",
-            rewards: compound,
-            status: unlockTime <= now ? "Ready" : "Locked",
+            unlockTime,
+            unlockDate: formatUnlockDate(unlockTime),
+            remaining: isReady ? t("ready") : formatCountdown(unlockTime - now),
+            compound,
+            status: isReady ? "Ready" : "Locked",
           });
 
-          totalDeposited += principal;
-          totalCompounded += compound;
+          userLocked += principal;
+          userAccrued += compound;
         }
       }
     }
 
+    vault.value = { totalLocked, totalCapsules };
     activeCapsules.value = userCapsules;
-    position.value.deposited = totalDeposited;
-    position.value.earned = totalCompounded;
-    stats.value.totalDeposits = userCapsules.length;
-    stats.value.totalCompounded = totalCompounded;
+    position.value = { deposited: userLocked, earned: userAccrued, capsules: userCapsules.length };
+    stats.value = { totalCapsules: userCapsules.length, totalLocked: userLocked, totalAccrued: userAccrued };
   } catch (e) {
     console.warn("[CompoundCapsule] Failed to fetch data:", e);
   }
 };
 
 onMounted(() => {
-  fetchData();
+  connect().finally(() => fetchData());
 });
 
-const deposit = async (): Promise<void> => {
+const createCapsule = async (): Promise<void> => {
   if (isLoading.value) return;
-  const amt = parseFloat(amount.value);
-  if (!(amt > 0)) return void (status.value = { msg: t("enterValidAmount"), type: "error" });
+  const amt = Number(amount.value);
+  if (!Number.isFinite(amt) || amt <= 0 || !Number.isInteger(amt)) {
+    status.value = { msg: t("enterValidAmount"), type: "error" };
+    return;
+  }
 
-  // Simulation mode - no real payment
+  if (selectedPeriod.value < MIN_LOCK_DAYS) {
+    status.value = { msg: t("minLock").replace("{days}", String(MIN_LOCK_DAYS)), type: "error" };
+    return;
+  }
+
   isLoading.value = true;
+  try {
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) {
+      throw new Error(t("connectWallet"));
+    }
 
-  // Simulate processing delay
-  await new Promise((resolve) => setTimeout(resolve, 1200));
+    const contract = await ensureContractAddress();
+    const unlockTime = Date.now() + selectedPeriod.value * DAY_MS;
 
-  position.value.deposited += amt;
-  // Simulate earned based on APY
-  position.value.earned += amt * (vault.value.apy / 100 / 12);
-  position.value.est30d = position.value.deposited * (vault.value.apy / 100 / 12);
+    await invokeContract({
+      scriptHash: contract,
+      operation: "CreateCapsule",
+      args: [
+        { type: "Hash160", value: address.value },
+        { type: "Integer", value: String(amt) },
+        { type: "Integer", value: String(unlockTime) },
+      ],
+    });
 
-  stats.value.totalDeposits++;
-  recentActivity.value.unshift({
-    icon: "💰",
-    amount: amt,
-    timestamp: new Date().toLocaleTimeString(),
-  });
-  if (recentActivity.value.length > 10) recentActivity.value.pop();
+    status.value = { msg: t("capsuleCreated"), type: "success" };
+    amount.value = "";
+    await fetchData();
+  } catch (e: any) {
+    status.value = { msg: e.message || t("contractUnavailable"), type: "error" };
+  } finally {
+    isLoading.value = false;
+  }
+};
 
-  status.value = { msg: t("depositedAmount").replace("{amount}", String(amt)), type: "success" };
-  isLoading.value = false;
+const unlockCapsule = async (capsuleId: string) => {
+  if (isLoading.value) return;
+  isLoading.value = true;
+  try {
+    if (!address.value) {
+      await connect();
+    }
+    if (!address.value) {
+      throw new Error(t("connectWallet"));
+    }
+
+    const contract = await ensureContractAddress();
+    await invokeContract({
+      scriptHash: contract,
+      operation: "UnlockCapsule",
+      args: [
+        { type: "Hash160", value: address.value },
+        { type: "Integer", value: capsuleId },
+      ],
+    });
+
+    status.value = { msg: t("capsuleUnlocked"), type: "success" };
+    await fetchData();
+  } catch (e: any) {
+    status.value = { msg: e.message || t("unlockFailed"), type: "error" };
+  } finally {
+    isLoading.value = false;
+  }
 };
 </script>
 
@@ -478,17 +496,6 @@ const deposit = async (): Promise<void> => {
   flex-direction: column;
   gap: 16px;
 }
-
-.demo-banner {
-  background: rgba(255, 222, 89, 0.1);
-  border: 1px solid rgba(255, 222, 89, 0.3);
-  padding: 12px;
-  text-align: center;
-  border-radius: 12px;
-  margin-bottom: 24px;
-}
-.demo-badge { font-weight: 800; text-transform: uppercase; font-size: 11px; display: block; color: #ffde59; letter-spacing: 0.1em; }
-.demo-note { font-size: 10px; font-weight: 600; opacity: 0.8; color: #ffde59; }
 
 .status-msg { font-size: 14px; color: white; letter-spacing: 0.05em; }
 
@@ -517,18 +524,6 @@ const deposit = async (): Promise<void> => {
 .stat-value { font-weight: 800; font-family: $font-mono; font-size: 16px; color: white; }
 .stat-unit { font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-left: 4px; }
 
-.growth-chart-glass {
-  height: 140px; display: flex; align-items: flex-end; gap: 12px; margin-bottom: 24px;
-  background: rgba(0, 0, 0, 0.2); padding: 16px; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px;
-}
-.chart-bars { flex: 1; display: flex; align-items: flex-end; justify-content: space-between; height: 100%; gap: 8px; }
-.chart-bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
-.bar-fill-glass {
-  width: 100%; background: linear-gradient(to top, #00C8FF, rgba(0, 200, 255, 0.3));
-  border-radius: 4px 4px 0 0; opacity: 0.8; min-height: 4px; border-top: 1px solid rgba(255,255,255,0.4);
-}
-.bar-label { font-size: 10px; font-weight: 600; color: rgba(255, 255, 255, 0.6); margin-top: 4px; }
-
 .position-row {
   display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -547,7 +542,6 @@ const deposit = async (): Promise<void> => {
   }
 }
 .period-days { font-weight: 700; font-size: 13px; color: white; display: block; }
-.period-bonus { font-size: 9px; color: #00e599; font-weight: 600; }
 
 .projected-returns-glass {
   background: rgba(0, 0, 0, 0.2); padding: 12px; border-radius: 12px; margin-bottom: 16px; text-align: center;
@@ -555,7 +549,6 @@ const deposit = async (): Promise<void> => {
 }
 .returns-label { font-size: 10px; color: rgba(255, 255, 255, 0.5); display: block; margin-bottom: 4px; }
 .returns-value { font-size: 20px; font-weight: 800; color: white; font-family: $font-mono; }
-.returns-unit { font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-left: 4px; }
 .note { font-size: 10px; color: rgba(255, 255, 255, 0.4); text-align: center; display: block; margin-top: 12px; }
 
 .capsule-item-glass {
@@ -567,7 +560,8 @@ const deposit = async (): Promise<void> => {
 .capsule-info { flex: 1; }
 .capsule-amount { font-size: 16px; font-weight: 700; color: white; display: block; }
 .capsule-period { font-size: 11px; color: rgba(255, 255, 255, 0.5); }
-.capsule-status { margin-left: auto; }
+.capsule-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.capsule-status { display: flex; }
 
 .status-badge {
   padding: 4px 8px; border-radius: 99px; border: 1px solid transparent;
@@ -600,18 +594,6 @@ const deposit = async (): Promise<void> => {
   padding: 12px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px;
 }
 
-.activity-history { font-size: 12px; color: rgba(255, 255, 255, 0.7); margin-bottom: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px; }
-.empty-text { font-size: 12px; color: rgba(255, 255, 255, 0.4); text-align: center; display: block; padding: 12px; }
-
-.activity-history {
-  font-size: 11px;
-  font-weight: 500;
-  border-left: 2px solid rgba(255, 255, 255, 0.1);
-  padding-left: 12px;
-  margin-bottom: 8px;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
-  font-family: $font-mono;
-}
 .empty-text {
   font-size: 12px;
   color: var(--text-muted, rgba(255, 255, 255, 0.4));

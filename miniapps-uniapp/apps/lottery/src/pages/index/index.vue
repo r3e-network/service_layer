@@ -265,7 +265,7 @@ const docFeatures = computed(() => [
 
 const APP_ID = "miniapp-lottery";
 const term = APP_ID; // dummy to prevent lint unused
-const { address, connect, invokeRead, invokeContract, chainType, switchChain } = useWallet() as any;
+const { address, connect, invokeRead, invokeContract, chainType, switchChain, getContractAddress } = useWallet() as any;
 const { list: listEvents } = useEvents();
 const TICKET_PRICE = 0.1;
 
@@ -335,8 +335,11 @@ const buyTickets = async () => {
     if (!address.value) {
       throw new Error(t("connectWallet"));
     }
+    if (!address.value) {
+      throw new Error(t("connectWallet"));
+    }
     if (!contractAddress.value) {
-      contractAddress.value = "0xc56f33fc6ec47edbd594472833cf57505d5f99aa";
+      contractAddress.value = await getContractAddress();
     }
     if (!contractAddress.value) {
       throw new Error(t("contractUnavailable"));
@@ -373,7 +376,7 @@ const buyTickets = async () => {
 const fetchLotteryData = async () => {
   try {
     if (!contractAddress.value) {
-      contractAddress.value = "0xc56f33fc6ec47edbd594472833cf57505d5f99aa";
+      contractAddress.value = await getContractAddress();
     }
     if (!contractAddress.value) {
       return;
@@ -421,19 +424,35 @@ const fetchLotteryData = async () => {
       userTickets.value = 0;
       return;
     }
-    // Optimization: Don't load ALL ticket events, logic should be improved for scale but ok for miniapp demo
-    const purchases = await listEvents({ app_id: APP_ID, event_name: "TicketPurchased", limit: 200 });
-    const purchaseEvents = Array.isArray(purchases?.events) ? purchases.events : [];
     let userCount = 0;
-    purchaseEvents.forEach((evt) => {
-      const values = Array.isArray((evt as any).state) ? (evt as any).state.map(parseStackItem) : [];
-      const playerRaw = normalizeScriptHash(String(values[0] || ""));
-      const countRaw = Number(values[1] || 0);
-      const roundRaw = Number(values[2] || 0);
-      if (roundRaw === round.value && playerRaw === userHash) {
-        userCount += countRaw;
-      }
-    });
+    let afterId: string | undefined;
+    let hasMore = true;
+    let pages = 0;
+    const maxPages = 50;
+
+    while (hasMore && pages < maxPages) {
+      const purchases = await listEvents({
+        app_id: APP_ID,
+        event_name: "TicketPurchased",
+        limit: 200,
+        after_id: afterId,
+      });
+      const purchaseEvents = Array.isArray(purchases?.events) ? purchases.events : [];
+      purchaseEvents.forEach((evt) => {
+        const values = Array.isArray((evt as any).state) ? (evt as any).state.map(parseStackItem) : [];
+        const playerRaw = normalizeScriptHash(String(values[0] || ""));
+        const countRaw = Number(values[1] || 0);
+        const roundRaw = Number(values[2] || 0);
+        if (roundRaw === round.value && playerRaw === userHash) {
+          userCount += countRaw;
+        }
+      });
+
+      hasMore = Boolean(purchases?.has_more);
+      afterId = purchases?.last_id || undefined;
+      if (!afterId) break;
+      pages += 1;
+    }
     userTickets.value = userCount;
   } catch (e) {
     console.warn("[Lottery] Failed to fetch data:", e);

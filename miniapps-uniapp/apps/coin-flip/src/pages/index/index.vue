@@ -131,7 +131,7 @@ const docFeatures = computed(() => [
 
 const APP_ID = "miniapp-coinflip";
 const { payGAS } = usePayments(APP_ID);
-const { address, connect, invokeContract, chainType, switchChain } = useWallet() as any;
+const { address, connect, invokeContract, chainType, switchChain, getContractAddress } = useWallet() as any;
 const { list: listEvents } = useEvents();
 
 const betAmount = ref("1");
@@ -212,7 +212,7 @@ const flip = async () => {
       throw new Error(t("connectWallet"));
     }
     if (!contractAddress.value) {
-      contractAddress.value = "0xc56f33fc6ec47edbd594472833cf57505d5f99aa";
+      contractAddress.value = await getContractAddress();
     }
     if (!contractAddress.value) {
       throw new Error(t("error"));

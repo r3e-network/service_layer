@@ -149,7 +149,7 @@ const docFeatures = computed(() => [
 ]);
 
 const APP_ID = "miniapp-burn-league";
-const { address, connect, invokeContract, invokeRead, chainType, switchChain } = useWallet() as any;
+const { address, connect, invokeContract, invokeRead, chainType, switchChain, getContractAddress } = useWallet() as any;
 const { list: listEvents } = useEvents();
 
 const { payGAS, isLoading } = usePayments(APP_ID);
@@ -184,7 +184,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const ensureContractAddress = async () => {
   if (!contractAddress.value) {
-    contractAddress.value = "0xc56f33fc6ec47edbd594472833cf57505d5f99aa";
+    contractAddress.value = await getContractAddress();
   }
   if (!contractAddress.value) {
     throw new Error("Contract not configured");

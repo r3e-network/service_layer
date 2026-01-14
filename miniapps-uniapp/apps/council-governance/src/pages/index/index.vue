@@ -200,7 +200,7 @@ const navTabs = [
 ];
 const activeTab = ref("active");
 
-const { address, invokeContract, invokeRead, chainType, switchChain } = useWallet() as any;
+const { address, invokeContract, invokeRead, chainType, switchChain, getContractAddress } = useWallet() as any;
 const contractAddress = ref<string | null>(null);
 const selectedProposal = ref<Proposal | null>(null);
 const status = ref<{ msg: string; type: "success" | "error" | "info" } | null>(null);
@@ -211,7 +211,7 @@ const votingPower = ref(0);
 const hasVotedMap = ref<Record<number, boolean>>({});
 const isVoting = ref(false);
 const createTabRef = ref<any>(null);
-const currentChainId = ref<"neo-n3-mainnet" | "neo-n3-testnet">("neo-n3-testnet");
+const currentChainId = ref<"neo-n3-mainnet" | "neo-n3-testnet">("neo-n3-mainnet");
 
 // Detect network from host origin
 const detectNetwork = () => {
@@ -223,7 +223,7 @@ const detectNetwork = () => {
       currentChainId.value = "neo-n3-mainnet";
     }
   } catch {
-    currentChainId.value = "neo-n3-testnet";
+    currentChainId.value = "neo-n3-mainnet";
   }
 };
 
@@ -266,7 +266,7 @@ const showStatus = (msg: string, type: "success" | "error" | "info" = "info") =>
 
 const ensureContractAddress = async (showMessage = true) => {
   if (!contractAddress.value) {
-    contractAddress.value = "0xc56f33fc6ec47edbd594472833cf57505d5f99aa";
+    contractAddress.value = await getContractAddress();
   }
   if (!contractAddress.value) {
     if (showMessage) {

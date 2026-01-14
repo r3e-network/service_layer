@@ -135,7 +135,7 @@ const docFeatures = computed(() => [
 ]);
 
 const APP_ID = "miniapp-graveyard";
-const { address, connect, invokeContract, invokeRead, chainType, switchChain } = useWallet() as any;
+const { address, connect, invokeContract, invokeRead, chainType, switchChain, getContractAddress } = useWallet() as any;
 const { payGAS, isLoading } = usePayments(APP_ID);
 const { list: listEvents } = useEvents();
 
@@ -153,7 +153,7 @@ const history = ref<HistoryItem[]>([]);
 const showConfirm = ref(false);
 const isDestroying = ref(false);
 const showWarningShake = ref(false);
-const contractAddress = ref<string>("0x50ac1c37690cc2cfc594472833cf57505d5f46de"); // Placeholder/Demo Contract
+const contractAddress = ref<string | null>(null);
 
 const formatNum = (n: number) => formatNumber(n, 2);
 
@@ -170,6 +170,9 @@ const waitForEvent = async (txid: string, eventName: string) => {
 };
 
 const ensureContractAddress = async () => {
+  if (!contractAddress.value) {
+    contractAddress.value = await getContractAddress();
+  }
   return contractAddress.value;
 };
 

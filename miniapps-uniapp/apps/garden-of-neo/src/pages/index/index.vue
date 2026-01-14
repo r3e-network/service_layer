@@ -132,11 +132,14 @@ const updateStats = (newStats: any) => {
 };
 
 // Wallet & Contract
-const { chainType, switchChain } = useWallet() as any;
-const contractAddress = ref<string>("0xa07521e6be12b9d2a138848f08080f084ba1cf39"); // Placeholder address from Ex Files
+const { chainType, switchChain, getContractAddress } = useWallet() as any;
+const contractAddress = ref<string | null>(null);
 
 const ensureContractAddress = async () => {
-  return;
+  if (!contractAddress.value) {
+    contractAddress.value = await getContractAddress();
+  }
+  if (!contractAddress.value) throw new Error(t("missingContract"));
 };
 
 // Docs

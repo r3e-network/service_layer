@@ -21,21 +21,35 @@
 
       <!-- Articles List -->
       <view v-else class="nnt-articles">
-        <NeoCard v-for="article in articles" :key="article.id" variant="erobo" class="nnt-article-card" @click="openArticle(article)">
-          <view class="article-inner">
-            <image v-if="article.image" :src="article.image" class="nnt-article-image" mode="aspectFill" />
-            <view class="nnt-article-content">
-              <text class="nnt-article-title-glass">{{ article.title }}</text>
-              <view class="nnt-meta mb-2">
-                <text class="nnt-article-date-glass">{{ formatDate(article.date) }}</text>
-              </view>
-              <text class="nnt-article-excerpt-glass">{{ article.excerpt }}</text>
-              <view class="read-more mt-3">
-                <text class="read-more-text">{{ t("readMore") }} →</text>
+        <NeoCard v-if="errorMessage" variant="danger" class="nnt-empty-card">
+          <text class="nnt-empty-text">{{ errorMessage }}</text>
+        </NeoCard>
+        <template v-else>
+          <NeoCard
+            v-for="article in articles"
+            :key="article.id"
+            variant="erobo"
+            class="nnt-article-card"
+            @click="openArticle(article)"
+          >
+            <view class="article-inner">
+              <image v-if="article.image" :src="article.image" class="nnt-article-image" mode="aspectFill" />
+              <view class="nnt-article-content">
+                <text class="nnt-article-title-glass">{{ article.title }}</text>
+                <view class="nnt-meta mb-2">
+                  <text class="nnt-article-date-glass">{{ formatDate(article.date) }}</text>
+                </view>
+                <text class="nnt-article-excerpt-glass">{{ article.excerpt }}</text>
+                <view class="read-more mt-3">
+                  <text class="read-more-text">{{ t("readMore") }} →</text>
+                </view>
               </view>
             </view>
-          </view>
-        </NeoCard>
+          </NeoCard>
+          <NeoCard v-if="articles.length === 0" variant="erobo" class="nnt-empty-card">
+            <text class="nnt-empty-text">{{ t("noArticles") }}</text>
+          </NeoCard>
+        </template>
       </view>
     </view>
 
@@ -63,6 +77,8 @@ const translations = {
   title: { en: "Neo News Today", zh: "Neo今日新闻" },
   tagline: { en: "Latest Neo Ecosystem News", zh: "Neo生态最新资讯" },
   loading: { en: "Loading articles...", zh: "加载文章中..." },
+  noArticles: { en: "No articles available", zh: "暂无文章" },
+  loadFailed: { en: "Unable to load articles", zh: "文章加载失败" },
   readMore: { en: "Read Report", zh: "阅读报告" },
   news: { en: "News", zh: "新闻" },
   docs: { en: "Docs", zh: "文档" },
@@ -106,6 +122,7 @@ interface Article {
 
 const loading = ref(true);
 const articles = ref<Article[]>([]);
+const errorMessage = ref("");
 
 onMounted(async () => {
   await fetchArticles();
@@ -113,45 +130,29 @@ onMounted(async () => {
 
 async function fetchArticles() {
   loading.value = true;
+  errorMessage.value = "";
   try {
     // Fetch from NNT RSS or API
     const res = await fetch("/api/nnt-news?limit=20");
-    if (res.ok) {
-      const data = await res.json();
-      const rawArticles = Array.isArray(data.articles) ? data.articles : [];
-      articles.value = rawArticles
-        .map((article: any) => ({
-          id: String(article.id || ""),
-          title: String(article.title || ""),
-          excerpt: String(article.summary || article.excerpt || ""),
-          date: String(article.pubDate || article.date || ""),
-          image: article.imageUrl || article.image || undefined,
-          url: String(article.link || article.url || ""),
-        }))
-        .filter((article: Article) => article.id && article.title && article.url);
+    if (!res.ok) {
+      throw new Error("Failed to fetch articles");
     }
-    // Fallback Mock Data if API fails or is empty (for demo)
-    if (articles.value.length === 0) {
-      articles.value = [
-        {
-          id: "1",
-          title: "Neo X Mainnet Launch: A New Era",
-          excerpt: "The EVM-compatible sidechain is now live with enhanced interoperability features.",
-          date: new Date().toISOString(),
-          url: "https://neonewstoday.com", 
-          image: "https://neonewstoday.com/wp-content/uploads/2023/10/Neo-X.jpg" // Visual placeholder if real one fails
-        },
-         {
-          id: "2",
-          title: "Community Grant Winners Announced",
-          excerpt: "GrantShare DAO has selected 5 new projects for funding in the latest round.",
-          date: new Date(Date.now() - 86400000).toISOString(),
-          url: "https://neonewstoday.com",
-        }
-      ];
-    }
+    const data = await res.json();
+    const rawArticles = Array.isArray(data.articles) ? data.articles : [];
+    articles.value = rawArticles
+      .map((article: any) => ({
+        id: String(article.id || ""),
+        title: String(article.title || ""),
+        excerpt: String(article.summary || article.excerpt || ""),
+        date: String(article.pubDate || article.date || ""),
+        image: article.imageUrl || article.image || undefined,
+        url: String(article.link || article.url || ""),
+      }))
+      .filter((article: Article) => article.id && article.title && article.url);
   } catch (err) {
     console.error("Failed to fetch articles:", err);
+    articles.value = [];
+    errorMessage.value = t("loadFailed");
   } finally {
     loading.value = false;
   }
@@ -168,9 +169,29 @@ function formatDate(dateStr: string): string {
 }
 
 function openArticle(article: Article) {
-  // Use UniApp API or window.open
-  // In miniapp context, usually better to show a modal or navigate to a webview page
-  window.open(article.url, "_blank", "noopener,noreferrer");
+  const url = article.url;
+  if (!url) return;
+
+  const uniApi = (globalThis as any)?.uni;
+  if (uniApi?.openURL) {
+    uniApi.openURL({ url });
+    return;
+  }
+
+  const plusApi = (globalThis as any)?.plus;
+  if (plusApi?.runtime?.openURL) {
+    plusApi.runtime.openURL(url);
+    return;
+  }
+
+  if (typeof window !== "undefined" && window.open) {
+    window.open(url, "_blank", "noopener,noreferrer");
+    return;
+  }
+
+  if (typeof window !== "undefined") {
+    window.location.href = url;
+  }
 }
 </script>
 
@@ -235,6 +256,14 @@ function openArticle(article: Article) {
   display: flex;
   flex-direction: column;
   gap: $space-4;
+}
+.nnt-empty-card {
+  text-align: center;
+  padding: $space-5;
+}
+.nnt-empty-text {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .nnt-article-card {

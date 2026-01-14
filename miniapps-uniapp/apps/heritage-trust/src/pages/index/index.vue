@@ -171,11 +171,14 @@ const docFeatures = computed(() => [
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 const APP_ID = "miniapp-heritage-trust";
-const { address, connect, chainType, switchChain } = useWallet() as any;
+const { address, connect, chainType, switchChain, getContractAddress } = useWallet() as any;
 const { payGAS, isLoading } = usePayments(APP_ID);
-const contractAddress = ref<string>("0x50ac1c37690cc2cfc594472833cf57505d5f46de"); // Placeholder/Demo Contract
+const contractAddress = ref<string | null>(null);
 
 const ensureContractAddress = async () => {
+  if (!contractAddress.value) {
+    contractAddress.value = await getContractAddress();
+  }
   return contractAddress.value;
 };
 

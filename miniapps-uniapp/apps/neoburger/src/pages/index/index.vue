@@ -102,8 +102,9 @@ import UnstakePanel from "./components/UnstakePanel.vue";
 import RewardsTab from "./components/RewardsTab.vue";
 
 const APP_ID = "miniapp-neoburger";
-const BNEO_CONTRACT = "0x48c40d4666f93408be1bef038b6722404d9a4c2a";
+const BNEO_CONTRACT = ref<string | null>(null);
 const NEO_CONTRACT = "0xef4073a0f2b305a38ec4050e4d3d28bc40ea63f5";
+
 
 const translations = {
   title: { en: "NeoBurger", zh: "NeoBurger" },
@@ -188,7 +189,7 @@ const translations = {
 
 const t = createT(translations);
 
-const { getAddress, invokeContract, getBalance, chainType, switchChain } = useWallet() as any;
+const { getAddress, invokeContract, getBalance, chainType, switchChain, getContractAddress } = useWallet() as any;
 
 // Navigation tabs
 const navTabs: NavTab[] = [
@@ -344,8 +345,13 @@ async function loadBalances() {
     const address = await getAddress();
     if (!address) return;
 
+    if (!BNEO_CONTRACT.value) {
+      BNEO_CONTRACT.value = await getContractAddress();
+    }
+    const bneoContract = BNEO_CONTRACT.value!;
+
     const neo = await getBalance("NEO");
-    const bneo = await getBalance(BNEO_CONTRACT);
+    const bneo = await getBalance(bneoContract);
     // Handle both string and number return types
     neoBalance.value = typeof neo === "string" ? parseFloat(neo) || 0 : typeof neo === "number" ? neo : 0;
     bNeoBalance.value = typeof bneo === "string" ? parseFloat(bneo) || 0 : typeof bneo === "number" ? bneo : 0;
@@ -382,7 +388,7 @@ async function handleStake() {
       operation: "transfer",
       args: [
         { type: "Hash160", value: await getAddress() },
-        { type: "Hash160", value: BNEO_CONTRACT },
+        { type: "Hash160", value: BNEO_CONTRACT.value! },
         { type: "Integer", value: Math.floor(amount) }, // NEO is indivisible
         { type: "Any", value: null },
       ],
@@ -404,11 +410,11 @@ async function handleUnstake() {
   try {
     const amount = parseFloat(unstakeAmount.value);
     await invokeContract({
-      scriptHash: BNEO_CONTRACT,
+      scriptHash: BNEO_CONTRACT.value!,
       operation: "transfer",
       args: [
         { type: "Hash160", value: await getAddress() },
-        { type: "Hash160", value: BNEO_CONTRACT },
+        { type: "Hash160", value: BNEO_CONTRACT.value! },
         { type: "Integer", value: amount * 100000000 },
         { type: "ByteArray", value: "" },
       ],
@@ -434,11 +440,12 @@ async function handleClaimRewards() {
       throw new Error("SDK not available");
     }
 
-    // NeoBurger contract address on mainnet
-    const NEOBURGER_CONTRACT = "0x48c40d4666f93408be1bef038b6722404d9a4c2a";
+    // NeoBurger contract address (bNEO)
+    const bneoContract = BNEO_CONTRACT.value || await getContractAddress();
+    if (!bneoContract) throw new Error("Contract address unavailable");
 
     await sdk.invoke("invokeFunction", {
-      contract: NEOBURGER_CONTRACT,
+      contract: bneoContract,
       method: "claim",
       args: [],
     });

@@ -24,22 +24,19 @@
         <NeoCard variant="erobo" class="pool-overview-card">
           <view class="pool-header">
             <text class="pool-title text-glass-glow">{{ t("grantPool") }}</text>
-            <view class="pool-round-glass">
-              <text class="round-text">{{ t("round") }} #1</text>
-            </view>
           </view>
           <view class="pool-stats">
             <view class="pool-stat-glass">
               <text class="stat-label-glass">{{ t("totalPool") }}</text>
-              <text class="stat-value-glass">{{ formatAmount(totalFunded) }} GAS</text>
+              <text class="stat-value-glass">{{ formatCount(totalProposals) }}</text>
             </view>
             <view class="pool-stat-glass">
               <text class="stat-label-glass">{{ t("activeProjects") }}</text>
-              <text class="stat-value-glass">{{ totalGrants }}</text>
+              <text class="stat-value-glass">{{ formatCount(activeProposals) }}</text>
             </view>
             <view class="pool-stat-glass">
               <text class="stat-label-glass">{{ t("yourShare") }}</text>
-              <text class="stat-value-glass highlight">{{ userShare }} GAS</text>
+              <text class="stat-value-glass highlight">{{ formatCount(displayedProposals) }}</text>
             </view>
           </view>
         </NeoCard>
@@ -48,100 +45,56 @@
         <view class="grants-section">
           <text class="section-title-glass">{{ t("activeGrants") }}</text>
 
-          <view v-if="grants.length === 0" class="empty-state">
+          <view v-if="loading" class="empty-state">
+            <text class="empty-text">{{ t("loading") }}</text>
+          </view>
+
+          <view v-else-if="fetchError" class="empty-state">
+            <text class="empty-text">{{ t("loadFailed") }}</text>
+          </view>
+
+          <view v-else-if="grants.length === 0" class="empty-state">
             <text class="empty-text">{{ t("noActiveGrants") }}</text>
           </view>
 
           <!-- Grant Cards -->
-          <NeoCard v-for="grant in grants" :key="grant.id" variant="erobo-neo" class="grant-card-neo">
-            <view class="grant-card-header">
-              <view class="grant-info">
-                <text class="grant-title-glass">{{ grant.title }}</text>
-                <text class="grant-creator-glass">{{ t("by") }} {{ grant.creator }}</text>
-              </view>
-              <view :class="['grant-badge-glass', grant.status]">
-                <text class="badge-text">{{ getStatusLabel(grant.status) }}</text>
-              </view>
-            </view>
-
-            <text class="grant-description-glass">{{ grant.description }}</text>
-
-            <!-- Funding Progress -->
-            <view class="funding-section-glass">
-              <view class="funding-header">
-                <text class="funding-label-glass">{{ t("fundingProgress") }}</text>
-                <text class="funding-percentage-glass">{{ getProgress(grant) }}%</text>
-              </view>
-
-              <view class="progress-track-glass">
-                <view class="progress-bar-glass" :style="{ width: getProgress(grant) + '%' }">
-                  <view class="progress-glow"></view>
+          <view v-else class="grants-list">
+            <NeoCard v-for="grant in grants" :key="grant.id" variant="erobo-neo" class="grant-card-neo">
+              <view class="grant-card-header">
+                <view class="grant-info">
+                  <text class="grant-title-glass">{{ grant.title }}</text>
+                  <text v-if="grant.proposer" class="grant-creator-glass">{{ t("by") }} {{ grant.proposer }}</text>
+                </view>
+                <view :class="['grant-badge-glass', grant.state]">
+                  <text class="badge-text">{{ getStatusLabel(grant.state) }}</text>
                 </view>
               </view>
 
-              <view class="funding-amounts">
-                <text class="amount-raised-glass">{{ formatAmount(grant.funded) }} GAS</text>
-                <text class="amount-divider-glass">/</text>
-                <text class="amount-goal-glass">{{ formatAmount(grant.goal) }} GAS</text>
+              <view class="proposal-meta">
+                <text v-if="grant.onchainId !== null" class="meta-item">#{{ grant.onchainId }}</text>
+                <text v-if="grant.createdAt" class="meta-item">{{ formatDate(grant.createdAt) }}</text>
               </view>
-            </view>
 
-            <!-- Action Button -->
-            <NeoButton variant="primary" block @click="openFundModal(grant)" :class="['fund-button', grant.status]">
-              {{ grant.status === "funded" ? t("fullyFunded") : t("fundThisGrant") }}
-            </NeoButton>
-          </NeoCard>
-        </view>
-      </view>
+              <view class="proposal-stats">
+                <view class="stat-chip accept">{{ t("votesFor") }} {{ formatCount(grant.votesAccept) }}</view>
+                <view class="stat-chip reject">{{ t("votesAgainst") }} {{ formatCount(grant.votesReject) }}</view>
+                <view class="stat-chip comments">{{ t("comments") }} {{ formatCount(grant.comments) }}</view>
+              </view>
 
-      <!-- Apply Tab -->
-      <view v-if="activeTab === 'apply'" class="tab-content">
-        <NeoCard variant="erobo-neo" :title="t('applyForGrant')">
-          <view class="form-container">
-            <NeoInput v-model="newGrant.title" :label="t('grantTitle')" :placeholder="t('enterTitle')" type="text" />
-
-            <NeoInput
-              v-model="newGrant.description"
-              :label="t('description')"
-              :placeholder="t('describeProject')"
-              type="textarea"
-            />
-
-            <NeoInput v-model="newGrant.goal" :label="t('fundingGoal')" placeholder="0" type="number" suffix="GAS" />
-
-            <NeoButton
-              variant="primary"
-              block
-              :disabled="!canCreate || loading"
-              :loading="loading"
-              @click="handleCreate"
-              class="submit-button"
-            >
-              {{ loading ? t("creating") : t("createGrant") }}
-            </NeoButton>
+              <view class="proposal-actions">
+                <NeoButton
+                  size="sm"
+                  variant="secondary"
+                  :disabled="!grant.discussionUrl"
+                  @click="copyLink(grant.discussionUrl)"
+                >
+                  {{ grant.discussionUrl ? t("copyDiscussion") : t("noDiscussion") }}
+                </NeoButton>
+              </view>
+            </NeoCard>
           </view>
-        </NeoCard>
-      </view>
-
-      <!-- Fund Modal -->
-      <NeoModal
-        :visible="showFundModal"
-        :title="`${t('fund')}: ${selectedGrant?.title}`"
-        @close="showFundModal = false"
-      >
-        <view class="modal-content">
-          <NeoInput v-model="fundAmount" :label="t('amount')" placeholder="0" type="number" suffix="GAS" />
         </view>
-
-        <template #footer>
-          <NeoButton variant="secondary" @click="showFundModal = false">
-            {{ t("cancel") }}
-          </NeoButton>
-          <NeoButton variant="primary" :disabled="loading || !fundAmount" :loading="loading" @click="handleFund">
-            {{ loading ? t("processing") : t("confirm") }}
-          </NeoButton>
-        </template>
-      </NeoModal>
+      </view>
 
       <!-- Docs Tab -->
       <view v-if="activeTab === 'docs'" class="tab-content scrollable">
@@ -159,67 +112,63 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { useWallet, usePayments } from "@neo/uniapp-sdk";
+import { useWallet } from "@neo/uniapp-sdk";
 import { createT } from "@/shared/utils/i18n";
-import { AppLayout, NeoButton, NeoCard, NeoInput, NeoModal, NeoDoc } from "@/shared/components";
+import { AppLayout, NeoButton, NeoCard, NeoDoc } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
 const translations = {
   title: { en: "GrantShare", zh: "资助共享" },
   subtitle: { en: "Community Funding Platform", zh: "社区资助平台" },
-  grantPool: { en: "Grant Pool", zh: "资助池" },
-  round: { en: "Round", zh: "轮次" },
-  totalPool: { en: "Total Pool", zh: "总资金池" },
-  activeProjects: { en: "Active Projects", zh: "活跃项目" },
-  yourShare: { en: "Your Share", zh: "你的份额" },
-  activeGrants: { en: "Active Grants", zh: "活跃资助" },
-  noActiveGrants: { en: "No active grants yet", zh: "暂无活跃资助" },
+  grantPool: { en: "GrantShares Snapshot", zh: "GrantShares 快照" },
+  totalPool: { en: "Total Proposals", zh: "提案总数" },
+  activeProjects: { en: "Active (Loaded)", zh: "活跃（已加载）" },
+  yourShare: { en: "Displayed", zh: "已展示" },
+  activeGrants: { en: "Latest Proposals", zh: "最新提案" },
+  noActiveGrants: { en: "No proposals found", zh: "暂无提案" },
+  loading: { en: "Loading proposals...", zh: "提案加载中..." },
+  loadFailed: { en: "Unable to load proposals", zh: "提案加载失败" },
   by: { en: "by", zh: "创建者" },
-  fundingProgress: { en: "Funding Progress", zh: "资助进度" },
-  fundThisGrant: { en: "Fund This Grant", zh: "资助此项目" },
-  fullyFunded: { en: "Fully Funded", zh: "已完成资助" },
-  applyForGrant: { en: "Apply for Grant", zh: "申请资助" },
-  grantTitle: { en: "Grant Title", zh: "资助标题" },
-  enterTitle: { en: "Enter title", zh: "输入标题" },
-  description: { en: "Description", zh: "描述" },
-  describeProject: { en: "Describe your project", zh: "描述您的项目" },
-  fundingGoal: { en: "Funding Goal (GAS)", zh: "资助目标 (GAS)" },
-  creating: { en: "Creating...", zh: "创建中..." },
-  createGrant: { en: "Create Grant", zh: "创建资助" },
-  fund: { en: "Fund", zh: "资助" },
-  amount: { en: "Amount (GAS)", zh: "金额 (GAS)" },
-  cancel: { en: "Cancel", zh: "取消" },
-  processing: { en: "Processing...", zh: "处理中..." },
-  confirm: { en: "Confirm", zh: "确认" },
-  tabGrants: { en: "Grants", zh: "资助" },
-  tabApply: { en: "Apply", zh: "申请" },
+  copyDiscussion: { en: "Copy Discussion Link", zh: "复制讨论链接" },
+  noDiscussion: { en: "No Discussion Link", zh: "暂无讨论链接" },
+  linkCopied: { en: "Link copied", zh: "链接已复制" },
+  copyFailed: { en: "Copy failed", zh: "复制失败" },
+  votesFor: { en: "For", zh: "支持" },
+  votesAgainst: { en: "Against", zh: "反对" },
+  comments: { en: "Comments", zh: "评论" },
+  tabGrants: { en: "Proposals", zh: "提案" },
   statusActive: { en: "Active", zh: "进行中" },
-  statusFunded: { en: "Funded", zh: "已资助" },
-  statusCompleted: { en: "Completed", zh: "已完成" },
+  statusReview: { en: "In Review", zh: "审核中" },
+  statusVoting: { en: "Voting", zh: "投票中" },
+  statusDiscussion: { en: "Discussion", zh: "讨论中" },
+  statusExecuted: { en: "Executed", zh: "已执行" },
+  statusCancelled: { en: "Cancelled", zh: "已取消" },
+  statusRejected: { en: "Rejected", zh: "已拒绝" },
+  statusExpired: { en: "Expired", zh: "已过期" },
   docs: { en: "Docs", zh: "文档" },
   docSubtitle: {
     en: "Community funding with transparent milestone tracking",
     zh: "透明里程碑追踪的社区资助",
   },
   docDescription: {
-    en: "Grant Share enables community-driven funding for Neo ecosystem projects. Create proposals, vote on funding, and track milestone-based fund releases.",
-    zh: "Grant Share 支持 Neo 生态系统项目的社区驱动资助。创建提案、投票资助并跟踪基于里程碑的资金释放。",
+    en: "GrantShares provides community funding for Neo ecosystem projects. This miniapp surfaces the latest proposals and their status; submit and vote on GrantShares directly.",
+    zh: "GrantShares 为 Neo 生态系统项目提供社区资助。本应用展示最新提案及其状态；提交与投票请前往 GrantShares。",
   },
   step1: {
-    en: "Connect your Neo wallet to participate",
-    zh: "连接您的 Neo 钱包参与",
+    en: "Browse the latest proposals and their status",
+    zh: "浏览最新提案及其状态",
   },
   step2: {
-    en: "Browse active proposals or submit your own",
-    zh: "浏览活跃提案或提交您自己的",
+    en: "Open discussion links for full context",
+    zh: "打开讨论链接获取完整信息",
   },
   step3: {
-    en: "Vote on proposals you want to support",
-    zh: "为您想支持的提案投票",
+    en: "Submit and vote on proposals at GrantShares",
+    zh: "在 GrantShares 提交并投票",
   },
   step4: {
-    en: "Track funded projects through milestone completion",
-    zh: "通过里程碑完成跟踪已资助项目",
+    en: "Track progress and execution over time",
+    zh: "持续跟踪进展与执行情况",
   },
   feature1Name: { en: "Milestone Funding", zh: "里程碑资助" },
   feature1Desc: {
@@ -244,42 +193,58 @@ const docFeatures = computed(() => [
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 
-const APP_ID = "miniapp-grant-share";
-const { address, connect, chainType, switchChain } = useWallet() as any;
-const { payGAS } = usePayments(APP_ID);
+const { chainType, switchChain } = useWallet() as any;
 
 interface Grant {
   id: string;
   title: string;
-  description: string;
-  goal: number;
-  funded: number;
-  creator: string;
-  status: "active" | "funded" | "completed";
+  proposer: string;
+  state: string;
+  votesAccept: number;
+  votesReject: number;
+  discussionUrl: string;
+  createdAt: string;
+  comments: number;
+  onchainId: number | null;
 }
 
 const activeTab = ref("grants");
 const navTabs: NavTab[] = [
   { id: "grants", icon: "gift", label: t("tabGrants") },
-  { id: "apply", icon: "plus", label: t("tabApply") },
   { id: "docs", icon: "book", label: t("docs") },
 ];
 
 const grants = ref<Grant[]>([]);
+const totalProposals = ref(0);
+const loading = ref(false);
+const fetchError = ref(false);
+const statusMessage = ref("");
+const statusType = ref<"success" | "error">("success");
+
+const displayedProposals = computed(() => grants.value.length);
+const activeProposals = computed(() => grants.value.filter((grant) => isActiveState(grant.state)).length);
 
 function decodeBase64(str: string) {
   try {
-    // Basic base64 decode for browser/uniapp
     return decodeURIComponent(escape(atob(str)));
   } catch {
     return str;
   }
 }
 
+function normalizeState(state: string): string {
+  return String(state || "").toLowerCase();
+}
+
+function isActiveState(state: string): boolean {
+  const normalized = normalizeState(state);
+  return ["active", "review", "voting", "discussion"].includes(normalized);
+}
+
 async function fetchGrants() {
   loading.value = true;
+  fetchError.value = false;
   try {
-    // Utilizing uni.request for cross-platform compatibility
     const res = await new Promise<any>((resolve, reject) => {
       uni.request({
         url: "https://api.prod.grantshares.io/api/proposal/all?page=0&page-size=50&order-attr=state-updated&order-asc=0",
@@ -288,68 +253,68 @@ async function fetchGrants() {
       });
     });
 
-    if (res && res.items) {
-      grants.value = res.items.map((item: any) => ({
-        id: String(item.id),
-        title: decodeBase64(item.title),
-        description: "", // API doesn't list summary in 'all' endpoint usually, might need detail fetch but keeping simple
-        goal: parseFloat(item.targetAmount || "0"), // Adjust based on real API response if known, otherwise guess
-        funded: parseFloat(item.receivedAmount || "0"), // Adjust
-        creator: item.proposer,
-        status: item.state === "Executed" ? "funded" : item.state === "Active" ? "active" : "completed",
-        // Extend Grant interface if needed or map loosely
-      }));
-      totalGrants.value = res.totalCount || grants.value.length;
+    if (res && Array.isArray(res.items)) {
+      grants.value = res.items
+        .map((item: any) => {
+          const title = decodeBase64(item.title || "");
+          return {
+            id: String(item.offchain_id || item.id || ""),
+            title,
+            proposer: String(item.proposer || item.proposer_address || item.proposerAddress || ""),
+            state: normalizeState(item.state || ""),
+            votesAccept: Number(item.votes_amount_accept || item.votesAmountAccept || 0),
+            votesReject: Number(item.votes_amount_reject || item.votesAmountReject || 0),
+            discussionUrl: String(item.discussion_url || item.discussionUrl || ""),
+            createdAt: String(item.offchain_creation_timestamp || item.offchainCreationTimestamp || ""),
+            comments: Number(item.offchain_comments_count || item.offchainCommentsCount || 0),
+            onchainId: item.onchain_id ?? item.onchainId ?? null,
+          } as Grant;
+        })
+        .filter((item: Grant) => item.id && item.title);
+
+      const totalCount = Number(res.total ?? res.totalCount ?? grants.value.length);
+      totalProposals.value = Number.isFinite(totalCount) ? totalCount : grants.value.length;
+    } else {
+      grants.value = [];
+      totalProposals.value = 0;
     }
   } catch (e) {
-    console.error("Failed to fetch grants", e);
-    // Fallback to mock if API fails (optional, but good for demo stability)
-    grants.value = [
-      {
-        id: "1",
-        title: "Neo Developer Tools (Offline Demo)",
-        description: "Building open-source dev tools for Neo ecosystem",
-        goal: 1000,
-        funded: 450,
-        creator: "NXtest1",
-        status: "active",
-      },
-    ];
+    console.error("Failed to fetch proposals", e);
+    grants.value = [];
+    totalProposals.value = 0;
+    fetchError.value = true;
   } finally {
     loading.value = false;
   }
 }
 
-const totalGrants = ref(2);
-const totalFunded = ref(950);
-const userShare = ref(125.5);
-const loading = ref(false);
-const statusMessage = ref("");
-const statusType = ref<"success" | "error">("success");
-const showFundModal = ref(false);
-const selectedGrant = ref<Grant | null>(null);
-const fundAmount = ref("");
-const newGrant = ref({ title: "", description: "", goal: "" });
-
-const canCreate = computed(() => {
-  return newGrant.value.title && newGrant.value.description && parseFloat(newGrant.value.goal) > 0;
-});
-
-function formatAmount(amount: number): string {
-  return amount.toFixed(2);
+function formatCount(amount: number): string {
+  return Number.isFinite(amount) ? amount.toLocaleString() : "0";
 }
 
-function getProgress(grant: Grant): number {
-  return Math.min((grant.funded / grant.goal) * 100, 100);
+function formatDate(dateStr: string): string {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
-function getStatusLabel(status: string): string {
+function getStatusLabel(state: string): string {
   const statusMap: Record<string, string> = {
     active: t("statusActive"),
-    funded: t("statusFunded"),
-    completed: t("statusCompleted"),
+    review: t("statusReview"),
+    voting: t("statusVoting"),
+    discussion: t("statusDiscussion"),
+    executed: t("statusExecuted"),
+    cancelled: t("statusCancelled"),
+    rejected: t("statusRejected"),
+    expired: t("statusExpired"),
   };
-  return statusMap[status] || status;
+  return statusMap[normalizeState(state)] || state;
 }
 
 function showStatus(message: string, type: "success" | "error") {
@@ -358,60 +323,30 @@ function showStatus(message: string, type: "success" | "error") {
   setTimeout(() => (statusMessage.value = ""), 5000);
 }
 
-function openFundModal(grant: Grant) {
-  if (grant.status === "funded") return;
-  selectedGrant.value = grant;
-  fundAmount.value = "";
-  showFundModal.value = true;
-}
-
-async function handleCreate() {
-  if (!canCreate.value || loading.value) return;
-  loading.value = true;
-  try {
-    const grant: Grant = {
-      id: Date.now().toString(),
-      title: newGrant.value.title,
-      description: newGrant.value.description,
-      goal: parseFloat(newGrant.value.goal),
-      funded: 0,
-      creator: address.value || "",
-      status: "active",
-    };
-    grants.value.unshift(grant);
-    totalGrants.value++;
-    newGrant.value = { title: "", description: "", goal: "" };
-    showStatus("Grant created successfully!", "success");
-    activeTab.value = "grants";
-  } catch (e: any) {
-    showStatus(e.message || "Failed to create grant", "error");
-  } finally {
-    loading.value = false;
+function copyLink(url: string) {
+  if (!url) return;
+  const uniApi = (globalThis as any)?.uni;
+  if (uniApi?.setClipboardData) {
+    uniApi.setClipboardData({
+      data: url,
+      success: () => showStatus(t("linkCopied"), "success"),
+      fail: () => showStatus(t("copyFailed"), "error"),
+    });
+    return;
   }
-}
 
-async function handleFund() {
-  if (!selectedGrant.value || !fundAmount.value || loading.value) return;
-  loading.value = true;
-  try {
-    await payGAS(fundAmount.value, `fund:${selectedGrant.value.id}`);
-    selectedGrant.value.funded += parseFloat(fundAmount.value);
-    totalFunded.value += parseFloat(fundAmount.value);
-    userShare.value += parseFloat(fundAmount.value);
-    if (selectedGrant.value.funded >= selectedGrant.value.goal) {
-      selectedGrant.value.status = "funded";
-    }
-    showStatus("Funded successfully!", "success");
-    showFundModal.value = false;
-  } catch (e: any) {
-    showStatus(e.message || "Failed to fund grant", "error");
-  } finally {
-    loading.value = false;
+  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+    navigator.clipboard
+      .writeText(url)
+      .then(() => showStatus(t("linkCopied"), "success"))
+      .catch(() => showStatus(t("copyFailed"), "error"));
+    return;
   }
+
+  showStatus(t("copyFailed"), "error");
 }
 
-onMounted(async () => {
-  await connect();
+onMounted(() => {
   fetchGrants();
 });
 </script>
@@ -519,7 +454,7 @@ onMounted(async () => {
 }
 
 .grant-card-neo {
-  margin-bottom: $space-6;
+  margin-bottom: 0;
 }
 .grant-card-header {
   display: flex;
@@ -553,105 +488,78 @@ onMounted(async () => {
     color: #fde047;
     border: 1px solid rgba(253, 224, 71, 0.3);
   }
-  &.funded {
+  &.review,
+  &.voting,
+  &.discussion {
+    background: rgba(96, 165, 250, 0.1);
+    color: #60a5fa;
+    border: 1px solid rgba(96, 165, 250, 0.3);
+  }
+  &.executed {
     background: rgba(52, 211, 153, 0.1);
     color: #34d399;
     border: 1px solid rgba(52, 211, 153, 0.3);
   }
-  &.completed {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+  &.cancelled,
+  &.rejected,
+  &.expired {
+    background: rgba(248, 113, 113, 0.1);
+    color: #f87171;
+    border: 1px solid rgba(248, 113, 113, 0.3);
   }
 }
 
-.grant-description-glass {
-  font-size: 14px;
-  font-weight: $font-weight-medium;
-  margin: $space-4 0;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(0, 0, 0, 0.2);
-  padding: 12px;
-  border-radius: 8px;
+.grants-list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
 }
 
-.funding-section-glass {
-  margin-bottom: $space-5;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-.funding-header {
+.proposal-meta {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
+  gap: 8px;
+  margin-bottom: $space-3;
 }
-.funding-label-glass {
+.meta-item {
   font-size: 10px;
   font-weight: $font-weight-bold;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.6);
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
-.funding-percentage-glass {
-  font-size: 14px;
+
+.proposal-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: $space-3;
+}
+.stat-chip {
+  font-size: 11px;
   font-weight: $font-weight-bold;
-  font-family: $font-mono;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.stat-chip.accept {
   color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+.stat-chip.reject {
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+.stat-chip.comments {
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.3);
 }
 
-.progress-track-glass {
-  height: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-  margin-bottom: 8px;
-  overflow: hidden;
-}
-.progress-bar-glass {
-  height: 100%;
-  background: #00e599;
-  position: relative;
-  border-radius: 3px;
-}
-.progress-glow {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 10px;
-  background: white;
-  filter: blur(4px);
-  opacity: 0.5;
-}
-
-.funding-amounts {
-  font-family: $font-mono;
-  font-size: 10px;
-  font-weight: $font-weight-bold;
-  text-align: right;
+.proposal-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 4px;
-}
-.amount-raised-glass {
-  color: white;
-}
-.amount-divider-glass {
-  color: rgba(255, 255, 255, 0.3);
-}
-.amount-goal-glass {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.form-container {
-  display: flex;
-  flex-direction: column;
-  gap: $space-6;
-}
-.modal-content {
-  padding: $space-4 0;
 }
 
 .scrollable {

@@ -138,10 +138,10 @@ const docFeatures = computed(() => [
 ]);
 
 const APP_ID = "miniapp-breakupcontract";
-const { address, connect, invokeContract, invokeRead, chainType, switchChain } = useWallet() as any;
+const { address, connect, invokeContract, invokeRead, chainType, switchChain, getContractAddress } = useWallet() as any;
 const { list: listEvents } = useEvents();
 const { payGAS, isLoading } = usePayments(APP_ID);
-const contractAddress = ref<string>("0xc56f33fc6ec47edbd594472833cf57505d5f99aa"); // Placeholder/Demo Contract
+const contractAddress = ref<string | null>(null);
 
 const activeTab = ref<string>("create");
 const navTabs: NavTab[] = [
@@ -182,6 +182,9 @@ const toGas = (value: any) => {
 };
 
 const ensureContractAddress = async () => {
+  if (!contractAddress.value) {
+    contractAddress.value = await getContractAddress();
+  }
   return contractAddress.value;
 };
 

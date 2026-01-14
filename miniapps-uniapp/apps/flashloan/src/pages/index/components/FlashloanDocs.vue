@@ -12,11 +12,27 @@
       <view class="info-grid">
         <view class="info-item">
           <text class="info-label">{{ t("contractName") }}</text>
-          <text class="info-value mono">NeoFlashPool</text>
+          <text class="info-value mono">MiniAppFlashLoan</text>
         </view>
         <view class="info-item">
           <text class="info-label">{{ t("version") }}</text>
-          <text class="info-value">v2.1-stable</text>
+          <text class="info-value">v2.0.0</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">{{ t("minLoan") }}</text>
+          <text class="info-value">1 GAS</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">{{ t("maxLoan") }}</text>
+          <text class="info-value">100,000 GAS</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">{{ t("cooldown") }}</text>
+          <text class="info-value">5 {{ t("minutes") }}</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">{{ t("dailyLimit") }}</text>
+          <text class="info-value">10 {{ t("loansPerDay") }}</text>
         </view>
         <view class="info-item">
           <text class="info-label">Network</text>
@@ -31,7 +47,7 @@
       <view class="hash-box mt-4">
         <text class="info-label">Contract Hash</text>
         <view class="hash-value">
-          <text class="mono-small">0x794b127599723ede80e608985ef414a38202976b</text>
+          <text class="mono-small">0xee51e5b399f7727267b7d296ff34ec6bb9283131</text>
         </view>
       </view>
     </NeoCard>
@@ -40,41 +56,78 @@
     <NeoCard :title="t('contractMethods')" class="mb-4">
       <view class="method-card">
         <view class="method-header">
-          <text class="method-name">flashLoan</text>
+          <text class="method-name">RequestLoan</text>
           <text class="method-badge write">{{ t("write") }}</text>
         </view>
         <text class="method-desc">{{ t("requestLoanDesc") }}</text>
         <view class="method-params">
           <text class="params-title">{{ t("parameters") }}:</text>
           <view class="param-item">
-            <text class="param-name">receiver</text>
+            <text class="param-name">borrower</text>
             <text class="param-type">Hash160</text>
-            <text class="param-desc">Callback contract address</text>
-          </view>
-          <view class="param-item">
-            <text class="param-name">token</text>
-            <text class="param-type">Hash160</text>
-            <text class="param-desc">Asset to borrow (NEO/GAS)</text>
+            <text class="param-desc">{{ t("borrowerDesc") }}</text>
           </view>
           <view class="param-item">
             <text class="param-name">amount</text>
             <text class="param-type">Integer</text>
-            <text class="param-desc">Amount in basic units</text>
+            <text class="param-desc">{{ t("amountDesc") }}</text>
           </view>
           <view class="param-item">
-            <text class="param-name">data</text>
-            <text class="param-type">Any</text>
-            <text class="param-desc">Encoded params for callback</text>
+            <text class="param-name">callbackContract</text>
+            <text class="param-type">Hash160</text>
+            <text class="param-desc">{{ t("callbackContractDesc") }}</text>
+          </view>
+          <view class="param-item">
+            <text class="param-name">callbackMethod</text>
+            <text class="param-type">String</text>
+            <text class="param-desc">{{ t("callbackMethodDesc") }}</text>
           </view>
         </view>
       </view>
 
       <view class="method-card">
         <view class="method-header">
-          <text class="method-name">getPoolBalance</text>
+          <text class="method-name">GetLoan</text>
           <text class="method-badge read">{{ t("read") }}</text>
         </view>
-        <text class="method-desc">Check available liquidity for a specific token.</text>
+        <text class="method-desc">{{ t("getLoanDesc") }}</text>
+        <view class="method-params">
+          <text class="params-title">{{ t("parameters") }}:</text>
+          <view class="param-item">
+            <text class="param-name">loanId</text>
+            <text class="param-type">Integer</text>
+            <text class="param-desc">Loan identifier</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="method-card">
+        <view class="method-header">
+          <text class="method-name">GetPoolBalance</text>
+          <text class="method-badge read">{{ t("read") }}</text>
+        </view>
+        <text class="method-desc">{{ t("getPoolBalanceDesc") }}</text>
+      </view>
+
+      <view class="method-card">
+        <view class="method-header">
+          <text class="method-name">Deposit</text>
+          <text class="method-badge write">{{ t("write") }}</text>
+        </view>
+        <text class="method-desc">{{ t("depositDesc") }}</text>
+        <view class="method-params">
+          <text class="params-title">{{ t("parameters") }}:</text>
+          <view class="param-item">
+            <text class="param-name">depositor</text>
+            <text class="param-type">Hash160</text>
+            <text class="param-desc">Depositor address</text>
+          </view>
+          <view class="param-item">
+            <text class="param-name">amount</text>
+            <text class="param-type">Integer</text>
+            <text class="param-desc">{{ t("amountDesc") }}</text>
+          </view>
+        </view>
       </view>
     </NeoCard>
 
@@ -86,37 +139,29 @@
           <view class="u-content">
             <text class="u-title">Deploy Callback Contract</text>
             <text class="u-text"
-              >Create a smart contract that implements the `onFlashLoan` method to receive assets and execute your
-              logic.</text
+              >Implement a callback method that repays the principal plus fee within the same transaction.</text
             >
           </view>
         </view>
         <view class="u-step">
           <view class="u-num">02</view>
           <view class="u-content">
-            <text class="u-title">Call flashLoan</text>
-            <text class="u-text"
-              >Trigger the `flashLoan` method on the NeoFlashPool contract from your bot or frontend.</text
-            >
+            <text class="u-title">Call RequestLoan</text>
+            <text class="u-text">Invoke `RequestLoan` from your bot or backend with callback details.</text>
           </view>
         </view>
         <view class="u-step">
           <view class="u-num">03</view>
           <view class="u-content">
-            <text class="u-title">Atomic Execution</text>
-            <text class="u-text"
-              >The pool sends you funds, calls your `onFlashLoan`, and finally checks if you returned the loan + 0.09%
-              fee.</text
-            >
+            <text class="u-title">TEE Verification</text>
+            <text class="u-text">TEE verifies your callback can repay before execution.</text>
           </view>
         </view>
         <view class="u-step">
           <view class="u-num">04</view>
           <view class="u-content">
-            <text class="u-title">Profit Capture</text>
-            <text class="u-text"
-              >Any excess assets remaining in your callback contract after repayment are your guaranteed profit!</text
-            >
+            <text class="u-title">Repay in Callback</text>
+            <text class="u-text">Return principal + 0.09% fee within the same transaction.</text>
           </view>
         </view>
       </view>
@@ -126,8 +171,8 @@
     <view class="warning-box">
       <AppIcon name="alert-triangle" :size="20" />
       <text class="warning-text"
-        >Flash loans will fail if the transaction doesn't include the full repayment. Ensure your gas calculation
-        includes the fee.</text
+        >Flash loans require a programmatic callback contract; this miniapp is instructional only. Transactions fail
+        without full repayment plus fee.</text
       >
     </view>
   </view>

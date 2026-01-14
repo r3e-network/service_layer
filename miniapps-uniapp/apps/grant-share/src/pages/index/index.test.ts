@@ -1,389 +1,105 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ref, computed } from "vue";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { mount, VueWrapper } from "@vue/test-utils";
+import { ref, nextTick } from "vue";
+import IndexPage from "./index.vue";
 
-// Mock @neo/uniapp-sdk
 vi.mock("@neo/uniapp-sdk", () => ({
   useWallet: () => ({
-    address: ref("NXV7ZhHiyM1aHXwpVsRZC6BN3y4"),
-    isConnected: ref(true),
-    connect: vi.fn().mockResolvedValue(undefined),
-  }),
-  usePayments: () => ({
-    payGAS: vi.fn().mockResolvedValue({ request_id: "grant-123" }),
-    isLoading: ref(false),
+    chainType: ref("neo-n3"),
+    switchChain: vi.fn(),
   }),
 }));
 
-// Mock i18n
 vi.mock("@/shared/utils/i18n", () => ({
-  createT: (translations: any) => (key: string) => translations[key]?.en || key,
+  createT: (translations: Record<string, { en: string }>) => (key: string) => translations[key]?.en || key,
 }));
 
-interface Grant {
-  id: string;
-  title: string;
-  description: string;
-  goal: number;
-  funded: number;
-  creator: string;
-  status: "active" | "funded" | "completed";
-}
+vi.mock("@/shared/components", () => ({
+  AppLayout: {
+    name: "AppLayout",
+    template: '<div class="app-layout"><slot /></div>',
+    props: ["title", "showTopNav", "tabs", "activeTab"],
+  },
+  NeoCard: {
+    name: "NeoCard",
+    template: '<div class="neo-card"><slot /></div>',
+    props: ["title", "variant"],
+  },
+  NeoButton: {
+    name: "NeoButton",
+    template: '<button class="neo-button"><slot /></button>',
+    props: ["size", "variant", "disabled"],
+  },
+  NeoDoc: {
+    name: "NeoDoc",
+    template: '<div class="neo-doc">Documentation</div>',
+    props: ["title", "subtitle", "description", "steps", "features"],
+  },
+}));
 
-describe("Grant-Share MiniApp", () => {
-  let payGAS: ReturnType<typeof vi.fn>;
-  let isLoading: ReturnType<typeof ref<boolean>>;
-  let address: ReturnType<typeof ref<string>>;
+const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
 
-  beforeEach(async () => {
+describe("GrantShare MiniApp", () => {
+  let wrapper: VueWrapper<any>;
+
+  beforeEach(() => {
     vi.clearAllMocks();
-    const { useWallet, usePayments } = await import("@neo/uniapp-sdk");
-    const wallet = useWallet();
-    const payments = usePayments("miniapp-grant-share");
-    payGAS = payments.payGAS as any;
-    isLoading = payments.isLoading;
-    address = wallet.address;
   });
 
-  describe("Stats Display", () => {
-    it("should display total grants count", () => {
-      const totalGrants = ref(2);
-      expect(totalGrants.value).toBe(2);
-    });
-
-    it("should display total funded amount", () => {
-      const totalFunded = ref(950);
-      expect(totalFunded.value).toBe(950);
-    });
-
-    it("should format amounts correctly", () => {
-      const formatAmount = (n: number) => n.toFixed(0);
-      expect(formatAmount(950)).toBe("950");
-      expect(formatAmount(1000.5)).toBe("1001");
-    });
+  afterEach(() => {
+    if (wrapper) {
+      wrapper.unmount();
+    }
+    delete (globalThis as any).uni;
   });
 
-  describe("Tab Navigation", () => {
-    it("should switch between tabs", () => {
-      const activeTab = ref<"browse" | "create" | "my">("browse");
+  it("renders proposals from GrantShares API", async () => {
+    const encodedTitle = Buffer.from("Test Proposal").toString("base64");
+    (globalThis as any).uni = {
+      request: ({ success }: { success: (data: any) => void }) =>
+        success({
+          data: {
+            total: 1,
+            items: [
+              {
+                offchain_id: "offchain-1",
+                onchain_id: 12,
+                title: encodedTitle,
+                state: "Active",
+                proposer: "NX_TEST",
+                votes_amount_accept: 5,
+                votes_amount_reject: 2,
+                discussion_url: "https://example.com",
+                offchain_creation_timestamp: "2024-01-01T00:00:00Z",
+                offchain_comments_count: 3,
+              },
+            ],
+          },
+        }),
+    };
 
-      expect(activeTab.value).toBe("browse");
+    wrapper = mount(IndexPage);
+    await flushPromises();
+    await nextTick();
 
-      activeTab.value = "create";
-      expect(activeTab.value).toBe("create");
-
-      activeTab.value = "my";
-      expect(activeTab.value).toBe("my");
-    });
+    const titles = wrapper.findAll(".grant-title-glass");
+    expect(titles).toHaveLength(1);
+    expect(titles[0].text()).toBe("Test Proposal");
+    expect(wrapper.find(".grant-badge-glass").text()).toBe("Active");
+    expect(wrapper.text()).toContain("For 5");
+    expect(wrapper.text()).toContain("Against 2");
+    expect(wrapper.text()).toContain("Comments 3");
   });
 
-  describe("Browse Grants", () => {
-    it("should display active grants", () => {
-      const grants = ref<Grant[]>([
-        {
-          id: "1",
-          title: "Neo Developer Tools",
-          description: "Building open-source dev tools",
-          goal: 1000,
-          funded: 450,
-          creator: "NXtest1",
-          status: "active",
-        },
-      ]);
+  it("shows error state when API fails", async () => {
+    (globalThis as any).uni = {
+      request: ({ fail }: { fail: (err: Error) => void }) => fail(new Error("Network error")),
+    };
 
-      expect(grants.value).toHaveLength(1);
-      expect(grants.value[0].status).toBe("active");
-    });
+    wrapper = mount(IndexPage);
+    await flushPromises();
+    await nextTick();
 
-    it("should calculate progress percentage", () => {
-      const grant: Grant = {
-        id: "1",
-        title: "Test",
-        description: "Test",
-        goal: 1000,
-        funded: 450,
-        creator: "NXtest1",
-        status: "active",
-      };
-
-      const getProgress = (g: Grant) => Math.min((g.funded / g.goal) * 100, 100);
-      expect(getProgress(grant)).toBe(45);
-    });
-
-    it("should cap progress at 100%", () => {
-      const grant: Grant = {
-        id: "1",
-        title: "Test",
-        description: "Test",
-        goal: 1000,
-        funded: 1500,
-        creator: "NXtest1",
-        status: "active",
-      };
-
-      const getProgress = (g: Grant) => Math.min((g.funded / g.goal) * 100, 100);
-      expect(getProgress(grant)).toBe(100);
-    });
-
-    it("should display empty state when no grants", () => {
-      const grants = ref<Grant[]>([]);
-      expect(grants.value).toHaveLength(0);
-    });
-  });
-
-  describe("Create Grant", () => {
-    it("should validate grant creation form", () => {
-      const newGrant = ref({ title: "Test Grant", description: "Test Description", goal: "1000" });
-
-      const canCreate = computed(
-        () => newGrant.value.title && newGrant.value.description && parseFloat(newGrant.value.goal) > 0,
-      );
-
-      expect(canCreate.value).toBe(true);
-    });
-
-    it("should reject empty title", () => {
-      const newGrant = ref({ title: "", description: "Test", goal: "1000" });
-
-      const canCreate = computed(
-        () => newGrant.value.title && newGrant.value.description && parseFloat(newGrant.value.goal) > 0,
-      );
-
-      expect(canCreate.value).toBeFalsy();
-    });
-
-    it("should reject zero goal", () => {
-      const newGrant = ref({ title: "Test", description: "Test", goal: "0" });
-
-      const canCreate = computed(
-        () => newGrant.value.title && newGrant.value.description && parseFloat(newGrant.value.goal) > 0,
-      );
-
-      expect(canCreate.value).toBeFalsy();
-    });
-
-    it("should create grant successfully", async () => {
-      const newGrant = ref({ title: "Test Grant", description: "Test Description", goal: "1000" });
-      const grants = ref<Grant[]>([]);
-      const myGrants = ref<Grant[]>([]);
-      const totalGrants = ref(0);
-      const loading = ref(false);
-
-      loading.value = true;
-      const grant: Grant = {
-        id: Date.now().toString(),
-        title: newGrant.value.title,
-        description: newGrant.value.description,
-        goal: parseFloat(newGrant.value.goal),
-        funded: 0,
-        creator: address.value || "",
-        status: "active",
-      };
-
-      grants.value.unshift(grant);
-      myGrants.value.unshift(grant);
-      totalGrants.value++;
-      loading.value = false;
-
-      expect(grants.value).toHaveLength(1);
-      expect(myGrants.value).toHaveLength(1);
-      expect(totalGrants.value).toBe(1);
-    });
-  });
-
-  describe("Fund Grant", () => {
-    it("should open fund modal", () => {
-      const showFundModal = ref(false);
-      const selectedGrant = ref<Grant | null>(null);
-      const fundAmount = ref("");
-
-      const grant: Grant = {
-        id: "1",
-        title: "Test",
-        description: "Test",
-        goal: 1000,
-        funded: 450,
-        creator: "NXtest1",
-        status: "active",
-      };
-
-      selectedGrant.value = grant;
-      fundAmount.value = "";
-      showFundModal.value = true;
-
-      expect(showFundModal.value).toBe(true);
-      expect(selectedGrant.value).toEqual(grant);
-    });
-
-    it("should fund grant successfully", async () => {
-      const selectedGrant = ref<Grant>({
-        id: "1",
-        title: "Test",
-        description: "Test",
-        goal: 1000,
-        funded: 450,
-        creator: "NXtest1",
-        status: "active",
-      });
-      const fundAmount = ref("100");
-      const totalFunded = ref(950);
-      const loading = ref(false);
-
-      const amt = parseFloat(fundAmount.value);
-      loading.value = true;
-      await payGAS(amt.toString(), `grant:${selectedGrant.value.id}`);
-
-      selectedGrant.value.funded += amt;
-      totalFunded.value += amt;
-      loading.value = false;
-
-      expect(payGAS).toHaveBeenCalledWith("100", "grant:1");
-      expect(selectedGrant.value.funded).toBe(550);
-      expect(totalFunded.value).toBe(1050);
-    });
-
-    it("should update status when goal reached", async () => {
-      const selectedGrant = ref<Grant>({
-        id: "1",
-        title: "Test",
-        description: "Test",
-        goal: 1000,
-        funded: 950,
-        creator: "NXtest1",
-        status: "active",
-      });
-      const fundAmount = ref("50");
-
-      const amt = parseFloat(fundAmount.value);
-      await payGAS(amt.toString(), `grant:${selectedGrant.value.id}`);
-
-      selectedGrant.value.funded += amt;
-      if (selectedGrant.value.funded >= selectedGrant.value.goal) {
-        selectedGrant.value.status = "funded";
-      }
-
-      expect(selectedGrant.value.status).toBe("funded");
-    });
-
-    it("should validate positive amount", () => {
-      const fundAmount = ref("0");
-      const amt = parseFloat(fundAmount.value);
-      expect(amt > 0).toBe(false);
-    });
-  });
-
-  describe("My Grants", () => {
-    it("should filter grants by creator", () => {
-      const grants = ref<Grant[]>([
-        {
-          id: "1",
-          title: "My Grant",
-          description: "Test",
-          goal: 1000,
-          funded: 450,
-          creator: "NXV7ZhHiyM1aHXwpVsRZC6BN3y4",
-          status: "active",
-        },
-        {
-          id: "2",
-          title: "Other Grant",
-          description: "Test",
-          goal: 500,
-          funded: 500,
-          creator: "NXtest2",
-          status: "funded",
-        },
-      ]);
-
-      const myGrants = computed(() => grants.value.filter((g) => g.creator === address.value));
-
-      expect(myGrants.value).toHaveLength(1);
-      expect(myGrants.value[0].title).toBe("My Grant");
-    });
-
-    it("should allow withdrawal when funded", () => {
-      const grant: Grant = {
-        id: "1",
-        title: "Test",
-        description: "Test",
-        goal: 1000,
-        funded: 1000,
-        creator: "NXV7ZhHiyM1aHXwpVsRZC6BN3y4",
-        status: "funded",
-      };
-
-      expect(grant.funded >= grant.goal).toBe(true);
-    });
-
-    it("should complete grant after withdrawal", () => {
-      const grant: Grant = {
-        id: "1",
-        title: "Test",
-        description: "Test",
-        goal: 1000,
-        funded: 1000,
-        creator: "NXV7ZhHiyM1aHXwpVsRZC6BN3y4",
-        status: "funded",
-      };
-
-      grant.status = "completed";
-      expect(grant.status).toBe("completed");
-    });
-  });
-
-  describe("Status Labels", () => {
-    it("should return correct status label", () => {
-      const getStatusLabel = (s: Grant["status"]) =>
-        s === "active" ? "Active" : s === "funded" ? "Funded" : "Completed";
-
-      expect(getStatusLabel("active")).toBe("Active");
-      expect(getStatusLabel("funded")).toBe("Funded");
-      expect(getStatusLabel("completed")).toBe("Completed");
-    });
-  });
-
-  describe("Loading States", () => {
-    it("should track loading state", () => {
-      const loading = ref(false);
-      const isBusy = computed(() => loading.value || isLoading.value);
-
-      expect(isBusy.value).toBe(false);
-
-      loading.value = true;
-      expect(isBusy.value).toBe(true);
-    });
-
-    it("should prevent actions when busy", () => {
-      const loading = ref(true);
-      const canCreate = computed(() => !loading.value);
-
-      expect(canCreate.value).toBe(false);
-    });
-  });
-
-  describe("Status Messages", () => {
-    it("should show success message", () => {
-      const statusMessage = ref("");
-      const statusType = ref<"success" | "error">("success");
-
-      const showStatus = (msg: string, type: "success" | "error") => {
-        statusMessage.value = msg;
-        statusType.value = type;
-      };
-
-      showStatus("Grant created!", "success");
-      expect(statusMessage.value).toBe("Grant created!");
-      expect(statusType.value).toBe("success");
-    });
-
-    it("should auto-clear status after timeout", () => {
-      vi.useFakeTimers();
-      const statusMessage = ref("Test message");
-
-      setTimeout(() => (statusMessage.value = ""), 4000);
-      vi.advanceTimersByTime(4000);
-
-      expect(statusMessage.value).toBe("");
-      vi.useRealTimers();
-    });
+    expect(wrapper.find(".empty-text").text()).toBe("Unable to load proposals");
   });
 });

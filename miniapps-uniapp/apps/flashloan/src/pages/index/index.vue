@@ -74,7 +74,7 @@ import FlashloanDocs from "./components/FlashloanDocs.vue";
 const translations = {
   title: { en: "Flash Loan Simulator", zh: "闪电贷模拟器" },
   demoMode: { en: "DEMO MODE", zh: "演示模式" },
-  demoNote: { en: "Educational simulation - no real funds involved", zh: "教育模拟 - 不涉及真实资金" },
+  demoNote: { en: "Instructional only - no real flash loans executed", zh: "仅供教学 - 不执行真实闪电贷" },
   flashLoanFlow: { en: "Flash Loan Flow", zh: "闪电贷流程" },
   borrow: { en: "Borrow", zh: "借款" },
   execute: { en: "Execute", zh: "执行" },
@@ -121,8 +121,8 @@ const translations = {
   docs: { en: "Learn", zh: "学习" },
   docSubtitle: { en: "Understanding Flash Loans", zh: "理解闪电贷" },
   docDescription: {
-    en: "Flash loans enable uncollateralized borrowing with instant repayment in a single transaction. This simulator helps you understand how they work without risking real funds.",
-    zh: "闪电贷支持无抵押借款，在单笔交易中即时还款。此模拟器帮助你在不冒真实资金风险的情况下理解其工作原理。",
+    en: "Flash loans enable uncollateralized borrowing with instant repayment in a single transaction. This simulator is instructional only; real flash loans must be executed programmatically.",
+    zh: "闪电贷支持无抵押借款，在单笔交易中即时还款。本模拟器仅用于教学，真实闪电贷需以程序方式执行。",
   },
   step1: {
     en: "Select an operation type (Arbitrage, Liquidation, or Collateral Swap)",

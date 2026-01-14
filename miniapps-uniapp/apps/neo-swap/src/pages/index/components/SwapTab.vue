@@ -86,8 +86,8 @@ const props = defineProps<{
   t: (key: string) => string;
 }>();
 
-const { getAddress, invokeContract, getBalance } = useWallet();
-const SWAP_ROUTER = "0xf970f4ccecd765b63732b821775dc38c25d74f23";
+const { getAddress, invokeContract, getBalance, getContractAddress } = useWallet() as any;
+const SWAP_ROUTER = ref<string | null>(null);
 
 interface Token {
   symbol: string;
@@ -250,8 +250,11 @@ async function executeSwap() {
     const toDecimals = toToken.value.decimals;
     const minOutputInt = Math.floor(minOutputAmount * Math.pow(10, toDecimals));
 
+    const routerAddress = SWAP_ROUTER.value || (await getContractAddress());
+    if (!routerAddress) throw new Error("Swap router unavailable");
+
     await invokeContract({
-      scriptHash: SWAP_ROUTER,
+      scriptHash: routerAddress,
       operation: "swap",
       args: [
         { type: "Hash160", value: await getAddress() },

@@ -172,7 +172,7 @@ const navTabs: NavTab[] = [
 const { chainType, switchChain } = useWallet() as any;
 
 const searchQuery = ref("");
-const selectedNetwork = ref<"mainnet" | "testnet">("testnet");
+const selectedNetwork = ref<"mainnet" | "testnet">("mainnet");
 const isLoading = ref(false);
 const status = ref<{ msg: string; type: string } | null>(null);
 const searchResult = ref<any>(null);

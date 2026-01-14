@@ -233,7 +233,7 @@ const docFeatures = computed(() => [
 ]);
 
 const APP_ID = "miniapp-millionpiecemap";
-const { address, connect, invokeContract, invokeRead, chainType, switchChain } = useWallet() as any;
+const { address, connect, invokeContract, invokeRead, chainType, switchChain, getContractAddress } = useWallet() as any;
 const { payGAS } = usePayments(APP_ID);
 const { list: listEvents } = useEvents();
 
@@ -295,7 +295,7 @@ const statsData = computed<StatItem[]>(() => [
 
 const ensureContractAddress = async () => {
   if (!contractAddress.value) {
-    contractAddress.value = "0xc56f33fc6ec47edbd594472833cf57505d5f99aa";
+    contractAddress.value = await getContractAddress();
   }
   if (!contractAddress.value) {
     throw new Error(t("contractUnavailable"));

@@ -103,6 +103,13 @@
             </view>
           </NeoCard>
         </view>
+
+        <NeoCard v-if="!isLoading && leaderboard.length === 0" variant="erobo" class="empty-state-card">
+          <view class="empty-state-content">
+            <text class="empty-state-title">{{ fetchError ? t("leaderboardUnavailable") : t("leaderboardEmpty") }}</text>
+            <text v-if="fetchError" class="empty-state-subtitle">{{ t("tryAgain") }}</text>
+          </view>
+        </NeoCard>
       </view>
 
       <!-- Docs Tab -->
@@ -143,6 +150,10 @@ const translations = {
   periodAll: { en: "ALL", zh: "全部" },
   voteSuccess: { en: "Vote successful!", zh: "投票成功！" },
   voteFailed: { en: "Vote failed", zh: "投票失败" },
+  voteRecordFailed: { en: "Vote sync failed. Please try again.", zh: "投票同步失败，请重试" },
+  leaderboardEmpty: { en: "No entries yet", zh: "暂无榜单数据" },
+  leaderboardUnavailable: { en: "Leaderboard unavailable", zh: "排行榜暂不可用" },
+  tryAgain: { en: "Please try again later", zh: "请稍后再试" },
   docSubtitle: { en: "Community recognition through GAS voting", zh: "通过 GAS 投票进行社区认可" },
   docDescription: {
     en: "Neo Hall of Fame is a community-driven leaderboard where you can boost your favorite people, communities, and developers in the Neo ecosystem by voting with GAS.",
@@ -168,7 +179,7 @@ const t = createT(translations);
 
 const APP_ID = "miniapp-hall-of-fame";
 const { address, connect, chainType, switchChain } = useWallet() as any;
-const { payGAS, isLoading: paymentLoading } = usePayments(APP_ID);
+const { payGAS } = usePayments(APP_ID);
 
 type Category = "people" | "community" | "developer";
 type Period = "day" | "week" | "month" | "year";
@@ -206,17 +217,6 @@ const docFeatures = computed(() => [
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 
-const mockData: Entrant[] = [
-  { id: "p1", name: "Da Hongfei", category: "people", score: 54020 },
-  { id: "p2", name: "Erik Zhang", category: "people", score: 48900 },
-  { id: "p3", name: "John DeVadoss", category: "people", score: 32150 },
-  { id: "c1", name: "Neo News Today", category: "community", score: 89000 },
-  { id: "c2", name: "N Zone", category: "community", score: 67500 },
-  { id: "d1", name: "AxLabs", category: "developer", score: 92100 },
-  { id: "d2", name: "COZ", category: "developer", score: 88500 },
-  { id: "d3", name: "Red4Sec", category: "developer", score: 76000 },
-];
-
 const activeCategory = ref<Category>("people");
 const activePeriod = ref<Period>("month");
 const entrants = ref<Entrant[]>([]);
@@ -224,22 +224,24 @@ const votingId = ref<string | null>(null);
 const statusMessage = ref("");
 const statusType = ref<"success" | "error">("success");
 const isLoading = ref(false);
+const fetchError = ref(false);
 
 // Fetch leaderboard data from API
 const fetchLeaderboard = async () => {
   isLoading.value = true;
+  fetchError.value = false;
   try {
     const response = await fetch("/api/hall-of-fame/leaderboard");
-    if (response.ok) {
-      const data = await response.json();
-      const apiEntries = Array.isArray(data.entrants) ? data.entrants : [];
-      entrants.value = apiEntries.length > 0 ? apiEntries : mockData;
-      return;
+    if (!response.ok) {
+      throw new Error("Leaderboard fetch failed");
     }
-    entrants.value = mockData;
+    const data = await response.json();
+    const apiEntries = Array.isArray(data.entrants) ? data.entrants : [];
+    entrants.value = apiEntries;
   } catch (e) {
     console.warn("[HallOfFame] Failed to fetch leaderboard:", e);
-    entrants.value = mockData;
+    entrants.value = [];
+    fetchError.value = true;
   } finally {
     isLoading.value = false;
   }
@@ -304,24 +306,19 @@ async function handleVote(entrant: Entrant) {
       }),
     });
 
-    if (response.ok) {
-      const result = await response.json();
-      // Update local state with server-confirmed score
-      const idx = entrants.value.findIndex((e) => e.id === entrant.id);
-      if (idx !== -1) {
-        if (result.newScore !== undefined) {
-          entrants.value[idx].score = result.newScore;
-        } else {
-          entrants.value[idx].score += 100;
-        }
-      }
-    } else {
-      // Payment succeeded but backend failed - still update locally
-      const idx = entrants.value.findIndex((e) => e.id === entrant.id);
-      if (idx !== -1) {
+    if (!response.ok) {
+      throw new Error(t("voteRecordFailed"));
+    }
+
+    const result = await response.json();
+    // Update local state with server-confirmed score
+    const idx = entrants.value.findIndex((e) => e.id === entrant.id);
+    if (idx !== -1) {
+      if (result.newScore !== undefined) {
+        entrants.value[idx].score = result.newScore;
+      } else {
         entrants.value[idx].score += 100;
       }
-      console.warn("[HallOfFame] Vote API failed, updated locally only");
     }
 
     showStatus(t("voteSuccess"), "success");
@@ -565,6 +562,24 @@ onMounted(async () => {
   background: white;
   filter: blur(4px);
   opacity: 0.7;
+}
+
+.empty-state-card {
+  text-align: center;
+}
+.empty-state-content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.empty-state-title {
+  font-weight: $font-weight-bold;
+  color: rgba(255, 255, 255, 0.7);
+}
+.empty-state-subtitle {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .scrollable {

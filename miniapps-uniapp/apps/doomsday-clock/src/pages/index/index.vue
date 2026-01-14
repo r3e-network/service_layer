@@ -175,11 +175,11 @@ const APP_ID = "miniapp-doomsday-clock";
 const KEY_PRICE_GAS = 1;
 const MAX_DURATION_SECONDS = 86400;
 
-const { address, connect, invokeRead, invokeContract, chainType, switchChain } = useWallet() as any;
+const { address, connect, invokeRead, invokeContract, chainType, switchChain, getContractAddress } = useWallet() as any;
 const { payGAS, isLoading: isPaying } = usePayments(APP_ID);
 const { list: listEvents } = useEvents();
 
-const contractAddress = ref<string>("0xc56f33fc6ec47edbd594472833cf57505d5f99aa"); // Placeholder/Demo Contract
+const contractAddress = ref<string | null>(null);
 const roundId = ref(0);
 const totalPot = ref(0);
 const endTime = ref(0);
@@ -255,6 +255,9 @@ const showStatus = (msg: string, type: string) => {
 };
 
 const ensureContractAddress = async () => {
+  if (!contractAddress.value) {
+    contractAddress.value = await getContractAddress();
+  }
   return contractAddress.value;
 };
 

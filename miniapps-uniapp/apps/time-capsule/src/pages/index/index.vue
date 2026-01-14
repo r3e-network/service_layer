@@ -140,13 +140,13 @@ const docFeatures = computed(() => [
 ]);
 
 const APP_ID = "miniapp-time-capsule";
-const { address, connect, invokeContract, chainType, switchChain } = useWallet() as any;
+const { address, connect, invokeContract, chainType, switchChain, getContractAddress } = useWallet() as any;
 const { payGAS, isLoading } = usePayments(APP_ID);
 const contractAddress = ref<string | null>(null);
 
 const ensureContractAddress = async () => {
   if (!contractAddress.value) {
-    contractAddress.value = "0xc56f33fc6ec47edbd594472833cf57505d5f99aa";
+    contractAddress.value = await getContractAddress();
   }
   if (!contractAddress.value) throw new Error(t("error"));
   return contractAddress.value;

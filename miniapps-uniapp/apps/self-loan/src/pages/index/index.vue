@@ -172,11 +172,19 @@ const docFeatures = computed(() => [
 const APP_ID = "miniapp-self-loan";
 const NEO_CONTRACT = "0xef4073a0f2b305a38ec4050e4d3d28bc40ea63f5";
 const GAS_CONTRACT = "0xd2a4cff31913016155e38e474a2c06d08be276cf";
-const SELF_LOAN_CONTRACT = "0xc56f33fc6ec47edbd594472833cf57505d5f99aa";
 
-const { address, connect, invokeContract, getBalance, chainType, switchChain } = useWallet() as any;
+
+const { address, connect, invokeContract, getBalance, chainType, switchChain, getContractAddress } = useWallet() as any;
 const isLoading = ref(false);
 const neoBalance = ref(0);
+const contractAddress = ref<string | null>(null);
+
+const ensureContractAddress = async () => {
+  if (!contractAddress.value) {
+    contractAddress.value = await getContractAddress();
+  }
+  return contractAddress.value;
+};
 
 const terms = ref<Terms>({ maxBorrow: 5000, interestRate: 8.5, repaymentSchedule: "Monthly" });
 const loan = ref<Loan>({ borrowed: 0, collateralLocked: 0, nextPayment: 0, nextPaymentDue: "N/A" });
@@ -236,12 +244,13 @@ const takeLoan = async (): Promise<void> => {
     }
 
     // Step 1: Lock NEO as collateral by transferring to Self Loan contract
+    const selfLoanAddress = await ensureContractAddress();
     await invokeContract({
       scriptHash: NEO_CONTRACT,
       operation: "transfer",
       args: [
         { type: "Hash160", value: address.value },
-        { type: "Hash160", value: SELF_LOAN_CONTRACT },
+        { type: "Hash160", value: selfLoanAddress },
         { type: "Integer", value: neoCollateral }, // NEO is indivisible
         { type: "ByteArray", value: `loan:${borrowAmount}` }, // Memo with loan amount
       ],
@@ -291,8 +300,9 @@ const fetchData = async () => {
     }
 
     // Query user's loan position
+    const selfLoanAddress = await ensureContractAddress();
     const loanResult = (await sdk.invoke("invokeRead", {
-      contract: SELF_LOAN_CONTRACT,
+      contract: selfLoanAddress,
       method: "GetUserLoan",
       args: [{ type: "Hash160", value: address.value }],
     })) as any;
