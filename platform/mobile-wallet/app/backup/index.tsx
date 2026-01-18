@@ -5,9 +5,11 @@ import { useState, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { loadBackupHistory, formatBackupDate, getBackupTypeLabel, BackupMetadata } from "@/lib/backup";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function BackupSettingsScreen() {
   const router = useRouter();
+  const { t, locale } = useTranslation();
   const [history, setHistory] = useState<BackupMetadata[]>([]);
 
   useFocusEffect(
@@ -17,9 +19,9 @@ export default function BackupSettingsScreen() {
   );
 
   const handleCloudBackup = () => {
-    Alert.alert("Cloud Backup", "This will backup your wallet to iCloud/Google Drive", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Backup", onPress: () => router.push("/backup/verify?type=cloud") },
+    Alert.alert(t("backup.cloudAlertTitle"), t("backup.cloudAlertMessage"), [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("backup.backupAction"), onPress: () => router.push("/backup/verify?type=cloud") },
     ]);
   };
 
@@ -29,16 +31,16 @@ export default function BackupSettingsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: "Backup & Recovery" }} />
+      <Stack.Screen options={{ title: t("backup.title") }} />
       <ScrollView>
         {/* Backup Options */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Create Backup</Text>
+          <Text style={styles.sectionTitle}>{t("backup.createTitle")}</Text>
           <TouchableOpacity style={styles.optionCard} onPress={handleCloudBackup}>
             <Ionicons name="cloud-upload" size={28} color="#00d4aa" />
             <View style={styles.optionInfo}>
-              <Text style={styles.optionTitle}>Cloud Backup</Text>
-              <Text style={styles.optionDesc}>Encrypted backup to iCloud/Google Drive</Text>
+              <Text style={styles.optionTitle}>{t("backup.cloudTitle")}</Text>
+              <Text style={styles.optionDesc}>{t("backup.cloudDesc")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#666" />
           </TouchableOpacity>
@@ -46,8 +48,8 @@ export default function BackupSettingsScreen() {
           <TouchableOpacity style={styles.optionCard} onPress={handleLocalBackup}>
             <Ionicons name="download" size={28} color="#00d4aa" />
             <View style={styles.optionInfo}>
-              <Text style={styles.optionTitle}>Local Backup</Text>
-              <Text style={styles.optionDesc}>Export encrypted file to device</Text>
+              <Text style={styles.optionTitle}>{t("backup.localTitle")}</Text>
+              <Text style={styles.optionDesc}>{t("backup.localDesc")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#666" />
           </TouchableOpacity>
@@ -55,12 +57,12 @@ export default function BackupSettingsScreen() {
 
         {/* Restore */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Restore Wallet</Text>
+          <Text style={styles.sectionTitle}>{t("backup.restoreTitle")}</Text>
           <TouchableOpacity style={styles.optionCard} onPress={() => router.push("/backup/restore")}>
             <Ionicons name="refresh" size={28} color="#f5a623" />
             <View style={styles.optionInfo}>
-              <Text style={styles.optionTitle}>Restore from Backup</Text>
-              <Text style={styles.optionDesc}>Recover wallet from backup file</Text>
+              <Text style={styles.optionTitle}>{t("backup.restoreFromBackup")}</Text>
+              <Text style={styles.optionDesc}>{t("backup.restoreDesc")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#666" />
           </TouchableOpacity>
@@ -69,15 +71,15 @@ export default function BackupSettingsScreen() {
         {/* History */}
         {history.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Backup History</Text>
+            <Text style={styles.sectionTitle}>{t("backup.historyTitle")}</Text>
             {history.map((item) => (
               <View key={item.id} style={styles.historyItem}>
                 <Ionicons name={item.type === "cloud" ? "cloud" : "document"} size={20} color="#666" />
                 <View style={styles.historyInfo}>
-                  <Text style={styles.historyType}>{getBackupTypeLabel(item.type)}</Text>
-                  <Text style={styles.historyDate}>{formatBackupDate(item.timestamp)}</Text>
+                  <Text style={styles.historyType}>{getBackupTypeLabel(item.type, t)}</Text>
+                  <Text style={styles.historyDate}>{formatBackupDate(item.timestamp, locale)}</Text>
                 </View>
-                <Text style={styles.historyCount}>{item.walletCount} wallets</Text>
+                <Text style={styles.historyCount}>{t("backup.walletsCount", { count: item.walletCount })}</Text>
               </View>
             ))}
           </View>

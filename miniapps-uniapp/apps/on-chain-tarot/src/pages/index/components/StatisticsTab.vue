@@ -41,7 +41,7 @@ defineProps<{
   font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-primary);
   letter-spacing: 0.05em;
 }
 

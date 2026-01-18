@@ -65,7 +65,7 @@ defineProps<{
   font-weight: $font-weight-bold;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
 }
 
 .danger-badge-glass {
@@ -158,7 +158,7 @@ defineProps<{
   font-size: 10px;
   font-weight: $font-weight-bold;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
 }
 
 .meter-bar-glass {
@@ -201,14 +201,14 @@ defineProps<{
   font-weight: $font-weight-bold;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   display: block;
   margin-bottom: 4px;
 }
 .event-text-glass {
   font-size: 14px;
   font-weight: $font-weight-medium;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
   line-height: 1.4;
 }
 </style>

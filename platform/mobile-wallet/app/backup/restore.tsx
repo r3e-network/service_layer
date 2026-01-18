@@ -5,9 +5,11 @@ import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { validateMnemonic, restoreWalletFromMnemonic } from "@/lib/backup";
 import { useWalletStore } from "@/stores/wallet";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function RestoreScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { setAddress } = useWalletStore();
   const [mnemonic, setMnemonic] = useState("");
   const [password, setPassword] = useState("");
@@ -15,11 +17,11 @@ export default function RestoreScreen() {
 
   const handleRestore = async () => {
     if (!validateMnemonic(mnemonic)) {
-      Alert.alert("Invalid", "Please enter a valid 12 or 24 word mnemonic");
+      Alert.alert(t("backup.invalidMnemonicTitle"), t("backup.invalidMnemonicMessage"));
       return;
     }
     if (password.length < 6) {
-      Alert.alert("Invalid", "Password must be at least 6 characters");
+      Alert.alert(t("backup.invalidMnemonicTitle"), t("backup.invalidPasswordMessage"));
       return;
     }
 
@@ -27,10 +29,12 @@ export default function RestoreScreen() {
     try {
       const wallet = await restoreWalletFromMnemonic(mnemonic.trim(), password);
       setAddress(wallet.address);
-      Alert.alert("Success", "Wallet restored successfully", [{ text: "OK", onPress: () => router.replace("/") }]);
+      Alert.alert(t("common.success"), t("backup.restoreSuccessMessage"), [
+        { text: t("common.ok"), onPress: () => router.replace("/") },
+      ]);
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Failed to restore wallet";
-      Alert.alert("Error", message);
+      const message = e instanceof Error ? e.message : t("backup.restoreErrorMessage");
+      Alert.alert(t("common.error"), message);
     } finally {
       setRestoring(false);
     }
@@ -38,20 +42,20 @@ export default function RestoreScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: "Restore Wallet" }} />
+      <Stack.Screen options={{ title: t("backup.restoreScreenTitle") }} />
       <View style={styles.content}>
         <View style={styles.iconWrap}>
           <Ionicons name="refresh-circle" size={48} color="#f5a623" />
         </View>
-        <Text style={styles.title}>Restore Your Wallet</Text>
-        <Text style={styles.desc}>Enter your recovery phrase and set a new password</Text>
+        <Text style={styles.title}>{t("backup.restoreHeading")}</Text>
+        <Text style={styles.desc}>{t("backup.restoreDesc")}</Text>
 
-        <Text style={styles.label}>Recovery Phrase</Text>
+        <Text style={styles.label}>{t("backup.recoveryPhrase")}</Text>
         <TextInput
           style={styles.mnemonicInput}
           value={mnemonic}
           onChangeText={setMnemonic}
-          placeholder="Enter 12 or 24 words..."
+          placeholder={t("backup.mnemonicPlaceholder")}
           placeholderTextColor="#666"
           multiline
           numberOfLines={3}
@@ -59,12 +63,12 @@ export default function RestoreScreen() {
           autoCorrect={false}
         />
 
-        <Text style={styles.label}>New Password</Text>
+        <Text style={styles.label}>{t("backup.newPassword")}</Text>
         <TextInput
           style={styles.input}
           value={password}
           onChangeText={setPassword}
-          placeholder="Min 6 characters"
+          placeholder={t("backup.passwordPlaceholder")}
           placeholderTextColor="#666"
           secureTextEntry
         />
@@ -74,7 +78,7 @@ export default function RestoreScreen() {
           onPress={handleRestore}
           disabled={restoring}
         >
-          <Text style={styles.btnText}>{restoring ? "Restoring..." : "Restore Wallet"}</Text>
+          <Text style={styles.btnText}>{restoring ? t("backup.restoring") : t("backup.restoreButton")}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

@@ -26,10 +26,9 @@
       <CandidateList
         :candidates="candidates"
         :selected-candidate="selectedCandidate"
-        :user-voted-public-key="userVotedPublicKey"
+        :user-voted-public-key="normalizedUserVotedPublicKey"
         :total-votes="totalNetworkVotes"
         :is-loading="candidatesLoading"
-        :t="t as any"
         @select="selectCandidate"
         @view-details="openCandidateDetail"
       />
@@ -70,7 +69,7 @@
     </view>
 
     <!-- Info Tab -->
-    <InfoTab v-if="activeTab === 'info'" :address="address" :t="t as any" />
+    <InfoTab v-if="activeTab === 'info'" :address="address" />
 
     <!-- Docs Tab -->
     <view v-if="activeTab === 'docs'" class="tab-content scrollable">
@@ -89,9 +88,9 @@
       :candidate="detailCandidate"
       :rank="detailRank"
       :total-votes="totalNetworkVotes"
-      :is-user-voted="detailCandidate?.publicKey === userVotedPublicKey"
+      :is-user-voted="detailCandidate ? normalizePublicKey(detailCandidate.publicKey) === normalizedUserVotedPublicKey : false"
       :can-vote="!!address && !isLoading"
-      :t="t as any"
+      :governance-portal-url="governancePortalUrl"
       @close="closeCandidateDetail"
       @vote="handleVoteFromModal"
     />
@@ -99,86 +98,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
-import { useWallet, useGovernance } from "@neo/uniapp-sdk";
-import type { Candidate } from "@neo/uniapp-sdk";
-import { createT } from "@/shared/utils/i18n";
+import { ref, computed, onMounted, watch } from "vue";
+import { useWallet } from "@neo/uniapp-sdk";
+import type { GovernanceCandidate } from "./utils";
+import { useI18n } from "@/composables/useI18n";
+import { parseInvokeResult } from "@/shared/utils/neo";
 import { AppLayout, NeoDoc, NeoCard, NeoButton } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 import CandidateList from "./components/CandidateList.vue";
 import CandidateDetailModal from "./components/CandidateDetailModal.vue";
 import InfoTab from "./components/InfoTab.vue";
+import { fetchCandidates } from "./utils";
 
-const translations = {
-  vote: { en: "Vote", zh: "投票" },
-  info: { en: "Info", zh: "信息" },
-  title: { en: "Candidate Vote", zh: "候选人投票" },
-  subtitle: { en: "Neo Governance Voting", zh: "Neo 治理投票" },
-  networkStats: { en: "Network Stats", zh: "网络统计" },
-  totalCandidates: { en: "Candidates", zh: "候选人数" },
-  totalNetworkVotes: { en: "Total Votes", zh: "总票数" },
-  blockHeight: { en: "Block Height", zh: "区块高度" },
-  castVote: { en: "Cast Your Vote", zh: "投出您的票" },
-  voteNow: { en: "Vote Now", zh: "立即投票" },
-  processing: { en: "Processing...", zh: "处理中..." },
-  voteSuccess: { en: "Vote submitted successfully!", zh: "投票提交成功！" },
-  voteFailed: { en: "Vote failed", zh: "投票失败" },
-  connectWallet: { en: "Connect wallet to vote", zh: "连接钱包以投票" },
-  failedToLoad: { en: "Failed to load candidates", zh: "加载候选人失败" },
-  selectCandidate: { en: "Select Candidate", zh: "选择候选人" },
-  loadingCandidates: { en: "Loading candidates...", zh: "加载候选人中..." },
-  noCandidates: { en: "No candidates available", zh: "暂无候选人" },
-  votes: { en: "votes", zh: "票" },
-  votingFor: { en: "Voting for", zh: "投票给" },
-  selectCandidateFirst: { en: "Please select a candidate above", zh: "请先在上方选择候选人" },
-  docs: { en: "Docs", zh: "文档" },
-  docSubtitle: {
-    en: "Vote for Neo N3 consensus node candidates",
-    zh: "为 Neo N3 共识节点候选人投票",
-  },
-  docDescription: {
-    en: "Participate in Neo network governance by voting for consensus node candidates. Your NEO balance determines your voting power.",
-    zh: "通过为共识节点候选人投票参与 Neo 网络治理。您的 NEO 余额决定您的投票权重。",
-  },
-  step1: { en: "Connect your Neo wallet.", zh: "连接您的 Neo 钱包。" },
-  step2: { en: "Browse and select a candidate.", zh: "浏览并选择候选人。" },
-  step3: { en: "Click Vote Now to cast your vote.", zh: "点击立即投票来投出您的票。" },
-  step4: { en: "Your NEO balance is your voting power.", zh: "您的 NEO 余额就是您的投票权重。" },
-  feature1Name: { en: "On-Chain Voting", zh: "链上投票" },
-  feature1Desc: { en: "Votes are recorded directly on the Neo blockchain.", zh: "投票直接记录在 Neo 区块链上。" },
-  feature2Name: { en: "NEO-Based Power", zh: "基于 NEO 的权重" },
-  feature2Desc: { en: "Your voting power equals your NEO holdings.", zh: "您的投票权重等于您持有的 NEO 数量。" },
-  wrongChain: { en: "Wrong Network", zh: "网络错误" },
-  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需要 Neo N3 网络。" },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-  // InfoTab translations
-  aboutVoting: { en: "About Voting", zh: "关于投票" },
-  votingDescription: {
-    en: "Neo uses a delegated Byzantine Fault Tolerance (dBFT) consensus mechanism. NEO holders can vote for consensus node candidates to participate in network governance. Your voting power is determined by your NEO balance.",
-    zh: "Neo 使用委托拜占庭容错 (dBFT) 共识机制。NEO 持有者可以为共识节点候选人投票参与网络治理。您的投票权重由您的 NEO 余额决定。",
-  },
-  howItWorks: { en: "How It Works", zh: "工作原理" },
-  yourWallet: { en: "Your Wallet", zh: "您的钱包" },
-  wallet: { en: "Wallet", zh: "钱包" },
-  notConnected: { en: "Not Connected", zh: "未连接" },
-  votingPower: { en: "Voting Power", zh: "投票权重" },
-  basedOnNeo: { en: "Based on NEO balance", zh: "基于 NEO 余额" },
-  // CandidateDetailModal translations
-  candidateDetails: { en: "Candidate Details", zh: "候选人详情" },
-  name: { en: "Name", zh: "名称" },
-  anonymous: { en: "Anonymous", zh: "匿名" },
-  address: { en: "Address", zh: "地址" },
-  publicKey: { en: "Public Key", zh: "公钥" },
-  totalVotes: { en: "Total Votes", zh: "总票数" },
-  status: { en: "Status", zh: "状态" },
-  activeValidator: { en: "Active Validator", zh: "活跃验证者" },
-  standby: { en: "Standby", zh: "待命" },
-  voteForCandidate: { en: "Vote for This Candidate", zh: "投票给此候选人" },
-  alreadyVotedFor: { en: "You have voted for this candidate", zh: "您已投票给此候选人" },
-  yourVote: { en: "Your Vote", zh: "您的投票" },
-};
-
-const t = createT(translations);
+const { t } = useI18n();
 
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
@@ -186,38 +118,40 @@ const docFeatures = computed(() => [
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
 
-const APP_ID = "miniapp-candidate-vote";
 const NEO_CONTRACT = "0xef4073a0f2b305a38ec4050e4d3d28bc40ea63f5";
 
-const { address, connect, invokeContract, chainType, switchChain } = useWallet() as any;
-const { getCandidates } = useGovernance(APP_ID);
+const { address, connect, invokeContract, invokeRead, chainType, chainId, switchChain } = useWallet() as any;
 
-const navTabs: NavTab[] = [
+const navTabs = computed<NavTab[]>(() => [
   { id: "vote", icon: "checkbox", label: t("vote") },
   { id: "info", icon: "info", label: t("info") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 
 const activeTab = ref("vote");
 const isLoading = ref(false);
 const status = ref<{ msg: string; type: string } | null>(null);
 
 // Candidate state
-const candidates = ref<Candidate[]>([]);
-const selectedCandidate = ref<Candidate | null>(null);
+const candidates = ref<GovernanceCandidate[]>([]);
+const selectedCandidate = ref<GovernanceCandidate | null>(null);
 const totalNetworkVotes = ref("0");
 const blockHeight = ref(0);
 const candidatesLoading = ref(false);
 
 // Modal state
 const showDetailModal = ref(false);
-const detailCandidate = ref<Candidate | null>(null);
+const detailCandidate = ref<GovernanceCandidate | null>(null);
 const detailRank = ref(1);
 
 // User's voted candidate
 const userVotedPublicKey = ref<string | null>(null);
 
-const CANDIDATES_CACHE_KEY = "candidate_vote_candidates_cache";
+const getCacheKey = (network: "mainnet" | "testnet") => `candidate_vote_candidates_cache_${network}`;
+
+const governancePortalUrl = computed(() =>
+  chainId.value === "neo-n3-testnet" ? "https://governance.neo.org/tetsnet#/" : "https://governance.neo.org/#/",
+);
 
 const showStatus = (msg: string, type: string) => {
   status.value = { msg, type };
@@ -227,6 +161,30 @@ const showStatus = (msg: string, type: string) => {
 const shortenAddress = (addr: string): string => {
   if (!addr || addr.length < 12) return addr;
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+};
+
+const normalizePublicKey = (value: unknown) => String(value || "").replace(/^0x/i, "");
+
+const readCache = (key: string) => {
+  const uniApi = (globalThis as any)?.uni;
+  if (uniApi?.getStorageSync) {
+    return uniApi.getStorageSync(key);
+  }
+  if (typeof localStorage !== "undefined") {
+    return localStorage.getItem(key);
+  }
+  return null;
+};
+
+const writeCache = (key: string, value: string) => {
+  const uniApi = (globalThis as any)?.uni;
+  if (uniApi?.setStorageSync) {
+    uniApi.setStorageSync(key, value);
+    return;
+  }
+  if (typeof localStorage !== "undefined") {
+    localStorage.setItem(key, value);
+  }
 };
 
 const formatVotes = (votes: string): string => {
@@ -246,11 +204,16 @@ const formatVotes = (votes: string): string => {
   return votes || "0";
 };
 
-const selectCandidate = (candidate: Candidate) => {
+const normalizedUserVotedPublicKey = computed(() => {
+  const normalized = normalizePublicKey(userVotedPublicKey.value);
+  return normalized || null;
+});
+
+const selectCandidate = (candidate: GovernanceCandidate) => {
   selectedCandidate.value = candidate;
 };
 
-const openCandidateDetail = (candidate: Candidate, rank: number) => {
+const openCandidateDetail = (candidate: GovernanceCandidate, rank: number) => {
   detailCandidate.value = candidate;
   detailRank.value = rank;
   showDetailModal.value = true;
@@ -261,7 +224,7 @@ const closeCandidateDetail = () => {
   detailCandidate.value = null;
 };
 
-const handleVoteFromModal = async (candidate: Candidate) => {
+const handleVoteFromModal = async (candidate: GovernanceCandidate) => {
   selectedCandidate.value = candidate;
   closeCandidateDetail();
   await handleVote();
@@ -274,46 +237,59 @@ const loadUserVote = async () => {
     return;
   }
   try {
-    const result = await invokeContract({
+    const result = await invokeRead({
       scriptHash: NEO_CONTRACT,
       operation: "getAccountState",
       args: [{ type: "Hash160", value: address.value }],
-      signers: [],
     });
     // Result contains voteTo field with the public key user voted for
-    if (result && result.voteTo) {
-      userVotedPublicKey.value = result.voteTo;
-    } else {
-      userVotedPublicKey.value = null;
+    // Neo AccountState: [Balance, Height, VoteTo]
+    const parsed = parseInvokeResult(result);
+    let voteValue: unknown = null;
+    if (Array.isArray(parsed)) {
+      voteValue = parsed[2];
+    } else if (parsed && typeof parsed === "object") {
+      const record = parsed as Record<string, unknown>;
+      // Handle various response shapes
+      voteValue = record.voteTo ?? record.VoteTo ?? record.vote_to;
     }
+    const normalized = normalizePublicKey(voteValue);
+    userVotedPublicKey.value = normalized || null;
   } catch (e) {
-    console.warn("[CandidateVote] Failed to get user vote:", e);
     userVotedPublicKey.value = null;
   }
 };
 
 const loadCandidates = async () => {
   // Try cache first
+  const network = chainId.value === "neo-n3-testnet" ? "testnet" : "mainnet";
+  const cacheKey = getCacheKey(network);
   try {
-    const cached = uni.getStorageSync(CANDIDATES_CACHE_KEY);
+    const cached = readCache(cacheKey);
     if (cached) {
       const parsed = JSON.parse(cached);
       candidates.value = parsed.candidates || [];
       totalNetworkVotes.value = parsed.totalVotes || "0";
-      blockHeight.value = parsed.blockHeight || 0;
     }
   } catch {}
 
   candidatesLoading.value = true;
   try {
-    const response = await getCandidates();
-    candidates.value = response.candidates || [];
+    const targetChain = chainId.value === "neo-n3-testnet" ? "neo-n3-testnet" : "neo-n3-mainnet";
+    const response = await fetchCandidates(targetChain);
+    candidates.value = response.candidates;
     totalNetworkVotes.value = response.totalVotes || "0";
     blockHeight.value = response.blockHeight || 0;
 
-    // Save to cache
-    uni.setStorageSync(
-      CANDIDATES_CACHE_KEY,
+    if (selectedCandidate.value) {
+      const match = candidates.value.find(
+        (candidate) => normalizePublicKey(candidate.publicKey) === normalizePublicKey(selectedCandidate.value?.publicKey),
+      );
+      selectedCandidate.value = match || null;
+    }
+
+    writeCache(
+      cacheKey,
       JSON.stringify({
         candidates: candidates.value,
         totalVotes: totalNetworkVotes.value,
@@ -321,9 +297,8 @@ const loadCandidates = async () => {
       }),
     );
   } catch (e: any) {
-    console.warn("[CandidateVote] Failed to load candidates:", e);
     if (candidates.value.length === 0) {
-      showStatus(t("failedToLoad"), "error");
+      showStatus(t("failedToLoad") || "Failed to load candidates", "error");
     }
   } finally {
     candidatesLoading.value = false;
@@ -358,7 +333,6 @@ const handleVote = async () => {
     // Refresh candidates and user vote to show updated state
     await Promise.all([loadCandidates(), loadUserVote()]);
   } catch (e: any) {
-    console.error("[CandidateVote] Vote failed:", e);
     showStatus(e.message || t("voteFailed"), "error");
   } finally {
     isLoading.value = false;
@@ -366,8 +340,16 @@ const handleVote = async () => {
 };
 
 onMounted(async () => {
-  await connect();
   await Promise.all([loadCandidates(), loadUserVote()]);
+});
+
+watch(address, () => {
+  loadUserVote();
+});
+
+watch(chainId, () => {
+  loadCandidates();
+  loadUserVote();
 });
 </script>
 
@@ -375,17 +357,54 @@ onMounted(async () => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+$gov-bg: #f8fafc;
+$gov-card-bg: #ffffff;
+$gov-primary: #0f172a;
+$gov-accent: #d97706; /* Amber gold */
+
+:global(page) {
+  background: $gov-bg;
+  color: $gov-primary;
+}
+
 .tab-content {
   padding: 20px;
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
+  min-height: 100vh;
 }
 
 .scrollable {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+:deep(.neo-card) {
+  background: $gov-card-bg !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  color: $gov-primary !important;
+  border-radius: 4px !important;
+  
+  &.variant-erobo {
+    background: #fff !important;
+    border-color: $gov-accent !important;
+  }
+}
+
+:deep(.neo-button) {
+  border-radius: 4px !important;
+  font-family: 'Merriweather', serif !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  
+  &.variant-primary {
+    background: $gov-primary !important;
+    color: #fff !important;
+  }
 }
 
 .stats-grid {
@@ -403,7 +422,7 @@ onMounted(async () => {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  color: #64748b;
   letter-spacing: 0.05em;
   margin-bottom: 4px;
 }
@@ -411,10 +430,10 @@ onMounted(async () => {
 .stat-value {
   display: block;
   font-weight: 700;
-  font-family: $font-family;
+  font-family: 'Times New Roman', serif;
   font-feature-settings: "tnum";
   font-size: 18px;
-  color: white;
+  color: $gov-primary;
 }
 
 .vote-form {
@@ -427,11 +446,10 @@ onMounted(async () => {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  color: #00e599;
+  color: $gov-accent;
   letter-spacing: 0.1em;
   display: block;
   margin-bottom: 4px;
-  text-shadow: 0 0 10px rgba(0, 229, 153, 0.3);
 }
 
 .candidate-badge {
@@ -443,14 +461,14 @@ onMounted(async () => {
 .candidate-name {
   font-weight: 700;
   font-size: 16px;
-  color: white;
-  font-family: $font-family;
+  color: $gov-primary;
+  font-family: serif;
 }
 
 .candidate-key {
   font-size: 11px;
-  font-family: $font-mono;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  font-family: monospace;
+  color: #64748b;
 }
 
 .warning-text {
@@ -458,12 +476,8 @@ onMounted(async () => {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #FDE047; /* Brutal Yellow from tokens */
+  color: #b45309; 
 }
-
-
-
-
 
 .connect-hint {
   text-align: center;
@@ -472,6 +486,6 @@ onMounted(async () => {
 
 .hint-text {
   font-size: 12px;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  color: #64748b;
 }
 </style>

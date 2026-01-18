@@ -14,6 +14,16 @@
 
     <view v-if="activeTab === 'create' || activeTab === 'claim'" class="app-container">
       <LuckyOverlay :lucky-message="luckyMessage" :t="t as any" @close="luckyMessage = null" />
+      <Fireworks :active="!!luckyMessage" :duration="3000" />
+      <OpeningModal
+        :visible="showOpeningModal"
+        :envelope="openingEnvelope"
+        :is-connected="!!address"
+        :is-opening="!!openingId"
+        @connect="handleConnect"
+        @open="() => openingEnvelope && claim(openingEnvelope, true)"
+        @close="showOpeningModal = false"
+      />
 
       <AppStatus :status="status" />
 
@@ -36,7 +46,8 @@
           :loading-envelopes="loadingEnvelopes"
           :opening-id="openingId"
           :t="t as any"
-          @claim="claim"
+          @claim="openFromList"
+          @share="handleShare"
         />
       </view>
     </view>
@@ -54,98 +65,122 @@
   </AppLayout>
 </template>
 
+
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
 import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
-import { AppLayout, NeoDoc, NeoCard, NeoButton } from "@/shared/components";
+import { AppLayout, NeoDoc, NeoCard, NeoButton, Fireworks } from "@/shared/components";
 import EnvelopeHeader from "./components/EnvelopeHeader.vue";
 import LuckyOverlay from "./components/LuckyOverlay.vue";
+import OpeningModal from "./components/OpeningModal.vue";
 import AppStatus from "./components/AppStatus.vue";
 import CreateEnvelopeForm from "./components/CreateEnvelopeForm.vue";
 import EnvelopeList from "./components/EnvelopeList.vue";
 
-const translations = {
-  title: { en: "Red Envelope", zh: "红包" },
-  subtitle: { en: "Lucky red packets", zh: "幸运红包" },
-  createTab: { en: "Create", zh: "创建" },
-  claimTab: { en: "Claim", zh: "领取" },
-  createEnvelope: { en: "Create Envelope", zh: "创建红包" },
-  namePlaceholder: { en: "Envelope name (optional)", zh: "红包名称（可选）" },
-  descriptionPlaceholder: { en: "Blessing message", zh: "祝福语" },
-  totalGasPlaceholder: { en: "Total GAS", zh: "总 GAS" },
-  packetsPlaceholder: { en: "Number of packets", zh: "红包数量" },
-  expiryPlaceholder: { en: "Expiry (hours)", zh: "过期时长 (小时)" },
-  creating: { en: "Creating...", zh: "创建中..." },
-  sendRedEnvelope: { en: "Send Red Envelope", zh: "发送红包" },
-  availableEnvelopes: { en: "Available Envelopes", zh: "可用红包" },
-  from: { en: "From {0}", zh: "来自 {0}" },
-  remaining: { en: "{0}/{1} left", zh: "剩余 {0}/{1}" },
-  envelopeSent: { en: "Envelope sent!", zh: "红包已发送！" },
-  claimedFrom: { en: "Claimed from {0}!", zh: "已领取来自 {0} 的红包！" },
-  congratulations: { en: "Congratulations", zh: "恭喜发财" },
-  error: { en: "Error", zh: "错误" },
-  docs: { en: "Docs", zh: "文档" },
-  connectWallet: { en: "Connect wallet", zh: "请连接钱包" },
-  contractUnavailable: { en: "Contract unavailable", zh: "合约不可用" },
-  receiptMissing: { en: "Payment receipt missing", zh: "支付凭证缺失" },
-  envelopePending: { en: "Envelope pending on-chain", zh: "红包创建确认中" },
-  claimPending: { en: "Claim pending", zh: "领取确认中" },
-  envelopeNotReady: { en: "Envelope not ready yet", zh: "红包尚未准备好" },
-  envelopeExpired: { en: "Envelope expired", zh: "红包已过期" },
-  envelopeEmpty: { en: "Envelope is empty", zh: "红包已领完" },
-  alreadyClaimed: { en: "You already claimed this envelope", zh: "你已领取过该红包" },
-  invalidAmount: { en: "Enter at least 0.1 GAS", zh: "至少 0.1 GAS" },
-  invalidPackets: { en: "Enter 1-100 packets", zh: "请输入 1-100 个红包" },
-  invalidPerPacket: { en: "Each packet must be at least 0.01 GAS", zh: "每个红包至少 0.01 GAS" },
-  invalidExpiry: { en: "Enter a valid expiry in hours", zh: "请输入有效的过期小时数" },
-  ready: { en: "Ready", zh: "可领取" },
-  notReady: { en: "Preparing", zh: "准备中" },
-  expired: { en: "Expired", zh: "已过期" },
-  confirm: { en: "Confirm", zh: "确认" },
-  loadingEnvelopes: { en: "Loading envelopes...", zh: "加载红包中..." },
-  noEnvelopes: { en: "No envelopes available yet", zh: "暂无可领取红包" },
-  bestLuck: { en: "Best Luck", zh: "手气最佳" },
-  docSubtitle: { en: "Social lucky packets on Neo N3.", zh: "Neo N3 上的社交幸运红包。" },
-  docDescription: {
-    en: "Red Envelope is a social MiniApp that lets you send and claim GAS in lucky packets. It uses NeoHub's secure RNG to fairly distribute GAS across recipients.",
-    zh: "红包是一个社交小程序，让你以幸运包的形式发送和领取 GAS。它使用 NeoHub 的安全随机数生成器来公平地在接收者之间分配 GAS。",
-  },
-  step1: { en: "Enter the total GAS and number of packets to create.", zh: "输入要创建的总 GAS 和红包数量。" },
-  step2: { en: "Click 'Send Red Envelope' to authorize the payment.", zh: "点击「发送红包」授权支付。" },
-  step3: {
-    en: "Recipients can claim their portion randomly until empty!",
-    zh: "接收者可以随机领取他们的份额，直到领完为止！",
-  },
-  step4: { en: "Share the envelope ID with friends to let them claim.", zh: "与朋友分享红包 ID 让他们领取。" },
-  feature1Name: { en: "Secure Distribution", zh: "安全分配" },
-  feature1Desc: {
-    en: "Random amounts are calculated on-chain/TEE for fairness.",
-    zh: "随机金额在链上/TEE 中计算以确保公平。",
-  },
-  feature2Name: { en: "Instant Claim", zh: "即时领取" },
-  feature2Desc: { en: "GAS is transferred directly to your Neo wallet.", zh: "GAS 直接转移到你的 Neo 钱包。" },
-  wrongChain: { en: "Wrong Chain", zh: "链错误" },
-  wrongChainMessage: {
-    en: "This app requires Neo N3. Please switch networks.",
-    zh: "此应用需要 Neo N3 网络，请切换网络。",
-  },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-};
-const t = createT(translations);
+const { t } = useI18n();
 
 const APP_ID = "miniapp-redenvelope";
 const { address, connect, invokeContract, invokeRead, chainType, switchChain, getContractAddress } = useWallet() as any;
 const { payGAS, isLoading } = usePayments(APP_ID);
 const { list: listEvents } = useEvents();
 
+// ============================================
+// Hybrid Mode: Frontend Distribution Preview
+// ============================================
+
+// Contract constants (matches MiniAppRedEnvelope.Hybrid.cs)
+const MIN_AMOUNT = 10000000n; // 0.1 GAS in fixed8
+const MAX_PACKETS = 100;
+const MIN_PER_PACKET = 1000000n; // 0.01 GAS in fixed8
+const BEST_LUCK_BONUS_RATE = 5n; // 5%
+
+/**
+ * Generate deterministic seed from user input (for preview only).
+ * Actual distribution uses TEE RNG service.
+ */
+const generatePreviewSeed = (totalAmount: string, packetCount: string): Uint8Array => {
+  const data = `preview:${totalAmount}:${packetCount}:${Date.now()}`;
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(data);
+  // Simple hash for preview (not cryptographically secure, just for UI)
+  const hash = new Uint8Array(32);
+  for (let i = 0; i < bytes.length; i++) {
+    hash[i % 32] ^= bytes[i];
+  }
+  return hash;
+};
+
+/**
+ * Get random value from seed at index (matches contract logic).
+ */
+const getRandFromSeed = (seed: Uint8Array, index: number): bigint => {
+  // Combine seed with index
+  const combined = new Uint8Array(seed.length + 4);
+  combined.set(seed);
+  combined[seed.length] = index & 0xff;
+  combined[seed.length + 1] = (index >> 8) & 0xff;
+  combined[seed.length + 2] = (index >> 16) & 0xff;
+  combined[seed.length + 3] = (index >> 24) & 0xff;
+
+  // Simple hash (for preview)
+  let hash = 0n;
+  for (let i = 0; i < combined.length; i++) {
+    hash = (hash * 31n + BigInt(combined[i])) % (2n ** 256n);
+  }
+  return hash < 0n ? -hash : hash;
+};
+
+/**
+ * Preview distribution calculation (matches contract PreviewDistribution).
+ * Returns array of amounts in fixed8 format.
+ */
+const previewDistribution = (totalAmountGas: number, packetCount: number): bigint[] => {
+  if (packetCount <= 0 || packetCount > MAX_PACKETS) return [];
+
+  const totalAmount = BigInt(Math.floor(totalAmountGas * 1e8));
+  if (totalAmount < BigInt(packetCount) * MIN_PER_PACKET) return [];
+
+  const seed = generatePreviewSeed(totalAmountGas.toString(), packetCount.toString());
+  const amounts: bigint[] = [];
+  let remaining = totalAmount;
+
+  for (let i = 0; i < packetCount - 1; i++) {
+    const packetsLeft = BigInt(packetCount - i);
+    const maxForThis = remaining - (packetsLeft - 1n) * MIN_PER_PACKET;
+
+    const randValue = getRandFromSeed(seed, i);
+    const range = maxForThis - MIN_PER_PACKET;
+    let amount = MIN_PER_PACKET;
+
+    if (range > 0n) {
+      amount = MIN_PER_PACKET + (randValue % range);
+    }
+
+    amounts.push(amount);
+    remaining -= amount;
+  }
+
+  // Last packet gets remainder
+  amounts.push(remaining);
+
+  return amounts;
+};
+
+/**
+ * Calculate best luck bonus amount.
+ */
+const calculateBestLuckBonus = (bestLuckAmount: bigint): bigint => {
+  return bestLuckAmount * BEST_LUCK_BONUS_RATE / 100n;
+};
+
 const activeTab = ref<string>("create");
-const navTabs = [
+const navTabs = computed(() => [
   { id: "create", label: t("createTab"), icon: "envelope" },
   { id: "claim", label: t("claimTab"), icon: "gift" },
   { id: "docs", label: t("docs"), icon: "book" },
-];
+]);
 
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
@@ -163,6 +198,9 @@ const luckyMessage = ref<{ amount: number; from: string } | null>(null);
 const openingId = ref<string | null>(null);
 const contractAddress = ref<string | null>(null);
 const loadingEnvelopes = ref(false);
+
+const showOpeningModal = ref(false);
+const openingEnvelope = ref<EnvelopeItem | null>(null);
 
 type EnvelopeItem = {
   id: string;
@@ -254,6 +292,46 @@ const ensureContractAddress = async () => {
   return contractAddress.value;
 };
 
+const fetchEnvelopeDetails = async (contract: string, envelopeId: string, eventData?: any): Promise<EnvelopeItem | null> => {
+    try {
+        const envRes = await invokeRead({
+          scriptHash: contract,
+          operation: "getEnvelope",
+          args: [{ type: "Integer", value: envelopeId }],
+        });
+        const parsed = parseEnvelopeData(parseInvokeResult(envRes));
+        if (!parsed) return null;
+
+        const packetCount = Number(parsed.packetCount || eventData?.packetCount || 0);
+        const claimedCount = Number(parsed.claimedCount || 0);
+        const remainingPackets = Math.max(0, packetCount - claimedCount);
+        const ready = Boolean(parsed.ready);
+        const expiryTime = Number(parsed.expiryTime || 0);
+        const expired = expiryTime > 0 && Date.now() > expiryTime * 1000;
+        const totalAmount = fromFixed8(parsed.totalAmount || eventData?.totalAmount || 0);
+        const canClaim = ready && !expired && remainingPackets > 0;
+        const creator = parsed.creator || eventData?.creator || "";
+
+        return {
+          id: envelopeId,
+          creator,
+          from: formatHash(creator),
+          total: packetCount,
+          remaining: remainingPackets,
+          totalAmount,
+          bestLuckAddress: parsed.bestLuckAddress || undefined,
+          bestLuckAmount: parsed.bestLuckAmount || undefined,
+          ready,
+          expired,
+          canClaim,
+          // Hydrate description from event if possible, typically description is not on-chain in state but in event
+          // For this demo we'll skip description if not available, or fetch from event if we have event list
+        } as EnvelopeItem;
+    } catch {
+        return null;
+    }
+}
+
 const loadEnvelopes = async () => {
   if (!contractAddress.value) {
     contractAddress.value = await ensureContractAddress();
@@ -269,39 +347,12 @@ const loadEnvelopes = async () => {
         const envelopeId = String(values[0] ?? "");
         if (!envelopeId || seen.has(envelopeId)) return null;
         seen.add(envelopeId);
-
-        const creator = String(values[1] ?? "");
-        const eventTotal = Number(values[2] ?? 0);
-        const eventPackets = Number(values[3] ?? 0);
-
-        const envRes = await invokeRead({
-          scriptHash: contractAddress.value!,
-          operation: "GetEnvelope",
-          args: [{ type: "Integer", value: envelopeId }],
+        
+        return fetchEnvelopeDetails(contractAddress.value!, envelopeId, {
+            creator: String(values[1] ?? ""),
+            totalAmount: Number(values[2] ?? 0),
+            packetCount: Number(values[3] ?? 0)
         });
-        const parsed = parseEnvelopeData(parseInvokeResult(envRes));
-        const packetCount = Number(parsed?.packetCount ?? eventPackets ?? 0);
-        const claimedCount = Number(parsed?.claimedCount ?? 0);
-        const remainingPackets = Math.max(0, packetCount - claimedCount);
-        const ready = Boolean(parsed?.ready);
-        const expiryTime = Number(parsed?.expiryTime ?? 0);
-        const expired = expiryTime > 0 && Date.now() > expiryTime * 1000;
-        const totalAmount = fromFixed8(parsed?.totalAmount ?? eventTotal);
-        const canClaim = ready && !expired && remainingPackets > 0;
-
-        return {
-          id: envelopeId,
-          creator,
-          from: formatHash(creator),
-          total: packetCount,
-          remaining: remainingPackets,
-          totalAmount,
-          bestLuckAddress: parsed?.bestLuckAddress || undefined,
-          bestLuckAmount: parsed?.bestLuckAmount || undefined,
-          ready,
-          expired,
-          canClaim,
-        } as EnvelopeItem;
       }),
     );
     envelopes.value = list.filter(Boolean).sort((a, b) => Number(b!.id) - Number(a!.id)) as EnvelopeItem[];
@@ -311,6 +362,8 @@ const loadEnvelopes = async () => {
     loadingEnvelopes.value = false;
   }
 };
+
+const defaultBlessing = computed(() => t("defaultBlessing"));
 
 const create = async () => {
   if (isLoading.value) return;
@@ -340,13 +393,16 @@ const create = async () => {
       throw new Error(t("receiptMissing"));
     }
 
+    // Default description to "Best Wishes" if empty
+    const finalDescription = description.value.trim() || defaultBlessing.value;
+
     const tx = await invokeContract({
       scriptHash: contract,
-      operation: "CreateEnvelope",
+      operation: "createEnvelope",
       args: [
         { type: "Hash160", value: address.value },
         { type: "String", value: name.value || "" },
-        { type: "String", value: description.value || "" },
+        { type: "String", value: finalDescription },
         { type: "Integer", value: toFixed8(amount.value) },
         { type: "Integer", value: String(packetCount) },
         { type: "Integer", value: String(expirySeconds) },
@@ -371,16 +427,23 @@ const create = async () => {
   }
 };
 
-const claim = async (env: EnvelopeItem) => {
+const handleConnect = async () => {
+  try {
+    await connect();
+  } catch {
+  }
+};
+
+const claim = async (env: EnvelopeItem, fromModal = false) => {
   if (openingId.value) return;
+  
+  if (!address.value) {
+      await connect();
+      if (!address.value) return; // User cancelled
+  }
+  
   try {
     status.value = null;
-    if (!address.value) {
-      await connect();
-    }
-    if (!address.value) {
-      throw new Error(t("connectWallet"));
-    }
     const contract = await ensureContractAddress();
 
     if (env.expired) throw new Error(t("envelopeExpired"));
@@ -389,7 +452,7 @@ const claim = async (env: EnvelopeItem) => {
 
     const hasClaimedRes = await invokeRead({
       scriptHash: contract,
-      operation: "HasClaimed",
+      operation: "hasClaimed",
       args: [
         { type: "Integer", value: env.id },
         { type: "Hash160", value: address.value },
@@ -402,7 +465,7 @@ const claim = async (env: EnvelopeItem) => {
     openingId.value = env.id;
     const tx = await invokeContract({
       scriptHash: contract,
-      operation: "Claim",
+      operation: "claim",
       args: [
         { type: "Integer", value: env.id },
         { type: "Hash160", value: address.value },
@@ -418,6 +481,10 @@ const claim = async (env: EnvelopeItem) => {
     const claimedAmount = fromFixed8(Number(values[2] ?? 0));
     const remaining = Number(values[3] ?? env.remaining);
 
+    // Close the opening modal if open
+    showOpeningModal.value = false;
+
+    // Show lucky result
     luckyMessage.value = {
       amount: Number(claimedAmount.toFixed(2)),
       from: env.from,
@@ -427,15 +494,58 @@ const claim = async (env: EnvelopeItem) => {
     env.canClaim = env.remaining > 0 && env.ready && !env.expired;
 
     status.value = { msg: t("claimedFrom").replace("{0}", env.from), type: "success" };
+    
+    // Refresh list
+    await loadEnvelopes();
   } catch (e: any) {
     status.value = { msg: e?.message || t("error"), type: "error" };
+    // Close opening modal on error to show the toast
+    showOpeningModal.value = false;
   } finally {
     openingId.value = null;
   }
 };
 
+const handleShare = (env: EnvelopeItem) => {
+  const url = `${window.location.origin}${window.location.pathname}?id=${env.id}`;
+  uni.setClipboardData({
+    data: url,
+    success: () => {
+      status.value = { msg: t("copied"), type: "success" };
+      setTimeout(() => { status.value = null }, 2000);
+    }
+  });
+};
+
+const openFromList = (env: EnvelopeItem) => {
+  openingEnvelope.value = env;
+  showOpeningModal.value = true;
+};
+
 onMounted(async () => {
   await loadEnvelopes();
+  
+  if (typeof window !== "undefined") {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    if (id) {
+        // Try to find in loaded list first
+        const found = envelopes.value.find(e => e.id === id);
+        if (found) {
+            openFromList(found);
+            activeTab.value = "claim";
+        } else {
+            // Fetch specifically
+            const contract = await ensureContractAddress();
+            const env = await fetchEnvelopeDetails(contract, id);
+            if (env) {
+                openingEnvelope.value = env;
+                showOpeningModal.value = true;
+                activeTab.value = "claim";
+            }
+        }
+    }
+  }
 });
 
 watch(activeTab, async (tab) => {
@@ -449,12 +559,50 @@ watch(activeTab, async (tab) => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+$premium-red: #c0392b;
+$premium-red-dark: #922b21;
+$gold-light: #f9e79f;
+$gold: #f1c40f;
+$gold-dark: #d4ac0d;
+
 .app-container {
-  padding: 20px;
+  padding: 80px 20px 20px;
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  background: radial-gradient(circle at 50% 30%, $premium-red 0%, $premium-red-dark 100%);
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150%;
+    height: 50%;
+    background: radial-gradient(circle, #e74c3c 0%, transparent 70%);
+    opacity: 0.6;
+    z-index: 0;
+    filter: blur(40px);
+  }
+
+  /* Decorative gold pattern overlay (subtle) */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: 
+      radial-gradient($gold 1px, transparent 1px),
+      radial-gradient($gold 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: 0 0, 20px 20px;
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 0;
+  }
 }
 
 .tab-content {
@@ -462,6 +610,8 @@ watch(activeTab, async (tab) => {
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .scrollable {

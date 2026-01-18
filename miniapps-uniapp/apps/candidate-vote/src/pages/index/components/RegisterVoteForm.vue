@@ -104,7 +104,7 @@ const truncateAddress = (addr: string) => {
 .candidate-name {
   font-weight: 700;
   font-size: 16px;
-  color: white;
+  color: var(--text-primary);
   font-family: $font-family;
 }
 

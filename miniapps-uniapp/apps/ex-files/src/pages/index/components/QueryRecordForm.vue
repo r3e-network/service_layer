@@ -26,11 +26,11 @@
     <view v-if="queryResult" class="result-card-neo">
       <view class="result-header">
         <text class="result-title">{{ t("queryResult") }}</text>
-        <view class="result-badge">HIT</view>
+        <view class="result-badge">{{ t("resultHit") }}</view>
       </view>
       <view class="result-info">
         <view class="result-row">
-          <text class="result-label">{{ t("record") }} ID</text>
+          <text class="result-label">{{ t("recordId") }}</text>
           <text class="result-val">#{{ queryResult.id }}</text>
         </view>
         <view class="result-row">
@@ -62,6 +62,7 @@ export interface RecordItem {
   active: boolean;
   date: string;
   hashShort: string;
+  category?: number;
 }
 
 defineProps<{
@@ -104,7 +105,7 @@ defineEmits(["update:queryInput", "query"]);
 .result-title {
   font-size: 12px;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -132,14 +133,14 @@ defineEmits(["update:queryInput", "query"]);
 
 .result-label {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   text-transform: uppercase;
   font-weight: 600;
 }
 
 .result-val {
   font-size: 13px;
-  color: white;
+  color: var(--text-primary);
   font-weight: 500;
   &.mono { font-family: $font-mono; font-size: 11px; }
 }

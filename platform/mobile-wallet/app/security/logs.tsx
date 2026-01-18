@@ -5,8 +5,10 @@ import { useState, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { loadSecurityLogs, formatLogTime, SecurityLog } from "@/lib/security";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function SecurityLogsScreen() {
+  const { t, locale } = useTranslation();
   const [logs, setLogs] = useState<SecurityLog[]>([]);
 
   useFocusEffect(
@@ -20,18 +22,18 @@ export default function SecurityLogsScreen() {
       <Ionicons name="shield-checkmark" size={20} color="#00d4aa" />
       <View style={styles.info}>
         <Text style={styles.event}>{item.event}</Text>
-        <Text style={styles.time}>{formatLogTime(item.timestamp)}</Text>
+        <Text style={styles.time}>{formatLogTime(item.timestamp, locale)}</Text>
       </View>
     </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: "Security Logs" }} />
+      <Stack.Screen options={{ title: t("security.logsTitle") }} />
       {logs.length === 0 ? (
         <View style={styles.empty}>
           <Ionicons name="document-text-outline" size={64} color="#333" />
-          <Text style={styles.emptyText}>No security logs</Text>
+          <Text style={styles.emptyText}>{t("security.logsEmpty")}</Text>
         </View>
       ) : (
         <FlatList data={logs} keyExtractor={(i) => i.id} renderItem={renderLog} contentContainerStyle={styles.list} />

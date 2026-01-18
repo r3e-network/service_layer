@@ -112,80 +112,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useWallet } from "@neo/uniapp-sdk";
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
 import { AppLayout, NeoButton, NeoCard, NeoDoc } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
-const translations = {
-  title: { en: "GrantShare", zh: "资助共享" },
-  subtitle: { en: "Community Funding Platform", zh: "社区资助平台" },
-  grantPool: { en: "GrantShares Snapshot", zh: "GrantShares 快照" },
-  totalPool: { en: "Total Proposals", zh: "提案总数" },
-  activeProjects: { en: "Active (Loaded)", zh: "活跃（已加载）" },
-  yourShare: { en: "Displayed", zh: "已展示" },
-  activeGrants: { en: "Latest Proposals", zh: "最新提案" },
-  noActiveGrants: { en: "No proposals found", zh: "暂无提案" },
-  loading: { en: "Loading proposals...", zh: "提案加载中..." },
-  loadFailed: { en: "Unable to load proposals", zh: "提案加载失败" },
-  by: { en: "by", zh: "创建者" },
-  copyDiscussion: { en: "Copy Discussion Link", zh: "复制讨论链接" },
-  noDiscussion: { en: "No Discussion Link", zh: "暂无讨论链接" },
-  linkCopied: { en: "Link copied", zh: "链接已复制" },
-  copyFailed: { en: "Copy failed", zh: "复制失败" },
-  votesFor: { en: "For", zh: "支持" },
-  votesAgainst: { en: "Against", zh: "反对" },
-  comments: { en: "Comments", zh: "评论" },
-  tabStats: { en: "Stats", zh: "统计" },
-  tabGrants: { en: "Proposals", zh: "提案" },
-  statusActive: { en: "Active", zh: "进行中" },
-  statusReview: { en: "In Review", zh: "审核中" },
-  statusVoting: { en: "Voting", zh: "投票中" },
-  statusDiscussion: { en: "Discussion", zh: "讨论中" },
-  statusExecuted: { en: "Executed", zh: "已执行" },
-  statusCancelled: { en: "Cancelled", zh: "已取消" },
-  statusRejected: { en: "Rejected", zh: "已拒绝" },
-  statusExpired: { en: "Expired", zh: "已过期" },
-  docs: { en: "Docs", zh: "文档" },
-  docSubtitle: {
-    en: "Community funding with transparent milestone tracking",
-    zh: "透明里程碑追踪的社区资助",
-  },
-  docDescription: {
-    en: "GrantShares provides community funding for Neo ecosystem projects. This miniapp surfaces the latest proposals and their status; submit and vote on GrantShares directly.",
-    zh: "GrantShares 为 Neo 生态系统项目提供社区资助。本应用展示最新提案及其状态；提交与投票请前往 GrantShares。",
-  },
-  step1: {
-    en: "Browse the latest proposals and their status",
-    zh: "浏览最新提案及其状态",
-  },
-  step2: {
-    en: "Open discussion links for full context",
-    zh: "打开讨论链接获取完整信息",
-  },
-  step3: {
-    en: "Submit and vote on proposals at GrantShares",
-    zh: "在 GrantShares 提交并投票",
-  },
-  step4: {
-    en: "Track progress and execution over time",
-    zh: "持续跟踪进展与执行情况",
-  },
-  feature1Name: { en: "Milestone Funding", zh: "里程碑资助" },
-  feature1Desc: {
-    en: "Funds released progressively as milestones are completed.",
-    zh: "随着里程碑完成逐步释放资金。",
-  },
-  feature2Name: { en: "Community Voting", zh: "社区投票" },
-  feature2Desc: {
-    en: "Democratic decision-making on which projects receive funding.",
-    zh: "民主决策哪些项目获得资助。",
-  },
-  wrongChain: { en: "Wrong Network", zh: "网络错误" },
-  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-};
 
-const t = createT(translations);
+const { t, locale } = useI18n();
 
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
@@ -209,11 +141,11 @@ interface Grant {
 }
 
 const activeTab = ref<string>("grants");
-const navTabs: NavTab[] = [
+const navTabs = computed<NavTab[]>(() => [
   { id: "grants", icon: "gift", label: t("tabGrants") },
   { id: "stats", icon: "chart", label: t("tabStats") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 
 const grants = ref<Grant[]>([]);
 const totalProposals = ref(0);
@@ -280,7 +212,6 @@ async function fetchGrants() {
       totalProposals.value = 0;
     }
   } catch (e) {
-    console.error("Failed to fetch proposals", e);
     grants.value = [];
     totalProposals.value = 0;
     fetchError.value = true;
@@ -297,7 +228,8 @@ function formatDate(dateStr: string): string {
   if (!dateStr) return "";
   const date = new Date(dateStr);
   if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleDateString("en-US", {
+  const dateLocale = locale.value === "zh" ? "zh-CN" : "en-US";
+  return date.toLocaleDateString(dateLocale, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -356,20 +288,70 @@ onMounted(() => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+$eco-bg: #ecf3ed;
+$eco-green: #34d399;
+$eco-dark: #064e3b;
+$eco-light: #d1fae5;
+$eco-accent: #10b981;
+
+:global(page) {
+  background: $eco-bg;
+}
+
 .app-container {
-  padding: $space-4;
+  padding: 24px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  gap: 24px;
+  background-color: $eco-bg;
+  background-image: 
+    radial-gradient(circle at 10% 10%, rgba(52, 211, 153, 0.2) 0%, transparent 40%),
+    radial-gradient(circle at 90% 90%, rgba(52, 211, 153, 0.2) 0%, transparent 40%);
+  min-height: 100vh;
+}
+
+/* Eco Component Overrides */
+:deep(.neo-card) {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+  color: #1f2937 !important;
+  
+  &.variant-erobo-neo {
+    background: #ffffff !important;
+    border-color: #d1fae5 !important;
+  }
+}
+
+:deep(.neo-button) {
+  border-radius: 99px !important;
+  font-weight: 700 !important;
+  
+  &.variant-primary {
+    background: $eco-green !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow: 0 4px 10px rgba(52, 211, 153, 0.3) !important;
+    
+    &:active {
+      transform: translateY(1px);
+      box-shadow: none !important;
+    }
+  }
+  
+  &.variant-secondary {
+    background: #f3f4f6 !important;
+    color: #4b5563 !important;
+    border: 1px solid #e5e7eb !important;
+  }
 }
 
 .tab-content {
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: 16px;
 }
 
 .pool-header {
@@ -377,23 +359,22 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: $space-6;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 2px dashed rgba(52, 211, 153, 0.2);
   padding-bottom: $space-3;
 }
 .pool-title {
-  font-weight: $font-weight-black;
-  font-size: 24px;
-  text-transform: uppercase;
-  color: white;
+  font-weight: 800;
+  font-size: 20px;
+  color: $eco-dark;
 }
 .pool-round-glass {
   font-size: 10px;
-  font-weight: $font-weight-black;
-  border: 1px solid rgba(0, 229, 153, 0.3);
+  font-weight: bold;
+  border: 1px solid $eco-green;
   padding: 4px 12px;
-  background: rgba(0, 229, 153, 0.1);
+  background: $eco-light;
   border-radius: 20px;
-  color: #00e599;
+  color: $eco-dark;
 }
 
 .pool-stats {
@@ -403,8 +384,8 @@ onMounted(() => {
 }
 .pool-stat-glass {
   padding: $space-4;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -415,29 +396,25 @@ onMounted(() => {
   font-size: 10px;
   font-weight: $font-weight-bold;
   text-transform: uppercase;
-  opacity: 0.6;
+  color: #6b7280;
   margin-bottom: 4px;
-  color: white;
 }
 .stat-value-glass {
-  font-weight: $font-weight-black;
-  font-family: $font-mono;
-  font-size: 16px;
-  color: white;
+  font-weight: 700;
+  font-size: 18px;
+  color: $eco-dark;
   &.highlight {
-    color: #34d399;
-    text-shadow: 0 0 10px rgba(52, 211, 153, 0.4);
+    color: $eco-accent;
   }
 }
 
 .section-title-glass {
-  font-weight: $font-weight-black;
+  font-weight: 700;
   text-transform: uppercase;
   font-size: 12px;
   margin-bottom: $space-4;
-  color: rgba(255, 255, 255, 0.6);
-  padding-left: 4px;
-  border-left: 2px solid #00e599;
+  color: #6b7280;
+  border-left: 3px solid $eco-green;
   padding-left: 8px;
   display: block;
 }
@@ -445,12 +422,12 @@ onMounted(() => {
 .empty-state {
   padding: 32px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.5);
   border-radius: 12px;
-  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border: 1px dashed #d1d5db;
 }
 .empty-text {
-  color: rgba(255, 255, 255, 0.4);
+  color: #6b7280;
   font-size: 14px;
 }
 
@@ -464,49 +441,36 @@ onMounted(() => {
   align-items: flex-start;
 }
 .grant-title-glass {
-  font-weight: $font-weight-bold;
-  font-size: 18px;
-  color: white;
+  font-weight: 700;
+  font-size: 16px;
+  color: $eco-dark;
   display: block;
   margin-bottom: 4px;
 }
 .grant-creator-glass {
   font-size: 10px;
-  font-weight: $font-weight-bold;
-  opacity: 0.6;
-  text-transform: uppercase;
-  color: white;
+  font-weight: 500;
+  color: #6b7280;
 }
 
 .grant-badge-glass {
   padding: 4px 10px;
   font-size: 9px;
-  font-weight: $font-weight-black;
+  font-weight: 700;
   text-transform: uppercase;
-  border-radius: 6px;
+  border-radius: 20px;
+  
   &.active {
-    background: rgba(253, 224, 71, 0.1);
-    color: #fde047;
-    border: 1px solid rgba(253, 224, 71, 0.3);
+    background: #fef3c7; color: #d97706;
   }
-  &.review,
-  &.voting,
-  &.discussion {
-    background: rgba(96, 165, 250, 0.1);
-    color: #60a5fa;
-    border: 1px solid rgba(96, 165, 250, 0.3);
+  &.review, &.voting, &.discussion {
+    background: #dbeafe; color: #2563eb;
   }
   &.executed {
-    background: rgba(52, 211, 153, 0.1);
-    color: #34d399;
-    border: 1px solid rgba(52, 211, 153, 0.3);
+    background: #d1fae5; color: #059669;
   }
-  &.cancelled,
-  &.rejected,
-  &.expired {
-    background: rgba(248, 113, 113, 0.1);
-    color: #f87171;
-    border: 1px solid rgba(248, 113, 113, 0.3);
+  &.cancelled, &.rejected, &.expired {
+    background: #fee2e2; color: #dc2626;
   }
 }
 
@@ -523,13 +487,11 @@ onMounted(() => {
 }
 .meta-item {
   font-size: 10px;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  color: #6b7280;
   padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  background: #f3f4f6;
 }
 
 .proposal-stats {
@@ -540,22 +502,18 @@ onMounted(() => {
 }
 .stat-chip {
   font-size: 11px;
-  font-weight: $font-weight-bold;
+  font-weight: 600;
   padding: 4px 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
 }
 .stat-chip.accept {
-  color: #34d399;
-  border: 1px solid rgba(52, 211, 153, 0.3);
+  background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0;
 }
 .stat-chip.reject {
-  color: #f87171;
-  border: 1px solid rgba(248, 113, 113, 0.3);
+  background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;
 }
 .stat-chip.comments {
-  color: #60a5fa;
-  border: 1px solid rgba(96, 165, 250, 0.3);
+  background: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb;
 }
 
 .proposal-actions {

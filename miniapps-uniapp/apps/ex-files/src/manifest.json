@@ -1,6 +1,6 @@
 {
   "name": "Ex Files",
-  "appid": "miniapp-exfiles",
+  "appid": "miniapp-ex-files",
   "description": "Ex Files - Neo MiniApp",
   "versionName": "1.0.0",
   "versionCode": "100",
@@ -9,9 +9,6 @@
     "title": "Ex Files",
     "router": {
       "mode": "hash"
-    },
-    "devServer": {
-      "port": 5173
     }
   }
 }

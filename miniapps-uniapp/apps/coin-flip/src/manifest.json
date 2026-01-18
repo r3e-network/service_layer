@@ -1,6 +1,6 @@
 {
   "name": "Coin Flip",
-  "appid": "miniapp-coinflip",
+  "appid": "miniapp-coin-flip",
   "description": "Coin Flip - Neo MiniApp",
   "versionName": "1.0.0",
   "versionCode": "100",
@@ -9,9 +9,6 @@
     "title": "Coin Flip",
     "router": {
       "mode": "hash"
-    },
-    "devServer": {
-      "port": 5173
     }
   }
 }

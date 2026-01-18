@@ -76,6 +76,18 @@
               <text v-else>{{ t("alreadyVoted") }}</text>
             </view>
           </view>
+
+          <!-- Execution Section -->
+          <view v-if="canExecute" class="execution-section pt-4 mt-4 border-t border-white/10">
+             <NeoButton
+                variant="success"
+                block
+                :loading="isVoting"
+                @click="$emit('execute', proposal.id)"
+              >
+                {{ t("execute") }}
+              </NeoButton>
+          </view>
         </view>
       </NeoCard>
     </view>
@@ -100,6 +112,15 @@ const canVote = computed(() => {
   if (!props.isCandidate) return false;
   if (props.isVoting) return false;
   return !props.hasVoted;
+});
+
+const canExecute = computed(() => {
+  const isExpired = props.proposal.expiryTime < Date.now();
+  // Status 1 is Active. If expired and active, maybe valuable to execute.
+  // Or if status is already 'Passed' (assuming status 2).
+  // We'll show it if expired AND candidate AND status is not executed (6) or rejected.
+  // Assuming status: 1=Active, 6=Executed.
+  return props.isCandidate && isExpired && props.proposal.status !== 6;
 });
 
 const policyMethods = [
@@ -144,7 +165,7 @@ const getPolicyMethodLabel = (method?: string) =>
   align-items: center;
   justify-content: center;
   font-size: 24px;
-  color: white;
+  color: var(--text-primary);
   opacity: 0.6;
   cursor: pointer;
   transition: all 0.2s;
@@ -176,7 +197,7 @@ const getPolicyMethodLabel = (method?: string) =>
 .detail-title {
   font-size: 24px;
   font-weight: 800;
-  color: white;
+  color: var(--text-primary);
   margin-bottom: 12px;
   line-height: 1.2;
   display: block;

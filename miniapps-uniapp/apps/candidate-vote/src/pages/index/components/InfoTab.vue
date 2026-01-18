@@ -33,15 +33,17 @@
 import { computed } from "vue";
 import { formatAddress } from "@/shared/utils/format";
 import { NeoCard, NeoStats, type StatItem } from "@/shared/components";
+import { useI18n } from "@/composables/useI18n";
+
+const { t } = useI18n();
 
 const props = defineProps<{
   address: string | null;
-  t: (key: string) => string;
 }>();
 
 const infoStats = computed<StatItem[]>(() => [
-  { label: props.t("wallet"), value: props.address ? formatAddress(props.address) : props.t("notConnected") },
-  { label: props.t("votingPower"), value: props.address ? props.t("basedOnNeo") : "--" },
+  { label: t("wallet"), value: props.address ? formatAddress(props.address) : t("notConnected") },
+  { label: t("votingPower"), value: props.address ? t("basedOnNeo") : "--" },
 ]);
 </script>
 

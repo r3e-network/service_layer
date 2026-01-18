@@ -9,6 +9,7 @@ import { p256 } from "@noble/curves/nist";
 import { sha256 } from "@noble/hashes/sha2";
 import { ripemd160 } from "@noble/hashes/legacy";
 import { bytesToHex } from "@noble/hashes/utils";
+import { Buffer } from "buffer";
 
 const BACKUP_KEY = "wallet_backup";
 const BACKUP_META_KEY = "backup_metadata";
@@ -138,14 +139,20 @@ export async function decryptMnemonic(encrypted: string, password: string): Prom
 /**
  * Format backup date
  */
-export function formatBackupDate(timestamp: number): string {
-  return new Date(timestamp).toLocaleDateString();
+export function formatBackupDate(timestamp: number, locale = "en"): string {
+  return new Date(timestamp).toLocaleDateString(locale);
 }
 
 /**
  * Get backup type label
  */
-export function getBackupTypeLabel(type: BackupType): string {
+export function getBackupTypeLabel(
+  type: BackupType,
+  t?: (key: string, options?: Record<string, string | number>) => string,
+): string {
+  if (t) {
+    return type === "cloud" ? t("backup.type.cloud") : t("backup.type.local");
+  }
   return type === "cloud" ? "Cloud Backup" : "Local Backup";
 }
 

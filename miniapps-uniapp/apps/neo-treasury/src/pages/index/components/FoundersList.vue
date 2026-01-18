@@ -122,7 +122,7 @@ const formatNum = (n: number, decimals = 0): string => {
 .founder-name {
   font-size: 20px;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
   text-transform: uppercase;
   display: block;
   letter-spacing: 0.02em;
@@ -145,7 +145,7 @@ const formatNum = (n: number, decimals = 0): string => {
   font-size: 20px;
   font-weight: 700;
   font-family: $font-family;
-  color: white;
+  color: var(--text-primary);
   text-shadow: 0 0 20px rgba(0, 229, 153, 0.3);
   letter-spacing: -0.02em;
 }
@@ -177,12 +177,12 @@ const formatNum = (n: number, decimals = 0): string => {
   font-size: 15px;
   font-weight: 600;
   font-family: $font-family;
-  color: white;
+  color: var(--text-primary);
 }
 
 .arrow {
   opacity: 0.5;
-  color: white;
+  color: var(--text-primary);
   transition: transform 0.2s;
 }
 

@@ -72,7 +72,19 @@ export async function addSecurityLog(event: string, details?: string): Promise<v
 /**
  * Get lock method label
  */
-export function getLockMethodLabel(method: LockMethod): string {
+export function getLockMethodLabel(
+  method: LockMethod,
+  t?: (key: string, options?: Record<string, string | number>) => string,
+): string {
+  if (t) {
+    const keyMap: Record<LockMethod, string> = {
+      pin: "security.lockMethod.pin",
+      biometric: "security.lockMethod.biometric",
+      both: "security.lockMethod.both",
+      none: "security.lockMethod.none",
+    };
+    return t(keyMap[method]);
+  }
   const labels: Record<LockMethod, string> = {
     pin: "PIN Code",
     biometric: "Biometric",
@@ -85,6 +97,6 @@ export function getLockMethodLabel(method: LockMethod): string {
 /**
  * Format log timestamp
  */
-export function formatLogTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleString();
+export function formatLogTime(timestamp: number, locale = "en"): string {
+  return new Date(timestamp).toLocaleString(locale);
 }

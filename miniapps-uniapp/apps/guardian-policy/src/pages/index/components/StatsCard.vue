@@ -49,7 +49,7 @@ defineProps<{
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   letter-spacing: 0.05em;
 }
 .stat-value {
@@ -57,7 +57,7 @@ defineProps<{
   font-weight: 700;
   font-size: 14px;
   background: transparent;
-  color: white;
+  color: var(--text-primary);
   padding: 0 8px;
   text-shadow: 0 0 10px rgba(159, 157, 243, 0.4);
 }

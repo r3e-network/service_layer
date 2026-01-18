@@ -2,10 +2,24 @@
   "app_id": "miniapp-unbreakablevault",
   "name": "Unbreakable Vault",
   "name_zh": "坚不可摧保险库",
-  "description": "Store your most valuable assets in a time-locked vault with multiple security layers. Social recovery, hardware key support, and customizable unlock conditions.",
+  "description": "Unbreakable Vault - Neo MiniApp",
   "description_zh": "在多层安全的时间锁定保险库中存储贵重资产。",
+  "version": "1.0.0",
+  "entry_url": "mf://builtin?app=miniapp-unbreakable-vault",
   "category": "utility",
   "status": "active",
+  "tags": [],
+  "permissions": {
+    "payments": true
+  },
+  "assets_allowed": [
+    "NEO",
+    "GAS"
+  ],
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
   "contracts": {
     "neo-n3-mainnet": {
       "address": "0xcf4c6eb16baad22292fb3ced6e570c31fadddd4e"
@@ -14,11 +28,13 @@
       "address": "0xcf4c6eb16baad22292fb3ced6e570c31fadddd4e"
     }
   },
-  "permissions": {
-    "payments": true
-  },
-  "supported_chains": [
-    "neo-n3-mainnet",
-    "neo-n3-testnet"
-  ]
+  "card": {
+    "display": {
+      "type": "icon_title",
+      "banner": "/static/banner.png"
+    },
+    "info": {
+      "logo": "/static/icon.svg"
+    }
+  }
 }

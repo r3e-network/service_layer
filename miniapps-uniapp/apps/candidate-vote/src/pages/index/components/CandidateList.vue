@@ -16,7 +16,7 @@
         class="candidate-item"
         :class="{
           selected: selectedCandidate?.publicKey === candidate.publicKey,
-          'user-voted': userVotedPublicKey === candidate.publicKey,
+          'user-voted': isUserVotedCandidate(candidate),
         }"
         @click="selectCandidate(candidate)"
       >
@@ -27,7 +27,7 @@
         <view class="candidate-info">
           <view class="name-row">
             <text class="candidate-name">{{ candidate.name || truncateAddress(candidate.address) }}</text>
-            <view v-if="userVotedPublicKey === candidate.publicKey" class="your-vote-badge">
+            <view v-if="isUserVotedCandidate(candidate)" class="your-vote-badge">
               <text class="your-vote-text">{{ t("yourVote") }}</text>
             </view>
           </view>
@@ -60,31 +60,39 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { NeoCard } from "@/shared/components";
-import type { Candidate } from "@neo/uniapp-sdk";
+import type { GovernanceCandidate } from "../utils";
+import { useI18n } from "@/composables/useI18n";
+
+const { t } = useI18n();
 
 const props = defineProps<{
-  candidates: Candidate[];
-  selectedCandidate: Candidate | null;
+  candidates: GovernanceCandidate[];
+  selectedCandidate: GovernanceCandidate | null;
   userVotedPublicKey: string | null;
   totalVotes: string;
   isLoading: boolean;
-  t: (key: string) => string;
 }>();
 
 const emit = defineEmits<{
-  (e: "select", candidate: Candidate): void;
-  (e: "view-details", candidate: Candidate, rank: number): void;
+  (e: "select", candidate: GovernanceCandidate): void;
+  (e: "view-details", candidate: GovernanceCandidate, rank: number): void;
 }>();
 
 const sortedCandidates = computed(() => {
-  return [...props.candidates].filter((c) => c.active).sort((a, b) => (BigInt(b.votes) > BigInt(a.votes) ? 1 : -1));
+  return [...props.candidates]
+    .sort((a, b) => {
+      const votesA = safeBigInt(a.votes);
+      const votesB = safeBigInt(b.votes);
+      if (votesA === votesB) return 0;
+      return votesB > votesA ? 1 : -1;
+    });
 });
 
-const selectCandidate = (candidate: Candidate) => {
+const selectCandidate = (candidate: GovernanceCandidate) => {
   emit("select", candidate);
 };
 
-const viewDetails = (candidate: Candidate, index: number) => {
+const viewDetails = (candidate: GovernanceCandidate, index: number) => {
   emit("view-details", candidate, index + 1);
 };
 
@@ -93,8 +101,23 @@ const truncateAddress = (addr: string) => {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 };
 
+const safeBigInt = (value: string | undefined) => {
+  try {
+    return BigInt(value || "0");
+  } catch {
+    return BigInt(0);
+  }
+};
+
+const normalizePublicKey = (value: string | null | undefined) => String(value || "").replace(/^0x/i, "");
+
+const isUserVotedCandidate = (candidate: GovernanceCandidate) => {
+  if (!props.userVotedPublicKey) return false;
+  return normalizePublicKey(candidate.publicKey) === normalizePublicKey(props.userVotedPublicKey);
+};
+
 const formatVotes = (votes: string) => {
-  const num = BigInt(votes);
+  const num = safeBigInt(votes);
   if (num >= BigInt(1e12)) {
     return (Number(num / BigInt(1e10)) / 100).toFixed(2) + "T";
   }
@@ -182,7 +205,7 @@ const getRankClass = (index: number) => {
 
   &:hover {
     background: rgba(255, 255, 255, 0.08); // Slightly brighter on hover
-    border-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--text-muted);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
@@ -224,7 +247,7 @@ const getRankClass = (index: number) => {
   }
   &.rank-bronze {
     background: linear-gradient(135deg, #cd7f32, #a0522d);
-    color: white;
+    color: var(--text-primary);
     box-shadow: 0 2px 5px rgba(160, 82, 45, 0.3);
   }
 }
@@ -260,7 +283,7 @@ const getRankClass = (index: number) => {
   display: block;
   font-weight: 700;
   font-size: 14px;
-  color: white;
+  color: var(--text-primary);
   margin-bottom: 2px;
   white-space: nowrap;
   overflow: hidden;
@@ -285,7 +308,7 @@ const getRankClass = (index: number) => {
   font-family: $font-family;
   font-feature-settings: "tnum";
   font-size: 14px;
-  color: white;
+  color: var(--text-primary);
 }
 
 .votes-label {
@@ -336,7 +359,7 @@ const getRankClass = (index: number) => {
 
 .info-icon {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-primary);
 }
 
 .check-icon {
@@ -364,7 +387,7 @@ const getRankClass = (index: number) => {
   font-weight: 700;
   font-family: $font-family;
   font-feature-settings: "tnum";
-  color: white;
+  color: var(--text-primary);
   font-size: 14px;
 }
 </style>

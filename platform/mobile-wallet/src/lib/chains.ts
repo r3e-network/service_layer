@@ -8,6 +8,7 @@ export type ChainConfig = {
   type: ChainType;
   rpc_urls?: string[];
   native_currency?: { symbol: string; decimals: number };
+  network_magic?: number;
 };
 
 type ChainsDoc = { chains?: ChainConfig[] };
@@ -27,6 +28,12 @@ const chains: ChainConfig[] = Array.isArray(raw) ? raw : [];
 
 export function getChainConfig(chainId: ChainId): ChainConfig | undefined {
   return chains.find((chain) => chain.id === chainId);
+}
+
+export function getNetworkMagic(chainId?: ChainId | null): number | null {
+  if (!chainId) return null;
+  const chain = getChainConfig(chainId);
+  return typeof chain?.network_magic === "number" ? chain.network_magic : null;
 }
 
 export function resolveChainType(chainId?: ChainId | null): ChainType | undefined {

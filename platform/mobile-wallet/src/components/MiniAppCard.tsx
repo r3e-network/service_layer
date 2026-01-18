@@ -3,6 +3,7 @@ import type { MiniAppInfo } from "@/types/miniapp";
 import { CATEGORY_LABELS } from "@/types/miniapp";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "@/hooks/useTranslation";
+import { getLocalizedField } from "@neo/shared/i18n";
 
 interface MiniAppCardProps {
   app: MiniAppInfo;
@@ -18,7 +19,7 @@ export function MiniAppCard({ app, onPress }: MiniAppCardProps) {
   const isImageIcon = app.icon?.startsWith("/") || app.icon?.startsWith("http");
 
   // Use localized name/desc if available
-  const appName = locale === "zh" && app.name_zh ? app.name_zh : app.name;
+  const appName = getLocalizedField(app, "name", locale);
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8} delayPressIn={50}>

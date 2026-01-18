@@ -2,12 +2,10 @@
 import { initTheme, listenForThemeChanges } from "@/shared/utils/theme";
 import { onLaunch, onShow } from "@dcloudio/uni-app";
 
-let cleanup: (() => void) | undefined;
-
 // Initialize theme immediately on script load (before mount)
 if (typeof window !== "undefined") {
   initTheme();
-  cleanup = listenForThemeChanges();
+  cleanupTheme = listenForThemeChanges();
 }
 
 onLaunch(() => {

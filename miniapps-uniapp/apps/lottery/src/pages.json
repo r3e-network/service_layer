@@ -3,14 +3,53 @@
     {
       "path": "pages/index/index",
       "style": {
-        "navigationBarTitleText": "Neo Lottery"
+        "navigationBarTitleText": "\u5f00\u5956\u5927\u5385"
+      }
+    },
+    {
+      "path": "pages/scratch/index",
+      "style": {
+        "navigationBarTitleText": "\u522e\u522e\u4e50"
+      }
+    },
+    {
+      "path": "pages/scratch/play",
+      "style": {
+        "navigationBarTitleText": "\u522e\u5956"
+      }
+    },
+    {
+      "path": "pages/docs/index",
+      "style": {
+        "navigationBarTitleText": "Docs"
       }
     }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "white",
-    "navigationBarTitleText": "Neo Lottery",
-    "navigationBarBackgroundColor": "#0d1117",
-    "backgroundColor": "#0d1117"
+    "navigationBarTitleText": "\u798f\u5f69\u4e2d\u5fc3",
+    "navigationBarBackgroundColor": "#1a0a0a",
+    "backgroundColor": "#1a0a0a",
+    "navigationStyle": "custom"
+  },
+  "tabBar": {
+    "color": "#D4A574",
+    "selectedColor": "#F59E0B",
+    "backgroundColor": "#1a0a0a",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "\u5f00\u5956",
+        "iconPath": "static/icons/lottery.svg",
+        "selectedIconPath": "static/icons/lottery-active.svg"
+      },
+      {
+        "pagePath": "pages/scratch/index",
+        "text": "\u522e\u522e\u4e50",
+        "iconPath": "static/icons/scratch.svg",
+        "selectedIconPath": "static/icons/scratch-active.svg"
+      }
+    ]
   }
 }

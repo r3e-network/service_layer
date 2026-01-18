@@ -140,7 +140,7 @@ defineEmits<{
 
   &--danger {
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: white;
+    color: var(--text-primary);
     box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
     border: none;
 
@@ -152,7 +152,7 @@ defineEmits<{
 
   &--success {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
+    color: var(--text-primary);
     box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
     border: none;
 
@@ -176,7 +176,7 @@ defineEmits<{
 
   &--erobo {
     background: #1b1b2f;
-    color: #fff;
+    color: var(--text-primary);
     box-shadow: 0 20px 50px rgba(27, 27, 47, 0.35);
     border: none;
 

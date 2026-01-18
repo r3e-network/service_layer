@@ -1,15 +1,16 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { ref } from "vue";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock @neo/uniapp-sdk
 vi.mock("@neo/uniapp-sdk", () => ({
   useWallet: () => ({
     getAddress: vi.fn().mockResolvedValue("NXV7ZhHiyM1aHXwpVsRZC6BN3y4gABn6"),
-    invokeIntent: vi.fn().mockResolvedValue({ txid: "0x123abc" }),
-    getBalance: vi.fn().mockResolvedValue({
-      NEO: "100",
-      "0x48c40d4666f93408be1bef038b6722404d9a4c2a": "50",
+    getContractAddress: vi.fn().mockResolvedValue("0x48c40d4666f93408be1bef038b6722404d9a4c2a"),
+    getBalance: vi.fn().mockImplementation(async (asset?: string) => {
+      if (asset === "NEO") return "100";
+      if (asset === "0x48c40d4666f93408be1bef038b6722404d9a4c2a") return "50";
+      return "0";
     }),
+    invokeContract: vi.fn().mockResolvedValue({ txid: "0x123abc" }),
   }),
 }));
 
@@ -18,13 +19,9 @@ vi.mock("@/shared/utils/i18n", () => ({
   createT: () => (key: string) => key,
 }));
 
-// Mock fetch globally
-global.fetch = vi.fn();
-
 describe("NeoBurger - Liquid Staking", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (global.fetch as any).mockClear();
   });
 
   describe("Balance Loading", () => {
@@ -33,12 +30,14 @@ describe("NeoBurger - Liquid Staking", () => {
       const { getBalance, getAddress } = useWallet();
 
       await getAddress();
-      const balances = await getBalance();
+      const neoBalance = await getBalance("NEO");
+      const bneoBalance = await getBalance("0x48c40d4666f93408be1bef038b6722404d9a4c2a");
 
       expect(getAddress).toHaveBeenCalled();
-      expect(getBalance).toHaveBeenCalled();
-      expect(balances.NEO).toBe("100");
-      expect(balances["0x48c40d4666f93408be1bef038b6722404d9a4c2a"]).toBe("50");
+      expect(getBalance).toHaveBeenCalledWith("NEO");
+      expect(getBalance).toHaveBeenCalledWith("0x48c40d4666f93408be1bef038b6722404d9a4c2a");
+      expect(neoBalance).toBe("100");
+      expect(bneoBalance).toBe("50");
     });
 
     it("should handle balance loading errors gracefully", async () => {
@@ -145,10 +144,10 @@ describe("NeoBurger - Liquid Staking", () => {
     it("should calculate percentage amounts correctly", () => {
       const balance = 100;
       const percentages = [25, 50, 75, 100];
-      const expected = ["25.00", "50.00", "75.00", "100.00"];
+      const expected = ["25", "50", "75", "100"];
 
       percentages.forEach((p, i) => {
-        const amount = ((balance * p) / 100).toFixed(2);
+        const amount = String(Math.floor((balance * p) / 100));
         expect(amount).toBe(expected[i]);
       });
     });
@@ -156,111 +155,16 @@ describe("NeoBurger - Liquid Staking", () => {
     it("should handle zero balance", () => {
       const balance = 0;
       const percentage = 50;
-      const amount = ((balance * percentage) / 100).toFixed(2);
-      expect(amount).toBe("0.00");
-    });
-  });
-
-  describe("Stake Transaction", () => {
-    it("should create stake transaction with correct parameters", async () => {
-      const mockFetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({ request_id: "req-123" }),
-      });
-      global.fetch = mockFetch;
-
-      const { useWallet } = await import("@neo/uniapp-sdk");
-      const { getAddress, invokeIntent } = useWallet();
-
-      const address = await getAddress();
-      const stakeAmount = 100;
-      const amountInSatoshi = Math.floor(stakeAmount * 100000000);
-
-      await fetch("https://api.neo-service-layer.io/invoke-intent", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contract: "0xef4073a0f2b305a38ec4050e4d3d28bc40ea63f5",
-          method: "transfer",
-          args: [
-            { type: "Hash160", value: address },
-            { type: "Hash160", value: "0x48c40d4666f93408be1bef038b6722404d9a4c2a" },
-            { type: "Integer", value: amountInSatoshi },
-            { type: "Any", value: null },
-          ],
-        }),
-      });
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        "https://api.neo-service-layer.io/invoke-intent",
-        expect.objectContaining({
-          method: "POST",
-          credentials: "include",
-        }),
-      );
-    });
-
-    it("should handle stake transaction errors", async () => {
-      const mockFetch = vi.fn().mockResolvedValue({
-        ok: false,
-        json: async () => ({ error: { message: "Insufficient balance" } }),
-      });
-      global.fetch = mockFetch;
-
-      const response = await fetch("https://api.neo-service-layer.io/invoke-intent", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
-
-      expect(response.ok).toBe(false);
-      const error = await response.json();
-      expect(error.error.message).toBe("Insufficient balance");
-    });
-  });
-
-  describe("Unstake Transaction", () => {
-    it("should create unstake transaction with correct parameters", async () => {
-      const mockFetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({ request_id: "req-456" }),
-      });
-      global.fetch = mockFetch;
-
-      const { useWallet } = await import("@neo/uniapp-sdk");
-      const { getAddress } = useWallet();
-
-      const address = await getAddress();
-      const unstakeAmount = 50;
-      const amountInSatoshi = Math.floor(unstakeAmount * 100000000);
-
-      await fetch("https://api.neo-service-layer.io/invoke-intent", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contract: "0x48c40d4666f93408be1bef038b6722404d9a4c2a",
-          method: "transfer",
-          args: [
-            { type: "Hash160", value: address },
-            { type: "Hash160", value: "0x48c40d4666f93408be1bef038b6722404d9a4c2a" },
-            { type: "Integer", value: amountInSatoshi },
-            { type: "Any", value: null },
-          ],
-        }),
-      });
-
-      expect(mockFetch).toHaveBeenCalled();
+      const amount = String(Math.floor((balance * percentage) / 100));
+      expect(amount).toBe("0");
     });
   });
 
   describe("Edge Cases", () => {
     it("should handle very small amounts", () => {
       const amount = 0.01;
-      const estimated = (amount * 0.99).toFixed(2);
-      expect(estimated).toBe("0.01");
+      const estimated = (Math.floor(amount) * 0.99).toFixed(2);
+      expect(estimated).toBe("0.00");
     });
 
     it("should handle very large amounts", () => {
@@ -271,8 +175,8 @@ describe("NeoBurger - Liquid Staking", () => {
 
     it("should handle decimal precision", () => {
       const amount = 123.456789;
-      const estimated = (amount * 0.99).toFixed(2);
-      expect(estimated).toBe("122.22");
+      const estimated = (Math.floor(amount) * 0.99).toFixed(2);
+      expect(estimated).toBe("121.77");
     });
   });
 });

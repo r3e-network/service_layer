@@ -11,7 +11,7 @@
         <!-- Background Refresh Indicator -->
         <view v-if="loading" class="soft-loading">
           <AppIcon name="loader" :size="16" class="animate-spin" />
-          <text class="soft-loading-text">REFRESHING...</text>
+          <text class="soft-loading-text">{{ t("refreshing") }}</text>
         </view>
 
         <!-- Overview Tab -->
@@ -77,7 +77,7 @@
 import { ref, computed, onMounted } from "vue";
 import { AppLayout, NeoCard, NeoButton, NeoDoc, AppIcon } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
 import { fetchTreasuryData, type TreasuryData, type CategoryBalance } from "@/utils/treasury";
 
 import TotalSummaryCard from "./components/TotalSummaryCard.vue";
@@ -85,50 +85,15 @@ import PriceGrid from "./components/PriceGrid.vue";
 import FoundersList from "./components/FoundersList.vue";
 import FounderDetail from "./components/FounderDetail.vue";
 
-const translations = {
-  title: { en: "Neo Treasury", zh: "Neo 国库" },
-  loading: { en: "Loading stats...", zh: "加载统计中..." },
-  retry: { en: "Retry Load", zh: "重试加载" },
-  totalTreasury: { en: "Foundation Assets", zh: "基金会资产" },
-  lastUpdated: { en: "Updated", zh: "已更新" },
-  founders: { en: "Core Founders", zh: "核心创始人" },
-  wallets: { en: "wallets", zh: "个钱包" },
-  tabTotal: { en: "Overview", zh: "总览" },
-  tabDa: { en: "Da Hongfei", zh: "达鸿飞" },
-  tabErik: { en: "Erik Zhang", zh: "张铮文" },
-  docs: { en: "Docs", zh: "文档" },
-  walletList: { en: "Asset Breakdown", zh: "资产明细" },
-  addresses: { en: "addresses", zh: "个地址" },
-  fullAddress: { en: "Full Address", zh: "完整地址" },
-  breakdown: { en: "Current Balance", zh: "当前余额" },
-  docSubtitle: {
-    en: "Transparent view of Neo's core network assets",
-    zh: "Neo 核心网络资产的透明化视图",
-  },
-  docDescription: {
-    en: "The Neo Treasury MiniApp provides real-time transparency into the assets held by Neo's core founders and foundation. This tool is essential for monitoring network decentralization and governance health.",
-    zh: "Neo Treasury MiniApp 为 Neo 核心创始人及基金会所持资产提供实时透明度。该工具对于监控网络去中心化和治理健康至关重要。",
-  },
-  step1: { en: "View the total USD value of core treasury assets", zh: "查看核心国库资产的总美元价值" },
-  step2: { en: "Monitor real-time prices for NEO and GAS tokens", zh: "监控 NEO 和 GAS 代币的实时价格" },
-  step3: { en: "Drill down into individual founder holdings and wallets", zh: "深入查看个人创始人的持有量和钱包" },
-  step4: { en: "Track historical balances and network distribution", zh: "追踪历史余额和网络分布" },
-  feature1Name: { en: "Real-time Prices", zh: "实时价格" },
-  feature1Desc: { en: "Integrated price feed for accurate valuation.", zh: "集成价格反馈，实现准确估值。" },
-  feature2Name: { en: "Direct RPC", zh: "直接 RPC" },
-  feature2Desc: { en: "Fetch live balances directly from the N3 blockchain.", zh: "直接从 N3 区块链获取实时余额。" },
-  feature3Name: { en: "Full Disclosure", zh: "充分披露" },
-  feature3Desc: { en: "Transparent list of all known founder addresses.", zh: "所有已知创始人地址的透明列表。" },
-};
 
-const t = createT(translations);
+const { t } = useI18n();
 
-const navTabs: NavTab[] = [
+const navTabs = computed<NavTab[]>(() => [
   { id: "total", icon: "chart", label: t("tabTotal") },
   { id: "da", icon: "user", label: t("tabDa") },
   { id: "erik", icon: "user", label: t("tabErik") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 
 const activeTab = ref("total");
 const loading = ref(true);
@@ -169,8 +134,7 @@ async function loadData() {
       data.value = JSON.parse(cached);
       // If we have cache, we can stop "hard" loading but keep "soft" loading in background
     }
-  } catch (e) {
-    console.warn("Failed to load treasury cache", e);
+  } catch {
   }
 
   try {
@@ -180,9 +144,8 @@ async function loadData() {
     uni.setStorageSync(CACHE_KEY, JSON.stringify(freshData));
   } catch (e) {
     if (!data.value) {
-      error.value = e instanceof Error ? e.message : "Failed to load treasury data";
+      error.value = t("loadFailed");
     } else {
-      console.error("Background refresh failed", e);
     }
   } finally {
     loading.value = false;
@@ -198,13 +161,27 @@ onMounted(() => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+$treasury-bg: #1a1a00;
+$treasury-gold: #fbbf24;
+$treasury-dark-gold: #b45309;
+$treasury-text: #fffbeb;
+
+:global(page) {
+  background: $treasury-bg;
+}
+
 .app-container {
   padding: 20px;
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: 0;
+  min-height: 100vh;
   gap: 16px;
+  background-color: $treasury-bg;
+  /* Gold Flakes */
+  background-image: 
+    radial-gradient(ellipse at 50% 50%, rgba(251, 191, 36, 0.15) 0%, transparent 60%),
+    url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8Y2lyY2xlIGN4PSI0IiBjeT0iNCIgcj0iMSIgZmlsbD0icmdiYSgyNTEsIDE5MSwgMzYsIDAuMSkiLz4KPC9zdmc+');
 }
 
 .tab-content {
@@ -216,25 +193,56 @@ onMounted(() => {
   -webkit-overflow-scrolling: touch;
 }
 
+/* Treasury Component Overrides */
+:deep(.neo-card) {
+  background: linear-gradient(135deg, rgba(30, 25, 10, 0.95), rgba(40, 35, 15, 0.9)) !important;
+  border: 1px solid rgba(251, 191, 36, 0.3) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5), inset 0 0 20px rgba(251, 191, 36, 0.05) !important;
+  color: $treasury-text !important;
+  
+  /* Reflective Edge */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, $treasury-gold, transparent);
+    opacity: 0.5;
+  }
+}
+
+:deep(.neo-button) {
+  border-radius: 6px !important;
+  font-family: 'Cinzel', serif !important;
+  text-transform: uppercase;
+  font-weight: 700 !important;
+  
+  &.variant-primary {
+    background: linear-gradient(to bottom, #fcd34d, #d97706) !important;
+    color: #451a03 !important;
+    border: 1px solid #b45309 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+    
+    &:active {
+      background: linear-gradient(to top, #fcd34d, #d97706) !important;
+    }
+  }
+}
+
 .loading-container {
-  position: relative;
-  flex: 1;
   display: flex;
   flex-direction: column;
   padding: 16px;
-  overflow: hidden;
 }
 
 .loading-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 10;
 }
 
 .soft-loading {
@@ -243,20 +251,15 @@ onMounted(() => {
   justify-content: center;
   gap: 8px;
   padding: 8px 16px;
-  background: rgba(0, 229, 153, 0.1);
-  color: #00E599;
-  margin-bottom: 16px;
-  border: 1px solid rgba(0, 229, 153, 0.2);
+  background: rgba(251, 191, 36, 0.1);
+  color: $treasury-gold;
+  border: 1px solid rgba(251, 191, 36, 0.3);
   border-radius: 99px;
-  backdrop-filter: blur(10px);
-  margin-left: auto;
-  margin-right: auto;
-  width: fit-content;
-  box-shadow: 0 0 15px rgba(0, 229, 153, 0.1);
+  box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
 }
 
 .soft-loading-text {
-  font-family: $font-mono;
+  font-family: 'Cinzel', serif;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -264,28 +267,10 @@ onMounted(() => {
 
 .skeleton-card {
   height: 120px;
-  background: var(--bg-card, rgba(255, 255, 255, 0.03));
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
+  background: rgba(251, 191, 36, 0.05);
+  border: 1px solid rgba(251, 191, 36, 0.1);
   border-radius: 20px;
   animation: pulse 2s infinite;
-}
-
-.skeleton-grid {
-  height: 80px;
-  background: var(--bg-card, rgba(255, 255, 255, 0.03));
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
-  border-radius: 20px;
-  animation: pulse 2s infinite;
-  animation-delay: 0.2s;
-}
-
-.skeleton-list {
-  flex: 1;
-  background: var(--bg-card, rgba(255, 255, 255, 0.02));
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
-  border-radius: 20px;
-  animation: pulse 2s infinite;
-  animation-delay: 0.4s;
 }
 
 @keyframes pulse {
@@ -304,47 +289,29 @@ onMounted(() => {
 
 .loading-label,
 .error-label {
-  font-family: $font-mono;
+  font-family: 'Cinzel', serif;
   font-size: 14px;
   font-weight: 700;
   text-transform: uppercase;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  color: $treasury-gold;
   letter-spacing: 0.05em;
 }
 
 .status-text {
-  font-family: $font-mono;
+  font-family: 'Cinzel', serif;
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
-  color: white;
+  color: $treasury-text;
 }
 
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
+.animate-spin { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
+.fade-in { animation: fadeIn 0.4s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-.fade-in {
-  animation: fadeIn 0.4s ease-out;
-}
+.text-danger { color: #ef4444; }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-
-.text-danger {
-  color: #ef4444;
-}
-
-.scrollable {
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
+.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 </style>

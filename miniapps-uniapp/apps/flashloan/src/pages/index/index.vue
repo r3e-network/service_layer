@@ -56,7 +56,7 @@ import { ref, onMounted, watch } from "vue";
 import { useWallet, useEvents } from "@neo/uniapp-sdk";
 import { formatNumber, formatAddress } from "@/shared/utils/format";
 import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
 import { AppLayout, NeoCard, NeoButton } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
@@ -67,97 +67,14 @@ import SimulationStats from "./components/SimulationStats.vue";
 import RecentLoansTable from "./components/RecentLoansTable.vue";
 import FlashloanDocs from "./components/FlashloanDocs.vue";
 
-const translations = {
-  title: { en: "Flash Loan", zh: "闪电贷" },
-  instructionMode: { en: "INSTRUCTIONAL MODE", zh: "教学模式" },
-  instructionNote: {
-    en: "Flash loans must be executed programmatically. Use this miniapp to monitor pool status and loan history.",
-    zh: "闪电贷必须以程序方式执行。本应用仅用于监控池子状态与历史记录。",
-  },
-  flashLoanFlow: { en: "Flash Loan Flow", zh: "闪电贷流程" },
-  borrow: { en: "Borrow", zh: "借款" },
-  execute: { en: "Execute", zh: "执行" },
-  repay: { en: "Repay", zh: "还款" },
-  flowNote: { en: "All operations execute atomically in a single transaction", zh: "所有操作在单笔交易中原子化执行" },
-  statusLookup: { en: "Loan Status Lookup", zh: "贷款状态查询" },
-  loanId: { en: "Loan ID", zh: "贷款 ID" },
-  loanIdPlaceholder: { en: "Enter loan ID", zh: "输入贷款 ID" },
-  checkStatus: { en: "Check Status", zh: "查询状态" },
-  checking: { en: "Checking...", zh: "查询中..." },
-  statusLabel: { en: "Status", zh: "状态" },
-  statusHint: { en: "Enter a loan ID to fetch its on-chain status.", zh: "输入贷款 ID 以查询链上状态。" },
-  statusPending: { en: "Pending", zh: "待处理" },
-  statusSuccess: { en: "Executed", zh: "已执行" },
-  statusFailed: { en: "Failed", zh: "失败" },
-  borrower: { en: "Borrower", zh: "借款人" },
-  callbackContract: { en: "Callback Contract", zh: "回调合约" },
-  callbackMethod: { en: "Callback Method", zh: "回调方法" },
-  timestamp: { en: "Timestamp", zh: "时间" },
-  amount: { en: "Amount", zh: "金额" },
-  feeShort: { en: "Fee", zh: "手续费" },
-  poolBalance: { en: "Pool Balance", zh: "池子余额" },
-  poolBalanceNote: { en: "Available liquidity for flash loans", zh: "可用于闪电贷的流动性" },
-  statistics: { en: "Loan Activity", zh: "贷款活动" },
-  totalLoans: { en: "Loans Executed", zh: "已执行贷款" },
-  totalVolume: { en: "Total Volume (GAS)", zh: "总交易量 (GAS)" },
-  totalFees: { en: "Total Fees (GAS)", zh: "总手续费 (GAS)" },
-  avgLoanSize: { en: "Avg Loan Size (GAS)", zh: "平均额度 (GAS)" },
-  recentLoans: { en: "Recent Executions", zh: "最近执行" },
-  noHistory: { en: "No executions yet", zh: "暂无执行记录" },
-  loanStatusLoaded: { en: "Loan status loaded", zh: "贷款状态已加载" },
-  loanNotFound: { en: "Loan not found", zh: "未找到该贷款" },
-  invalidLoanId: { en: "Invalid loan ID", zh: "无效贷款 ID" },
-  error: { en: "Error", zh: "错误" },
-  main: { en: "Status", zh: "状态" },
-  stats: { en: "Activity", zh: "活动" },
-  docs: { en: "Learn", zh: "学习" },
-  docSubtitle: { en: "Understanding Flash Loans", zh: "理解闪电贷" },
-  docDescription: {
-    en: "Flash loans enable uncollateralized borrowing with instant repayment in a single transaction. This miniapp is instructional only; real flash loans must be executed programmatically.",
-    zh: "闪电贷支持无抵押借款，在单笔交易中即时还款。本应用仅用于教学，真实闪电贷需以程序方式执行。",
-  },
-  docTitle: { en: "Flash Loan Documentation", zh: "闪电贷文档" },
-  contractInfo: { en: "Contract Information", zh: "合约信息" },
-  contractName: { en: "Contract Name", zh: "合约名称" },
-  version: { en: "Version", zh: "版本" },
-  minLoan: { en: "Min Loan", zh: "最小贷款" },
-  maxLoan: { en: "Max Loan", zh: "最大贷款" },
-  cooldown: { en: "Cooldown", zh: "冷却时间" },
-  minutes: { en: "minutes", zh: "分钟" },
-  dailyLimit: { en: "Daily Limit", zh: "每日限制" },
-  loansPerDay: { en: "loans/day", zh: "笔/天" },
-  contractMethods: { en: "Contract Methods", zh: "合约方法" },
-  write: { en: "WRITE", zh: "写入" },
-  read: { en: "READ", zh: "读取" },
-  parameters: { en: "Parameters", zh: "参数" },
-  returns: { en: "Returns", zh: "返回" },
-  requestLoanDesc: { en: "Request a flash loan with callback verification", zh: "请求带回调验证的闪电贷" },
-  borrowerDesc: { en: "Your wallet address", zh: "你的钱包地址" },
-  amountDesc: { en: "Loan amount in GAS (8 decimals)", zh: "GAS 贷款金额（8位小数）" },
-  callbackContractDesc: { en: "Contract to receive and repay loan", zh: "接收和偿还贷款的合约" },
-  callbackMethodDesc: { en: "Method to call on callback contract", zh: "回调合约上调用的方法" },
-  getLoanDesc: { en: "Get loan details by ID", zh: "通过 ID 获取贷款详情" },
-  getPoolBalanceDesc: { en: "Get current liquidity pool balance", zh: "获取当前流动性池余额" },
-  depositDesc: { en: "Deposit liquidity to the flash loan pool", zh: "向闪电贷池存入流动性" },
-  events: { en: "Contract Events", zh: "合约事件" },
-  howToUse: { en: "How to Use Flash Loans", zh: "如何使用闪电贷" },
-  step5: {
-    en: "Ensure your callback contract repays loan + 0.09% fee atomically",
-    zh: "确保你的回调合约原子化偿还贷款 + 0.09% 手续费",
-  },
-  notAvailable: { en: "Unavailable", zh: "不可用" },
-  wrongChain: { en: "Wrong Network", zh: "网络错误" },
-  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-};
 
-const t = createT(translations);
+const { t } = useI18n();
 
-const navTabs: NavTab[] = [
+const navTabs = computed<NavTab[]>(() => [
   { id: "main", icon: "wallet", label: t("main") },
   { id: "stats", icon: "chart", label: t("stats") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 
 const activeTab = ref("main");
 
@@ -214,7 +131,7 @@ const formatGas = (value: number, decimals = 4) => formatNumber(value, decimals)
 
 const formatTimestamp = (value: unknown) => {
   const ts = toNumber(value);
-  if (!ts) return "N/A";
+  if (!ts) return t("notAvailable");
   return new Date(ts * 1000).toLocaleString();
 };
 
@@ -251,7 +168,7 @@ const buildLoanDetails = (parsed: unknown, loanId: number): LoanDetails | null =
     amount: formatGas(amountGas),
     fee: formatGas(feeGas),
     callbackContract: formatAddress(String(callbackContract || "")),
-    callbackMethod: callbackMethodText || "--",
+    callbackMethod: callbackMethodText || t("notAvailable"),
     timestamp: formatTimestamp(timestamp),
     status: statusValue,
   };
@@ -339,8 +256,7 @@ const fetchLoanStats = async () => {
 const fetchData = async () => {
   try {
     await Promise.all([fetchPoolBalance(), fetchLoanStats()]);
-  } catch (e) {
-    console.warn("[Flashloan] Failed to fetch:", e);
+  } catch {
   }
 };
 
@@ -352,14 +268,81 @@ watch(chainType, () => fetchData());
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+$volt-bg: #0a0a0a;
+$volt-blue: #2563eb;
+$volt-yellow: #facc15;
+$volt-cyan: #06b6d4;
+$volt-text: #e5e5e5;
+
+:global(page) {
+  background: $volt-bg;
+}
+
 .tab-content {
-  padding: $space-4;
+  padding: 24px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: 20px;
+  background: radial-gradient(circle at 50% 10%, #1e1e1e 0%, #000 100%);
+  min-height: 100vh;
+  position: relative;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+
+  /* Circuit Line Overlay */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(37, 99, 235, 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(37, 99, 235, 0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+    z-index: 10;
+    pointer-events: none;
+  }
+}
+
+/* High Voltage Component Overrides */
+:deep(.neo-card) {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border: 1px solid rgba(6, 182, 212, 0.3) !important;
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.1) !important;
+  border-radius: 8px !important;
+  color: $volt-text !important;
+  backdrop-filter: blur(8px);
+  
+  &.variant-warning {
+    background: rgba(234, 179, 8, 0.1) !important;
+    border-color: $volt-yellow !important;
+    color: $volt-yellow !important;
+    box-shadow: 0 0 20px rgba(250, 204, 21, 0.2) !important;
+  }
+}
+
+:deep(.neo-button) {
+  border-radius: 4px !important;
+  font-family: 'Consolas', 'Monaco', monospace !important;
+  text-transform: uppercase;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em;
+  
+  &.variant-primary {
+    background: linear-gradient(90deg, $volt-blue 0%, $volt-cyan 100%) !important;
+    color: #fff !important;
+    box-shadow: 0 0 15px rgba(37, 99, 235, 0.5) !important;
+    
+    &:active {
+      transform: scale(0.98);
+      box-shadow: 0 0 5px rgba(37, 99, 235, 0.5) !important;
+    }
+  }
+}
+
+.text-glass-glow {
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  color: #fff;
 }
 
 .scrollable {

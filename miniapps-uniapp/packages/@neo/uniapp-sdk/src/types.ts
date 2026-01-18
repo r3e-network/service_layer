@@ -17,7 +17,7 @@ export interface PayGASResponse {
   request_id: string;
   user_id: string;
   intent: "payments";
-  constraints: { settlement: "GAS_ONLY" };
+  constraints: { settlement: "GAS_ONLY" | "NATIVE_TOKEN" };
   chain_id: ChainId;
   chain_type: ChainType;
   invocation: InvocationIntent;
@@ -56,6 +56,34 @@ export interface PriceResponse {
   decimals: number;
   timestamp: string;
   sources: string[];
+}
+
+export interface PricesResponse {
+  neo: { usd: number; usd_24h_change: number };
+  gas: { usd: number; usd_24h_change: number };
+  timestamp: number;
+}
+
+export interface NetworkStatsResponse {
+  blockHeight: number;
+  validatorCount: number;
+  network: string;
+  version: string;
+}
+
+export interface RecentTransaction {
+  txid: string;
+  blockHeight: number;
+  blockTime?: number;
+  sender?: string | null;
+  size?: number;
+  sysfee?: string;
+  netfee?: string;
+}
+
+export interface RecentTransactionsResponse {
+  transactions: RecentTransaction[];
+  blockHeight: number;
 }
 
 export interface EventsListParams {
@@ -149,19 +177,22 @@ export interface AppUsageStats {
 }
 
 export interface MiniAppSDK {
-  invoke(method: string, params?: Record<string, unknown>): Promise<unknown>;
+  invoke(method: string, ...args: unknown[]): Promise<unknown>;
   getConfig(): MiniAppSDKConfig;
   wallet: {
     getAddress(): Promise<string>;
     /** Request to switch the wallet to a specific chain */
     switchChain(chainId: ChainId): Promise<void>;
     invokeIntent?(requestId: string): Promise<unknown>;
+    signMessage?(message: string): Promise<unknown>;
   };
   payments: {
     payGAS(appId: string, amount: string, memo?: string): Promise<PayGASResponse>;
+    payGASAndInvoke?(appId: string, amount: string, memo?: string): Promise<PayGASResponse>;
   };
   governance: {
     vote(appId: string, proposalId: string, amount: string, support?: boolean): Promise<VoteBNEOResponse>;
+    voteAndInvoke?(appId: string, proposalId: string, amount: string, support?: boolean): Promise<VoteBNEOResponse>;
     getCandidates(): Promise<CandidatesResponse>;
   };
   rng: {
@@ -169,6 +200,9 @@ export interface MiniAppSDK {
   };
   datafeed: {
     getPrice(symbol: string): Promise<PriceResponse>;
+    getPrices?(): Promise<PricesResponse>;
+    getNetworkStats?(): Promise<NetworkStatsResponse>;
+    getRecentTransactions?(limit?: number): Promise<RecentTransactionsResponse>;
   };
   events?: {
     list(params?: EventsListParams): Promise<EventsListResponse>;

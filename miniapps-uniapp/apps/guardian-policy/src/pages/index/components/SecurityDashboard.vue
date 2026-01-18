@@ -101,7 +101,7 @@ defineProps<{
 .security-label {
   font-size: 10px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.2em;
   margin-bottom: 4px;
@@ -110,7 +110,7 @@ defineProps<{
 .security-value {
   font-size: 32px;
   font-weight: 900;
-  color: white;
+  color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   

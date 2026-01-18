@@ -14,12 +14,12 @@
         </view>
 
         <view class="sender-pill">
-          <text class="from-label">{{ t("from").replace("{0}", "") }}</text>
+          <text class="from-label">{{ t("fromPrefix") }}</text>
           <text class="from-address">{{ luckyMessage.from }}</text>
         </view>
 
         <NeoButton variant="primary" size="lg" block class="confirm-btn" @click="$emit('close')">
-          <text>{{ t("confirm") || "OK" }}</text>
+          <text>{{ t("confirm") }}</text>
         </NeoButton>
       </view>
 
@@ -129,7 +129,7 @@ defineEmits(["close"]);
   display: block;
   font-size: 56px;
   font-weight: 800;
-  color: white;
+  color: var(--text-primary);
   font-family: $font-family;
   line-height: 1;
   text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
@@ -138,7 +138,7 @@ defineEmits(["close"]);
 .lucky-currency {
   font-size: 14px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.2em;
   margin-top: 4px;
@@ -158,14 +158,14 @@ defineEmits(["close"]);
 .from-label {
   font-size: 11px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   text-transform: uppercase;
 }
 
 .from-address {
   font-size: 12px;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
   font-family: $font-mono;
 }
 

@@ -141,6 +141,7 @@
         :features="docFeatures"
       />
     </view>
+    <Fireworks :active="status?.type === 'success'" :duration="3000" />
   </AppLayout>
 </template>
 
@@ -148,82 +149,18 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
 import { addressToScriptHash, normalizeScriptHash, parseInvokeResult } from "@/shared/utils/neo";
-import { AppLayout, NeoButton, NeoCard, NeoStats, NeoDoc, type StatItem } from "@/shared/components";
+import { AppLayout, NeoButton, NeoCard, NeoStats, NeoDoc, Fireworks, type StatItem } from "@/shared/components";
 
-const translations = {
-  title: { en: "Million Piece Map", zh: "百万像素地图" },
-  subtitle: { en: "Pixel territory conquest", zh: "像素领土征服" },
-  territoryMap: { en: "Territory Map", zh: "领土地图" },
-  claimTerritory: { en: "Claim Territory", zh: "占领领土" },
-  territoryStats: { en: "Territory Statistics", zh: "领土统计" },
-  coordinates: { en: "Coordinates", zh: "坐标" },
-  position: { en: "Position", zh: "位置" },
-  status: { en: "Status", zh: "状态" },
-  tile: { en: "Tile", zh: "地块" },
-  price: { en: "Price", zh: "价格" },
-  available: { en: "Available", zh: "可用" },
-  occupied: { en: "Occupied", zh: "已占领" },
-  yourTerritory: { en: "Your Territory", zh: "你的领土" },
-  othersTerritory: { en: "Others' Territory", zh: "他人领土" },
-  claiming: { en: "Claiming...", zh: "占领中..." },
-  claimNow: { en: "Claim Now", zh: "立即占领" },
-  alreadyClaimed: { en: "Already Claimed", zh: "已被占领" },
-  tilesOwned: { en: "Tiles Owned", zh: "拥有地块" },
-  mapControl: { en: "Map Control", zh: "地图控制" },
-  gasSpent: { en: "GAS Spent", zh: "GAS 花费" },
-  yourStats: { en: "Your Stats", zh: "您的统计" },
-  owned: { en: "Owned", zh: "拥有" },
-  spent: { en: "Spent", zh: "花费" },
-  coverage: { en: "Coverage", zh: "覆盖率" },
-  tileAlreadyOwned: { en: "Territory already claimed!", zh: "领土已被占领！" },
-  tilePurchased: { en: "Territory claimed successfully!", zh: "领土占领成功！" },
-  connectWallet: { en: "Connect wallet", zh: "请连接钱包" },
-  contractUnavailable: { en: "Contract unavailable", zh: "合约不可用" },
-  receiptMissing: { en: "Payment receipt missing", zh: "支付凭证缺失" },
-  claimPending: { en: "Claim pending", zh: "占领确认中" },
-  error: { en: "Error", zh: "错误" },
-  map: { en: "Map", zh: "地图" },
-  stats: { en: "Stats", zh: "统计" },
-  docs: { en: "Docs", zh: "文档" },
-  docSubtitle: {
-    en: "Claim and own pixels on a blockchain-powered territory map",
-    zh: "在区块链驱动的领土地图上占领和拥有像素",
-  },
-  docDescription: {
-    en: "Million Piece Map lets you claim pixels on an 8x8 grid territory map. Each pixel is a unique on-chain asset. Build your digital empire by purchasing tiles with GAS and watch your territory grow!",
-    zh: "百万像素地图让您在 8x8 网格领土地图上占领像素。每个像素都是独特的链上资产。使用 GAS 购买地块建立您的数字帝国，观察您的领土增长！",
-  },
-  step1: { en: "Connect your Neo wallet and explore the territory map.", zh: "连接 Neo 钱包并探索领土地图。" },
-  step2: { en: "Select an available pixel tile on the grid.", zh: "在网格上选择一个可用的像素地块。" },
-  step3: { en: "Pay 0.1 GAS to claim ownership of the tile.", zh: "支付 0.1 GAS 占领该地块的所有权。" },
-  step4: { en: "Track your territory stats and expand your empire.", zh: "跟踪您的领土统计并扩展您的帝国。" },
-  feature1Name: { en: "True Ownership", zh: "真正所有权" },
-  feature1Desc: {
-    en: "Each pixel is recorded on-chain as your permanent property.",
-    zh: "每个像素都作为您的永久财产记录在链上。",
-  },
-  feature2Name: { en: "Territory Visualization", zh: "领土可视化" },
-  feature2Desc: {
-    en: "Color-coded map shows your tiles vs others at a glance.",
-    zh: "颜色编码的地图一目了然地显示您的地块与他人的地块。",
-  },
-  wrongChain: { en: "Wrong Chain", zh: "链错误" },
-  wrongChainMessage: {
-    en: "This app requires Neo N3. Please switch networks.",
-    zh: "此应用需要 Neo N3 网络，请切换网络。",
-  },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-};
 
-const t = createT(translations);
+const { t } = useI18n();
 
-const navTabs = [
+const navTabs = computed(() => [
   { id: "map", icon: "grid", label: t("map") },
   { id: "stats", icon: "chart", label: t("stats") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 const activeTab = ref("map");
 
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
@@ -375,7 +312,7 @@ const loadTiles = async () => {
       tiles.value.map(async (tile) => {
         const res = await invokeRead({
           contractHash: contract,
-          operation: "GetPiece",
+          operation: "getPiece",
           args: [
             { type: "Integer", value: String(tile.x) },
             { type: "Integer", value: String(tile.y) },
@@ -423,7 +360,7 @@ const purchaseTile = async () => {
     }
     const tx = await invokeContract({
       scriptHash: contract,
-      operation: "ClaimPiece",
+      operation: "claimPiece",
       args: [
         { type: "Hash160", value: address.value as string },
         { type: "Integer", value: String(tile.x) },
@@ -458,31 +395,60 @@ watch(address, async () => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+$map-bg: #e6dcc5;
+$map-sea: #b4cee6;
+$map-ink: #3e332a;
+$map-gold: #d4a017;
+$map-red: #c0392b;
+
+:global(page) {
+  background: $map-sea;
+}
+
 .tab-content {
-  padding: $space-4;
+  padding: 24px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: 20px;
+  background-color: $map-sea;
+  background-image: 
+    repeating-linear-gradient(45deg, transparent 0, transparent 40px, rgba(255,255,255,0.1) 40px, rgba(255,255,255,0.1) 80px),
+    radial-gradient(#fff 20%, transparent 20%);
+  background-size: 200px 200px, 40px 40px;
+  min-height: 100vh;
 }
 
-.map-container {
-  display: flex;
-  flex-direction: column;
-  gap: $space-4;
+.map-card {
+  border: 4px solid $map-ink;
+  border-radius: 4px;
+  background: $map-bg;
+  box-shadow: 10px 10px 0 rgba(62, 51, 42, 0.4);
+  position: relative;
+  
+  &::after {
+    content: 'X';
+    position: absolute;
+    top: 10px; right: 10px;
+    font-family: 'Times New Roman', serif;
+    font-weight: bold;
+    color: $map-red;
+    font-size: 24px;
+    opacity: 0.5;
+    pointer-events: none;
+  }
 }
 
 .pixel-map-wrapper {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  padding: $space-4;
+  background: #fdfbf7;
+  border: 2px dashed $map-ink;
+  border-radius: 4px;
+  padding: 16px;
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: auto;
-  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 20px rgba(62, 51, 42, 0.1);
 }
 
 .pixel-map {
@@ -494,160 +460,109 @@ watch(address, async () => {
 .pixel {
   width: 32px;
   height: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(62, 51, 42, 0.2);
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.05);
+  background: #fff;
   transition: all 0.2s;
-  border-radius: 2px;
   
   &.has-selection {
     z-index: 10;
   }
   &.pixel-selected {
-    border: 2px solid #00e599;
-    box-shadow: 0 0 15px rgba(0, 229, 153, 0.5);
+    border: 3px solid $map-red;
     transform: scale(1.1);
     z-index: 20;
+    position: relative;
+    &::after {
+      content: 'X';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      color: $map-red;
+      font-weight: bold;
+      font-size: 20px;
+      line-height: 1;
+    }
   }
   &.pixel-yours {
-    box-shadow: inset 0 0 10px rgba(0, 229, 153, 0.3);
+    background-color: $map-gold !important;
+    border: 1px solid $map-ink;
   }
 }
 
+/* Pirate Component Overrides */
+:deep(.neo-card) {
+  background: $map-bg !important;
+  color: $map-ink !important;
+  border: 2px solid $map-ink !important;
+  box-shadow: 4px 4px 0 rgba(62, 51, 42, 0.2) !important;
+  border-radius: 4px !important;
+  
+  &.variant-erobo-neo {
+    background: #fff !important;
+  }
+  &.variant-danger {
+    background: #ffe6e6 !important;
+    border-color: $map-red !important;
+    color: $map-red !important;
+  }
+}
 
+:deep(.neo-button) {
+  border-radius: 4px !important;
+  font-family: 'Times New Roman', serif !important;
+  text-transform: uppercase;
+  font-weight: 800 !important;
+  letter-spacing: 0.1em;
+  
+  &.variant-primary {
+    background: $map-red !important;
+    color: #fff !important;
+    border: 2px solid $map-ink !important;
+    box-shadow: 4px 4px 0 $map-ink !important;
+    
+    &:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 $map-ink !important;
+    }
+  }
+}
 
 .coordinate-display {
   display: flex;
   justify-content: space-between;
-  padding: $space-3 $space-4;
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  font-family: $font-mono;
-  font-size: 12px;
+  padding: 8px 12px;
+  background: #fff;
+  color: $map-ink;
+  border: 1px solid $map-ink;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
   font-weight: 700;
-  backdrop-filter: blur(5px);
+  font-size: 14px;
 }
 
-.zoom-controls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  margin: 8px 0;
-}
 .zoom-btn {
   width: 32px;
   height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #fff;
+  color: $map-ink;
+  border: 1px solid $map-ink;
   border-radius: 50%;
   cursor: pointer;
   font-weight: bold;
-  backdrop-filter: blur(4px);
-  transition: all 0.2s;
-  &:active { background: rgba(255, 255, 255, 0.15); transform: scale(0.95); }
-}
-.zoom-level {
-  font-family: $font-mono;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
 }
 
 .map-legend {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: $space-2;
-  padding: $space-3;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  color: white;
-}
-
-.legend-item {
   display: flex;
-  align-items: center;
-  gap: $space-2;
-}
-.legend-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
-}
-.legend-available {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-.legend-yours {
-  background: var(--neo-green);
-  box-shadow: 0 0 5px rgba(0, 229, 153, 0.5);
-}
-.legend-others {
-  background: #ff6b6b;
-}
-.legend-text {
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
-  letter-spacing: 0.05em;
-}
-
-.territory-info {
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
-  margin-bottom: $space-4;
-  padding: $space-4;
-  color: white;
-  background: transparent !important;
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.info-label {
-  font-size: 10px;
-  font-weight: 700;
-  opacity: 0.6;
-  text-transform: uppercase;
-}
-.info-value {
-  font-weight: 700;
-  font-family: $font-mono;
-  font-size: 14px;
-}
-.status-owned { color: #ff6b6b; }
-.status-free { color: #00e599; }
-
-.price-value {
-  color: #00e599;
-  font-size: 20px;
-  text-shadow: 0 0 10px rgba(0, 229, 153, 0.3);
-}
-
-.stat-value {
-  font-size: 20px;
-  font-weight: 700;
-  font-family: $font-mono;
-  color: white;
-  line-height: 1;
-}
-.stat-label {
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
-  margin-top: 4px;
+  gap: 12px;
+  justify-content: center;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid $map-ink;
+  border-radius: 4px;
 }
 
 .scrollable {

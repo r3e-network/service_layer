@@ -42,7 +42,7 @@ defineProps<{
   font-weight: $font-weight-bold;
   text-transform: uppercase;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-primary);
 }
 
 .history-list {
@@ -69,7 +69,7 @@ defineProps<{
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   margin-bottom: 4px;
   display: inline-block;
-  color: white;
+  color: var(--text-primary);
 }
 .history-date-glass {
   font-size: 10px;
@@ -77,7 +77,7 @@ defineProps<{
   font-weight: $font-weight-medium;
   display: block;
   margin-bottom: 8px;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-primary);
 }
 .history-desc-glass {
   font-size: 12px;
@@ -86,7 +86,7 @@ defineProps<{
   padding: 6px 8px;
   border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
   display: block;
 }
 </style>

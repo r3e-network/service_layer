@@ -118,7 +118,7 @@ const getLTVColor = () => {
 .ltv-label {
   font-size: 10px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -164,7 +164,7 @@ const getLTVColor = () => {
 
 .ltv-labels {
   display: flex; justify-content: space-between;
-  font-size: 9px; color: rgba(255, 255, 255, 0.4); font-weight: 600;
+  font-size: 9px; color: var(--text-secondary); font-weight: 600;
 }
 
 .calculator-receipt {
@@ -180,7 +180,7 @@ const getLTVColor = () => {
   margin-bottom: 8px;
 }
 
-.calc-label { font-size: 11px; color: rgba(255, 255, 255, 0.6); }
+.calc-label { font-size: 11px; color: var(--text-secondary); }
 
 .calc-value {
   font-size: 12px; font-weight: 700; font-family: $font-mono;
@@ -199,7 +199,7 @@ const getLTVColor = () => {
 
 .note-glass {
   display: block; margin-top: 12px;
-  font-size: 10px; color: rgba(255, 255, 255, 0.4);
+  font-size: 10px; color: var(--text-secondary);
   text-align: center;
 }
 

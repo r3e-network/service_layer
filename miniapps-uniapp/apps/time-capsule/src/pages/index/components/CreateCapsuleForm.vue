@@ -2,6 +2,17 @@
   <NeoCard variant="erobo-neo">
 
     <view class="form-section">
+      <text class="form-label">{{ t("titleLabel") }}</text>
+      <view class="input-wrapper-clean">
+        <NeoInput
+          :modelValue="title"
+          @update:modelValue="$emit('update:title', $event)"
+          :placeholder="t('titlePlaceholder')"
+        />
+      </view>
+    </view>
+
+    <view class="form-section">
       <text class="form-label">{{ t("secretMessage") }}</text>
       <view class="input-wrapper-clean">
         <NeoInput
@@ -13,6 +24,21 @@
         />
       </view>
       <text class="helper-text neutral">{{ t("contentStorageNote") }}</text>
+    </view>
+
+    <view class="form-section">
+      <text class="form-label">{{ t("categoryLabel") }}</text>
+      <view class="category-actions">
+        <NeoButton
+          v-for="category in categories"
+          :key="category.id"
+          size="sm"
+          :variant="category.id === selectedCategory ? 'primary' : 'secondary'"
+          @click="$emit('update:category', category.id)"
+        >
+          {{ t(category.label) }}
+        </NeoButton>
+      </view>
     </view>
 
     <view class="form-section">
@@ -64,18 +90,31 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import { NeoCard, NeoInput, NeoButton } from "@/shared/components";
 
-defineProps<{
+const props = defineProps<{
+  title: string;
   content: string;
   days: string;
   isPublic: boolean;
+  category: number;
   isLoading: boolean;
   canCreate: boolean;
   t: (key: string) => string;
 }>();
 
-defineEmits(["update:content", "update:days", "update:isPublic", "create"]);
+const categories = [
+  { id: 1, label: "categoryPersonal" },
+  { id: 2, label: "categoryGift" },
+  { id: 3, label: "categoryMemorial" },
+  { id: 4, label: "categoryAnnouncement" },
+  { id: 5, label: "categorySecret" },
+];
+
+const selectedCategory = computed(() => props.category || 1);
+
+defineEmits(["update:title", "update:content", "update:days", "update:isPublic", "update:category", "create"]);
 </script>
 
 <style lang="scss" scoped>
@@ -91,7 +130,7 @@ defineEmits(["update:content", "update:days", "update:isPublic", "create"]);
   text-transform: uppercase;
   margin-bottom: $space-2;
   display: block;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   letter-spacing: 0.05em;
 }
 .textarea-field {
@@ -111,7 +150,7 @@ defineEmits(["update:content", "update:days", "update:isPublic", "create"]);
   font-weight: 700;
   text-transform: uppercase;
   font-size: 14px;
-  color: white;
+  color: var(--text-primary);
 }
 
 .helper-text {
@@ -123,7 +162,7 @@ defineEmits(["update:content", "update:days", "update:isPublic", "create"]);
 }
 
 .helper-text.neutral {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   margin-top: $space-2;
 }
 
@@ -131,5 +170,11 @@ defineEmits(["update:content", "update:days", "update:isPublic", "create"]);
   display: flex;
   gap: $space-3;
   margin-bottom: $space-2;
+}
+
+.category-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
 }
 </style>

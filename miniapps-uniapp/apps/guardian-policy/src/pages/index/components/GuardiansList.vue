@@ -65,7 +65,7 @@ defineProps<{
   &:hover {
     background: rgba(255, 255, 255, 0.06);
     transform: translateX(4px);
-    border-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--text-muted);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   }
 }
@@ -115,7 +115,7 @@ defineProps<{
 .guardian-name {
   font-weight: 700;
   font-size: 14px;
-  color: white;
+  color: var(--text-primary);
   letter-spacing: 0.02em;
 }
 
@@ -123,7 +123,7 @@ defineProps<{
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   letter-spacing: 0.05em;
   background: rgba(255, 255, 255, 0.05);
   align-self: flex-start;

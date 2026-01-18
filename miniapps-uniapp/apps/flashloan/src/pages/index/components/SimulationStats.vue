@@ -49,7 +49,7 @@ const formatNum = (n: number) => formatNumber(n, 2);
   text-transform: uppercase;
   margin-bottom: $space-4;
   display: block;
-  color: white;
+  color: var(--text-primary);
   letter-spacing: 0.05em;
 }
 .stats-grid {
@@ -67,13 +67,13 @@ const formatNum = (n: number) => formatNumber(n, 2);
   font-size: 18px;
   display: block;
   margin-bottom: 4px;
-  color: white;
+  color: var(--text-primary);
 }
 .stat-label {
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
   opacity: 0.6;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-primary);
 }
 </style>

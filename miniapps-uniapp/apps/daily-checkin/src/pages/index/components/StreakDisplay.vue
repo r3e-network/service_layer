@@ -11,11 +11,13 @@
 
 <script setup lang="ts">
 import { NeoCard } from "@/shared/components";
+import { useI18n } from "@/composables/useI18n";
+
+const { t } = useI18n();
 
 defineProps<{
   currentStreak: number;
   highestStreak: number;
-  t: (key: string) => string;
 }>();
 </script>
 
@@ -41,7 +43,7 @@ defineProps<{
   display: block;
   font-size: 24px;
   font-weight: 800;
-  color: white;
+  color: var(--text-primary);
   margin-bottom: 4px;
   font-family: $font-family;
   text-shadow: 0 0 20px rgba(0, 0, 0, 0.5);

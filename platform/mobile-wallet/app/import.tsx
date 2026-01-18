@@ -15,7 +15,7 @@ export default function ImportScreen() {
 
   const handleImport = async () => {
     if (!wif.trim()) {
-      setError(t("wallet.error_empty_wif") || "Please enter a WIF private key");
+      setError(t("wallet.error_empty_wif"));
       return;
     }
     setError("");
@@ -23,13 +23,13 @@ export default function ImportScreen() {
     if (success) {
       router.replace("/");
     } else {
-      setError(t("wallet.error_invalid_wif") || "Invalid WIF format");
+      setError(t("wallet.error_invalid_wif"));
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: t("wallet.import") || "Import Wallet" }} />
+      <Stack.Screen options={{ title: t("wallet.import") }} />
 
       <View style={styles.content}>
         <View style={styles.iconBox}>
@@ -38,12 +38,12 @@ export default function ImportScreen() {
           </View>
         </View>
 
-        <Text style={styles.title}>{t("wallet.import") || "Import Existing Wallet"}</Text>
-        <Text style={styles.subtitle}>{t("wallet.import_subtitle") || "Enter your WIF private key to restore your wallet"}</Text>
+        <Text style={styles.title}>{t("wallet.import")}</Text>
+        <Text style={styles.subtitle}>{t("wallet.import_subtitle")}</Text>
 
         <TextInput
           style={styles.input}
-          placeholder={t("wallet.wif_placeholder") || "Enter WIF private key..."}
+          placeholder={t("wallet.wif_placeholder")}
           placeholderTextColor="#666"
           value={wif}
           onChangeText={setWif}
@@ -55,7 +55,7 @@ export default function ImportScreen() {
         {error ? <View style={styles.errorBox}><Text style={styles.error}>{error}</Text></View> : null}
 
         <TouchableOpacity style={styles.importBtn} onPress={handleImport} disabled={isLoading}>
-          {isLoading ? <ActivityIndicator color="#000" /> : <Text style={styles.importText}>{t("wallet.import") || "Import Wallet"}</Text>}
+          {isLoading ? <ActivityIndicator color="#000" /> : <Text style={styles.importText}>{t("wallet.import")}</Text>}
         </TouchableOpacity>
       </View>
     </SafeAreaView>

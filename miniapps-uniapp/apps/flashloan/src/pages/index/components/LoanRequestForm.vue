@@ -106,7 +106,7 @@ const statusText = (status: LoanDetails["status"]) => {
   font-size: 14px;
   font-weight: 800;
   text-transform: uppercase;
-  color: white;
+  color: var(--text-primary);
   letter-spacing: 0.05em;
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
 }
@@ -140,14 +140,14 @@ const statusText = (status: LoanDetails["status"]) => {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   letter-spacing: 0.1em;
 }
 
 .status-value {
   font-size: 12px;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
   text-align: right;
 
   &.pending {
@@ -171,7 +171,7 @@ const statusText = (status: LoanDetails["status"]) => {
   border: 1px dashed rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   text-align: center;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
 }
 
 .empty-text {

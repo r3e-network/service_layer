@@ -14,7 +14,7 @@ defineProps<{
 
 <style scoped>
 .status-msg {
-  color: white;
+  color: var(--text-primary);
   text-transform: uppercase;
   font-size: 13px;
   letter-spacing: 0.05em;

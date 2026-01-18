@@ -4,16 +4,18 @@ import { Stack, useRouter, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { validateMnemonic, saveBackupMetadata, generateBackupId, BackupType } from "@/lib/backup";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function VerifyMnemonicScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { type } = useLocalSearchParams<{ type: BackupType }>();
   const [mnemonic, setMnemonic] = useState("");
   const [verifying, setVerifying] = useState(false);
 
   const handleVerify = async () => {
     if (!validateMnemonic(mnemonic)) {
-      Alert.alert("Invalid", "Please enter a valid 12 or 24 word mnemonic");
+      Alert.alert(t("backup.invalidMnemonicTitle"), t("backup.invalidMnemonicMessage"));
       return;
     }
 
@@ -26,9 +28,11 @@ export default function VerifyMnemonicScreen() {
         walletCount: 1,
         encrypted: true,
       });
-      Alert.alert("Success", "Backup created successfully", [{ text: "OK", onPress: () => router.back() }]);
+      Alert.alert(t("common.success"), t("backup.backupSuccessMessage"), [
+        { text: t("common.ok"), onPress: () => router.back() },
+      ]);
     } catch {
-      Alert.alert("Error", "Failed to create backup");
+      Alert.alert(t("common.error"), t("backup.backupErrorMessage"));
     } finally {
       setVerifying(false);
     }
@@ -36,19 +40,19 @@ export default function VerifyMnemonicScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: "Verify Mnemonic" }} />
+      <Stack.Screen options={{ title: t("backup.verifyTitle") }} />
       <View style={styles.content}>
         <View style={styles.iconWrap}>
           <Ionicons name="shield-checkmark" size={48} color="#00d4aa" />
         </View>
-        <Text style={styles.title}>Verify Your Mnemonic</Text>
-        <Text style={styles.desc}>Enter your recovery phrase to confirm before creating backup</Text>
+        <Text style={styles.title}>{t("backup.verifyHeading")}</Text>
+        <Text style={styles.desc}>{t("backup.verifyDesc")}</Text>
 
         <TextInput
           style={styles.input}
           value={mnemonic}
           onChangeText={setMnemonic}
-          placeholder="Enter 12 or 24 words..."
+          placeholder={t("backup.mnemonicPlaceholder")}
           placeholderTextColor="#666"
           multiline
           numberOfLines={4}
@@ -61,7 +65,7 @@ export default function VerifyMnemonicScreen() {
           onPress={handleVerify}
           disabled={verifying}
         >
-          <Text style={styles.btnText}>{verifying ? "Verifying..." : "Verify & Backup"}</Text>
+          <Text style={styles.btnText}>{verifying ? t("backup.verifying") : t("backup.verifyButton")}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

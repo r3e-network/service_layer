@@ -1,16 +1,20 @@
 <script setup lang="ts">
-import { onLaunch, onShow, onHide } from "@dcloudio/uni-app";
-onLaunch(() => {
-  console.log("App Launch");
+import { onMounted, onUnmounted } from "vue";
+import { initTheme, listenForThemeChanges } from "@/shared/utils/theme";
+
+let cleanupTheme: (() => void) | undefined;
+
+onMounted(() => {
+  initTheme();
+  cleanupTheme = listenForThemeChanges();
 });
-onShow(() => {
-  console.log("App Show");
-});
-onHide(() => {
-  console.log("App Hide");
+
+onUnmounted(() => {
+  cleanupTheme?.();
 });
 </script>
+
 <style lang="scss">
 @use "@/shared/styles/variables.scss";
-@import "@/shared/styles/theme.scss";
+@use "@/shared/styles/theme.scss";
 </style>

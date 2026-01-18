@@ -32,7 +32,6 @@ export interface LeaderEntry {
 
 defineProps<{
   leaderboard: LeaderEntry[];
-  t: (key: string) => string;
 }>();
 
 const formatNum = (n: number) => {
@@ -93,7 +92,7 @@ const getMedalIcon = (rank: number): string => {
 .leader-rank {
   font-size: 13px;
   font-weight: 800;
-  color: white;
+  color: var(--text-primary);
   font-family: $font-mono;
 }
 
@@ -120,7 +119,7 @@ const getMedalIcon = (rank: number): string => {
   font-size: 14px;
   font-weight: 700;
   font-family: $font-mono;
-  color: white;
+  color: var(--text-primary);
 }
 
 .leader-burned-suffix {

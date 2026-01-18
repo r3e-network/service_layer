@@ -19,6 +19,7 @@
       <!-- Create New Policy -->
       <CreatePolicyForm
         v-model:assetType="assetType"
+        v-model:policyType="policyType"
         v-model:coverage="coverage"
         v-model:threshold="threshold"
         v-model:startPrice="startPrice"
@@ -56,8 +57,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
-import { useWallet, useEvents, useDatafeed } from "@neo/uniapp-sdk";
-import { createT } from "@/shared/utils/i18n";
+import { useWallet, useEvents, useDatafeed, usePayments } from "@neo/uniapp-sdk";
+import { useI18n } from "@/composables/useI18n";
 import { AppLayout, NeoCard, NeoDoc, NeoButton } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 import { addressToScriptHash, normalizeScriptHash, parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
@@ -67,92 +68,19 @@ import CreatePolicyForm from "./components/CreatePolicyForm.vue";
 import StatsCard from "./components/StatsCard.vue";
 import ActionHistory, { type ActionHistoryItem } from "./components/ActionHistory.vue";
 
-const translations = {
-  title: { en: "Guardian Policy", zh: "守护策略" },
-  activePolicies: { en: "Active Policies", zh: "活跃保单" },
-  createPolicy: { en: "Create Policy", zh: "创建保单" },
-  assetType: { en: "Asset pair (e.g., NEO-USD)", zh: "资产对 (例如 NEO-USD)" },
-  coverageAmount: { en: "Coverage amount", zh: "保障金额" },
-  thresholdPercent: { en: "Claim threshold (% drop)", zh: "触发阈值 (跌幅%)" },
-  startPrice: { en: "Start price (USD)", zh: "起始价格 (USD)" },
-  fetchPrice: { en: "Fetch", zh: "获取价格" },
-  premiumNote: { en: "Premium: {premium} GAS (5%)", zh: "保费：{premium} GAS (5%)" },
-  fillAllFields: { en: "Please fill all fields", zh: "请填写所有字段" },
-  creatingPolicy: { en: "Creating policy...", zh: "创建保单中..." },
-  policyCreated: { en: "Policy created successfully", zh: "保单创建成功" },
-  requestClaim: { en: "Request Claim", zh: "申请理赔" },
-  claimRequested: { en: "Claim requested", zh: "已提交理赔" },
-  claimProcessed: { en: "Claim processed", zh: "理赔已处理" },
-  priceFetched: { en: "Price updated", zh: "价格已更新" },
-  error: { en: "Error", zh: "错误" },
-  claimed: { en: "Claimed", zh: "已理赔" },
-  expired: { en: "Expired", zh: "已过期" },
-  active: { en: "Active", zh: "活跃" },
-  main: { en: "Main", zh: "主页" },
-  stats: { en: "Stats", zh: "统计" },
-  statistics: { en: "Statistics", zh: "统计数据" },
-  totalPolicies: { en: "Total Policies", zh: "总保单数" },
-  activePoliciesCount: { en: "Active Policies", zh: "活跃保单" },
-  claimedPolicies: { en: "Claimed Policies", zh: "已理赔保单" },
-  totalCoverage: { en: "Total Coverage", zh: "总保障额" },
-  actionHistory: { en: "Action History", zh: "操作历史" },
-  levelLow: { en: "Low", zh: "低" },
-  levelMedium: { en: "Medium", zh: "中" },
-  levelHigh: { en: "High", zh: "高" },
-  levelCritical: { en: "Critical", zh: "严重" },
-  wrongChain: { en: "Wrong Network", zh: "网络错误" },
-  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-
-  docs: { en: "Docs", zh: "文档" },
-  docSubtitle: {
-    en: "On-chain insurance for price drops",
-    zh: "面向价格下跌的链上保险",
-  },
-  docDescription: {
-    en: "Guardian Policy lets you create coverage policies for supported assets. Choose a coverage amount and a price-drop threshold, then request claims when conditions are met.",
-    zh: "Guardian Policy 允许您为支持的资产创建保障保单。设置保障金额与价格跌幅阈值，在满足条件时申请理赔。",
-  },
-  step1: {
-    en: "Connect your Neo wallet",
-    zh: "连接你的 Neo 钱包",
-  },
-  step2: {
-    en: "Create a policy with coverage and threshold settings",
-    zh: "创建保单并设置保障金额和阈值",
-  },
-  step3: {
-    en: "Track policy status and request claims when eligible",
-    zh: "跟踪保单状态并在条件满足时申请理赔",
-  },
-  step4: {
-    en: "Claims are processed by oracle price verification",
-    zh: "理赔由预言机价格验证处理",
-  },
-  feature1Name: { en: "Oracle Verification", zh: "预言机验证" },
-  feature1Desc: {
-    en: "Claims are evaluated using verified price feeds.",
-    zh: "理赔通过可信价格数据进行验证。",
-  },
-  feature2Name: { en: "Transparent Coverage", zh: "透明保障" },
-  feature2Desc: {
-    en: "All policies and claims are recorded on-chain.",
-    zh: "所有保单与理赔记录均在链上。",
-  },
-};
-
-const t = createT(translations);
+const { t } = useI18n();
 const { address, connect, invokeContract, invokeRead, chainType, switchChain, getContractAddress } = useWallet() as any;
 const { list: listEvents } = useEvents();
 const { getPrice, isLoading: isFetchingPrice } = useDatafeed();
 const APP_ID = "miniapp-guardianpolicy";
+const { payGAS } = usePayments(APP_ID);
 const contractAddress = ref<string | null>(null);
 
-const navTabs: NavTab[] = [
+const navTabs = computed<NavTab[]>(() => [
   { id: "main", icon: "wallet", label: t("main") },
   { id: "stats", icon: "chart", label: t("stats") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 
 const activeTab = ref("main");
 
@@ -165,6 +93,7 @@ const docFeatures = computed(() => [
 const policies = ref<Policy[]>([]);
 const actionHistory = ref<ActionHistoryItem[]>([]);
 const assetType = ref("");
+const policyType = ref(1);
 const coverage = ref("");
 const threshold = ref("");
 const startPrice = ref("");
@@ -198,7 +127,7 @@ const ensureContractAddress = async () => {
     contractAddress.value = await getContractAddress();
   }
   if (!contractAddress.value) {
-    throw new Error("Contract unavailable");
+    throw new Error(t("contractUnavailable"));
   }
   return contractAddress.value;
 };
@@ -243,6 +172,21 @@ const levelFromThreshold = (thresholdPercent: number): Level => {
 };
 
 const parsePolicyStruct = (raw: unknown) => {
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    const data = raw as Record<string, unknown>;
+    return {
+      holder: data.holder,
+      assetType: String(data.assetType || ""),
+      coverage: Number(data.coverage || 0),
+      premium: Number(data.premium || 0),
+      startPrice: String(data.startPrice || "0"),
+      threshold: Number(data.thresholdPercent || 0),
+      startTime: Number(data.startTime || 0),
+      endTime: Number(data.endTime || 0),
+      active: Boolean(data.active),
+      claimed: Boolean(data.claimed),
+    };
+  }
   const data = Array.isArray(raw) ? raw : [];
   return {
     holder: data[0],
@@ -279,7 +223,7 @@ const fetchPolicies = async () => {
   for (const id of uniqueIds) {
     const res = await invokeRead({
       contractAddress: contract,
-      operation: "getPolicy",
+      operation: "getPolicyDetails",
       args: [{ type: "Integer", value: id }],
     });
     const parsed = parseInvokeResult(res);
@@ -288,8 +232,12 @@ const fetchPolicies = async () => {
 
     const coverageGas = data.coverage / 1e8;
     const endTimeMs = data.endTime > 1e12 ? data.endTime : data.endTime * 1000;
-    const endDate = endTimeMs ? new Date(endTimeMs).toISOString().split("T")[0] : "N/A";
-    const description = `Coverage ${coverageGas.toFixed(2)} GAS · Trigger ${data.threshold}% · Ends ${endDate}`;
+    const endDate = endTimeMs ? new Date(endTimeMs).toISOString().split("T")[0] : t("notAvailable");
+    const description = t("policyDescription", {
+      coverage: coverageGas.toFixed(2),
+      threshold: data.threshold,
+      date: endDate,
+    });
 
     policyList.push({
       id,
@@ -366,8 +314,7 @@ const refreshData = async () => {
     if (!address.value) return;
     await fetchPolicies();
     await fetchHistory();
-  } catch (e) {
-    console.warn("[GuardianPolicy] Failed to fetch data:", e);
+  } catch {
   }
 };
 
@@ -398,8 +345,16 @@ const createPolicy = async () => {
   const coverageInt = toInteger(coverage.value, 8);
   const startPriceInt = toInteger(startPrice.value, priceDecimals.value);
   const thresholdPercent = Math.floor(Number(threshold.value));
+  const selectedPolicyType = Number(policyType.value);
 
-  if (Number(coverageInt) <= 0 || Number(startPriceInt) <= 0 || thresholdPercent <= 0 || thresholdPercent > 50) {
+  if (
+    Number(coverageInt) <= 0 ||
+    Number(startPriceInt) <= 0 ||
+    thresholdPercent <= 0 ||
+    thresholdPercent > 50 ||
+    selectedPolicyType < 1 ||
+    selectedPolicyType > 3
+  ) {
     status.value = { msg: t("fillAllFields"), type: "error" };
     return;
   }
@@ -412,15 +367,20 @@ const createPolicy = async () => {
     if (!address.value) throw new Error(t("error"));
 
     const contract = await ensureContractAddress();
+    const payment = await payGAS(premiumDisplay.value || "0", `policy:${assetType.value.trim()}`);
+    const receiptId = payment.receipt_id;
+    if (!receiptId) throw new Error(t("receiptMissing"));
     await invokeContract({
       scriptHash: contract,
       operation: "createPolicy",
       args: [
         { type: "Hash160", value: address.value },
         { type: "String", value: assetType.value.trim() },
+        { type: "Integer", value: String(selectedPolicyType) },
         { type: "Integer", value: coverageInt },
         { type: "Integer", value: startPriceInt },
         { type: "Integer", value: String(thresholdPercent) },
+        { type: "Integer", value: String(receiptId) },
       ],
     });
     status.value = { msg: t("policyCreated"), type: "success" };
@@ -468,15 +428,100 @@ watch(address, () => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+$ops-bg: #0f172a;
+$ops-blue: #3b82f6;
+$ops-cyan: #06b6d4;
+$ops-dark: #1e293b;
+$ops-grid: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+  linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+
+:global(page) {
+  background: $ops-bg;
+}
+
 .tab-content {
-  padding: $space-4;
+  padding: 24px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: 24px;
+  background-color: $ops-bg;
+  background-image: $ops-grid;
+  background-size: 40px 40px;
+  min-height: 100vh;
+}
+
+/* Ops Component Overrides */
+:deep(.neo-card) {
+  background: rgba(30, 41, 59, 0.9) !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  border-top: 2px solid $ops-blue !important;
+  border-radius: 4px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5) !important;
+  color: #fff !important;
+  backdrop-filter: blur(10px);
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: -1px;
+    width: 10px; height: 10px;
+    border-top: 2px solid $ops-cyan;
+    border-left: 2px solid $ops-cyan;
+  }
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; right: -1px;
+    width: 10px; height: 10px;
+    border-bottom: 2px solid $ops-cyan;
+    border-right: 2px solid $ops-cyan;
+  }
+}
+
+:deep(.neo-button) {
+  font-family: 'Share Tech Mono', monospace !important;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-radius: 2px !important;
+  
+  &.variant-primary {
+    background: rgba(59, 130, 246, 0.2) !important;
+    border: 1px solid $ops-blue !important;
+    color: $ops-blue !important;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.2) !important;
+    
+    &:active {
+      background: rgba(59, 130, 246, 0.3) !important;
+    }
+  }
+  
+  &.variant-secondary {
+    background: transparent !important;
+    border: 1px solid #64748b !important;
+    color: #94a3b8 !important;
+  }
+}
+
+/* Technical Font Overrides */
+:deep(text), :deep(view) {
+  font-family: 'Share Tech Mono', monospace; /* Fallback if not available */
+}
+
+/* Status Indicator */
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: $ops-cyan;
+  box-shadow: 0 0 8px $ops-cyan;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.scrollable {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
-
-.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 </style>

@@ -5,12 +5,19 @@
       "style": {
         "navigationBarTitleText": "Neo Name Service"
       }
+    },
+    {
+      "path": "pages/docs/index",
+      "style": {
+        "navigationBarTitleText": "Docs"
+      }
     }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "white",
     "navigationBarTitleText": "Neo Name Service",
     "navigationBarBackgroundColor": "#1a1a2e",
-    "backgroundColor": "#0f0f1a"
+    "backgroundColor": "#0f0f1a",
+    "navigationStyle": "custom"
   }
 }

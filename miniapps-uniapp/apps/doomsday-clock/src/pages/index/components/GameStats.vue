@@ -73,14 +73,14 @@ const formatNum = (n: number) => {
   font-weight: $font-weight-bold;
   font-family: $font-mono;
   display: block;
-  color: white;
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 .stat-label-glass {
   font-size: 10px;
   font-weight: $font-weight-bold;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
 }
 
 .stats-subgrid {
@@ -101,13 +101,13 @@ const formatNum = (n: number) => {
   font-size: 10px;
   font-weight: $font-weight-bold;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
 }
 .stat-row-value-glass {
   font-size: 12px;
   font-weight: $font-weight-medium;
   font-family: $font-mono;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
   &.active {
     color: #34d399;
     text-shadow: 0 0 5px rgba(52, 211, 153, 0.5);

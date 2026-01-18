@@ -6,10 +6,12 @@ import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useWCStore } from "@/stores/walletconnect";
 import { WCSession } from "@/lib/walletconnect";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function WalletConnectScreen() {
   const router = useRouter();
   const { sessions, initialize, disconnect } = useWCStore();
+  const { t, locale } = useTranslation();
 
   useFocusEffect(
     useCallback(() => {
@@ -18,10 +20,10 @@ export default function WalletConnectScreen() {
   );
 
   const handleDisconnect = (session: WCSession) => {
-    Alert.alert("Disconnect", `Disconnect from ${session.peerMeta.name}?`, [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t("walletconnect.disconnectTitle"), t("walletconnect.disconnectPrompt", { name: session.peerMeta.name }), [
+      { text: t("common.cancel"), style: "cancel" },
       {
-        text: "Disconnect",
+        text: t("walletconnect.disconnect"),
         style: "destructive",
         onPress: () => disconnect(session.topic),
       },
@@ -29,7 +31,7 @@ export default function WalletConnectScreen() {
   };
 
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString();
+    return new Date(timestamp).toLocaleDateString(locale);
   };
 
   const renderSession = ({ item }: { item: WCSession }) => (
@@ -42,7 +44,7 @@ export default function WalletConnectScreen() {
         <Text style={styles.sessionUrl} numberOfLines={1}>
           {item.peerMeta.url}
         </Text>
-        <Text style={styles.sessionDate}>Connected: {formatDate(item.connectedAt)}</Text>
+        <Text style={styles.sessionDate}>{t("walletconnect.connectedOn", { date: formatDate(item.connectedAt) })}</Text>
       </View>
       <TouchableOpacity onPress={() => handleDisconnect(item)} style={styles.disconnectBtn}>
         <Ionicons name="close-circle" size={24} color="#ef4444" />
@@ -54,7 +56,7 @@ export default function WalletConnectScreen() {
     <SafeAreaView style={styles.container}>
       <Stack.Screen
         options={{
-          title: "WalletConnect",
+          title: t("walletconnect.title"),
           headerRight: () => (
             <TouchableOpacity onPress={() => router.push("/walletconnect/scan")}>
               <Ionicons name="add" size={28} color="#00d4aa" />
@@ -65,9 +67,9 @@ export default function WalletConnectScreen() {
       {sessions.length === 0 ? (
         <View style={styles.empty}>
           <Ionicons name="link-outline" size={64} color="#333" />
-          <Text style={styles.emptyText}>No connected DApps</Text>
+          <Text style={styles.emptyText}>{t("walletconnect.empty")}</Text>
           <TouchableOpacity style={styles.connectBtn} onPress={() => router.push("/walletconnect/scan")}>
-            <Text style={styles.connectBtnText}>Connect DApp</Text>
+            <Text style={styles.connectBtnText}>{t("walletconnect.connect")}</Text>
           </TouchableOpacity>
         </View>
       ) : (

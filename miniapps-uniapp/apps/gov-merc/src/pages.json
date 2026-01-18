@@ -5,12 +5,19 @@
       "style": {
         "navigationBarTitleText": "Gov Merc"
       }
+    },
+    {
+      "path": "pages/docs/index",
+      "style": {
+        "navigationBarTitleText": "Docs"
+      }
     }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "white",
     "navigationBarTitleText": "Gov Merc",
     "navigationBarBackgroundColor": "#0d1117",
-    "backgroundColor": "#0d1117"
+    "backgroundColor": "#0d1117",
+    "navigationStyle": "custom"
   }
 }

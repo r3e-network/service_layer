@@ -29,7 +29,7 @@ defineProps<{
   }
   &.error {
     background: var(--brutal-red);
-    color: white;
+    color: var(--text-primary);
   }
 }
 </style>

@@ -19,6 +19,10 @@
           </view>
         </view>
 
+        <view v-if="candidate.logo" class="logo-wrap">
+          <image class="candidate-logo" :src="candidate.logo" mode="widthFix" :alt="candidate.name || t('candidateLogo')" />
+        </view>
+
         <!-- Candidate Name -->
         <view class="info-section">
           <text class="info-label">{{ t("name") }}</text>
@@ -30,13 +34,47 @@
         <!-- Address -->
         <view class="info-section">
           <text class="info-label">{{ t("address") }}</text>
-          <text class="info-value mono">{{ candidate.address }}</text>
+          <text class="info-value mono">{{ candidate.address || t("notAvailable") }}</text>
         </view>
 
         <!-- Public Key -->
         <view class="info-section">
           <text class="info-label">{{ t("publicKey") }}</text>
-          <text class="info-value mono small">{{ candidate.publicKey }}</text>
+          <text class="info-value mono small">{{ candidate.publicKey || t("notAvailable") }}</text>
+        </view>
+
+        <view v-if="candidate.location" class="info-section">
+          <text class="info-label">{{ t("location") }}</text>
+          <text class="info-value">{{ candidate.location }}</text>
+        </view>
+
+        <view v-if="candidate.description" class="info-section">
+          <text class="info-label">{{ t("description") }}</text>
+          <text class="info-value description">{{ candidate.description }}</text>
+        </view>
+
+        <view v-if="hasLinks" class="info-section">
+          <text class="info-label">{{ t("links") }}</text>
+          <view class="link-grid">
+            <text v-if="candidate.website" class="link-item" @click="openExternal(candidate.website)">
+              {{ t("website") }}
+            </text>
+            <text v-if="candidate.twitter" class="link-item" @click="openExternal(candidate.twitter)">
+              {{ t("twitter") }}
+            </text>
+            <text v-if="candidate.github" class="link-item" @click="openExternal(candidate.github)">
+              {{ t("github") }}
+            </text>
+            <text v-if="candidate.telegram" class="link-item" @click="openExternal(candidate.telegram)">
+              {{ t("telegram") }}
+            </text>
+            <text v-if="candidate.discord" class="link-item" @click="openExternal(candidate.discord)">
+              {{ t("discord") }}
+            </text>
+            <text v-if="candidate.email" class="link-item" @click="openExternal(`mailto:${candidate.email}`)">
+              {{ t("email") }}
+            </text>
+          </view>
         </view>
 
         <!-- Votes -->
@@ -60,6 +98,9 @@
       </view>
 
       <view class="modal-footer">
+        <view v-if="governancePortalUrl" class="portal-link" @click="openExternal(governancePortalUrl)">
+          {{ t("openGovernance") }}
+        </view>
         <NeoButton
           v-if="!isUserVoted"
           variant="primary"
@@ -81,32 +122,43 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { NeoButton, NeoCard } from "@/shared/components";
-import type { Candidate } from "@neo/uniapp-sdk";
+import type { GovernanceCandidate } from "../utils";
+import { useI18n } from "@/composables/useI18n";
+
+const { t } = useI18n();
 
 const props = defineProps<{
-  candidate: Candidate | null;
+  candidate: GovernanceCandidate | null;
   rank: number;
   totalVotes: string;
   isUserVoted: boolean;
   canVote: boolean;
-  t: (key: string) => string;
+  governancePortalUrl: string;
 }>();
 
 defineEmits<{
   (e: "close"): void;
-  (e: "vote", candidate: Candidate): void;
+  (e: "vote", candidate: GovernanceCandidate): void;
 }>();
 
 const votePercentage = computed(() => {
   if (!props.candidate || !props.totalVotes) return "0.00";
-  const total = BigInt(props.totalVotes || "1");
-  const votes = BigInt(props.candidate.votes || "0");
+  const total = safeBigInt(props.totalVotes || "1");
+  const votes = safeBigInt(props.candidate.votes || "0");
   if (total === BigInt(0)) return "0.00";
   return ((Number(votes) / Number(total)) * 100).toFixed(2);
 });
 
+const safeBigInt = (value: string | undefined) => {
+  try {
+    return BigInt(value || "0");
+  } catch {
+    return BigInt(0);
+  }
+};
+
 const formatVotes = (votes: string) => {
-  const num = BigInt(votes || "0");
+  const num = safeBigInt(votes || "0");
   if (num >= BigInt(1e12)) {
     return (Number(num / BigInt(1e10)) / 100).toFixed(2) + "T";
   }
@@ -121,6 +173,42 @@ const formatVotes = (votes: string) => {
   }
   return votes || "0";
 };
+
+const hasLinks = computed(() => {
+  const candidate = props.candidate;
+  if (!candidate) return false;
+  return Boolean(
+    candidate.website ||
+      candidate.twitter ||
+      candidate.github ||
+      candidate.telegram ||
+      candidate.discord ||
+      candidate.email,
+  );
+});
+
+function openExternal(url: string) {
+  if (!url) return;
+  const normalized = /^https?:\/\//i.test(url) || url.startsWith("mailto:") ? url : `https://${url}`;
+  const uniApi = (globalThis as any)?.uni;
+  if (uniApi?.openURL) {
+    uniApi.openURL({ url: normalized });
+    return;
+  }
+  const plusApi = (globalThis as any)?.plus;
+  if (plusApi?.runtime?.openURL) {
+    plusApi.runtime.openURL(normalized);
+    return;
+  }
+  if (typeof window !== "undefined" && window.open) {
+    window.open(normalized, "_blank", "noopener,noreferrer");
+    return;
+  }
+
+  if (typeof window !== "undefined") {
+    window.location.href = normalized;
+  }
+}
 
 const getRankClass = (rank: number) => {
   if (rank === 1) return "rank-gold";
@@ -171,7 +259,7 @@ const getRankClass = (rank: number) => {
 .modal-title {
   font-weight: 700;
   font-size: 18px;
-  color: white;
+  color: var(--text-primary);
 }
 
 .close-btn {
@@ -187,12 +275,27 @@ const getRankClass = (rank: number) => {
 
 .close-icon {
   font-size: 20px;
-  color: white;
+  color: var(--text-primary);
   line-height: 1;
 }
 
 .modal-body {
   padding: 20px;
+}
+
+.logo-wrap {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 12px;
+}
+
+.candidate-logo {
+  width: 96px;
+  height: 96px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  object-fit: contain;
 }
 
 .rank-section {
@@ -236,7 +339,7 @@ const getRankClass = (rank: number) => {
     color: black;
   }
   .rank-bronze & {
-    color: white;
+    color: var(--text-primary);
   }
 }
 
@@ -269,14 +372,14 @@ const getRankClass = (rank: number) => {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   margin-bottom: 6px;
 }
 
 .info-value {
   display: block;
   font-size: 14px;
-  color: white;
+  color: var(--text-primary);
   word-break: break-all;
 
   &.name-value {
@@ -289,6 +392,10 @@ const getRankClass = (rank: number) => {
   }
   &.small {
     font-size: 10px;
+  }
+  &.description {
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.75);
   }
 }
 
@@ -307,7 +414,34 @@ const getRankClass = (rank: number) => {
 
 .votes-percentage {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
+}
+
+.link-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.link-item {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.portal-link {
+  margin-bottom: 12px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(0, 229, 153, 0.9);
+  cursor: pointer;
 }
 
 .status-badge {
@@ -334,7 +468,7 @@ const getRankClass = (rank: number) => {
     color: #00e599;
   }
   .inactive & {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-secondary);
   }
 }
 

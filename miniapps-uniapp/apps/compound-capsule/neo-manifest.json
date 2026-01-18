@@ -2,10 +2,28 @@
   "app_id": "miniapp-compound-capsule",
   "name": "Compound Capsule",
   "name_zh": "复利胶囊",
-  "description": "Maximize your yields with automatic compounding. Deposit once and watch your earnings grow exponentially as rewards are reinvested continuously.",
-  "description_zh": "通过自动复投最大化您的收益。",
-  "category": "defi",
+  "description": "Time-locked DeFi savings with compound interest",
+  "description_zh": "定期锁定DeFi储蓄，享受复利收益",
+  "version": "1.0.0",
+  "entry_url": "mf://builtin?app=miniapp-compound-capsule",
+  "category": "finance",
   "status": "active",
+  "tags": [
+    "defi",
+    "savings",
+    "yield"
+  ],
+  "permissions": [
+    "wallet"
+  ],
+  "assets_allowed": [
+    "NEO",
+    "GAS"
+  ],
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
   "contracts": {
     "neo-n3-mainnet": {
       "address": "0x20397862ba24b84103a745ec2ed1f581126674dc"
@@ -14,12 +32,13 @@
       "address": "0x20397862ba24b84103a745ec2ed1f581126674dc"
     }
   },
-  "permissions": {
-    "payments": true,
-    "automation": true
-  },
-  "supported_chains": [
-    "neo-n3-mainnet",
-    "neo-n3-testnet"
-  ]
+  "card": {
+    "display": {
+      "type": "icon_title",
+      "banner": "/static/banner.png"
+    },
+    "info": {
+      "logo": "/static/logo.png"
+    }
+  }
 }

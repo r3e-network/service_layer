@@ -110,7 +110,7 @@ defineEmits(["flip"]);
   font-weight: 700;
   text-transform: uppercase;
   text-align: center;
-  color: white;
+  color: var(--text-primary);
   padding: 6px;
   background: rgba(0, 0, 0, 0.3);
   border-top: 1px solid rgba(255, 255, 255, 0.1);

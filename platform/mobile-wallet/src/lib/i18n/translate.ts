@@ -12,7 +12,12 @@ const translations = { en, zh, ja, ko };
 
 type TranslationKeys = typeof en;
 
-export function t(locale: Locale, key: string): string {
+function interpolate(template: string, values?: Record<string, string | number>): string {
+  if (!values) return template;
+  return template.replace(/\{(\w+)\}/g, (_, token) => String(values[token] ?? `{${token}}`));
+}
+
+export function t(locale: Locale, key: string, values?: Record<string, string | number>): string {
   const keys = key.split(".");
   let value: unknown = translations[locale];
 
@@ -24,7 +29,8 @@ export function t(locale: Locale, key: string): string {
     }
   }
 
-  return typeof value === "string" ? value : key;
+  if (typeof value !== "string") return key;
+  return interpolate(value, values);
 }
 
 export function getTranslations(locale: Locale): TranslationKeys {

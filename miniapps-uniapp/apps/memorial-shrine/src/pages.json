@@ -1,0 +1,23 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "\u533a\u5757\u94fe\u7075\u4f4d"
+      }
+    },
+    {
+      "path": "pages/docs/index",
+      "style": {
+        "navigationBarTitleText": "Docs"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "\u533a\u5757\u94fe\u7075\u4f4d",
+    "navigationBarBackgroundColor": "#0a0d14",
+    "backgroundColor": "#0a0d14",
+    "navigationStyle": "custom"
+  }
+}

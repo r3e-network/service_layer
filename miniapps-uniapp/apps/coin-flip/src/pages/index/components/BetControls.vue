@@ -25,15 +25,20 @@
     </view>
 
     <view class="bet-form">
-      <NeoInput
-        :modelValue="betAmount"
-        @update:modelValue="$emit('update:betAmount', $event)"
-        type="number"
-        :label="t('wager')"
-        :placeholder="t('betAmountPlaceholder')"
-        suffix="GAS"
-        :hint="t('minBet')"
-      />
+      <view class="wager-selector">
+        <text class="wager-label">{{ t("wager") }}</text>
+        <view class="wager-options">
+          <view
+            v-for="amount in ['1', '3', '5', '10']"
+            :key="amount"
+            :class="['wager-btn', betAmount === amount ? 'active' : '']"
+            @click="$emit('update:betAmount', amount)"
+          >
+            <text class="wager-value">{{ amount }}</text>
+            <text class="wager-unit">GAS</text>
+          </view>
+        </view>
+      </view>
 
       <NeoButton
         variant="primary"
@@ -51,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { NeoCard, NeoInput, NeoButton, AppIcon } from "@/shared/components";
+import { NeoCard, NeoButton, AppIcon } from "@/shared/components";
 
 defineProps<{
   choice: "heads" | "tails";
@@ -156,7 +161,7 @@ defineEmits(["update:choice", "update:betAmount", "flip"]);
   font-size: 14px;
   font-weight: 800;
   text-transform: uppercase;
-  color: white;
+  color: var(--text-primary);
   letter-spacing: 0.1em;
   transition: color 0.3s;
 }
@@ -165,6 +170,70 @@ defineEmits(["update:choice", "update:betAmount", "flip"]);
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.wager-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wager-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.05em;
+}
+
+.wager-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.wager-btn {
+  padding: 16px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+  }
+
+  &.active {
+    background: rgba(0, 229, 153, 0.15);
+    border-color: #00e599;
+    box-shadow: 0 0 15px rgba(0, 229, 153, 0.2);
+
+    .wager-value {
+      color: #00e599;
+    }
+  }
+}
+
+.wager-value {
+  font-weight: 800;
+  font-size: 18px;
+  color: white;
+  font-family: $font-mono;
+}
+
+.wager-unit {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  opacity: 0.7;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .flip-btn {

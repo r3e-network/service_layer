@@ -114,8 +114,7 @@ async function rpcCall(method: string, params: unknown[]): Promise<unknown> {
       });
       const data = await res.json();
       if (data.result) return data.result;
-    } catch (e) {
-      console.warn(`RPC ${endpoint} failed:`, e);
+    } catch {
     }
   }
   throw new Error("All RPC endpoints failed");
@@ -168,7 +167,6 @@ async function fetchAddressBalances(
       totalNeo += balance.neo;
       totalGas += balance.gas;
     } catch (e) {
-      console.warn(`Failed to fetch ${address}:`, e);
       wallets.push({ address, label: `${labelPrefix} Wallet ${i + 1}`, neo: 0, gas: 0 });
     }
   }

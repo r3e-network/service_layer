@@ -126,7 +126,7 @@ const getStatusText = (status: number) => {
 .proposal-title-neo {
   font-size: 18px;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
   letter-spacing: -0.01em;
   margin-bottom: 16px;
   display: block;

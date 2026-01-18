@@ -5,12 +5,19 @@
       "style": {
         "navigationBarTitleText": "Heritage Trust"
       }
+    },
+    {
+      "path": "pages/docs/index",
+      "style": {
+        "navigationBarTitleText": "Docs"
+      }
     }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "white",
     "navigationBarTitleText": "Heritage Trust",
     "navigationBarBackgroundColor": "#0d1117",
-    "backgroundColor": "#0d1117"
+    "backgroundColor": "#0d1117",
+    "navigationStyle": "custom"
   }
 }

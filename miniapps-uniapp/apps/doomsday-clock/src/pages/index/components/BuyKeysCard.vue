@@ -44,7 +44,7 @@ defineEmits(["update:keyCount", "buy"]);
   margin-bottom: $space-4;
   padding-bottom: $space-2;
   display: block;
-  color: white;
+  color: var(--text-primary);
   letter-spacing: 0.1em;
 }
 
@@ -61,7 +61,7 @@ defineEmits(["update:keyCount", "buy"]);
   font-size: 12px;
   font-weight: $font-weight-bold;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-primary);
 }
 .cost-value-glass {
   font-size: 18px;
@@ -77,7 +77,7 @@ defineEmits(["update:keyCount", "buy"]);
   opacity: 0.6;
   display: block;
   margin-bottom: $space-4;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   text-align: center;
 }
 </style>

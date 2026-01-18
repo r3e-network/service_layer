@@ -2,10 +2,31 @@
   "app_id": "miniapp-neo-swap",
   "name": "Neo Swap",
   "name_zh": "Neo 兑换",
-  "description": "Swap NEO and GAS instantly via Flamingo DEX. Simple interface for quick token exchanges with real-time rates.",
-  "description_zh": "去中心化代币兑换。即时交换 NEO 生态系统中的代币，享受最优价格。",
+  "description": "Swap NEO and GAS instantly via Flamingo DEX",
+  "description_zh": "通过 Flamingo DEX 即时兑换 NEO 和 GAS",
+  "version": "1.0.0",
+  "entry_url": "/miniapps/neo-swap/",
   "category": "defi",
   "status": "active",
+  "tags": [
+    "swap",
+    "dex",
+    "neo",
+    "gas",
+    "exchange"
+  ],
+  "permissions": [
+    "wallet",
+    "payments"
+  ],
+  "assets_allowed": [
+    "NEO",
+    "GAS"
+  ],
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
   "contracts": {
     "neo-n3-mainnet": {
       "address": "0xf970f4ccecd765b63732b821775dc38c25d74f23"
@@ -14,11 +35,27 @@
       "address": "0xf970f4ccecd765b63732b821775dc38c25d74f23"
     }
   },
-  "permissions": {
-    "payments": true
-  },
-  "supported_chains": [
-    "neo-n3-mainnet",
-    "neo-n3-testnet"
-  ]
+  "card": {
+    "display": {
+      "type": "live_status",
+      "banner": "/static/banner.svg",
+      "live_status": {
+        "enabled": true,
+        "refresh_interval": 30,
+        "fields": [
+          "neo_price",
+          "gas_price",
+          "volume_24h"
+        ]
+      }
+    },
+    "info": {
+      "logo": "/static/icon.svg",
+      "owner": {
+        "name": "R3E Network",
+        "address": "NLtL2v28d7TyMEaXcPqtekunkFRksJ7wxu",
+        "verified": true
+      }
+    }
+  }
 }

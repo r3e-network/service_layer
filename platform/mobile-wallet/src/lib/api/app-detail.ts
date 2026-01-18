@@ -3,7 +3,9 @@
  * Fetches MiniApp details and stats
  */
 
-const API_BASE = "https://neomini.app/api";
+import { API_BASE_URL } from "@/lib/config";
+
+const API_BASE = API_BASE_URL;
 
 export interface AppDetail {
   app_id: string;

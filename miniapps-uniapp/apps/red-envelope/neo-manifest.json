@@ -2,10 +2,25 @@
   "app_id": "miniapp-redenvelope",
   "name": "Red Envelope",
   "name_zh": "红包",
-  "description": "Share the joy of giving with digital red envelopes! Send lucky GAS gifts to friends and groups with randomized amounts, perfect for celebrations and holidays.",
+  "description": "Red Envelope - Neo MiniApp",
   "description_zh": "发送幸运 GAS 红包给朋友。创建红包，分享链接，让朋友们抢红包！",
+  "version": "1.0.0",
+  "entry_url": "mf://builtin?app=miniapp-red-envelope",
   "category": "social",
   "status": "active",
+  "tags": [],
+  "permissions": {
+    "payments": true,
+    "rng": true
+  },
+  "assets_allowed": [
+    "NEO",
+    "GAS"
+  ],
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
   "contracts": {
     "neo-n3-mainnet": {
       "address": "0xf2649c2b6312d8c7b4982c0c597c9772a2595b1e"
@@ -14,12 +29,13 @@
       "address": "0xf2649c2b6312d8c7b4982c0c597c9772a2595b1e"
     }
   },
-  "permissions": {
-    "payments": true,
-    "rng": true
-  },
-  "supported_chains": [
-    "neo-n3-mainnet",
-    "neo-n3-testnet"
-  ]
+  "card": {
+    "display": {
+      "type": "icon_title",
+      "banner": "/static/banner.png"
+    },
+    "info": {
+      "logo": "/static/icon.svg"
+    }
+  }
 }

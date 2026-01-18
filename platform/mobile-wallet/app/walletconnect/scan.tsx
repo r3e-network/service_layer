@@ -7,9 +7,11 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { isValidWCUri, parseWCUri } from "@/lib/walletconnect";
 import { useWCStore } from "@/stores/walletconnect";
 import { useWalletStore } from "@/stores/wallet";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function WCScanScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [scanned, setScanned] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const { connect, isConnecting } = useWCStore();
@@ -20,20 +22,20 @@ export default function WCScanScreen() {
     setScanned(true);
 
     if (!isValidWCUri(uri)) {
-      Alert.alert("Invalid QR Code", "This is not a valid WalletConnect QR code");
+      Alert.alert(t("walletconnect.invalidQrTitle"), t("walletconnect.invalidQrMessage"));
       setScanned(false);
       return;
     }
 
     const parsed = parseWCUri(uri);
     if (!parsed || parsed.version !== 2) {
-      Alert.alert("Unsupported Version", "Only WalletConnect v2 is supported");
+      Alert.alert(t("walletconnect.unsupportedTitle"), t("walletconnect.unsupportedMessage"));
       setScanned(false);
       return;
     }
 
     if (!address) {
-      Alert.alert("Error", "Please create or import a wallet first");
+      Alert.alert(t("common.error"), t("walletconnect.noWalletMessage"));
       setScanned(false);
       return;
     }
@@ -43,8 +45,8 @@ export default function WCScanScreen() {
       await connect(parsed.topic, meta, address, network);
       router.replace("/walletconnect");
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Connection failed";
-      Alert.alert("Error", message);
+      const message = e instanceof Error ? e.message : t("walletconnect.connectionFailed");
+      Alert.alert(t("common.error"), message);
       setScanned(false);
     }
   };
@@ -55,18 +57,18 @@ export default function WCScanScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: "Scan QR Code" }} />
+      <Stack.Screen options={{ title: t("walletconnect.scanTitle") }} />
       <View style={styles.content}>
         {!permission ? (
           <View style={styles.permissionBox}>
-            <Text style={styles.permissionText}>Requesting camera permission...</Text>
+            <Text style={styles.permissionText}>{t("walletconnect.requestingPermission")}</Text>
           </View>
         ) : !permission.granted ? (
           <View style={styles.permissionBox}>
             <Ionicons name="camera-outline" size={48} color="#888" />
-            <Text style={styles.permissionText}>Camera access is required to scan WalletConnect QR codes</Text>
+            <Text style={styles.permissionText}>{t("walletconnect.permissionRequired")}</Text>
             <TouchableOpacity style={styles.permissionBtn} onPress={requestPermission}>
-              <Text style={styles.permissionBtnText}>Grant Permission</Text>
+              <Text style={styles.permissionBtnText}>{t("walletconnect.grantPermission")}</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -81,10 +83,12 @@ export default function WCScanScreen() {
                 <View style={styles.scanFrame} />
               </View>
             </View>
-            <Text style={styles.hint}>Scan a WalletConnect QR code from a DApp</Text>
+            <Text style={styles.hint}>{t("walletconnect.scanHint")}</Text>
             {(scanned || isConnecting) && (
               <TouchableOpacity style={styles.rescanBtn} onPress={() => setScanned(false)} disabled={isConnecting}>
-                <Text style={styles.rescanText}>{isConnecting ? "Connecting..." : "Tap to Scan Again"}</Text>
+                <Text style={styles.rescanText}>
+                  {isConnecting ? t("walletconnect.connecting") : t("walletconnect.scanAgain")}
+                </Text>
               </TouchableOpacity>
             )}
           </>

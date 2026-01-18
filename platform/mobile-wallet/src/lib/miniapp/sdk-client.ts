@@ -6,12 +6,11 @@
 import type { MiniAppSDKConfig, MiniAppSDK } from "./sdk-types";
 import { getRpcUrl, resolveChainType } from "@/lib/chains";
 import type { ChainType } from "@/lib/chains";
-
-const DEFAULT_EDGE_URL = "https://neomini.app/functions/v1";
+import { API_BASE_URL, EDGE_BASE_URL } from "@/lib/config";
 let rpcRequestId = 0;
 
 export function createMiniAppSDK(config: MiniAppSDKConfig): MiniAppSDK {
-  const baseUrl = config.edgeBaseUrl || DEFAULT_EDGE_URL;
+  const baseUrl = config.edgeBaseUrl || EDGE_BASE_URL;
   const chainId = config.chainId ?? null;
   const chainType = config.chainType ?? resolveChainType(chainId);
   const contractAddress = config.contractAddress ?? null;
@@ -101,7 +100,7 @@ export function createMiniAppSDK(config: MiniAppSDKConfig): MiniAppSDK {
       debug: false,
     }),
     invokeRead: async (params) => {
-      const contract = params.contract || contractAddress;
+      const contract = params.contract || (params as { contractHash?: string }).contractHash || contractAddress;
       const method = params.method || (params as { operation?: string }).operation;
       const targetChainId = params.chainId || chainId;
       const targetChainType = params.chainType || chainType || resolveChainType(targetChainId ?? null);
@@ -134,40 +133,130 @@ export function createMiniAppSDK(config: MiniAppSDKConfig): MiniAppSDK {
     },
     payments: {
       payGAS: async (appId, amount, memo) => {
-        return post("/pay-gas", { app_id: appId, amount, memo, chain_id: chainId || undefined });
-      },
-      payGASAndInvoke: async (appId, amount, memo) => {
-        return post("/pay-gas-invoke", { app_id: appId, amount, memo, chain_id: chainId || undefined });
+        return post("/pay-gas", { app_id: appId, amount_gas: amount, memo, chain_id: chainId || undefined });
       },
     },
     governance: {
       vote: async (appId, proposalId, neoAmount, support) => {
-        return post("/vote", {
+        if (chainType === "evm") {
+          throw new Error("governance voting is only supported on neo-n3 chains");
+        }
+        return post("/vote-bneo", {
           app_id: appId,
           proposal_id: proposalId,
-          neo_amount: neoAmount,
+          bneo_amount: neoAmount,
           support,
           chain_id: chainId || undefined,
         });
       },
-      voteAndInvoke: async (appId, proposalId, neoAmount, support) => {
-        return post("/vote-invoke", {
-          app_id: appId,
-          proposal_id: proposalId,
-          neo_amount: neoAmount,
-          support,
-          chain_id: chainId || undefined,
-        });
+      getCandidates: async () => {
+        if (chainType === "evm") {
+          throw new Error("governance candidates are only available on neo-n3 chains");
+        }
+        const candidates = await rpcCall("getcandidates", [], chainId, chainType);
+        const committee = await rpcCall("getcommittee", [], chainId, chainType).catch(() => []);
+        const blockHeight = await rpcCall("getblockcount", [], chainId, chainType).catch(() => 0);
+        const committeeSet = new Set(Array.isArray(committee) ? committee : []);
+        const list = Array.isArray(candidates)
+          ? candidates.map((row) => ({
+              address: row?.candidate || row?.address || "",
+              publicKey: row?.publickey || row?.publicKey || row?.candidate || "",
+              name: row?.name || undefined,
+              votes: String(row?.votes ?? "0"),
+              active: committeeSet.has(row?.candidate || row?.address || ""),
+            }))
+          : [];
+        const totalVotes = list.reduce((sum, row) => sum + (Number(row.votes) || 0), 0);
+        return {
+          candidates: list,
+          totalVotes: String(totalVotes),
+          blockHeight: typeof blockHeight === "number" ? blockHeight : 0,
+        };
       },
     },
     rng: {
       requestRandom: async (appId) => {
-        return post("/rng", { app_id: appId, chain_id: chainId || undefined });
+        return post("/rng-request", { app_id: appId, chain_id: chainId || undefined });
       },
     },
     datafeed: {
       getPrice: async (symbol) => {
-        return get("/price", { symbol });
+        return get("/datafeed-price", { symbol });
+      },
+      getPrices: async () => {
+        const res = await fetch(`${API_BASE_URL}/price`);
+        if (!res.ok) throw new Error("Failed to fetch prices");
+        return res.json();
+      },
+      getNetworkStats: async () => {
+        if (chainType === "evm") {
+          const blockHex = await rpcCall("eth_blockNumber", [], chainId, chainType).catch(() => "0x0");
+          const blockHeight = parseInt(String(blockHex || "0x0"), 16);
+          return {
+            blockHeight: Number.isFinite(blockHeight) ? blockHeight : 0,
+            validatorCount: 0,
+            network: chainId || "evm",
+            version: "evm",
+          };
+        }
+
+        const [blockCount, validators, version] = await Promise.all([
+          rpcCall("getblockcount", [], chainId, chainType),
+          rpcCall("getnextblockvalidators", [], chainId, chainType).catch(() => []),
+          rpcCall("getversion", [], chainId, chainType).catch(() => ({})),
+        ]);
+
+        return {
+          blockHeight: blockCount || 0,
+          validatorCount: Array.isArray(validators) ? validators.length : 0,
+          network: chainId || "neo-n3",
+          version: version?.neoversion || version?.useragent || "unknown",
+        };
+      },
+      getRecentTransactions: async (limit = 10) => {
+        if (chainType === "evm") {
+          const blockHex = await rpcCall("eth_blockNumber", [], chainId, chainType).catch(() => "0x0");
+          const blockHeight = parseInt(String(blockHex || "0x0"), 16);
+          return { transactions: [], blockHeight: Number.isFinite(blockHeight) ? blockHeight : 0 };
+        }
+
+        const blockCount = await rpcCall("getblockcount", [], chainId, chainType);
+        const transactions: Array<{
+          txid: string;
+          blockHeight: number;
+          blockTime?: number;
+          sender?: string | null;
+          size?: number;
+          sysfee?: string;
+          netfee?: string;
+        }> = [];
+        const blocksToFetch = Math.min(limit, 5);
+
+        for (let i = 0; i < blocksToFetch && transactions.length < limit; i++) {
+          const blockHeight = blockCount - 1 - i;
+          if (blockHeight < 0) break;
+          try {
+            const block = await rpcCall("getblock", [blockHeight, true], chainId, chainType);
+            if (block?.tx && Array.isArray(block.tx)) {
+              for (const tx of block.tx) {
+                if (transactions.length >= limit) break;
+                transactions.push({
+                  txid: tx.hash || tx.txid,
+                  blockHeight,
+                  blockTime: block.time,
+                  sender: tx.sender || null,
+                  size: tx.size || 0,
+                  sysfee: tx.sysfee || "0",
+                  netfee: tx.netfee || "0",
+                });
+              }
+            }
+          } catch {
+            // Ignore individual block failures
+          }
+        }
+
+        return { transactions, blockHeight: blockCount || 0 };
       },
     },
     stats: {
@@ -175,7 +264,7 @@ export function createMiniAppSDK(config: MiniAppSDKConfig): MiniAppSDK {
         const params: Record<string, string> = { app_id: appId };
         if (date) params.date = date;
         if (chainId) params.chain_id = chainId;
-        return get("/usage", params);
+        return get("/miniapp-usage", params);
       },
     },
     events: {
@@ -183,9 +272,11 @@ export function createMiniAppSDK(config: MiniAppSDKConfig): MiniAppSDK {
         const query: Record<string, string> = {};
         if (params.app_id) query.app_id = params.app_id;
         if (params.event_name) query.event_name = params.event_name;
+        if (params.contract_address) query.contract_address = params.contract_address;
         if (params.limit) query.limit = String(params.limit);
         if (params.after_id) query.after_id = params.after_id;
-        if (chainId) query.chain_id = chainId;
+        if (params.chain_id) query.chain_id = params.chain_id;
+        if (!query.chain_id && chainId) query.chain_id = chainId;
         return get("/events-list", query);
       },
     },
@@ -195,7 +286,8 @@ export function createMiniAppSDK(config: MiniAppSDKConfig): MiniAppSDK {
         if (params.app_id) query.app_id = params.app_id;
         if (params.limit) query.limit = String(params.limit);
         if (params.after_id) query.after_id = params.after_id;
-        if (chainId) query.chain_id = chainId;
+        if (params.chain_id) query.chain_id = params.chain_id;
+        if (!query.chain_id && chainId) query.chain_id = chainId;
         return get("/transactions-list", query);
       },
     },

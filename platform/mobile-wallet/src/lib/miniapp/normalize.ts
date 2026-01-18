@@ -56,18 +56,31 @@ export function normalizeCategory(value: unknown): MiniAppCategory {
   const raw = toString(value).trim().toLowerCase();
   if (
     raw === "gaming" ||
+    raw === "games" ||
+    raw === "game" ||
     raw === "defi" ||
     raw === "governance" ||
     raw === "utility" ||
     raw === "social" ||
     raw === "nft"
   ) {
-    return raw;
+    return raw === "games" || raw === "game" ? "gaming" : raw;
   }
   return "utility";
 }
 
 export function normalizePermissions(value: unknown, fallback?: MiniAppPermissions): MiniAppPermissions {
+  if (Array.isArray(value)) {
+    const set = new Set(value.map((entry) => String(entry).toLowerCase()));
+    return {
+      payments: set.has("payments"),
+      governance: set.has("governance"),
+      rng: set.has("rng"),
+      datafeed: set.has("datafeed"),
+      confidential: set.has("confidential") || set.has("wallet"),
+      automation: set.has("automation"),
+    };
+  }
   const raw = asObject(value);
   const has = (key: string) => Object.prototype.hasOwnProperty.call(raw, key);
 

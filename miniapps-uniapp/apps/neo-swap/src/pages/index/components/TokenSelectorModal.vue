@@ -84,7 +84,7 @@ function formatAmount(amount: number): string {
   font-weight: 700;
   text-transform: uppercase;
   font-size: 14px;
-  color: white;
+  color: var(--text-primary);
   letter-spacing: 0.05em;
 }
 
@@ -120,14 +120,14 @@ function formatAmount(amount: number): string {
 .token-name {
   font-weight: 700;
   font-size: 16px;
-  color: white;
+  color: var(--text-primary);
   display: block;
 }
 
 .token-balance {
   font-size: 12px;
   opacity: 0.6;
-  color: white;
+  color: var(--text-primary);
   font-family: $font-mono;
   display: block;
 }

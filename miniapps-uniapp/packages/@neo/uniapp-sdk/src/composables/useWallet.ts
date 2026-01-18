@@ -332,6 +332,11 @@ export function useWallet() {
     switchChain,
     getBalance,
     getTransactions,
+    // Generic invoke helper
+    invoke: async (method: string, params: any) => {
+      const sdk = await waitForSDK();
+      return sdk.invoke(method, params);
+    },
     // Connection management
     requireConnection,
     closeConnectionPrompt,

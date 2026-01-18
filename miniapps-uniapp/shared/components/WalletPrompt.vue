@@ -1,19 +1,19 @@
 <template>
-  <NeoModal :visible="visible" :title="t('title')" variant="warning" :closeable="true" @close="$emit('close')">
+  <NeoModal :visible="visible" :title="t('wpTitle')" variant="warning" :closeable="true" @close="$emit('close')">
     <view class="wallet-prompt">
       <text class="wallet-prompt__desc">
-        {{ message || t("description") }}
+        {{ message || t("wpDescription") }}
       </text>
 
       <NeoButton variant="primary" size="lg" class="wallet-prompt__btn" :loading="loading" @click="handleConnect">
         <AppIcon name="wallet" :size="18" />
-        {{ t("connect") }}
+        {{ t("wpConnect") }}
       </NeoButton>
     </view>
 
     <template #footer>
       <NeoButton variant="ghost" size="sm" @click="$emit('close')">
-        {{ t("cancel") }}
+        {{ t("wpCancel") }}
       </NeoButton>
     </template>
   </NeoModal>
@@ -24,7 +24,9 @@ import { ref } from "vue";
 import NeoModal from "./NeoModal.vue";
 import NeoButton from "./NeoButton.vue";
 import AppIcon from "./AppIcon.vue";
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
+
+const { t } = useI18n();
 
 const props = defineProps<{
   visible: boolean;
@@ -36,14 +38,6 @@ const emit = defineEmits<{
   (e: "connect"): void;
 }>();
 
-const translations = {
-  title: { en: "Wallet Required", zh: "需要钱包" },
-  description: { en: "Please connect your wallet to continue.", zh: "请连接钱包以继续。" },
-  connect: { en: "Connect Wallet", zh: "连接钱包" },
-  cancel: { en: "Cancel", zh: "取消" },
-};
-
-const t = createT(translations);
 const loading = ref(false);
 
 const handleConnect = async () => {

@@ -2,10 +2,24 @@
   "app_id": "miniapp-self-loan",
   "name": "Self Loan",
   "name_zh": "自助贷款",
-  "description": "Borrow against your own collateral with zero liquidation risk. Lock your assets, borrow up to 50%, and repay on your own schedule.",
+  "description": "Self Loan - Neo MiniApp",
   "description_zh": "用自己的抵押品借款，零清算风险。",
+  "version": "1.0.0",
+  "entry_url": "mf://builtin?app=miniapp-self-loan",
   "category": "defi",
   "status": "active",
+  "tags": [],
+  "permissions": {
+    "payments": true
+  },
+  "assets_allowed": [
+    "NEO",
+    "GAS"
+  ],
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
   "contracts": {
     "neo-n3-mainnet": {
       "address": "0xb7522afccd80ad5b3cbc112033c22b3d8f2d120c"
@@ -14,11 +28,13 @@
       "address": "0xb7522afccd80ad5b3cbc112033c22b3d8f2d120c"
     }
   },
-  "permissions": {
-    "payments": true
-  },
-  "supported_chains": [
-    "neo-n3-mainnet",
-    "neo-n3-testnet"
-  ]
+  "card": {
+    "display": {
+      "type": "icon_title",
+      "banner": "/static/banner.png"
+    },
+    "info": {
+      "logo": "/static/icon.svg"
+    }
+  }
 }

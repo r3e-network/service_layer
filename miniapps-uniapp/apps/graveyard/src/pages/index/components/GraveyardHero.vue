@@ -5,7 +5,7 @@
       <view class="fog fog-1"></view>
       <view class="fog fog-2"></view>
       <view v-for="i in 3" :key="i" :class="['tombstone-glass', `tombstone-${i}`]">
-        <text class="rip-glass">R.I.P</text>
+        <text class="rip-glass">{{ t("rip") }}</text>
       </view>
     </view>
     
@@ -90,7 +90,7 @@ const formatNum = (n: number) => formatNumber(n, 2);
 
 .rip-glass {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   font-weight: 700;
   letter-spacing: 1px;
 }
@@ -122,7 +122,7 @@ const formatNum = (n: number) => formatNumber(n, 2);
 .hero-stat-value-glass {
   font-size: 20px;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
   font-family: $font-mono;
   display: block;
 }
@@ -131,7 +131,7 @@ const formatNum = (n: number) => formatNumber(n, 2);
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   letter-spacing: 1px;
   margin-top: 4px;
   display: block;

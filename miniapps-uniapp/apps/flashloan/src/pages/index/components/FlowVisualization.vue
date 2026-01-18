@@ -69,7 +69,7 @@ defineProps<{
 .flow-title {
   font-size: 14px;
   font-weight: 800;
-  color: white;
+  color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   display: block;
@@ -135,7 +135,7 @@ defineProps<{
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   letter-spacing: 0.1em;
   
   &.highlight {
@@ -176,7 +176,7 @@ defineProps<{
 }
 
 .connector-arrow {
-  color: rgba(255, 255, 255, 0.2);
+  color: var(--text-muted);
   font-size: 10px;
   margin-left: -4px;
 }
@@ -197,7 +197,7 @@ defineProps<{
 
 .note-text {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   line-height: 1.4;
   font-weight: 500;
 }

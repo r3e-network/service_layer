@@ -55,8 +55,7 @@ const loadPrices = async () => {
     const gas = await getPrice("GAS-USD");
     if (neo?.price) neoPrice.value = Number(neo.price);
     if (gas?.price) gasPrice.value = Number(gas.price);
-  } catch (e) {
-    console.warn("[NeoSwap] Failed to load price feed:", e);
+  } catch {
   }
 };
 
@@ -107,12 +106,12 @@ onMounted(async () => {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: white;
+  color: var(--text-primary);
 }
 
 .pool-subtitle {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   margin-bottom: 8px;
 }
 

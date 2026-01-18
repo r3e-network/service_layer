@@ -28,6 +28,21 @@
       class="mb-8"
     />
 
+    <view class="category-select mb-4">
+      <text class="category-label mb-2 block">{{ t("category") }}</text>
+      <view class="category-options">
+        <view
+          v-for="cat in categories"
+          :key="cat.value"
+          class="category-option"
+          :class="{ active: recordCategory === cat.value }"
+          @click="$emit('update:recordCategory', cat.value)"
+        >
+          <text>{{ cat.label }}</text>
+        </view>
+      </view>
+    </view>
+
     <NeoButton variant="primary" size="lg" block @click="$emit('create')" :loading="isLoading" :disabled="!canCreate">
       {{ t("createRecord") }}
     </NeoButton>
@@ -35,17 +50,27 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import { NeoCard, NeoInput, NeoButton } from "@/shared/components";
 
-defineProps<{
+const props = defineProps<{
   recordContent: string;
   recordRating: string;
+  recordCategory: number;
   isLoading: boolean;
   canCreate: boolean;
   t: (key: string) => string;
 }>();
 
-defineEmits(["update:recordContent", "update:recordRating", "create"]);
+defineEmits(["update:recordContent", "update:recordRating", "update:recordCategory", "create"]);
+
+const categories = computed(() => [
+  { label: props.t("catGeneral"), value: 0 },
+  { label: props.t("catPhoto"), value: 1 },
+  { label: props.t("catLetter"), value: 2 },
+  { label: props.t("catVideo"), value: 3 },
+  { label: props.t("catAudio"), value: 4 },
+]);
 </script>
 
 <style lang="scss" scoped>
@@ -82,5 +107,36 @@ defineEmits(["update:recordContent", "update:recordRating", "create"]);
   text-transform: uppercase;
   color: #9f9df3;
   letter-spacing: 0.05em;
+}
+
+.category-label {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #666;
+}
+
+.category-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.category-option {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.5);
+  
+  &.active {
+    background: #333;
+    color: #f0f0f0;
+    border-color: #333;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+  }
 }
 </style>

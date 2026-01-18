@@ -27,7 +27,7 @@ export function SignMessageModal({ visible, request, onApprove, onReject }: Sign
             <View style={styles.brutalIcon}>
               <Ionicons name="finger-print" size={48} color="#000" />
             </View>
-            <Text style={styles.title}>{t("wallet.sign_message") || "Sign Message"}</Text>
+            <Text style={styles.title}>{t("wallet.sign_message")}</Text>
           </View>
 
           <View style={styles.appInfo}>
@@ -36,20 +36,20 @@ export function SignMessageModal({ visible, request, onApprove, onReject }: Sign
           </View>
 
           <View style={styles.messageBox}>
-            <Text style={styles.messageLabel}>{t("wallet.message_to_sign") || "Message to Sign"}</Text>
+            <Text style={styles.messageLabel}>{t("wallet.message_to_sign")}</Text>
             <ScrollView style={styles.messageScroll}>
               <Text style={styles.message}>{request.message}</Text>
             </ScrollView>
           </View>
 
-          <Text style={styles.warning}>{t("wallet.sign_warning") || "Only sign messages from apps you trust. This proves your identity."}</Text>
+          <Text style={styles.warning}>{t("wallet.sign_warning")}</Text>
 
           <View style={styles.actions}>
             <TouchableOpacity style={styles.rejectBtn} onPress={onReject}>
-              <Text style={styles.rejectText}>{t("common.reject") || "Reject"}</Text>
+              <Text style={styles.rejectText}>{t("common.reject")}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.approveBtn} onPress={onApprove}>
-              <Text style={styles.approveText}>{t("wallet.sign") || "Sign"}</Text>
+              <Text style={styles.approveText}>{t("wallet.sign")}</Text>
             </TouchableOpacity>
           </View>
         </View>

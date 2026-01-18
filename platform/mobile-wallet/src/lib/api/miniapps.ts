@@ -3,7 +3,9 @@
  * Fetches trending apps and search results from host-app API
  */
 
-const API_BASE = "https://neomini.app/api";
+import { API_BASE_URL } from "@/lib/config";
+
+const API_BASE = API_BASE_URL;
 
 export interface TrendingApp {
   app_id: string;

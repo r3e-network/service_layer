@@ -44,12 +44,14 @@
 
 <script setup lang="ts">
 import { NeoCard, NeoStats, type StatItem } from "@/shared/components";
+import { useI18n } from "@/composables/useI18n";
+
+const { t } = useI18n();
 
 defineProps<{
   globalStats: { totalUsers: number; totalCheckins: number; totalRewarded: number };
   userStats: Array<StatItem>;
   checkinHistory: Array<{ streak: number; time: string; reward: number }>;
-  t: (key: string) => string;
 }>();
 
 const formatGas = (value: number) => {
@@ -86,7 +88,7 @@ const formatGas = (value: number) => {
   font-family: $font-mono;
   font-size: 18px;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
 }
 .stat-label {
   display: block;
@@ -115,7 +117,7 @@ const formatGas = (value: number) => {
 }
 .history-icon { font-size: 20px; }
 .history-info { flex: 1; }
-.history-day { display: block; font-weight: 600; font-size: 13px; color: white; }
+.history-day { display: block; font-weight: 600; font-size: 13px; color: var(--text-primary); }
 .history-time { display: block; font-size: 11px; color: var(--text-secondary, rgba(255, 255, 255, 0.5)); }
 .history-reward {
   font-family: $font-mono;

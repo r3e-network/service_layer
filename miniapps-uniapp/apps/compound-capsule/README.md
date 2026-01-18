@@ -70,7 +70,31 @@ npm run build
 
 ## Assets
 
-- **Allowed Assets**: GAS
+- **Allowed Assets**: NEO (for staking), GAS (for fees)
+
+## Contract Methods
+
+### User Methods
+
+#### `CreateCapsule(owner, neoAmount, lockDays)`
+
+Create a new time-locked savings capsule.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `owner` | Hash160 | Owner wallet address |
+| `neoAmount` | Integer | Amount of NEO to lock |
+| `lockDays` | Integer | Lock duration in days |
+
+#### `UnlockCapsule(capsuleId)`
+
+Unlock a matured capsule and withdraw funds.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `capsuleId` | Integer | Capsule ID to unlock |
+
+**Note**: Owner verification is done internally by the contract.
 
 
 ## License

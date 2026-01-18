@@ -17,6 +17,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@neo/uniapp-sdk": [
+        "../../packages/@neo/uniapp-sdk/src/index.ts"
       ]
     },
     "types": [
@@ -25,7 +28,8 @@
   },
   "include": [
     "src/**/*.ts",
-    "src/**/*.vue"
+    "src/**/*.vue",
+    "src/**/*.d.ts"
   ],
   "exclude": [
     "node_modules",

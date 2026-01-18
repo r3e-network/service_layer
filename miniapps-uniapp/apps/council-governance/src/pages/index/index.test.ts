@@ -139,9 +139,9 @@ describe("Council Governance - Business Logic", () => {
 
   describe("Duration Options", () => {
     const durations = [
-      { label: "3 Days", value: 259200000 },
-      { label: "7 Days", value: 604800000 },
-      { label: "14 Days", value: 1209600000 },
+      { label: "3 Days", value: 259200 },
+      { label: "7 Days", value: 604800 },
+      { label: "14 Days", value: 1209600 },
     ];
 
     it("should have 3 duration options", () => {
@@ -205,12 +205,12 @@ describe("Council Governance - Business Logic", () => {
         type: 0,
         title: "",
         description: "",
-        duration: 604800000,
+        duration: 604800,
       });
 
       expect(newProposal.value.type).toBe(0);
       expect(newProposal.value.title).toBe("");
-      expect(newProposal.value.duration).toBe(604800000);
+      expect(newProposal.value.duration).toBe(604800);
     });
   });
 
@@ -292,7 +292,7 @@ describe("Council Governance - Business Logic", () => {
         type: 0,
         title: "Test Proposal",
         description: "Test Description",
-        duration: 604800000,
+        duration: 604800,
       };
 
       const proposal = {
@@ -315,13 +315,13 @@ describe("Council Governance - Business Logic", () => {
     });
 
     it("should not create proposal without title", () => {
-      const newProposal = { type: 0, title: "", description: "Desc", duration: 604800000 };
+      const newProposal = { type: 0, title: "", description: "Desc", duration: 604800 };
       const shouldCreate = newProposal.title && newProposal.description;
       expect(shouldCreate).toBeFalsy();
     });
 
     it("should not create proposal without description", () => {
-      const newProposal = { type: 0, title: "Title", description: "", duration: 604800000 };
+      const newProposal = { type: 0, title: "Title", description: "", duration: 604800 };
       const shouldCreate = newProposal.title && newProposal.description;
       expect(shouldCreate).toBeFalsy();
     });

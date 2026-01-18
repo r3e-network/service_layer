@@ -95,84 +95,21 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
 import { formatNumber } from "@/shared/utils/format";
 import { addressToScriptHash, normalizeScriptHash, parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard, NeoStats } from "@/shared/components";
 import type { StatItem } from "@/shared/components/NeoStats.vue";
 
-const translations = {
-  title: { en: "Gov Merc", zh: "治理雇佣兵" },
-  subtitle: { en: "Bid for governance influence", zh: "竞价治理影响力" },
-  rent: { en: "Pool", zh: "池子" },
-  market: { en: "Bids", zh: "竞价" },
-  poolStats: { en: "Pool Stats", zh: "池子统计" },
-  totalPool: { en: "Total Pool", zh: "总池子" },
-  currentEpoch: { en: "Current Epoch", zh: "当前周期" },
-  yourDeposits: { en: "Your Deposits", zh: "你的存入" },
-  depositNeo: { en: "Deposit NEO", zh: "存入 NEO" },
-  withdrawNeo: { en: "Withdraw NEO", zh: "提取 NEO" },
-  depositAmount: { en: "Deposit amount", zh: "存入金额" },
-  withdrawAmount: { en: "Withdraw amount", zh: "提取金额" },
-  placeBid: { en: "Place Bid", zh: "提交竞价" },
-  bidAmount: { en: "Bid amount", zh: "竞价金额" },
-  bidLeaderboard: { en: "Bid Leaderboard", zh: "竞价榜" },
-  noBids: { en: "No bids yet", zh: "暂无竞价" },
-  tabStats: { en: "Stats", zh: "统计" },
-  depositSuccess: { en: "Deposit submitted", zh: "存入已提交" },
-  withdrawSuccess: { en: "Withdrawal submitted", zh: "提取已提交" },
-  bidSuccess: { en: "Bid submitted", zh: "竞价已提交" },
-  enterAmount: { en: "Enter an amount", zh: "请输入金额" },
-  error: { en: "Error", zh: "错误" },
-  wrongChain: { en: "Wrong Network", zh: "网络错误" },
-  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 
-  docs: { en: "Docs", zh: "文档" },
-  docSubtitle: {
-    en: "Governance mercenary pool with competitive bidding",
-    zh: "基于竞价的治理雇佣池",
-  },
-  docDescription: {
-    en: "Gov Merc lets you deposit NEO into a shared pool and place GAS bids to win governance influence for each epoch.",
-    zh: "Gov Merc 允许您将 NEO 存入共享池，并通过 GAS 竞价赢得每个周期的治理影响力。",
-  },
-  step1: {
-    en: "Connect your Neo wallet",
-    zh: "连接您的 Neo 钱包",
-  },
-  step2: {
-    en: "Deposit NEO to participate in the pool",
-    zh: "存入 NEO 参与资金池",
-  },
-  step3: {
-    en: "Place a GAS bid for the current epoch",
-    zh: "为当前周期提交 GAS 竞价",
-  },
-  step4: {
-    en: "Track bids and epoch outcomes on-chain",
-    zh: "链上跟踪竞价与周期结果",
-  },
-  feature1Name: { en: "Epoch Bidding", zh: "周期竞价" },
-  feature1Desc: {
-    en: "Bid with GAS to win the epoch.",
-    zh: "用 GAS 竞价赢得周期。",
-  },
-  feature2Name: { en: "Shared Pool", zh: "共享池" },
-  feature2Desc: {
-    en: "Deposited NEO powers the system.",
-    zh: "存入的 NEO 为系统提供支持。",
-  },
-};
+const { t } = useI18n();
 
-const t = createT(translations);
-
-const navTabs = [
+const navTabs = computed(() => [
   { id: "rent", icon: "wallet", label: t("rent") },
   { id: "market", icon: "cart", label: t("market") },
   { id: "stats", icon: "chart", label: t("tabStats") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 
 const activeTab = ref("rent");
 
@@ -247,7 +184,7 @@ const fetchPoolData = async () => {
   const contract = await ensureContractAddress();
   const [poolRes, epochRes] = await Promise.all([
     invokeRead({ contractAddress: contract, operation: "totalPool" }),
-    invokeRead({ contractAddress: contract, operation: "currentEpoch" }),
+    invokeRead({ contractAddress: contract, operation: "getCurrentEpochId" }),
   ]);
   totalPool.value = Number(parseInvokeResult(poolRes) || 0);
   currentEpoch.value = Number(parseInvokeResult(epochRes) || 0);
@@ -288,8 +225,7 @@ const fetchData = async () => {
     await fetchPoolData();
     await fetchUserDeposits();
     await fetchBids();
-  } catch (e) {
-    console.warn("[GovMerc] Failed to fetch data:", e);
+  } catch {
   } finally {
     dataLoading.value = false;
   }
@@ -368,7 +304,7 @@ const placeBid = async () => {
     const contract = await ensureContractAddress();
     const payment = await payGAS(bidAmount.value, `bid:${currentEpoch.value}`);
     const receiptId = payment.receipt_id;
-    if (!receiptId) throw new Error("Missing payment receipt");
+    if (!receiptId) throw new Error(t("receiptMissing"));
     await invokeContract({
       scriptHash: contract,
       operation: "placeBid",
@@ -394,131 +330,131 @@ watch(address, () => fetchData());
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+$bar-bg: #100010;
+$bar-neon-pink: #ff007f;
+$bar-neon-blue: #00f3ff;
+$bar-dark: #1a1a2e;
+$bar-grid: rgba(255, 0, 127, 0.1);
+
+:global(page) {
+  background: $bar-bg;
+}
+
 .tab-content {
-  padding: $space-4;
+  padding: 24px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  gap: 24px;
+  background-color: $bar-bg;
+  /* Cyberpunk Grid Floor + Fog */
+  background-image: 
+    linear-gradient(to bottom, transparent 80%, rgba(255,0,127,0.2) 100%),
+    linear-gradient(rgba(255,0,127,0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,0,127,0.1) 1px, transparent 1px);
+  background-size: 100% 100%, 40px 40px, 40px 40px;
+  min-height: 100vh;
+}
+
+/* Merc Component Overrides */
+:deep(.neo-card) {
+  background: rgba(10, 5, 20, 0.9) !important;
+  border: 1px solid $bar-neon-blue !important;
+  border-left: 4px solid $bar-neon-pink !important;
+  border-radius: 4px !important;
+  box-shadow: 0 0 15px rgba(255, 0, 127, 0.2), inset 0 0 30px rgba(0, 243, 255, 0.05) !important;
+  color: #fff !important;
+  transform: skewX(-2deg);
+  
+  &.variant-danger {
+    border-color: #ff3333 !important;
+    background: rgba(30,0,0,0.9) !important;
+  }
+}
+
+:deep(.neo-button) {
+  transform: skewX(-10deg);
+  text-transform: uppercase;
+  font-weight: 800 !important;
+  letter-spacing: 0.15em;
+  font-style: italic;
+  
+  &.variant-primary {
+    background: linear-gradient(90deg, $bar-neon-pink, #9900ff) !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow: 5px 5px 0 rgba(0, 243, 255, 0.5) !important;
+    
+    &:active {
+      transform: skewX(-10deg) translate(2px, 2px);
+      box-shadow: 3px 3px 0 rgba(0, 243, 255, 0.5) !important;
+    }
+  }
+  
+  &.variant-secondary {
+    background: transparent !important;
+    border: 2px solid $bar-neon-blue !important;
+    color: $bar-neon-blue !important;
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.3) !important;
+  }
+  
+  /* Un-skew text */
+  & > view, & > text {
+    transform: skewX(10deg);
+    display: inline-block;
+  }
+}
+
+:deep(.neo-input) {
+  background: rgba(0,0,0,0.5) !important;
+  border: 1px solid $bar-neon-pink !important;
+  border-radius: 0 !important;
+  font-family: 'Courier New', monospace !important;
+  color: $bar-neon-blue !important;
 }
 
 .form-group-neo {
   display: flex;
   flex-direction: column;
-  gap: $space-4;
-}
-.duration-row-neo {
-  display: flex;
-  gap: $space-3;
-}
-
-.section-title-neo {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-  color: #a78bfa;
-  padding: 2px 10px;
-  display: inline-block;
-  letter-spacing: 0.1em;
-}
-
-.delegate-avatar-neo {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
-  color: white;
-  &.elite {
-    background: rgba(255, 222, 10, 0.2);
-    border-color: rgba(255, 222, 10, 0.4);
-    color: #ffde59;
-    text-shadow: 0 0 10px #ffde59;
-  }
-}
-
-.delegate-name-neo {
-  font-weight: 800;
-  font-size: 20px;
-  color: white;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
-}
-.delegate-address-neo {
-  font-family: $font-mono;
-  font-size: 10px;
-  opacity: 0.7;
-  font-weight: 500;
-  margin-top: 4px;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.elite-badge-neo {
-  background: rgba(255, 222, 10, 0.1);
-  color: #ffde59;
-  font-size: 9px;
-  font-weight: 700;
-  padding: 4px 10px;
-  border: 1px solid rgba(255, 222, 10, 0.4);
-  box-shadow: 0 0 10px rgba(255, 222, 10, 0.2);
-  border-radius: 99px;
-}
-
-.delegate-metrics-neo {
-  background: rgba(0, 0, 0, 0.2);
-  padding: $space-4;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  display: flex;
-  gap: $space-4;
-  border-radius: 12px;
-  color: white;
-}
-.metric-label-neo {
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
-  letter-spacing: 0.05em;
-}
-.metric-value-neo {
-  font-family: $font-mono;
-  font-weight: 700;
-  font-size: 14px;
-  color: white;
+  gap: 16px;
 }
 
 .empty-neo {
-  font-family: $font-mono;
+  font-family: 'Courier New', monospace;
   font-size: 14px;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px dashed rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.5);
-  border-radius: 12px;
+  text-transform: uppercase;
+  color: $bar-neon-blue;
+  text-align: center;
+  text-shadow: 0 0 5px $bar-neon-blue;
+  padding: 32px;
 }
 
 .bid-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: $space-3 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px 0;
+  border-bottom: 1px dotted rgba(255, 0, 127, 0.3);
 }
 .bid-address {
-  font-family: $font-mono;
+  font-family: 'Courier New', monospace;
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.7);
+  color: #ccc;
 }
 .bid-amount {
-  font-family: $font-mono;
+  font-family: 'Courier New', monospace;
   font-weight: 700;
-  color: #00e599;
+  color: $bar-neon-pink;
+  text-shadow: 0 0 5px $bar-neon-pink;
 }
+
 .status-text {
-  font-family: $font-mono;
+  font-family: 'Courier New', monospace;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.05em;
+  color: $bar-neon-blue;
 }
 
 .scrollable {

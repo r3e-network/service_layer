@@ -1,47 +1,75 @@
 <template>
   <view class="neo-doc">
     <view class="doc-header">
-      <view class="title-row">
-        <view class="doc-badge">DOCUMENTATION</view>
-      </view>
-      <text class="doc-subtitle">{{ subtitle }}</text>
+      <ScrollReveal animation="fade-down" :duration="1000">
+        <view class="title-row">
+          <view class="doc-badge">{{ t("docBadge") }}</view>
+        </view>
+        <text class="doc-subtitle">{{ subtitle }}</text>
+      </ScrollReveal>
     </view>
 
     <view class="doc-content">
       <view class="doc-section">
-        <text class="section-label">{{ t("whatItIs") }}</text>
-        <text class="section-text">{{ description }}</text>
+        <ScrollReveal animation="fade-up" :delay="200">
+          <text class="section-label">{{ t("docWhatItIs") }}</text>
+          <text class="section-text">{{ description }}</text>
+        </ScrollReveal>
       </view>
 
       <view class="doc-section">
-        <text class="section-label">{{ t("howToUse") }}</text>
+        <ScrollReveal animation="fade-up" :delay="300">
+          <text class="section-label">{{ t("docHowToUse") }}</text>
+        </ScrollReveal>
         <view class="steps-list">
-          <view v-for="(step, index) in steps" :key="index" class="step-item">
-            <view class="step-number">{{ index + 1 }}</view>
-            <text class="step-text">{{ step }}</text>
-          </view>
+          <ScrollReveal
+            v-for="(step, index) in steps"
+            :key="index"
+            :delay="400 + index * 100"
+            animation="slide-left"
+          >
+            <view class="step-item">
+              <view class="step-number">{{ index + 1 }}</view>
+              <text class="step-text">{{ step }}</text>
+            </view>
+          </ScrollReveal>
         </view>
       </view>
 
       <view class="doc-section">
-        <text class="section-label">{{ t("onChainFeatures") }}</text>
+        <ScrollReveal animation="fade-up" :delay="400">
+          <text class="section-label">{{ t("docOnChainFeatures") }}</text>
+        </ScrollReveal>
         <view class="features-grid">
-          <view v-for="feature in features" :key="feature.name" class="feature-card">
-            <text class="feature-name">{{ feature.name }}</text>
-            <text class="feature-desc">{{ feature.desc }}</text>
-          </view>
+          <ScrollReveal
+            v-for="(feature, index) in features"
+            :key="feature.name"
+            :delay="500 + index * 100"
+            animation="scale-in"
+            reversible
+          >
+            <view class="feature-card">
+              <text class="feature-name">{{ feature.name }}</text>
+              <text class="feature-desc">{{ feature.desc }}</text>
+            </view>
+          </ScrollReveal>
         </view>
       </view>
     </view>
 
     <view class="doc-footer">
-      <text class="footer-text">NeoHub MiniApp Protocol v2.4.0</text>
+      <ScrollReveal animation="fade-up" :delay="800">
+        <text class="footer-text">{{ t("docFooter") }}</text>
+      </ScrollReveal>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
+import ScrollReveal from "./ScrollReveal.vue";
+
+const { t } = useI18n();
 
 interface Feature {
   name: string;
@@ -55,13 +83,6 @@ defineProps<{
   steps: string[];
   features: Feature[];
 }>();
-
-const translations = {
-  whatItIs: { en: "What is it?", zh: "这是什么？" },
-  howToUse: { en: "How to use", zh: "如何使用" },
-  onChainFeatures: { en: "On-Chain Features", zh: "链上特性" },
-};
-const t = createT(translations);
 </script>
 
 <style lang="scss" scoped>

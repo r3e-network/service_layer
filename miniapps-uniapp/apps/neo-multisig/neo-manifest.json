@@ -1,0 +1,37 @@
+{
+  "app_id": "miniapp-neo-multisig",
+  "name": "Neo Multisig",
+  "name_zh": "Neo 多重签名",
+  "description": "Create multisig transfer requests and collect signatures securely.",
+  "description_zh": "创建多签转账请求并安全收集签名。",
+  "version": "1.0.0",
+  "entry_url": "mf://builtin?app=miniapp-neo-multisig",
+  "category": "utilities",
+  "status": "active",
+  "tags": [
+    "security",
+    "wallet",
+    "multisig"
+  ],
+  "permissions": [
+    "wallet"
+  ],
+  "assets_allowed": [
+    "NEO",
+    "GAS"
+  ],
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
+  "contracts": {},
+  "card": {
+    "display": {
+      "type": "icon_title",
+      "banner": "/static/banner.svg"
+    },
+    "info": {
+      "logo": "/static/logo.png"
+    }
+  }
+}

@@ -46,7 +46,7 @@ const getActionIcon = (type: string) => {
   padding: $space-4;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   background: transparent;
-  color: white;
+  color: var(--text-primary);
   &:last-child { border-bottom: none; }
 }
 .history-icon {
@@ -64,11 +64,11 @@ const getActionIcon = (type: string) => {
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
-  color: white;
+  color: var(--text-primary);
 }
 .history-time {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   font-weight: 600;
   display: block;
 }

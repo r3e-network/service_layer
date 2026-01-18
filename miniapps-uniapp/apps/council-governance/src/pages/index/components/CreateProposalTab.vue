@@ -104,13 +104,13 @@ const newProposal = ref({
   description: "",
   policyMethod: "",
   policyValue: "",
-  duration: 604800000,
+  duration: 604800,
 });
 
 const durations = [
-  { label: "3 Days", value: 259200000 },
-  { label: "7 Days", value: 604800000 },
-  { label: "14 Days", value: 1209600000 },
+  { label: "3 Days", value: 259200 },
+  { label: "7 Days", value: 604800 },
+  { label: "14 Days", value: 1209600 },
 ];
 
 const policyMethods = [
@@ -133,7 +133,7 @@ defineExpose({ reset: () => {
       description: "",
       policyMethod: "",
       policyValue: "",
-      duration: 604800000,
+      duration: 604800,
     };
 }});
 </script>

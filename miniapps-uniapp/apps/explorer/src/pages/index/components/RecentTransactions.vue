@@ -90,7 +90,7 @@ const truncateHash = (hash: string) => {
   font-family: $font-mono;
   font-size: 13px;
   font-weight: 600;
-  color: white;
+  color: var(--text-primary);
 }
 
 .tx-time {

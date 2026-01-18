@@ -20,7 +20,7 @@ export default function AppsScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>MiniApps</Text>
-        <Text style={styles.subtitle}>{apps.length} {t("wallet.apps_available") || "apps available"}</Text>
+        <Text style={styles.subtitle}>{apps.length} {t("wallet.apps_available")}</Text>
       </View>
 
       {/* Search Bar */}
@@ -28,7 +28,7 @@ export default function AppsScreen() {
         value={searchQuery}
         onChangeText={setSearchQuery}
         onClear={clearSearch}
-        placeholder={t("wallet.search_miniapps") || "Search MiniApps..."}
+        placeholder={t("wallet.search_miniapps")}
       />
 
       {/* Categories */}
@@ -68,7 +68,7 @@ export default function AppsScreen() {
         ListEmptyComponent={
           !isLoading ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>{t("wallet.no_apps_found") || "No apps found"}</Text>
+              <Text style={styles.emptyText}>{t("wallet.no_apps_found")}</Text>
             </View>
           ) : null
         }

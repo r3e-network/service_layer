@@ -43,7 +43,7 @@ done
 # Auto-discover and register miniapps
 echo ""
 echo "Auto-discovering miniapps..."
-node "$SCRIPT_DIR/auto-discover-miniapps.js"
+node "$SCRIPT_DIR/auto-discover.js"
 
 echo ""
 echo "Done! Built apps are in $OUTPUT_DIR"

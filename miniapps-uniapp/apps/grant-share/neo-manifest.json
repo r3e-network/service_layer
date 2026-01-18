@@ -2,10 +2,30 @@
   "app_id": "miniapp-grant-share",
   "name": "GrantShare",
   "name_zh": "资助分享",
-  "description": "Create and fund community grants with transparent on-chain tracking. Support open-source projects, education initiatives, and community development.",
-  "description_zh": "创建和资助社区资助项目，链上透明追踪。",
+  "description": "Create and fund community grants, share resources with transparent on-chain tracking",
+  "description_zh": "创建和资助社区项目，透明链上追踪资源分享",
+  "version": "1.0.0",
+  "entry_url": "mf://builtin?app=miniapp-grant-share",
   "category": "social",
   "status": "active",
+  "tags": [
+    "grants",
+    "funding",
+    "community",
+    "sharing"
+  ],
+  "permissions": [
+    "wallet",
+    "payments"
+  ],
+  "assets_allowed": [
+    "NEO",
+    "GAS"
+  ],
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
   "contracts": {
     "neo-n3-mainnet": {
       "address": null
@@ -14,11 +34,27 @@
       "address": null
     }
   },
-  "permissions": {
-    "payments": true
-  },
-  "supported_chains": [
-    "neo-n3-mainnet",
-    "neo-n3-testnet"
-  ]
+  "card": {
+    "display": {
+      "type": "live_status",
+      "banner": "/static/banner.png",
+      "live_status": {
+        "enabled": true,
+        "refresh_interval": 60,
+        "fields": [
+          "total_grants",
+          "total_funded",
+          "active_projects"
+        ]
+      }
+    },
+    "info": {
+      "logo": "/static/logo.png",
+      "owner": {
+        "name": "Neo Community",
+        "address": "NNLi44dJNXtDNSBkofB48aTVYtb1zZrNEs",
+        "verified": true
+      }
+    }
+  }
 }

@@ -4,9 +4,8 @@
  */
 
 import * as SecureStore from "expo-secure-store";
-import { p256 } from "@noble/curves/nist";
-import { sha256 } from "@noble/hashes/sha2";
-import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
+import { wallet } from "@cityofzion/neon-core";
+import { Buffer } from "buffer";
 
 const PRIVATE_KEY_STORAGE = "neo_private_key";
 
@@ -18,6 +17,8 @@ export interface SignedMessage {
   salt: string;
 }
 
+const isHex = (value: string) => /^[0-9a-fA-F]+$/.test(value);
+
 /**
  * Sign a message with the wallet's private key
  * Uses Neo N3 message signing format with secp256r1
@@ -26,24 +27,21 @@ export async function signMessage(message: string): Promise<SignedMessage | null
   const privateKey = await SecureStore.getItemAsync(PRIVATE_KEY_STORAGE);
   if (!privateKey) return null;
 
-  const privKeyBytes = hexToBytes(privateKey);
-  const saltBytes = crypto.getRandomValues(new Uint8Array(16));
-  const salt = bytesToHex(saltBytes);
+  const trimmed = String(message ?? "").trim();
+  if (!trimmed) return null;
+  const messageHex = isHex(trimmed) && trimmed.length % 2 === 0
+    ? trimmed
+    : Buffer.from(trimmed, "utf8").toString("hex");
 
-  const messageWithSalt = salt + message;
-  const messageBytes = new TextEncoder().encode(messageWithSalt);
-  const messageHash = sha256(messageBytes);
-  const messageHex = bytesToHex(messageBytes);
-
-  const signature = p256.sign(messageHash, privKeyBytes);
-  const publicKey = bytesToHex(p256.getPublicKey(privKeyBytes));
+  const signature = wallet.sign(messageHex, privateKey);
+  const account = new wallet.Account(privateKey);
 
   return {
-    message,
+    message: trimmed,
     messageHex,
-    publicKey,
-    signature: signature.toCompactHex(),
-    salt,
+    publicKey: account.publicKey,
+    signature,
+    salt: "",
   };
 }
 
@@ -52,11 +50,9 @@ export async function signMessage(message: string): Promise<SignedMessage | null
  */
 export function verifySignature(messageHex: string, signature: string, publicKey: string): boolean {
   try {
-    const messageBytes = hexToBytes(messageHex);
-    const messageHash = sha256(messageBytes);
-    const pubKeyBytes = hexToBytes(publicKey);
-    const sig = p256.Signature.fromCompact(signature);
-    return p256.verify(sig, messageHash, pubKeyBytes);
+    const msg = String(messageHex ?? "").trim();
+    if (!msg) return false;
+    return wallet.verify(msg, signature, publicKey);
   } catch {
     return false;
   }

@@ -23,6 +23,28 @@ const mockSecureStore = SecureStore as jest.Mocked<typeof SecureStore>;
 describe("prices", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    global.fetch = jest.fn((url: string) => {
+      if (url.includes("coingecko")) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              prices: [
+                [1625097600000, 15.5],
+                [1625184000000, 16.2],
+              ],
+            }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            neo: { usd: 15.5, usd_24h_change: 2.5 },
+            gas: { usd: 5.2, usd_24h_change: -1.5 },
+          }),
+      });
+    }) as jest.Mock;
   });
 
   describe("getPrice", () => {

@@ -1,11 +1,30 @@
 {
   "app_id": "miniapp-gas-sponsor",
   "name": "Gas Sponsor",
-  "name_zh": "GAS 赞助",
-  "description": "Sponsor GAS fees for other users or get your transactions sponsored. Enable gasless transactions for your dApp users with a decentralized gas sponsorship marketplace.",
-  "description_zh": "为其他用户赞助 GAS 费用或获得交易赞助。通过去中心化的 GAS 赞助市场为您的 dApp 用户启用无 GAS 交易。",
-  "category": "defi",
+  "name_zh": "Gas 代付",
+  "description": "Free gas sponsorship for new users with low balance",
+  "description_zh": "为低余额新用户提供免费 Gas 代付服务",
+  "version": "1.0.0",
+  "entry_url": "mf://builtin?app=miniapp-gas-sponsor",
+  "category": "utility",
   "status": "active",
+  "tags": [
+    "gas",
+    "sponsor",
+    "onboarding",
+    "free"
+  ],
+  "permissions": [
+    "wallet",
+    "payments"
+  ],
+  "assets_allowed": [
+    "GAS"
+  ],
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
   "contracts": {
     "neo-n3-mainnet": {
       "address": null
@@ -14,11 +33,26 @@
       "address": null
     }
   },
-  "permissions": {
-    "payments": true
-  },
-  "supported_chains": [
-    "neo-n3-mainnet",
-    "neo-n3-testnet"
-  ]
+  "card": {
+    "display": {
+      "type": "live_status",
+      "banner": "/static/banner.png",
+      "live_status": {
+        "enabled": true,
+        "refresh_interval": 300,
+        "fields": [
+          "daily_quota",
+          "users_helped"
+        ]
+      }
+    },
+    "info": {
+      "logo": "/static/logo.png",
+      "owner": {
+        "name": "Neo Service Layer",
+        "address": "NXV7ZhHiyM1aHXwpVsRZC6BwNFP2jghXAq",
+        "verified": true
+      }
+    }
+  }
 }

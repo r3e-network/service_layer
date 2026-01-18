@@ -106,7 +106,7 @@ const healthGlowColor = computed(() => {
   display: block;
   font-size: 14px;
   font-weight: 800;
-  color: white;
+  color: var(--text-primary);
   margin-bottom: $space-4;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -144,7 +144,7 @@ const healthGlowColor = computed(() => {
 .gauge-value {
   font-size: 28px;
   font-weight: 900;
-  color: white;
+  color: var(--text-primary);
   line-height: 1;
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
@@ -187,7 +187,7 @@ const healthGlowColor = computed(() => {
   &.danger { background: #ef4444; box-shadow: 0 0 5px #ef4444; }
 }
 
-.legend-text { font-size: 10px; color: rgba(255, 255, 255, 0.6); }
+.legend-text { font-size: 10px; color: var(--text-secondary); }
 
 .metrics-grid {
   display: grid;
@@ -205,7 +205,7 @@ const healthGlowColor = computed(() => {
   gap: 4px;
 }
 
-.metric-label { font-size: 10px; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; }
+.metric-label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; }
 
 .metric-value {
   font-size: 18px;
@@ -216,8 +216,8 @@ const healthGlowColor = computed(() => {
   &.borrowed { color: #fde047; }
   &.collateral { color: #00e599; }
   &.ltv { color: #3b82f6; }
-  &.rate { color: white; }
+  &.rate { color: var(--text-primary); }
 }
 
-.metric-unit { font-size: 9px; color: rgba(255, 255, 255, 0.4); }
+.metric-unit { font-size: 9px; color: var(--text-secondary); }
 </style>

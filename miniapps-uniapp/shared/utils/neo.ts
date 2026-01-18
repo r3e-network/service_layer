@@ -27,22 +27,26 @@ export interface RawStackItem {
   Value?: unknown;
 }
 
+// Interface to break circular reference
+export interface ParsedStackArray extends Array<ParsedStackValue> { }
+export interface ParsedStackObject extends Record<string, ParsedStackValue> { }
+
 /** Parsed stack item value */
 export type ParsedStackValue =
   | string
   | boolean
   | number
-  | ParsedStackValue[]
-  | Record<string, ParsedStackValue>
+  | ParsedStackArray
+  | ParsedStackObject
   | null
   | undefined;
 
-function base58Decode(value: string): Uint8Array {
+function base58Decode(value: string): Uint8Array | null {
   const bytes: number[] = [0];
   for (const char of value) {
     const digit = BASE58_ALPHABET.indexOf(char);
     if (digit < 0) {
-      throw new Error("Invalid base58 character");
+      return null;
     }
     for (let i = 0; i < bytes.length; i += 1) {
       bytes[i] *= 58;
@@ -82,7 +86,7 @@ export function addressToScriptHash(address: string): string {
     return normalizeScriptHash(trimmed);
   }
   const decoded = base58Decode(trimmed);
-  if (decoded.length < 21) {
+  if (!decoded || decoded.length < 21) {
     return "";
   }
   const payloadLength = decoded.length >= 25 ? decoded.length - 4 : decoded.length - 3;
@@ -111,27 +115,27 @@ export function parseStackItem(item: RawStackItem | unknown): ParsedStackValue {
 
   switch (type) {
     case "Integer":
-      return value ?? "0";
+      return (value ?? "0") as ParsedStackValue;
     case "Boolean":
-      return value === true || value === "true" || value === 1 || value === "1";
+      return (value === true || value === "true" || value === 1 || value === "1");
     case "ByteArray":
     case "ByteString": {
       const raw = String(value ?? "");
       const cleaned = raw.replace(/^0x/i, "");
       const asText = decodeHexToText(cleaned);
-      return asText !== null ? asText : cleaned;
+      return (asText !== null ? asText : cleaned) as ParsedStackValue;
     }
     case "String":
-      return String(value ?? "");
+      return String(value ?? "") as ParsedStackValue;
     case "Hash160":
     case "Hash256":
-      return normalizeScriptHash(String(value ?? ""));
+      return normalizeScriptHash(String(value ?? "")) as ParsedStackValue;
     case "Array":
     case "Struct":
-      return Array.isArray(value) ? value.map(parseStackItem) : [];
+      return Array.isArray(value) ? value.map(parseStackItem) : ([] as ParsedStackArray);
     case "Map":
       if (Array.isArray(value)) {
-        const obj: Record<string, ParsedStackValue> = {};
+        const obj: ParsedStackObject = {};
         for (const entry of value) {
           const key = parseStackItem(entry?.key);
           const val = parseStackItem(entry?.value);
@@ -139,7 +143,7 @@ export function parseStackItem(item: RawStackItem | unknown): ParsedStackValue {
         }
         return obj;
       }
-      return {};
+      return {} as ParsedStackObject;
     default:
       return value as ParsedStackValue;
   }

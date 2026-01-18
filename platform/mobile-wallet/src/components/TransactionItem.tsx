@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Transaction } from "@/lib/api/transactions";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface TransactionItemProps {
   tx: Transaction;
@@ -8,6 +9,7 @@ interface TransactionItemProps {
 }
 
 export function TransactionItem({ tx, onPress }: TransactionItemProps) {
+  const { t, locale } = useTranslation();
   const isReceive = tx.type === "receive";
   const icon = isReceive ? "arrow-down" : "arrow-up";
   // Neo Green (#00E599) or Brutal Red (#EF4444)
@@ -20,7 +22,7 @@ export function TransactionItem({ tx, onPress }: TransactionItemProps) {
         <Ionicons name={icon} size={24} color="#000" />
       </View>
       <View style={styles.info}>
-        <Text style={styles.type}>{isReceive ? "Received" : "Sent"}</Text>
+        <Text style={styles.type}>{isReceive ? t("transactions.received") : t("transactions.sent")}</Text>
         <Text style={styles.hash} numberOfLines={1}>
           {tx.hash.slice(0, 10)}...{tx.hash.slice(-6)}
         </Text>
@@ -32,21 +34,25 @@ export function TransactionItem({ tx, onPress }: TransactionItemProps) {
             {tx.amount} {tx.asset}
           </Text>
         </View>
-        <Text style={styles.time}>{formatTime(tx.time)}</Text>
+        <Text style={styles.time}>{formatTime(tx.time, locale, t)}</Text>
       </View>
     </TouchableOpacity>
   );
 }
 
-function formatTime(timestamp: number): string {
+function formatTime(
+  timestamp: number,
+  locale: string,
+  t: (key: string, options?: Record<string, string | number>) => string,
+): string {
   const date = new Date(timestamp);
   const now = new Date();
   const diff = now.getTime() - date.getTime();
 
-  if (diff < 60000) return "JUST NOW";
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}M AGO`;
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)}H AGO`;
-  return date.toLocaleDateString().toUpperCase();
+  if (diff < 60000) return t("transactions.justNow").toUpperCase();
+  if (diff < 3600000) return t("transactions.minutesAgo", { count: Math.floor(diff / 60000) }).toUpperCase();
+  if (diff < 86400000) return t("transactions.hoursAgo", { count: Math.floor(diff / 3600000) }).toUpperCase();
+  return date.toLocaleDateString(locale).toUpperCase();
 }
 
 const styles = StyleSheet.create({

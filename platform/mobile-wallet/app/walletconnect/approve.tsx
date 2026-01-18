@@ -5,18 +5,20 @@ import { Ionicons } from "@expo/vector-icons";
 import { useWCStore } from "@/stores/walletconnect";
 import { useWalletStore } from "@/stores/wallet";
 import { getRequestType, signWCRequest, sendWCResponse } from "@/lib/walletconnect";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function WCApproveScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { pendingRequest, pendingMeta, setPendingRequest } = useWCStore();
   const { requireAuthForTransaction } = useWalletStore();
 
   if (!pendingRequest || !pendingMeta) {
     return (
       <SafeAreaView style={styles.container}>
-        <Stack.Screen options={{ title: "Approve Request" }} />
+        <Stack.Screen options={{ title: t("walletconnect.approveTitle") }} />
         <View style={styles.empty}>
-          <Text style={styles.emptyText}>No pending request</Text>
+          <Text style={styles.emptyText}>{t("walletconnect.noPending")}</Text>
         </View>
       </SafeAreaView>
     );
@@ -31,10 +33,10 @@ export default function WCApproveScreen() {
     try {
       const signature = await signWCRequest(pendingRequest);
       await sendWCResponse(pendingRequest.id, signature);
-      Alert.alert("Success", "Request approved and signed");
+      Alert.alert(t("common.success"), t("walletconnect.approvedMessage"));
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Failed to sign request";
-      Alert.alert("Error", message);
+      const message = e instanceof Error ? e.message : t("walletconnect.signFailed");
+      Alert.alert(t("common.error"), message);
     } finally {
       setPendingRequest(null, null);
       router.back();
@@ -48,7 +50,7 @@ export default function WCApproveScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: "Approve Request" }} />
+      <Stack.Screen options={{ title: t("walletconnect.approveTitle") }} />
       <ScrollView style={styles.content}>
         {/* DApp Info */}
         <View style={styles.dappInfo}>
@@ -61,30 +63,32 @@ export default function WCApproveScreen() {
 
         {/* Request Type */}
         <View style={styles.requestBox}>
-          <Text style={styles.requestLabel}>Request Type</Text>
+          <Text style={styles.requestLabel}>{t("walletconnect.requestType")}</Text>
           <Text style={styles.requestType}>
             {requestType === "sign_transaction"
-              ? "Sign Transaction"
+              ? t("walletconnect.signTransaction")
               : requestType === "sign_message"
-                ? "Sign Message"
-                : "Unknown"}
+                ? t("walletconnect.signMessage")
+                : t("walletconnect.unknownRequest")}
           </Text>
         </View>
 
         {/* Request Details */}
         <View style={styles.detailsBox}>
-          <Text style={styles.detailsLabel}>Details</Text>
-          <Text style={styles.detailsText}>Method: {pendingRequest.method}</Text>
+          <Text style={styles.detailsLabel}>{t("walletconnect.details")}</Text>
+          <Text style={styles.detailsText}>
+            {t("walletconnect.method")}: {pendingRequest.method}
+          </Text>
         </View>
       </ScrollView>
 
       {/* Action Buttons */}
       <View style={styles.actions}>
         <TouchableOpacity style={styles.rejectBtn} onPress={handleReject}>
-          <Text style={styles.rejectText}>Reject</Text>
+          <Text style={styles.rejectText}>{t("common.reject")}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.approveBtn} onPress={handleApprove}>
-          <Text style={styles.approveText}>Approve</Text>
+          <Text style={styles.approveText}>{t("common.approve")}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

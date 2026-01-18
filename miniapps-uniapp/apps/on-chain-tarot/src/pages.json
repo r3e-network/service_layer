@@ -5,12 +5,19 @@
       "style": {
         "navigationBarTitleText": "On-Chain Tarot"
       }
+    },
+    {
+      "path": "pages/docs/index",
+      "style": {
+        "navigationBarTitleText": "Docs"
+      }
     }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "white",
     "navigationBarTitleText": "On-Chain Tarot",
     "navigationBarBackgroundColor": "#0d1117",
-    "backgroundColor": "#0d1117"
+    "backgroundColor": "#0d1117",
+    "navigationStyle": "custom"
   }
 }

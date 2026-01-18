@@ -61,121 +61,26 @@
       :t="t as any"
       @close="selectedProposal = null"
       @vote="castVote"
+      @execute="executeProposal"
     />
+    <Fireworks :active="status?.type === 'success'" :duration="3000" />
   </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { useWallet } from "@neo/uniapp-sdk";
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
 import { parseInvokeResult } from "@/shared/utils/neo";
 import { AppLayout, NeoDoc } from "@/shared/components";
+import Fireworks from "../../../../../shared/components/Fireworks.vue";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 import ActiveProposalsTab from "./components/ActiveProposalsTab.vue";
 import HistoryProposalsTab from "./components/HistoryProposalsTab.vue";
 import CreateProposalTab from "./components/CreateProposalTab.vue";
 import ProposalDetailsModal from "./components/ProposalDetailsModal.vue";
 
-const translations = {
-  title: { en: "Council Governance", zh: "议会治理" },
-  active: { en: "Active", zh: "进行中" },
-  create: { en: "Create", zh: "创建" },
-  history: { en: "History", zh: "历史" },
-  createProposal: { en: "Create Proposal", zh: "创建提案" },
-  noActiveProposals: { en: "No active proposals", zh: "暂无进行中的提案" },
-  noHistory: { en: "No history", zh: "暂无历史记录" },
-  textType: { en: "Text", zh: "文本" },
-  policyType: { en: "Policy Change", zh: "策略变更" },
-  policyDetails: { en: "Policy Details", zh: "策略详情" },
-  policyMethod: { en: "Policy Method", zh: "策略方法" },
-  policyValue: { en: "Policy Value", zh: "策略值" },
-  policyValuePlaceholder: { en: "Enter policy value", zh: "输入策略值" },
-  methodFeePerByte: { en: "Set Fee Per Byte", zh: "设置每字节费用" },
-  methodExecFeeFactor: { en: "Set Exec Fee Factor", zh: "设置执行费系数" },
-  methodStoragePrice: { en: "Set Storage Price", zh: "设置存储价格" },
-  methodMaxBlockSize: { en: "Set Max Block Size", zh: "设置区块最大大小" },
-  methodMaxTransactions: { en: "Set Max Transactions/Block", zh: "设置每块最大交易数" },
-  methodMaxSystemFee: { en: "Set Max System Fee", zh: "设置最大系统费用" },
-  yes: { en: "Yes", zh: "赞成" },
-  no: { en: "No", zh: "反对" },
-  for: { en: "For", zh: "赞成" },
-  against: { en: "Against", zh: "反对" },
-  notCandidate: { en: "Only top 21 council members can vote", zh: "仅前 21 名议会成员可投票" },
-  connectWallet: { en: "Connect wallet to vote", zh: "连接钱包以投票" },
-  alreadyVoted: { en: "You already voted on this proposal", zh: "您已对该提案投票" },
-  voteRecorded: { en: "Vote recorded", zh: "投票已记录" },
-  loadingProposals: { en: "Loading proposals...", zh: "加载提案中..." },
-  failedToLoadProposals: { en: "Failed to load proposals", zh: "加载提案失败" },
-  failedToLoadCandidates: { en: "Failed to load council candidates", zh: "加载议会候选人失败" },
-  contractUnavailable: { en: "Contract not configured", zh: "合约未配置" },
-  yourVotingPower: { en: "Your Voting Power", zh: "您的投票权重" },
-  councilMember: { en: "Council Member", zh: "议会成员" },
-  quorum: { en: "Quorum", zh: "法定人数" },
-  proposalDetails: { en: "Proposal Details", zh: "提案详情" },
-  timeline: { en: "Timeline", zh: "时间线" },
-  proposalCreated: { en: "Proposal Created", zh: "提案创建" },
-  votingEnds: { en: "Voting Ends", zh: "投票结束" },
-  execution: { en: "Execution", zh: "执行" },
-  castYourVote: { en: "Cast Your Vote", zh: "投出您的一票" },
-  proposalType: { en: "Type", zh: "类型" },
-  proposalTitle: { en: "Title", zh: "标题" },
-  description: { en: "Description", zh: "描述" },
-  duration: { en: "Duration", zh: "有效期" },
-  titlePlaceholder: { en: "Enter proposal title", zh: "输入提案标题" },
-  descPlaceholder: { en: "Enter proposal description", zh: "输入提案描述" },
-  fillAllFields: { en: "Please enter a title and description", zh: "请填写标题和描述" },
-  policyFieldsRequired: { en: "Select a policy method and value", zh: "请选择策略方法并填写数值" },
-  invalidPolicyValue: { en: "Enter a valid policy value", zh: "请输入有效的策略数值" },
-  proposalSubmitted: { en: "Proposal submitted", zh: "提案已提交" },
-  submit: { en: "Submit", zh: "提交" },
-  passed: { en: "Passed", zh: "已通过" },
-  rejected: { en: "Rejected", zh: "已拒绝" },
-  revoked: { en: "Revoked", zh: "已撤销" },
-  expired: { en: "Expired", zh: "已过期" },
-  executed: { en: "Executed", zh: "已执行" },
-
-  docs: { en: "Docs", zh: "文档" },
-  docSubtitle: {
-    en: "Decentralized governance for Neo Council proposals",
-    zh: "Neo 理事会提案的去中心化治理",
-  },
-  docDescription: {
-    en: "Council Governance enables transparent voting on Neo ecosystem proposals. Council members can review, discuss, and vote on proposals with multi-signature execution.",
-    zh: "理事会治理支持对 Neo 生态系统提案进行透明投票。理事会成员可以审查、讨论和投票提案，并通过多签执行。",
-  },
-  step1: {
-    en: "Connect your Neo wallet (must be a council member)",
-    zh: "连接您的 Neo 钱包（必须是理事会成员）",
-  },
-  step2: {
-    en: "Browse active proposals and review their details",
-    zh: "浏览活跃提案并查看详情",
-  },
-  step3: {
-    en: "Cast your vote (For, Against, or Abstain)",
-    zh: "投出您的票（赞成、反对或弃权）",
-  },
-  step4: {
-    en: "Track proposal execution status after voting concludes",
-    zh: "投票结束后跟踪提案执行状态",
-  },
-  feature1Name: { en: "Multi-Sig Execution", zh: "多签执行" },
-  feature1Desc: {
-    en: "Approved proposals require multiple council signatures to execute.",
-    zh: "批准的提案需要多个理事会签名才能执行。",
-  },
-  feature2Name: { en: "Transparent Voting", zh: "透明投票" },
-  feature2Desc: {
-    en: "All votes are recorded on-chain for full accountability.",
-    zh: "所有投票都记录在链上，完全可追溯。",
-  },
-  error: { en: "Error", zh: "错误" },
-  wrongChain: { en: "Wrong Network", zh: "网络错误" },
-  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-};
-const t = createT(translations);
+const { t } = useI18n();
 const APP_ID = "miniapp-council-governance";
 
 // Detect host URL for API calls (miniapp runs in iframe)
@@ -192,12 +97,12 @@ const getApiBase = () => {
 };
 const API_HOST = getApiBase();
 
-const navTabs = [
+const navTabs = computed(() => [
   { id: "active", icon: "vote", label: t("active") },
   { id: "create", icon: "file", label: t("create") },
   { id: "history", icon: "history", label: t("history") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 const activeTab = ref("active");
 
 const { address, invokeContract, invokeRead, chainType, switchChain, getContractAddress } = useWallet() as any;
@@ -397,6 +302,28 @@ const createProposal = async (proposalData: any) => {
   }
 };
 
+const executeProposal = async (proposalId: number) => {
+  if (!address.value) {
+    showStatus(t("connectWallet"), "error");
+    return;
+  }
+  const hasHash = await ensureContractAddress();
+  if (!hasHash) return;
+
+  try {
+    await invokeContract({
+      scriptHash: contractAddress.value as string,
+      operation: "executeProposal",
+      args: [{ type: "Integer", value: proposalId }],
+    });
+    showStatus(t("executed"), "success");
+    await loadProposals();
+    selectedProposal.value = null;
+  } catch (e: any) {
+    showStatus(e.message || t("error"), "error");
+  }
+};
+
 const parseProposal = (data: Record<string, any>): Proposal => {
   const policyByteString = String(data.policyData || "");
   let policyMethod: string | undefined;
@@ -437,8 +364,7 @@ const loadProposals = async () => {
     if (cached) {
       proposals.value = JSON.parse(cached);
     }
-  } catch (e) {
-    console.warn("Failed to load proposals cache", e);
+  } catch {
   }
 
   try {
@@ -467,7 +393,6 @@ const loadProposals = async () => {
     if (proposals.value.length === 0) {
       showStatus(e.message || t("failedToLoadProposals"), "error");
     } else {
-      console.error("Background proposal refresh failed", e);
     }
   } finally {
     loadingProposals.value = false;
@@ -551,12 +476,79 @@ const docFeatures = computed(() => [
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
+
+$senate-bg: #f5f5f0;
+$senate-gold: #c5a059;
+$senate-slate: #2c3e50;
+$senate-marble: #e6e6e6;
+$senate-font: "Cinzel", serif;
+
+:global(page) {
+  background: $senate-bg;
+}
+
 .tab-content {
-  padding: 20px;
+  padding: 32px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
+  background-color: $senate-bg;
+  /* Marble texture simulation */
+  background-image: 
+    url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJ4Ij48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC42IiBudW1PY3RhdmVzPSIzIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsdGVyPSJ1cmwoI3gpIiBvcGFjaXR5PSIwLjEiLz48L3N2Zz4='),
+    linear-gradient(to bottom, #ffffff, #f0f0e8);
+  min-height: 100vh;
+}
+
+/* Senate Component Overrides */
+:deep(.neo-card) {
+  background: #ffffff !important;
+  border: 1px solid #dcdcdc !important;
+  border-top: 4px solid $senate-gold !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05) !important;
+  border-radius: 2px !important;
+  color: $senate-slate !important;
+  
+  &.variant-danger {
+    background: #fff0f0 !important;
+    border-color: #e74c3c !important;
+    color: #c0392b !important;
+  }
+}
+
+:deep(.neo-button) {
+  font-family: $senate-font !important;
+  border-radius: 2px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700 !important;
+  
+  &.variant-primary {
+    background: linear-gradient(to bottom, $senate-slate, #1a252f) !important;
+    color: $senate-gold !important;
+    border: 1px solid $senate-gold !important;
+    
+    &:active {
+      transform: translateY(1px);
+    }
+  }
+  
+  &.variant-secondary {
+    background: transparent !important;
+    border: 1px solid $senate-slate !important;
+    color: $senate-slate !important;
+  }
+}
+
+/* Typography Overrides */
+:deep(text), :deep(view) {
+  font-family: 'Times New Roman', serif;
+}
+:deep(.neo-card text.font-bold) {
+  font-family: $senate-font !important;
+  color: $senate-slate !important;
 }
 
 .scrollable {

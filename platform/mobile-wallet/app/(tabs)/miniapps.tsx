@@ -1,10 +1,12 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { MINIAPPS, getAppsByCategory, searchApps } from "@/data/miniapps-generated";
-import { CATEGORY_LABELS, type MiniAppCategory, type MiniAppInfo } from "@neo/shared/types";
+import { SvgUri } from "react-native-svg";
+import { BUILTIN_APPS, getAppsByCategory } from "@/lib/miniapp";
+import { CATEGORY_LABELS, type MiniAppCategory } from "@/types/miniapp";
+import type { MiniAppInfo } from "@/types/miniapp";
 import { MINIAPP_BASE_URL } from "@/lib/config";
 
 const CATEGORIES: (MiniAppCategory | "all")[] = [
@@ -15,16 +17,13 @@ const CATEGORIES: (MiniAppCategory | "all")[] = [
   "utility",
   "social",
   "nft",
-  "creative",
-  "security",
-  "tools",
 ];
 
 export default function MiniAppsScreen() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<MiniAppCategory | "all">("all");
 
-  const filteredApps = selectedCategory === "all" ? MINIAPPS : getAppsByCategory(selectedCategory);
+  const filteredApps = selectedCategory === "all" ? BUILTIN_APPS : getAppsByCategory(selectedCategory);
 
   const openMiniApp = (app: MiniAppInfo) => {
     // Construct full URL from base + entry_url
@@ -32,19 +31,36 @@ export default function MiniAppsScreen() {
     router.push({ pathname: "/browser", params: { url: fullUrl, title: app.name } });
   };
 
-  const renderItem = ({ item }: { item: MiniAppInfo }) => (
-    <TouchableOpacity style={styles.card} onPress={() => openMiniApp(item)}>
-      <View style={styles.iconBox}>
-        <Text style={styles.icon}>{item.icon}</Text>
-      </View>
-      <View style={styles.info}>
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.desc}>{item.description}</Text>
-        <Text style={styles.category}>{CATEGORY_LABELS[item.category]}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={20} color="#666" />
-    </TouchableOpacity>
-  );
+  const renderItem = ({ item }: { item: MiniAppInfo }) => {
+    const iconUri = item.icon
+      ? item.icon.startsWith("http")
+        ? item.icon
+        : `${MINIAPP_BASE_URL}${item.icon}`
+      : "";
+    const isSvg = iconUri.toLowerCase().split("?")[0].endsWith(".svg");
+
+    return (
+      <TouchableOpacity style={styles.card} onPress={() => openMiniApp(item)}>
+        <View style={styles.iconBox}>
+          {iconUri ? (
+            isSvg ? (
+              <SvgUri width={28} height={28} uri={iconUri} />
+            ) : (
+              <Image source={{ uri: iconUri }} style={styles.iconImage} resizeMode="contain" />
+            )
+          ) : (
+            <Text style={styles.iconFallback}>{item.name?.slice(0, 1) || "?"}</Text>
+          )}
+        </View>
+        <View style={styles.info}>
+          <Text style={styles.name}>{item.name}</Text>
+          <Text style={styles.desc}>{item.description}</Text>
+          <Text style={styles.category}>{CATEGORY_LABELS[item.category]}</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color="#666" />
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -119,7 +135,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     transform: [{ rotate: "2deg" }],
   },
-  icon: { fontSize: 28 },
+  iconImage: { width: 28, height: 28 },
+  iconFallback: { fontSize: 20, fontWeight: "900", color: "#000" },
   info: { flex: 1, marginLeft: 16 },
   name: { color: "#000", fontSize: 18, fontWeight: "900", textTransform: "uppercase", fontStyle: "italic" },
   desc: { color: "#666", fontSize: 13, marginTop: 2, fontWeight: "500" },

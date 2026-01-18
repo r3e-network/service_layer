@@ -53,85 +53,35 @@
         :features="docFeatures"
       />
     </view>
+    <Fireworks :active="status?.type === 'success'" :duration="3000" />
   </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
-import { formatNumber } from "@/shared/utils/format";
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
 import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 import AppLayout from "@/shared/components/AppLayout.vue";
 import NeoDoc from "@/shared/components/NeoDoc.vue";
 import NeoCard from "@/shared/components/NeoCard.vue";
 import NeoButton from "@/shared/components/NeoButton.vue";
+import Fireworks from "../../../../../shared/components/Fireworks.vue";
 import GraveyardHero from "./components/GraveyardHero.vue";
 import DestructionChamber from "./components/DestructionChamber.vue";
 import ConfirmDestroyModal from "./components/ConfirmDestroyModal.vue";
 import HistoryTab from "./components/HistoryTab.vue";
 import StatusMessage from "./components/StatusMessage.vue";
 
-const translations = {
-  title: { en: "Graveyard", zh: "数字墓地" },
-  subtitle: { en: "Permanent data destruction", zh: "永久数据销毁" },
-  destructionStats: { en: "Destruction Stats", zh: "销毁统计" },
-  itemsDestroyed: { en: "Destroyed", zh: "已销毁" },
-  gasReclaimed: { en: "GAS Fees", zh: "GAS 费用" },
-  destroyAsset: { en: "Destruction Chamber", zh: "销毁室" },
-  assetHashPlaceholder: { en: "Enter asset hash or token ID...", zh: "输入资产哈希或代币ID..." },
-  warning: { en: "⚠ DANGER ZONE", zh: "⚠ 危险区域" },
-  warningText: {
-    en: "This action is IRREVERSIBLE. The asset will be permanently destroyed and cannot be recovered.",
-    zh: "此操作不可逆转。资产将被永久销毁，无法恢复。",
-  },
-  destroyForever: { en: "DESTROY FOREVER", zh: "永久销毁" },
-  destroying: { en: "DESTROYING...", zh: "销毁中..." },
-  recentDestructions: { en: "Destruction Records", zh: "销毁记录" },
-  enterAssetHash: { en: "Please enter asset hash", zh: "请输入资产哈希" },
-  assetDestroyed: { en: "Asset has been permanently destroyed", zh: "资产已永久销毁" },
-  destroy: { en: "Destroy", zh: "销毁" },
-  history: { en: "History", zh: "历史" },
-  records: { en: "records", zh: "条记录" },
-  destroyed: { en: "DESTROYED", zh: "已销毁" },
-  noDestructions: { en: "No destruction records yet", zh: "暂无销毁记录" },
-  tabStats: { en: "Stats", zh: "统计" },
-  confirmTitle: { en: "Confirm Destruction", zh: "确认销毁" },
-  confirmText: { en: "Are you absolutely sure? This cannot be undone.", zh: "您确定吗？此操作无法撤销。" },
-  confirmDestroy: { en: "Yes, Destroy It", zh: "确认销毁" },
-  cancel: { en: "Cancel", zh: "取消" },
-  connectWallet: { en: "Connect wallet", zh: "请连接钱包" },
-  contractUnavailable: { en: "Contract unavailable", zh: "合约不可用" },
-  receiptMissing: { en: "Payment receipt missing", zh: "支付凭证缺失" },
-  buryPending: { en: "Burial confirmation pending", zh: "销毁确认中" },
-  error: { en: "Error", zh: "错误" },
-  docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Permanent asset destruction service", zh: "永久资产销毁服务" },
-  docDescription: {
-    en: "Graveyard provides a secure way to permanently destroy digital assets on the Neo blockchain. Once destroyed, assets cannot be recovered.",
-    zh: "数字墓地提供在Neo区块链上永久销毁数字资产的安全方式。一旦销毁，资产将无法恢复。",
-  },
-  step1: { en: "Enter the asset hash or token ID", zh: "输入资产哈希或代币ID" },
-  step2: { en: "Review the warning carefully", zh: "仔细阅读警告信息" },
-  step3: { en: "Confirm destruction - this is permanent!", zh: "确认销毁 - 此操作永久生效！" },
-  step4: { en: "View destruction records in the History tab.", zh: "在历史标签页查看销毁记录。" },
-  feature1Name: { en: "Permanent Deletion", zh: "永久删除" },
-  feature1Desc: { en: "Assets are destroyed on-chain forever", zh: "资产在链上永久销毁" },
-  feature2Name: { en: "On-Chain Proofs", zh: "链上证明" },
-  feature2Desc: { en: "Destruction is recorded on-chain", zh: "销毁记录上链" },
-  wrongChain: { en: "Wrong Network", zh: "网络错误" },
-  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-};
 
-const t = createT(translations);
+const { t } = useI18n();
 
-const navTabs = [
+const navTabs = computed(() => [
   { id: "destroy", icon: "trash", label: t("destroy") },
   { id: "stats", icon: "chart", label: t("tabStats") },
   { id: "history", icon: "time", label: t("history") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 
 const activeTab = ref("destroy");
 
@@ -161,8 +111,6 @@ const showConfirm = ref(false);
 const isDestroying = ref(false);
 const showWarningShake = ref(false);
 const contractAddress = ref<string | null>(null);
-
-const formatNum = (n: number) => formatNumber(n, 2);
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -209,10 +157,11 @@ const executeDestroy = async () => {
 
     const tx = await invokeContract({
       contractAddress: contract,
-      operation: "BuryMemory",
+      operation: "buryMemory",
       args: [
         { type: "Hash160", value: address.value as string },
         { type: "String", value: assetHash.value },
+        { type: "Integer", value: "0" }, // memoryType: 0 = default
         { type: "Integer", value: String(receiptId) },
       ],
     });
@@ -247,11 +196,10 @@ const loadStats = async () => {
   }
   if (!contractAddress.value) return;
   try {
-    const totalRes = await invokeRead({ contractAddress: contractAddress.value, operation: "TotalMemories" });
+    const totalRes = await invokeRead({ contractAddress: contractAddress.value, operation: "totalMemories" });
     totalDestroyed.value = Number(parseInvokeResult(totalRes) || 0);
     gasReclaimed.value = Number((totalDestroyed.value * 0.1).toFixed(2));
-  } catch (e) {
-    console.warn("[Graveyard] Failed to load stats:", e);
+  } catch {
   }
 };
 
@@ -266,8 +214,7 @@ const loadHistory = async () => {
         time: new Date(evt.created_at || Date.now()).toLocaleString(),
       };
     });
-  } catch (e) {
-    console.warn("[Graveyard] Failed to load history:", e);
+  } catch {
   }
 };
 
@@ -287,16 +234,122 @@ watch(activeTab, async (tab) => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+
+$grave-bg: #000000;
+$grave-accent: #33ff00; /* Glitch Green */
+$grave-danger: #ff003c;
+$grave-text: #e0e0e0;
+$grave-grid: #1a1a1a;
+$grave-font: 'Courier Prime', monospace;
+
+:global(page) {
+  background: $grave-bg;
+  font-family: $grave-font;
+}
+
 .tab-content {
-  padding: $space-6;
+  padding: 24px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-6;
+  gap: 24px;
+  background-color: $grave-bg;
+  min-height: 100vh;
+  position: relative;
+  
+  /* Matrix/Grid background */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient($grave-grid 1px, transparent 1px),
+      linear-gradient(90deg, $grave-grid 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    z-index: 0;
+  }
 }
 
 .scrollable {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Digital Afterlife Component Overrides */
+:deep(.neo-card) {
+  background: rgba(10, 10, 10, 0.9) !important;
+  border: 1px solid $grave-grid !important;
+  border-left: 4px solid $grave-accent !important;
+  border-radius: 0 !important;
+  box-shadow: 5px 5px 0 $grave-grid !important;
+  color: $grave-text !important;
+  font-family: $grave-font !important;
+  position: relative;
+  z-index: 1;
+  
+  &.variant-danger {
+    background: rgba(20, 0, 0, 0.9) !important;
+    border-color: $grave-danger !important;
+    color: $grave-danger !important;
+    text-shadow: 0 0 5px $grave-danger;
+  }
+}
+
+:deep(.neo-button) {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-family: $grave-font !important;
+  font-weight: 700 !important;
+  border-radius: 0 !important;
+  transition: all 0.1s steps(2);
+  
+  &.variant-primary {
+    background: $grave-accent !important;
+    color: #000 !important;
+    border: none !important;
+    box-shadow: 3px 3px 0 $grave-grid !important;
+    
+    &:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0 $grave-grid !important;
+    }
+    
+    &:active {
+      transform: translate(0, 0);
+      box-shadow: 0 0 0 !important;
+    }
+  }
+  
+  &.variant-secondary {
+    background: transparent !important;
+    border: 1px solid $grave-accent !important;
+    color: $grave-accent !important;
+    
+    &:hover {
+      background: rgba($grave-accent, 0.1) !important;
+    }
+  }
+  
+  &.variant-danger {
+    background: $grave-danger !important;
+    color: #000 !important;
+    box-shadow: 3px 3px 0 rgba(255,0,0,0.3) !important;
+  }
+}
+
+:deep(input), :deep(.neo-input) {
+  background: #000 !important;
+  border: 1px solid $grave-text !important;
+  color: $grave-accent !important;
+  font-family: $grave-font !important;
+  border-radius: 0 !important;
+  caret-color: $grave-accent;
+  
+  &:focus {
+    border-color: $grave-accent !important;
+    box-shadow: 0 0 10px rgba($grave-accent, 0.3) !important;
+  }
 }
 </style>

@@ -25,7 +25,7 @@ const getVariant = (type: string): CardVariant => {
   text-transform: uppercase;
   font-size: 14px;
   letter-spacing: 0.05em;
-  color: white;
+  color: var(--text-primary);
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 .mb-4 { margin-bottom: 16px; }

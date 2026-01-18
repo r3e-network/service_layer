@@ -39,20 +39,20 @@ describe("theme", () => {
   describe("getThemeColors", () => {
     it("should return dark colors for dark mode", () => {
       const colors = getThemeColors("dark", false);
-      expect(colors.background).toBe("#0a0a0a");
+      expect(colors.background).toBe("#05060d");
     });
 
     it("should return light colors for light mode", () => {
       const colors = getThemeColors("light", false);
-      expect(colors.background).toBe("#ffffff");
+      expect(colors.background).toBe("#f8f8ff");
     });
 
     it("should follow system when system mode", () => {
       const darkColors = getThemeColors("system", true);
-      expect(darkColors.background).toBe("#0a0a0a");
+      expect(darkColors.background).toBe("#05060d");
 
       const lightColors = getThemeColors("system", false);
-      expect(lightColors.background).toBe("#ffffff");
+      expect(lightColors.background).toBe("#f8f8ff");
     });
   });
 

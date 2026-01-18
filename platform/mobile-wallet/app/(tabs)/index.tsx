@@ -35,12 +35,12 @@ export default function WalletScreen() {
           <View style={styles.brutalIconLarge}>
             <Ionicons name="wallet" size={80} color="#000" />
           </View>
-          <Text style={styles.lockedText}>{t("wallet.welcome") || "Welcome to Neo Wallet"}</Text>
+          <Text style={styles.lockedText}>{t("wallet.welcome")}</Text>
           <TouchableOpacity style={styles.unlockButton} onPress={createWallet}>
-            <Text style={styles.unlockButtonText}>{t("wallet.create") || "Create New Wallet"}</Text>
+            <Text style={styles.unlockButtonText}>{t("wallet.create")}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.importButton} onPress={() => router.push("/import")}>
-            <Text style={styles.importButtonText}>{t("wallet.import") || "Import Existing Wallet"}</Text>
+            <Text style={styles.importButtonText}>{t("wallet.import")}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -55,9 +55,9 @@ export default function WalletScreen() {
           <View style={[styles.brutalIconLarge, { backgroundColor: "#ffde59" }]}>
             <Ionicons name="lock-closed" size={80} color="#000" />
           </View>
-          <Text style={styles.lockedText}>{t("wallet.locked") || "Wallet Locked"}</Text>
+          <Text style={styles.lockedText}>{t("wallet.locked")}</Text>
           <TouchableOpacity style={styles.unlockButton} onPress={unlock}>
-            <Text style={styles.unlockButtonText}>{t("wallet.unlock") || "Unlock with Biometrics"}</Text>
+            <Text style={styles.unlockButtonText}>{t("wallet.unlock")}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -69,7 +69,7 @@ export default function WalletScreen() {
       <ScrollView>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Neo Wallet</Text>
+          <Text style={styles.title}>{t("wallet.title")}</Text>
           <Text style={styles.address} numberOfLines={1}>
             {`${address.slice(0, 8)}...${address.slice(-6)}`}
           </Text>
@@ -77,7 +77,7 @@ export default function WalletScreen() {
 
         {/* Total Balance */}
         <View style={styles.balanceCard}>
-          <Text style={styles.balanceLabel}>{t("wallet.balance") || "Total Balance"}</Text>
+          <Text style={styles.balanceLabel}>{t("wallet.balance")}</Text>
           <Text style={styles.balanceValue}>${totalUsdValue}</Text>
           <TouchableOpacity onPress={refreshBalances} style={styles.refreshBtn}>
             <Ionicons name="refresh" size={24} color="#00E599" />
@@ -86,7 +86,7 @@ export default function WalletScreen() {
 
         {/* Assets */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t("wallet.assets") || "Assets"}</Text>
+          <Text style={styles.sectionTitle}>{t("wallet.assets")}</Text>
           {assets.map((asset) => (
             <AssetCard key={asset.symbol} asset={asset} />
           ))}
@@ -96,15 +96,15 @@ export default function WalletScreen() {
         <View style={styles.actions}>
           <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/send")}>
             <Ionicons name="arrow-up" size={24} color="#000" />
-            <Text style={styles.actionText}>{t("wallet.send") || "Send"}</Text>
+            <Text style={styles.actionText}>{t("wallet.send")}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/receive")}>
             <Ionicons name="arrow-down" size={24} color="#000" />
-            <Text style={styles.actionText}>{t("wallet.receive") || "Receive"}</Text>
+            <Text style={styles.actionText}>{t("wallet.receive")}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/history")}>
             <Ionicons name="time" size={24} color="#000" />
-            <Text style={styles.actionText}>{t("wallet.history") || "History"}</Text>
+            <Text style={styles.actionText}>{t("wallet.history")}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

@@ -136,7 +136,7 @@ defineEmits(["update:amountA", "update:amountB", "calculateA", "calculateB", "ad
   ::v-deep .uni-easyinput__content-input {
     font-size: 20px !important;
     font-weight: 600 !important;
-    color: white !important;
+    color: var(--text-primary) !important;
     height: 32px;
     padding: 0 !important;
     text-align: right !important; 

@@ -73,7 +73,7 @@ defineEmits(["update:question", "draw", "reset", "flip"]);
   font-weight: 700;
   text-transform: uppercase;
   background: rgba(255, 255, 255, 0.1);
-  color: white;
+  color: var(--text-primary);
   padding: 4px 12px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 99px;

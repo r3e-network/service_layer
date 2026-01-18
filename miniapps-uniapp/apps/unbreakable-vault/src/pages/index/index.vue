@@ -26,6 +26,31 @@
           </view>
 
           <view class="input-group">
+            <text class="input-label">{{ t("titleLabel") }}</text>
+            <NeoInput v-model="vaultTitle" :placeholder="t('titlePlaceholder')" />
+          </view>
+
+          <view class="input-group">
+            <text class="input-label">{{ t("descriptionLabel") }}</text>
+            <NeoInput v-model="vaultDescription" :placeholder="t('descriptionPlaceholder')" type="textarea" />
+          </view>
+
+          <view class="input-group">
+            <text class="input-label">{{ t("difficultyLabel") }}</text>
+            <view class="difficulty-actions">
+              <NeoButton size="sm" :variant="vaultDifficulty === 1 ? 'primary' : 'secondary'" @click="vaultDifficulty = 1">
+                {{ t("difficultyEasy") }}
+              </NeoButton>
+              <NeoButton size="sm" :variant="vaultDifficulty === 2 ? 'primary' : 'secondary'" @click="vaultDifficulty = 2">
+                {{ t("difficultyMedium") }}
+              </NeoButton>
+              <NeoButton size="sm" :variant="vaultDifficulty === 3 ? 'primary' : 'secondary'" @click="vaultDifficulty = 3">
+                {{ t("difficultyHard") }}
+              </NeoButton>
+            </view>
+          </view>
+
+          <view class="input-group">
             <text class="input-label">{{ t("secretLabel") }}</text>
             <NeoInput v-model="secret" :placeholder="t('secretPlaceholder')" />
           </view>
@@ -60,6 +85,24 @@
         <text class="vault-created-label">{{ t("vaultCreated") }}</text>
         <text class="vault-created-id">#{{ createdVaultId }}</text>
       </NeoCard>
+
+      <NeoCard v-if="myVaults.length > 0" variant="erobo" class="recent-vaults mt-4">
+        <text class="section-title">{{ t("myVaults") }}</text>
+        <view class="vault-list">
+          <view
+            v-for="vault in myVaults"
+            :key="vault.id"
+            class="vault-item"
+            @click="selectVault(vault.id)"
+          >
+            <view class="vault-meta">
+              <text class="vault-id">#{{ vault.id }}</text>
+              <text class="vault-bounty">{{ formatGas(vault.bounty) }} GAS</text>
+            </view>
+            <text class="vault-creator text-xs opacity-50">{{ new Date(vault.created).toLocaleDateString() }}</text>
+          </view>
+        </view>
+      </NeoCard>
     </view>
 
     <view v-if="activeTab === 'break'" class="tab-content scrollable">
@@ -83,7 +126,7 @@
             <NeoInput v-model="attemptSecret" :placeholder="t('secretAttemptPlaceholder')" />
           </view>
 
-          <text class="helper-text">{{ t("attemptFeeNote") }}</text>
+          <text class="helper-text">{{ t("attemptFeeNote").replace("{fee}", attemptFeeDisplay) }}</text>
 
           <NeoButton
             variant="primary"
@@ -158,79 +201,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
 import { sha256Hex } from "@/shared/utils/hash";
-import { normalizeScriptHash, parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
+import { normalizeScriptHash, parseInvokeResult, parseStackItem, addressToScriptHash } from "@/shared/utils/neo";
 import { bytesToHex, formatAddress } from "@/shared/utils/format";
 import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard } from "@/shared/components";
 
-const translations = {
-  title: { en: "Unbreakable Vault", zh: "坚不可摧保险库" },
-  create: { en: "Create", zh: "创建" },
-  break: { en: "Break", zh: "破解" },
-  docs: { en: "Docs", zh: "文档" },
-  bountyLabel: { en: "Bounty", zh: "悬赏金" },
-  bountyPlaceholder: { en: "Minimum 1", zh: "至少 1" },
-  minBountyNote: { en: "Minimum bounty: 1 GAS", zh: "最低悬赏：1 GAS" },
-  secretLabel: { en: "Vault Secret", zh: "保险库密钥" },
-  secretPlaceholder: { en: "Enter a secret phrase", zh: "输入密钥短语" },
-  confirmSecretLabel: { en: "Confirm Secret", zh: "确认密钥" },
-  confirmSecretPlaceholder: { en: "Re-enter the secret", zh: "再次输入密钥" },
-  secretMismatch: { en: "Secrets do not match", zh: "两次密钥不一致" },
-  hashPreview: { en: "On-chain Hash", zh: "链上哈希" },
-  createVault: { en: "Create Vault", zh: "创建保险库" },
-  creating: { en: "Creating...", zh: "创建中..." },
-  secretNote: {
-    en: "Secret is hashed locally and never stored. Keep it safe to claim your bounty.",
-    zh: "密钥在本地哈希且不会存储。请妥善保管以领取悬赏。",
-  },
-  vaultCreated: { en: "Vault Created", zh: "保险库已创建" },
-  vaultIdLabel: { en: "Vault ID", zh: "保险库编号" },
-  vaultIdPlaceholder: { en: "Enter vault ID", zh: "输入保险库编号" },
-  loadVault: { en: "Load Vault", zh: "加载保险库" },
-  secretAttemptLabel: { en: "Break Secret", zh: "破解密钥" },
-  secretAttemptPlaceholder: { en: "Enter secret attempt", zh: "输入尝试密钥" },
-  attemptFeeNote: { en: "Attempt fee: 0.1 GAS", zh: "尝试费用：0.1 GAS" },
-  attemptBreak: { en: "Attempt Break", zh: "尝试破解" },
-  attempting: { en: "Attempting...", zh: "破解中..." },
-  vaultStatus: { en: "Status", zh: "状态" },
-  active: { en: "Active", zh: "进行中" },
-  broken: { en: "Broken", zh: "已破解" },
-  creator: { en: "Creator", zh: "创建者" },
-  attempts: { en: "Attempts", zh: "尝试次数" },
-  winner: { en: "Winner", zh: "获胜者" },
-  recentVaults: { en: "Recent Vaults", zh: "最新保险库" },
-  noRecentVaults: { en: "No vaults found", zh: "暂无保险库" },
-  connectWallet: { en: "Connect wallet", zh: "请连接钱包" },
-  vaultNotFound: { en: "Vault not found", zh: "未找到保险库" },
-  vaultCreateFailed: { en: "Create failed", zh: "创建失败" },
-  vaultAttemptFailed: { en: "Attempt failed", zh: "破解失败" },
-  loadFailed: { en: "Failed to load vault", zh: "加载保险库失败" },
-  receiptMissing: { en: "Payment receipt missing", zh: "支付凭证缺失" },
-  contractUnavailable: { en: "Contract unavailable", zh: "合约不可用" },
 
-  docSubtitle: {
-    en: "Security bounty vaults with on-chain verification",
-    zh: "链上验证的安全悬赏保险库",
-  },
-  docDescription: {
-    en: "Create a vault by locking a secret hash with a GAS bounty. Anyone can attempt to break the vault by paying a small fee; if they provide the correct secret, they win the bounty.",
-    zh: "通过锁定密钥哈希并设置 GAS 悬赏创建保险库。任何人都可支付小额费用尝试破解；若密钥正确，即可赢得悬赏。",
-  },
-  step1: { en: "Create a vault by setting a bounty and secret hash", zh: "设置悬赏与密钥哈希创建保险库" },
-  step2: { en: "Share the vault ID publicly for challengers", zh: "公开保险库编号吸引挑战者" },
-  step3: { en: "Challengers pay 0.1 GAS to attempt a break", zh: "挑战者支付 0.1 GAS 尝试破解" },
-  step4: { en: "If the secret matches, bounty is awarded instantly", zh: "密钥匹配即刻发放悬赏" },
-  feature1Name: { en: "On-chain Verification", zh: "链上验证" },
-  feature1Desc: { en: "Secrets are validated on-chain via SHA-256.", zh: "通过 SHA-256 在链上验证密钥。" },
-  feature2Name: { en: "Bounty Pool", zh: "悬赏池" },
-  feature2Desc: { en: "Each attempt adds to the bounty pool.", zh: "每次尝试都会增加悬赏。" },
-  wrongChain: { en: "Wrong Network", zh: "网络错误" },
-  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-};
-
-const t = createT(translations);
+const { t } = useI18n();
 
 const APP_ID = "miniapp-unbreakablevault";
 const MIN_BOUNTY = 1;
@@ -241,15 +219,18 @@ const { payGAS, isLoading } = usePayments(APP_ID);
 const { list: listEvents } = useEvents();
 
 const activeTab = ref("create");
-const navTabs = [
+const navTabs = computed(() => [
   { id: "create", icon: "lock", label: t("create") },
   { id: "break", icon: "key", label: t("break") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 
 const status = ref<{ msg: string; type: "success" | "error" } | null>(null);
 
 const bounty = ref("");
+const vaultTitle = ref("");
+const vaultDescription = ref("");
+const vaultDifficulty = ref(1);
 const secret = ref("");
 const secretConfirm = ref("");
 const secretHash = ref("");
@@ -264,9 +245,11 @@ const vaultDetails = ref<{
   attempts: number;
   broken: boolean;
   winner: string;
+  attemptFee: number;
 } | null>(null);
 
 const recentVaults = ref<{ id: string; creator: string; bounty: number }[]>([]);
+const myVaults = ref<{ id: string; bounty: number; created: number }[]>([]);
 
 const secretMismatch = computed(() => {
   if (!secretConfirm.value) return false;
@@ -275,7 +258,7 @@ const secretMismatch = computed(() => {
 
 const canCreate = computed(() => {
   const amount = Number.parseFloat(bounty.value);
-  return amount >= MIN_BOUNTY && secret.value.trim() && !secretMismatch.value;
+  return amount >= MIN_BOUNTY && vaultTitle.value.trim() && secret.value.trim() && !secretMismatch.value;
 });
 
 const canAttempt = computed(() => {
@@ -288,7 +271,17 @@ const canAttempt = computed(() => {
   );
 });
 
+const toNumber = (value: unknown) => {
+  const num = Number(value ?? 0);
+  return Number.isFinite(num) ? num : 0;
+};
+
 const formatGas = (amount: number) => (amount / 1e8).toFixed(2);
+const attemptFeeDisplay = computed(() => {
+  const fallback = Math.floor(ATTEMPT_FEE * 1e8);
+  const fee = vaultDetails.value?.attemptFee ?? fallback;
+  return formatGas(fee);
+});
 const toHex = (value: string) => {
   if (!value) return "";
   if (typeof TextEncoder === "undefined") {
@@ -309,8 +302,8 @@ const loadRecentVaults = async () => {
   try {
     const res = await listEvents({ app_id: APP_ID, event_name: "VaultCreated", limit: 12 });
     const vaults = res.events
-      .map((evt) => {
-        const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
+      .map((evt: any) => {
+        const values = Array.isArray(evt?.state) ? evt.state.map(parseStackItem) : [];
         const id = String(values[0] ?? "");
         const creator = String(values[1] ?? "");
         const bountyValue = Number(values[2] ?? 0);
@@ -319,8 +312,40 @@ const loadRecentVaults = async () => {
       })
       .filter(Boolean) as { id: string; creator: string; bounty: number }[];
     recentVaults.value = vaults;
-  } catch (e) {
-    console.warn("[UnbreakableVault] Failed to load recent vaults:", e);
+  } catch {
+  }
+};
+
+const loadMyVaults = async () => {
+  if (!address.value) {
+    myVaults.value = [];
+    return;
+  }
+  try {
+    const res = await listEvents({ app_id: APP_ID, event_name: "VaultCreated", limit: 50 });
+    const myHash = normalizeScriptHash(addressToScriptHash(address.value));
+
+    const vaults = res.events
+      .map((evt: any) => {
+        const values = Array.isArray(evt?.state) ? evt.state.map(parseStackItem) : [];
+        const id = String(values[0] ?? "");
+        const creator = String(values[1] ?? "");
+        const bountyValue = Number(values[2] ?? 0);
+        
+        const creatorHash = normalizeScriptHash(addressToScriptHash(creator));
+        
+        if (!id || creatorHash !== myHash) return null;
+        
+        return { 
+          id, 
+          bounty: bountyValue,
+          created: evt.created_at ? new Date(evt.created_at).getTime() : Date.now()
+        };
+      })
+      .filter(Boolean) as { id: string; bounty: number; created: number }[];
+      
+    myVaults.value = vaults.sort((a, b) => b.created - a.created);
+  } catch {
   }
 };
 
@@ -349,6 +374,9 @@ const createVault = async () => {
         { type: "Hash160", value: address.value as string },
         { type: "ByteArray", value: hash },
         { type: "Integer", value: String(bountyInt) },
+        { type: "Integer", value: String(vaultDifficulty.value) },
+        { type: "String", value: vaultTitle.value.trim().slice(0, 100) },
+        { type: "String", value: vaultDescription.value.trim().slice(0, 300) },
         { type: "Integer", value: String(receiptId) },
       ],
     });
@@ -357,9 +385,13 @@ const createVault = async () => {
     createdVaultId.value = vaultId || createdVaultId.value;
     status.value = { msg: t("vaultCreated"), type: "success" };
     bounty.value = "";
+    vaultTitle.value = "";
+    vaultDescription.value = "";
+    vaultDifficulty.value = 1;
     secret.value = "";
     secretConfirm.value = "";
     await loadRecentVaults();
+    await loadMyVaults();
   } catch (e: any) {
     status.value = { msg: e?.message || t("vaultCreateFailed"), type: "error" };
   }
@@ -372,25 +404,27 @@ const loadVault = async () => {
     const contract = await ensureContractAddress();
     const res = await invokeRead({
       contractAddress: contract,
-      operation: "getVault",
+      operation: "getVaultDetails",
       args: [{ type: "Integer", value: vaultIdInput.value }],
     });
     const parsed = parseInvokeResult(res);
-    if (!Array.isArray(parsed) || parsed.length < 6) {
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
       throw new Error(t("vaultNotFound"));
     }
-    const [creator, bountyValue, , attempts, broken, winner] = parsed;
-    const creatorHash = normalizeScriptHash(String(creator || ""));
+    const data = parsed as Record<string, unknown>;
+    const creator = String(data.creator || "");
+    const creatorHash = normalizeScriptHash(creator);
     if (!creatorHash || /^0+$/.test(creatorHash)) {
       throw new Error(t("vaultNotFound"));
     }
     vaultDetails.value = {
       id: vaultIdInput.value,
-      creator: String(creator || ""),
-      bounty: Number(bountyValue || 0),
-      attempts: Number(attempts || 0),
-      broken: Boolean(broken),
-      winner: String(winner || ""),
+      creator,
+      bounty: toNumber(data.bounty),
+      attempts: toNumber(data.attemptCount),
+      broken: Boolean(data.broken),
+      winner: String(data.winner || ""),
+      attemptFee: toNumber(data.attemptFee),
     };
   } catch (e: any) {
     status.value = { msg: e?.message || t("loadFailed"), type: "error" };
@@ -408,7 +442,8 @@ const attemptBreak = async () => {
     if (!address.value) throw new Error(t("connectWallet"));
     const contract = await ensureContractAddress();
 
-    const payment = await payGAS(String(ATTEMPT_FEE), `vault:attempt:${vaultIdInput.value}`);
+    const feeBase = vaultDetails.value?.attemptFee ?? Math.floor(ATTEMPT_FEE * 1e8);
+    const payment = await payGAS(formatGas(feeBase), `vault:attempt:${vaultIdInput.value}`);
     const receiptId = payment.receipt_id;
     if (!receiptId) throw new Error(t("receiptMissing"));
 
@@ -448,6 +483,7 @@ watch(secret, async (value) => {
 
 onMounted(() => {
   loadRecentVaults();
+  loadMyVaults();
 });
 
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
@@ -461,167 +497,192 @@ const docFeatures = computed(() => [
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
+$safe-bg: #e0e5ec;
+$safe-shadow-light: #ffffff;
+$safe-shadow-dark: #a3b1c6;
+$safe-text: #4a5568;
+$safe-font: 'Montserrat', sans-serif;
+
+:global(page) {
+  background: $safe-bg;
+  font-family: $safe-font;
+}
+
+.app-container {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100vh;
+  gap: 16px;
+  background-color: $safe-bg;
+  font-family: $safe-font;
+  /* Brushed Metal Texture */
+  background-image: 
+    linear-gradient(90deg, rgba(255,255,255,0.05) 0%, transparent 100%),
+    repeating-linear-gradient(45deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 1px, transparent 1px, transparent 10px);
+}
+
 .tab-content {
-  padding: $space-4;
+  padding: 16px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
-}
-
-.scrollable {
+  gap: 24px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: $space-4;
+/* Safe Component Overrides (Neumorphism) */
+:deep(.neo-card) {
+  background: $safe-bg !important;
+  border-radius: 20px !important;
+  box-shadow: 9px 9px 16px $safe-shadow-dark, -9px -9px 16px $safe-shadow-light !important;
+  color: $safe-text !important;
+  border: none !important;
+  padding: 24px !important;
+  
+  &.variant-danger {
+    background: #ffe3e3 !important;
+    box-shadow: 5px 5px 10px #d1a3a3, -5px -5px 10px #ffffff !important;
+    color: #c53030 !important;
+  }
 }
 
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: $space-2;
+:deep(.neo-button) {
+  border-radius: 50px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em;
+  color: $safe-text !important;
+  transition: all 0.2s ease;
+  
+  &.variant-primary {
+    background: linear-gradient(145deg, #e0e5ec, #ffffff);
+    box-shadow: 5px 5px 10px $safe-shadow-dark, -5px -5px 10px $safe-shadow-light !important;
+    border: none !important;
+    color: #2d3748 !important; 
+    
+    &:active {
+      box-shadow: inset 5px 5px 10px $safe-shadow-dark, inset -5px -5px 10px $safe-shadow-light !important;
+    }
+  }
+  
+  &.variant-secondary {
+    background: $safe-bg !important;
+    box-shadow: 5px 5px 10px $safe-shadow-dark, -5px -5px 10px $safe-shadow-light !important;
+    border: none !important;
+    
+    &:active {
+      box-shadow: inset 5px 5px 10px $safe-shadow-dark, inset -5px -5px 10px $safe-shadow-light !important;
+    }
+  }
+}
+
+:deep(input), :deep(.neo-input) {
+  background: $safe-bg !important;
+  border-radius: 12px !important;
+  box-shadow: inset 5px 5px 10px $safe-shadow-dark, inset -5px -5px 10px $safe-shadow-light !important;
+  border: none !important;
+  color: #2d3748 !important;
+  padding: 12px 16px !important;
+  
+  &:focus {
+    box-shadow: inset 2px 2px 5px $safe-shadow-dark, inset -2px -2px 5px $safe-shadow-light !important;
+    color: #1a202c !important;
+  }
+}
+
+.scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+.form-group { display: flex; flex-direction: column; gap: 24px; }
+.input-group { display: flex; flex-direction: column; gap: 12px; }
+
+.difficulty-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+/* Override buttons in difficulty to look like toggles */
+.difficulty-actions :deep(.neo-button) {
+  flex: 1;
+  min-width: 80px;
 }
 
 .input-label {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.7);
+  color: #718096;
+  margin-left: 4px;
+  letter-spacing: 0.05em;
 }
 
 .helper-text {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.55);
+  font-size: 12px;
+  color: #a0aec0;
+  margin-left: 8px;
+  margin-top: 4px;
 }
 
 .hash-preview {
-  padding: $space-3;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.03);
+  padding: 16px;
+  border-radius: 12px;
+  background: $safe-bg;
+  box-shadow: inset 3px 3px 7px $safe-shadow-dark, inset -3px -3px 7px $safe-shadow-light;
 }
 
 .hash-label {
   display: block;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  color: #718096;
 }
 
 .hash-value {
-  font-family: $font-mono;
-  font-size: 11px;
-  word-break: break-all;
-}
-
-.vault-created {
-  text-align: center;
-}
-
-.vault-created-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  opacity: 0.7;
-}
-
-.vault-created-id {
-  font-size: 28px;
-  font-weight: 800;
-  margin-top: 6px;
-}
-
-.vault-details {
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
-}
-
-.vault-detail-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: $space-3;
-}
-
-.detail-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  opacity: 0.6;
-}
-
-.detail-value {
-  font-weight: 700;
-  font-size: 13px;
-}
-
-.mono {
-  font-family: $font-mono;
-}
-
-.recent-vaults {
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
-}
-
-.section-title {
+  font-family: 'Fira Code', monospace;
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  word-break: break-all;
+  color: #4a5568;
 }
 
-.vault-list {
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
-}
+.vault-created { text-align: center; }
+.vault-created-label { font-size: 12px; text-transform: uppercase; color: #718096; }
+.vault-created-id { font-size: 32px; font-weight: 800; color: #2d3748; margin-top: 8px; }
+
+.vault-details { display: flex; flex-direction: column; gap: 16px; }
+.vault-detail-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(160, 174, 192, 0.2); padding-bottom: 8px; }
+.vault-detail-row:last-child { border-bottom: none; }
+
+.detail-label { font-size: 12px; text-transform: uppercase; color: #718096; }
+.detail-value { font-weight: 700; font-size: 14px; color: #2d3748; }
+
+.mono { font-family: 'Fira Code', monospace; }
+
+.recent-vaults { display: flex; flex-direction: column; gap: 16px; }
+.section-title { font-size: 14px; font-weight: 800; color: #4a5568; margin-bottom: 8px; }
+
+.vault-list { display: flex; flex-direction: column; gap: 16px; }
 
 .vault-item {
-  padding: $space-3;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.03);
+  padding: 16px;
+  border-radius: 16px;
+  background: $safe-bg;
+  box-shadow: 5px 5px 10px $safe-shadow-dark, -5px -5px 10px $safe-shadow-light;
   cursor: pointer;
+  transition: transform 0.1s;
+  
+  &:active {
+    box-shadow: inset 3px 3px 7px $safe-shadow-dark, inset -3px -3px 7px $safe-shadow-light;
+    transform: scale(0.99);
+  }
 }
 
-.vault-meta {
-  display: flex;
-  justify-content: space-between;
-  font-weight: 700;
-}
+.vault-meta { display: flex; justify-content: space-between; font-weight: 700; }
+.vault-id { font-size: 14px; color: #2d3748; }
+.vault-bounty { font-size: 14px; color: #38a169; }
+.vault-creator { font-size: 12px; color: #a0aec0; margin-top: 6px; }
 
-.vault-id {
-  font-size: 12px;
-}
-
-.vault-bounty {
-  font-size: 12px;
-  color: #00e599;
-}
-
-.vault-creator {
-  font-size: 11px;
-  opacity: 0.6;
-  margin-top: 4px;
-}
-
-.empty-state {
-  text-align: center;
-  padding: $space-4;
-}
-
-.empty-text {
-  font-size: 12px;
-  opacity: 0.6;
-}
+.empty-state { text-align: center; padding: 24px; opacity: 0.5; }
+.empty-text { font-size: 13px; font-style: italic; }
 </style>

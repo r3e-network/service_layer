@@ -5,8 +5,10 @@ import { useState, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { loadSigningHistory, getMethodLabel, formatSigningDate, SigningRecord } from "@/lib/signing";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function SigningHistoryScreen() {
+  const { t, locale } = useTranslation();
   const [records, setRecords] = useState<SigningRecord[]>([]);
 
   useFocusEffect(
@@ -16,6 +18,12 @@ export default function SigningHistoryScreen() {
   );
 
   const statusColors = { pending: "#f5a623", signed: "#00d4aa", broadcast: "#00d4aa", failed: "#ff4757" };
+  const statusLabels: Record<string, string> = {
+    pending: t("signing.status.pending"),
+    signed: t("signing.status.signed"),
+    broadcast: t("signing.status.broadcast"),
+    failed: t("signing.status.failed"),
+  };
 
   const renderRecord = ({ item }: { item: SigningRecord }) => (
     <View style={styles.record}>
@@ -23,20 +31,22 @@ export default function SigningHistoryScreen() {
       <View style={styles.info}>
         <Text style={styles.hash}>{item.txHash.slice(0, 20)}...</Text>
         <Text style={styles.meta}>
-          {getMethodLabel(item.method)} • {formatSigningDate(item.timestamp)}
+          {getMethodLabel(item.method, t)} • {formatSigningDate(item.timestamp, locale)}
         </Text>
       </View>
-      <Text style={[styles.status, { color: statusColors[item.status] }]}>{item.status}</Text>
+      <Text style={[styles.status, { color: statusColors[item.status] }]}>
+        {statusLabels[item.status] || item.status}
+      </Text>
     </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: "Signing History" }} />
+      <Stack.Screen options={{ title: t("signing.title") }} />
       {records.length === 0 ? (
         <View style={styles.empty}>
           <Ionicons name="document-text-outline" size={64} color="#333" />
-          <Text style={styles.emptyText}>No signing records</Text>
+          <Text style={styles.emptyText}>{t("signing.empty")}</Text>
         </View>
       ) : (
         <FlatList

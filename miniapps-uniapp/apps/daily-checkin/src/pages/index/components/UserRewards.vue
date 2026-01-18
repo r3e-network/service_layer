@@ -26,12 +26,14 @@
 
 <script setup lang="ts">
 import { NeoCard, NeoButton } from "@/shared/components";
+import { useI18n } from "@/composables/useI18n";
+
+const { t } = useI18n();
 
 defineProps<{
   unclaimedRewards: number;
   totalClaimed: number;
   isClaiming: boolean;
-  t: (key: string) => string;
 }>();
 
 defineEmits(["claim"]);

@@ -115,7 +115,7 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
 .warning-desc {
   font-size: 14px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-primary);
   margin-bottom: 4px;
   display: block;
 }
@@ -180,7 +180,7 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
 .pump-unit {
   font-size: 14px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-secondary);
   margin-top: 8px;
   display: block;
   letter-spacing: 0.05em;
@@ -195,7 +195,7 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
 
 .limit-text {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-muted);
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -215,7 +215,7 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   text-align: center;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  color: white;
+  color: var(--text-primary);
   position: relative;
   overflow: hidden;
 

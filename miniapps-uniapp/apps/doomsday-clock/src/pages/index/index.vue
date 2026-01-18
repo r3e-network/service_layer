@@ -15,8 +15,18 @@
         <text class="font-bold">{{ status.msg }}</text>
       </NeoCard>
 
+      <!-- Claim Prize Section -->
+      <NeoCard v-if="canClaim" variant="success" class="mb-4 text-center">
+        <text class="text-xl font-bold block mb-2">{{ t("youWon") }}</text>
+        <text class="block mb-4 text-lg">{{ formatNumber(totalPot, 2) }} GAS</text>
+        <NeoButton variant="primary" size="lg" block :loading="isClaiming" @click="claimPrize">
+          {{ t("claimPrize") }}
+        </NeoButton>
+      </NeoCard>
+
       <!-- Buy Keys Section -->
       <BuyKeysCard
+        v-else-if="isRoundActive"
         v-model:keyCount="keyCount"
         :estimated-cost="estimatedCost"
         :is-paying="isPaying"
@@ -69,8 +79,8 @@
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { formatNumber, formatAddress } from "@/shared/utils/format";
-import { createT } from "@/shared/utils/i18n";
-import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
+import { useI18n } from "@/composables/useI18n";
+import { addressToScriptHash, normalizeScriptHash, parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 import { AppLayout, NeoCard, NeoDoc } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
@@ -79,94 +89,15 @@ import GameStats from "./components/GameStats.vue";
 import BuyKeysCard from "./components/BuyKeysCard.vue";
 import HistoryList, { type HistoryEvent } from "./components/HistoryList.vue";
 
-const translations = {
-  title: { en: "Doomsday Clock", zh: "末日时钟" },
-  subtitle: { en: "Time-locked governance events", zh: "时间锁定治理事件" },
-  timeUntilEvent: { en: "Time Until Event", zh: "距离事件" },
-  totalPot: { en: "Total Pot", zh: "奖池总额" },
-  yourKeys: { en: "Your Keys", zh: "你的钥匙" },
-  round: { en: "Round", zh: "轮次" },
-  lastBuyer: { en: "Last Buyer", zh: "最后购买者" },
-  roundStatus: { en: "Round Status", zh: "轮次状态" },
-  activeRound: { en: "Active", zh: "进行中" },
-  inactiveRound: { en: "Inactive", zh: "未开始" },
-  buyKeys: { en: "Buy Keys", zh: "购买钥匙" },
-  buying: { en: "Buying...", zh: "购买中..." },
-  keyCountPlaceholder: { en: "1", zh: "1" },
-  estimatedCost: { en: "Estimated Cost", zh: "预估花费" },
-  keyPrice: { en: "Key price: 1 GAS each", zh: "单价：1 GAS/钥匙" },
-  totalStaked: { en: "Total Staked", zh: "总质押" },
-  yourStake: { en: "Your Stake", zh: "您的质押" },
-  players: { en: "Players", zh: "参与者" },
-  stakeOnOutcome: { en: "Stake on Outcome", zh: "押注结果" },
-  amountToStake: { en: "Amount to stake", zh: "质押数量" },
-  staking: { en: "Staking...", zh: "质押中..." },
-  placeStake: { en: "Place Stake", zh: "下注" },
-  eventHistory: { en: "Event History", zh: "事件历史" },
-  noHistory: { en: "No events yet", zh: "暂无事件记录" },
-  selectOutcome: { en: "Select an outcome", zh: "请选择一个结果" },
-  minStake: { en: "Min stake: 1 GAS", zh: "最小质押：1 GAS" },
-  placingStake: { en: "Placing stake...", zh: "正在质押..." },
-  stakePlaced: { en: "Stake placed!", zh: "质押成功！" },
-  error: { en: "Error", zh: "错误" },
-  failedToLoad: { en: "Failed to load data", zh: "加载数据失败" },
-  missingContract: { en: "Contract not configured", zh: "合约未配置" },
-  keysPurchased: { en: "Keys purchased", zh: "钥匙购买成功" },
-  roundStarted: { en: "Round started", zh: "新一轮开始" },
-  winnerDeclared: { en: "Winner declared", zh: "赢家已揭晓" },
-  protocolUpgrade: { en: "Protocol Upgrade", zh: "协议升级" },
-  treasuryRelease: { en: "Treasury Release", zh: "国库释放" },
-  governanceVote: { en: "Governance Vote", zh: "治理投票" },
-  emergencyProposal: { en: "Emergency Proposal", zh: "紧急提案" },
-  passed: { en: "Passed", zh: "通过" },
-  feeAdjustment: { en: "Fee Adjustment", zh: "费用调整" },
-  failed: { en: "Failed", zh: "失败" },
-  game: { en: "Game", zh: "游戏" },
-  history: { en: "History", zh: "历史" },
-  docs: { en: "Docs", zh: "文档" },
-  docSubtitle: {
-    en: "Last-buyer-wins countdown game with growing prize pool",
-    zh: "最后购买者获胜的倒计时游戏，奖池持续增长",
-  },
-  docDescription: {
-    en: "Doomsday Clock is a thrilling countdown game where buying keys extends the timer and adds to the prize pool. When the clock hits zero, the last person to buy a key wins the entire pot. Watch the danger meter rise as time runs out!",
-    zh: "末日时钟是一款刺激的倒计时游戏，购买钥匙可延长计时器并增加奖池。当时钟归零时，最后购买钥匙的人赢得全部奖池。随着时间流逝，观察危险指数上升！",
-  },
-  step1: { en: "Connect your Neo wallet and check the current round status.", zh: "连接 Neo 钱包并查看当前轮次状态。" },
-  step2: { en: "Buy keys with GAS to extend the countdown timer.", zh: "使用 GAS 购买钥匙延长倒计时。" },
-  step3: { en: "Monitor the danger level as time decreases.", zh: "随着时间减少监控危险等级。" },
-  step4: { en: "Be the last buyer when time expires to win the pot.", zh: "在时间结束时成为最后购买者赢得奖池。" },
-  feature1Name: { en: "Dynamic Prize Pool", zh: "动态奖池" },
-  feature1Desc: {
-    en: "Every key purchase adds to the pot and extends the timer.",
-    zh: "每次购买钥匙都会增加奖池并延长计时器。",
-  },
-  feature2Name: { en: "Real-Time Danger Meter", zh: "实时危险指数" },
-  feature2Desc: {
-    en: "Visual indicator shows urgency as countdown approaches zero.",
-    zh: "可视化指标显示倒计时接近零时的紧迫程度。",
-  },
-  safe: { en: "SAFE", zh: "安全" },
-  critical: { en: "CRITICAL", zh: "危急" },
-  nextEvent: { en: "NEXT EVENT", zh: "下一事件" },
-  dangerLow: { en: "LOW RISK", zh: "低风险" },
-  dangerMedium: { en: "ELEVATED", zh: "警戒" },
-  dangerHigh: { en: "HIGH ALERT", zh: "高度警戒" },
-  dangerCritical: { en: "CRITICAL", zh: "危急" },
-  wrongChain: { en: "Wrong Network", zh: "网络错误" },
-  tabStats: { en: "Stats", zh: "统计" },
-  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-};
 
-const t = createT(translations);
+const { t } = useI18n();
 
-const navTabs: NavTab[] = [
+const navTabs = computed<NavTab[]>(() => [
   { id: "game", icon: "game", label: t("title") },
   { id: "stats", icon: "chart", label: t("tabStats") },
   { id: "history", icon: "time", label: t("history") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 const activeTab = ref("game");
 
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
@@ -176,8 +107,14 @@ const docFeatures = computed(() => [
 ]);
 
 const APP_ID = "miniapp-doomsday-clock";
-const KEY_PRICE_GAS = 1;
 const MAX_DURATION_SECONDS = 86400;
+
+// Contract constants for dynamic pricing (in GAS units, 1e8 = 1 GAS)
+const BASE_KEY_PRICE = 10000000n; // 0.1 GAS
+const KEY_PRICE_INCREMENT_BPS = 10n; // 0.1% increment per key sold
+
+// Current round state for cost calculation
+const totalKeysInRound = ref(0n);
 
 const { address, connect, invokeRead, invokeContract, chainType, switchChain, getContractAddress } = useWallet() as any;
 const { payGAS, isLoading: isPaying } = usePayments(APP_ID);
@@ -195,12 +132,13 @@ const status = ref<{ msg: string; type: string } | null>(null);
 const history = ref<HistoryEvent[]>([]);
 const now = ref(Date.now());
 const loading = ref(false);
+const isClaiming = ref(false);
 
 const toGas = (value: any) => Number(value || 0) / 1e8;
 
 const timeRemainingSeconds = computed(() => {
   if (!endTime.value) return 0;
-  return Math.max(0, Math.floor((endTime.value * 1000 - now.value) / 1000));
+  return Math.max(0, Math.floor((endTime.value - now.value) / 1000));
 });
 
 const countdown = computed(() => {
@@ -241,9 +179,37 @@ const dangerProgress = computed(() => {
 
 const shouldPulse = computed(() => timeRemainingSeconds.value <= 600);
 
+/**
+ * Calculate key cost using closed-form formula (matches contract logic).
+ * Formula: Sum of arithmetic sequence where:
+ * - First term: BASE_PRICE + currentKeys * BASE_PRICE * INCREMENT_BPS / 10000
+ * - Common difference: BASE_PRICE * INCREMENT_BPS / 10000
+ * - Sum = n * firstTerm + n*(n-1)/2 * commonDiff
+ */
+const calculateKeyCostFormula = (keyCount: bigint, currentTotalKeys: bigint): bigint => {
+  if (keyCount <= 0n) return 0n;
+
+  // Common difference per key
+  const commonDiff = BASE_KEY_PRICE * KEY_PRICE_INCREMENT_BPS / 10000n;
+
+  // First key price
+  const firstKeyPrice = BASE_KEY_PRICE + (currentTotalKeys * commonDiff);
+
+  // Sum of arithmetic sequence: n * first + n*(n-1)/2 * diff
+  const baseCost = keyCount * firstKeyPrice;
+  const incrementCost = keyCount * (keyCount - 1n) / 2n * commonDiff;
+
+  return baseCost + incrementCost;
+};
+
+const estimatedCostRaw = computed(() => {
+  const count = BigInt(Math.max(0, Math.floor(Number(keyCount.value) || 0)));
+  return calculateKeyCostFormula(count, totalKeysInRound.value);
+});
+
 const estimatedCost = computed(() => {
-  const count = Math.max(0, Math.floor(Number(keyCount.value) || 0));
-  return (count * KEY_PRICE_GAS).toFixed(0);
+  // Convert from GAS units (1e8) to GAS display
+  return (Number(estimatedCostRaw.value) / 1e8).toFixed(2);
 });
 
 const lastBuyerLabel = computed(() => (lastBuyer.value ? formatAddress(lastBuyer.value) : "--"));
@@ -251,6 +217,18 @@ const lastBuyerLabel = computed(() => (lastBuyer.value ? formatAddress(lastBuyer
 const currentEventDescription = computed(() => {
   if (!isRoundActive.value) return t("inactiveRound");
   return lastBuyer.value ? `${formatAddress(lastBuyer.value)} ${t("winnerDeclared")}` : t("roundStarted");
+});
+
+const lastBuyerHash = computed(() => normalizeScriptHash(String(lastBuyer.value || "")));
+const addressHash = computed(() => (address.value ? addressToScriptHash(address.value) : ""));
+const canClaim = computed(() => {
+  return (
+    !isRoundActive.value &&
+    lastBuyerHash.value &&
+    addressHash.value &&
+    lastBuyerHash.value === addressHash.value &&
+    totalPot.value > 0
+  );
 });
 
 const showStatus = (msg: string, type: string) => {
@@ -267,18 +245,23 @@ const ensureContractAddress = async () => {
 
 const loadRoundData = async () => {
   await ensureContractAddress();
-  const [roundRes, potRes, endRes, activeRes, buyerRes] = await Promise.all([
-    invokeRead({ scriptHash: contractAddress.value as string, operation: "CurrentRound" }),
-    invokeRead({ scriptHash: contractAddress.value as string, operation: "CurrentPot" }),
-    invokeRead({ scriptHash: contractAddress.value as string, operation: "EndTime" }),
-    invokeRead({ scriptHash: contractAddress.value as string, operation: "IsRoundActive" }),
-    invokeRead({ scriptHash: contractAddress.value as string, operation: "LastBuyer" }),
-  ]);
-  roundId.value = Number(parseInvokeResult(roundRes) || 0);
-  totalPot.value = toGas(parseInvokeResult(potRes));
-  endTime.value = Number(parseInvokeResult(endRes) || 0);
-  isRoundActive.value = Boolean(parseInvokeResult(activeRes));
-  lastBuyer.value = String(parseInvokeResult(buyerRes) || "");
+  const statusRes = await invokeRead({
+    scriptHash: contractAddress.value as string,
+    operation: "getGameStatus",
+    args: [],
+  });
+  const data = parseInvokeResult(statusRes);
+  if (data && typeof data === "object") {
+    const statusMap = data as Record<string, any>;
+    roundId.value = Number(statusMap.roundId || 0);
+    totalPot.value = toGas(statusMap.pot);
+    isRoundActive.value = Boolean(statusMap.active);
+    lastBuyer.value = String(statusMap.lastBuyer || "");
+    const remainingSeconds = Number(statusMap.remainingTime || 0);
+    endTime.value = remainingSeconds > 0 ? Date.now() + remainingSeconds * 1000 : 0;
+    // Store totalKeys for cost calculation
+    totalKeysInRound.value = BigInt(statusMap.totalKeys || 0);
+  }
 };
 
 const loadUserKeys = async () => {
@@ -288,7 +271,7 @@ const loadUserKeys = async () => {
   }
   const res = await invokeRead({
     scriptHash: contractAddress.value as string,
-    operation: "GetPlayerKeys",
+    operation: "getPlayerKeys",
     args: [
       { type: "Hash160", value: address.value as string },
       { type: "Integer", value: roundId.value },
@@ -382,18 +365,25 @@ const buyKeys = async () => {
       throw new Error(t("error"));
     }
     await ensureContractAddress();
-    const cost = count * KEY_PRICE_GAS;
-    const payment = await payGAS(cost.toString(), `keys:${roundId.value}:${count}`);
+
+    // Calculate cost using formula (matches contract logic)
+    const costRaw = calculateKeyCostFormula(BigInt(count), totalKeysInRound.value);
+    const costGas = Number(costRaw) / 1e8;
+
+    const payment = await payGAS(costGas.toString(), `keys:${roundId.value}:${count}`);
     const receiptId = payment.receipt_id;
     if (!receiptId) {
-      throw new Error("Missing payment receipt");
+      throw new Error(t("receiptMissing"));
     }
+
+    // Use BuyKeysWithCost for O(1) verification instead of O(n) loop
     await invokeContract({
       scriptHash: contractAddress.value as string,
-      operation: "BuyKeys",
+      operation: "buyKeysWithCost",
       args: [
         { type: "Hash160", value: address.value as string },
         { type: "Integer", value: count },
+        { type: "Integer", value: costRaw.toString() },
         { type: "Integer", value: String(receiptId) },
       ],
     });
@@ -402,6 +392,29 @@ const buyKeys = async () => {
     await refreshData();
   } catch (e: any) {
     showStatus(e.message || t("error"), "error");
+  }
+};
+
+const claimPrize = async () => {
+  if (isClaiming.value) return;
+  try {
+    isClaiming.value = true;
+    if (!address.value) await connect();
+    if (!address.value) throw new Error(t("error"));
+    await ensureContractAddress();
+    
+    await invokeContract({
+      scriptHash: contractAddress.value as string,
+      operation: "checkAndEndRound",
+      args: [],
+    });
+    
+    showStatus(t("prizeClaimed"), "success");
+    await refreshData();
+  } catch (e: any) {
+    showStatus(e.message || t("error"), "error");
+  } finally {
+    isClaiming.value = false;
   }
 };
 
@@ -429,14 +442,113 @@ onUnmounted(() => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+$doom-bg: #0b0c10;
+$doom-panel: #1f2833;
+$doom-accent: #66fcf1;
+$doom-warn: #e7c500;
+$doom-danger: #c50000;
+$doom-text: #c5c6c7;
+$doom-font: 'Share Tech Mono', monospace;
+
+:global(page) {
+  background: $doom-bg;
+}
+
 .tab-content {
-  padding: $space-4;
+  padding: 16px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: 16px;
+  background-color: $doom-bg;
+  /* Grunge texture */
+  background-image: 
+    linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)),
+    url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiIHZpZXdCb3g9IjAgMCA0IDQiPjxwYXRoIGZpbGw9IiM0NTRhNjQiIGQ9Ik0xIDNoMXYxSDFWM3ptMi0yaDF2MUgzVjF6Ii8+PC9zdmc+');
+  min-height: 100vh;
+  position: relative;
+  font-family: $doom-font;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Industrial Overrides */
+:deep(.neo-card) {
+  background: linear-gradient(135deg, $doom-panel 0%, #151b24 100%) !important;
+  border: 1px solid #45a29e !important;
+  border-radius: 4px !important;
+  box-shadow: 0 4px 0 #000, inset 0 0 20px rgba(102, 252, 241, 0.05) !important;
+  color: $doom-text !important;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 8px;
+    height: 8px;
+    background: #45a29e;
+    box-shadow: 0 0 5px #45a29e;
+  }
+  
+  &.variant-danger {
+    border-color: $doom-danger !important;
+    background: linear-gradient(135deg, rgba(80, 0, 0, 0.3) 0%, rgba(20, 0, 0, 0.6) 100%) !important;
+    &::after {
+      background: $doom-danger;
+      box-shadow: 0 0 5px $doom-danger;
+    }
+  }
+}
+
+:deep(.neo-button) {
+  border-radius: 2px !important;
+  text-transform: uppercase;
+  font-weight: 700 !important;
+  font-family: $doom-font !important;
+  letter-spacing: 0.1em;
+  position: relative;
+  overflow: hidden;
+  
+  &.variant-primary {
+    background: $doom-accent !important;
+    color: #0b0c10 !important;
+    border: none !important;
+    box-shadow: 0 0 10px rgba(102, 252, 241, 0.4) !important;
+    
+    &:active {
+      transform: translateY(2px);
+      box-shadow: 0 0 5px rgba(102, 252, 241, 0.2) !important;
+    }
+    
+    /* Scanline effect */
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0,0,0,0.1),
+        rgba(0,0,0,0.1) 2px,
+        transparent 2px,
+        transparent 4px
+      );
+      pointer-events: none;
+    }
+  }
+  
+  &.variant-secondary {
+    background: transparent !important;
+    border: 1px solid $doom-accent !important;
+    color: $doom-accent !important;
+    
+    &:hover {
+      background: rgba(102, 252, 241, 0.1) !important;
+    }
+  }
 }
 
 .scrollable {

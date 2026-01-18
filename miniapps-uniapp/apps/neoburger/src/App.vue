@@ -2,15 +2,15 @@
 import { initTheme, listenForThemeChanges } from "@/shared/utils/theme";
 import { onMounted, onUnmounted } from "vue";
 
-let cleanup: (() => void) | undefined;
+let cleanupTheme: (() => void) | undefined;
 
 onMounted(() => {
   initTheme();
-  cleanup = listenForThemeChanges();
+  cleanupTheme = listenForThemeChanges();
 });
 
 onUnmounted(() => {
-  cleanup?.();
+  cleanupTheme?.();
 });
 </script>
 
@@ -18,7 +18,8 @@ onUnmounted(() => {
 @use "@/shared/styles/variables.scss";
 
 page {
-  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  background: #f7f2ea;
+  color: #2a1f16;
   height: 100%;
 }
 </style>

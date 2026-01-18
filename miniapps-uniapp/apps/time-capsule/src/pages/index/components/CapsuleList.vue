@@ -23,7 +23,7 @@
 
       <!-- Capsule Info -->
       <view class="capsule-details">
-        <text class="capsule-name">Capsule #{{ cap.id }}</text>
+        <text class="capsule-name">{{ cap.title ? cap.title : `Capsule #${cap.id}` }}</text>
         <view class="capsule-tags">
           <text class="capsule-tag">{{ cap.isPublic ? t("public") : t("private") }}</text>
         </view>
@@ -69,6 +69,7 @@ import { NeoCard, AppIcon, NeoButton } from "@/shared/components";
 
 export interface Capsule {
   id: string;
+  title?: string;
   contentHash: string;
   unlockDate: string;
   unlockTime: number;
@@ -76,6 +77,7 @@ export interface Capsule {
   revealed: boolean;
   isPublic: boolean;
   content?: string;
+  category?: number;
 }
 
 const props = defineProps<{
@@ -139,7 +141,7 @@ const getCountdown = (unlockTime: number) => {
   text-transform: uppercase;
   margin-top: $space-4;
   display: block;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-secondary);
 }
 
 .capsule-container {
@@ -151,7 +153,7 @@ const getCountdown = (unlockTime: number) => {
   border-radius: 16px;
   margin-bottom: $space-5;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  color: white;
+  color: var(--text-primary);
   backdrop-filter: blur(10px);
 
   &:hover {
@@ -161,7 +163,7 @@ const getCountdown = (unlockTime: number) => {
   }
 
   &.locked {
-    border-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--text-muted);
   }
   &.unlocked {
     border-color: #00E599;
@@ -201,7 +203,7 @@ const getCountdown = (unlockTime: number) => {
 }
 
 .lock-indicator {
-  color: white;
+  color: var(--text-primary);
   z-index: 1;
   filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
 }
@@ -217,7 +219,7 @@ const getCountdown = (unlockTime: number) => {
   font-weight: 700;
   text-transform: uppercase;
   margin-bottom: 4px;
-  color: white;
+  color: var(--text-primary);
 }
 
 .capsule-tags {
@@ -232,7 +234,7 @@ const getCountdown = (unlockTime: number) => {
   padding: 2px 6px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-primary);
 }
 
 .countdown-display {
@@ -243,7 +245,7 @@ const getCountdown = (unlockTime: number) => {
 }
 .countdown-unit {
   background: rgba(255, 255, 255, 0.05);
-  color: white;
+  color: var(--text-primary);
   padding: 4px 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
@@ -262,7 +264,7 @@ const getCountdown = (unlockTime: number) => {
 }
 .countdown-separator {
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-muted);
 }
 
 .unlock-date {
@@ -270,7 +272,7 @@ const getCountdown = (unlockTime: number) => {
   font-weight: 600;
   opacity: 0.5;
   font-family: $font-mono;
-  color: white;
+  color: var(--text-primary);
 }
 
 .unlocked-label {
@@ -284,7 +286,7 @@ const getCountdown = (unlockTime: number) => {
 
 .content-hash {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   font-family: $font-mono;
   word-break: break-all;
 }

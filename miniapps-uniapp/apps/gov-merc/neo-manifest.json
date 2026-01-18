@@ -1,11 +1,29 @@
 {
   "app_id": "miniapp-gov-merc",
   "name": "Gov Merc",
-  "name_zh": "治理雇佣兵",
-  "description": "Hire governance mercenaries to vote on your behalf or sell your voting power to the highest bidder. A marketplace for delegation and influence in the DAO ecosystem.",
-  "description_zh": "雇佣治理雇佣兵或出售您的投票权。",
+  "name_zh": "治理雇佣军",
+  "description": "Marketplace for governance voting power delegation",
+  "description_zh": "治理投票权委托市场",
+  "version": "1.0.0",
+  "entry_url": "mf://builtin?app=miniapp-gov-merc",
   "category": "governance",
   "status": "active",
+  "tags": [
+    "governance",
+    "delegation",
+    "marketplace"
+  ],
+  "permissions": [
+    "wallet"
+  ],
+  "assets_allowed": [
+    "NEO",
+    "GAS"
+  ],
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
   "contracts": {
     "neo-n3-mainnet": {
       "address": "0x69a013c8fde3e835d642717ef1af71f7e02ade00"
@@ -14,12 +32,13 @@
       "address": "0x69a013c8fde3e835d642717ef1af71f7e02ade00"
     }
   },
-  "permissions": {
-    "governance": true,
-    "payments": true
-  },
-  "supported_chains": [
-    "neo-n3-mainnet",
-    "neo-n3-testnet"
-  ]
+  "card": {
+    "display": {
+      "type": "icon_title",
+      "banner": "/static/banner.png"
+    },
+    "info": {
+      "logo": "/static/logo.png"
+    }
+  }
 }

@@ -94,7 +94,7 @@ const glowStyle = computed(() => ({
 
     &:hover {
       transform: translateY(-4px) scale(1.01);
-      border-color: rgba(255, 255, 255, 0.15);
+      border-color: var(--text-muted);
       box-shadow: var(--erobo-glow, 0 0 30px rgba(159, 157, 243, 0.3));
     }
 

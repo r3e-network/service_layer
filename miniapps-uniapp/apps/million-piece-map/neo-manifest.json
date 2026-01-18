@@ -2,10 +2,24 @@
   "app_id": "miniapp-millionpiecemap",
   "name": "Million Piece Map",
   "name_zh": "百万像素地图",
-  "description": "Own and customize pixels on a massive collaborative canvas. Create art, advertise, or stake your claim on this permanent blockchain masterpiece.",
+  "description": "Million Piece Map - Neo MiniApp",
   "description_zh": "在大型协作画布上拥有和自定义像素。",
+  "version": "1.0.0",
+  "entry_url": "mf://builtin?app=miniapp-million-piece-map",
   "category": "gaming",
   "status": "active",
+  "tags": [],
+  "permissions": {
+    "payments": true
+  },
+  "assets_allowed": [
+    "NEO",
+    "GAS"
+  ],
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
   "contracts": {
     "neo-n3-mainnet": {
       "address": "0xf4ab0fa6f245427482cb5c693a5f40baf6d58c71"
@@ -14,11 +28,13 @@
       "address": "0xf4ab0fa6f245427482cb5c693a5f40baf6d58c71"
     }
   },
-  "permissions": {
-    "payments": true
-  },
-  "supported_chains": [
-    "neo-n3-mainnet",
-    "neo-n3-testnet"
-  ]
+  "card": {
+    "display": {
+      "type": "icon_title",
+      "banner": "/static/banner.png"
+    },
+    "info": {
+      "logo": "/static/logo.png"
+    }
+  }
 }

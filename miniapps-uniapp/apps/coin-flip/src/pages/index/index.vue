@@ -35,6 +35,7 @@
 
       <!-- Result Modal -->
       <ResultOverlay :visible="showWinOverlay" :win-amount="winAmount" :t="t as any" @close="showWinOverlay = false" />
+      <Fireworks :active="showWinOverlay" :duration="3000" />
     </view>
 
     <!-- Stats Tab -->
@@ -61,60 +62,18 @@
 import { ref, computed, onUnmounted } from "vue";
 import { usePayments, useWallet, useEvents } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
-import { parseStackItem } from "@/shared/utils/neo";
-import { createT } from "@/shared/utils/i18n";
+import { sha256Hex, sha256HexFromHex } from "@/shared/utils/hash";
+import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
+import { useI18n } from "@/composables/useI18n";
 import { AppLayout, NeoCard, NeoStats, NeoDoc, NeoButton, type StatItem } from "@/shared/components";
+import Fireworks from "@/shared/components/Fireworks.vue";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
 import CoinArena, { type GameResult } from "./components/CoinArena.vue";
 import BetControls from "./components/BetControls.vue";
 import ResultOverlay from "./components/ResultOverlay.vue";
 
-const translations = {
-  title: { en: "Coin Flip", zh: "抛硬币" },
-  wins: { en: "Wins", zh: "胜利" },
-  losses: { en: "Losses", zh: "失败" },
-  won: { en: "Won", zh: "赢得" },
-  makeChoice: { en: "Choose Side", zh: "选择面" },
-  placeBet: { en: "Place Your Bet", zh: "请下注" },
-  wager: { en: "Wager Amount", zh: "下注金额" },
-  betAmountPlaceholder: { en: "0.05", zh: "0.05" },
-  heads: { en: "Heads", zh: "正面" },
-  tails: { en: "Tails", zh: "反面" },
-  flipping: { en: "Flipping...", zh: "抛掷中..." },
-  flipCoin: { en: "Flip Coin", zh: "抛硬币" },
-  youWon: { en: "You Won!", zh: "你赢了！" },
-  youLost: { en: "You Lost", zh: "你输了" },
-  minBet: { en: "Min bet: 0.05 GAS", zh: "最小下注：0.05 GAS" },
-  connectWallet: { en: "Connect wallet to continue", zh: "请连接钱包" },
-  error: { en: "Error", zh: "错误" },
-  game: { en: "Play", zh: "游戏" },
-  stats: { en: "Stats", zh: "统计" },
-  docs: { en: "Docs", zh: "文档" },
-  statistics: { en: "Statistics", zh: "统计数据" },
-  totalGames: { en: "Total Games", zh: "总游戏数" },
-  totalWon: { en: "Total Earnings", zh: "总收益" },
-  docSubtitle: { en: "Provably fair coin toss powered by NeoHub TEE.", zh: "由 NeoHub TEE 驱动的可证明公平的抛硬币。" },
-  docDescription: {
-    en: "Coin Flip uses NeoHub's secure random number generation to deliver provably fair outcomes. Every flip is transparent, immutable, and verifiable on-chain.",
-    zh: "抛硬币使用 NeoHub 的安全随机数生成，提供可证明公平的结果。每一次抛掷都是透明、不可篡改且可在链上验证。",
-  },
-  step1: { en: "Choose your side: Heads or Tails.", zh: "选择你的面：正面或反面。" },
-  step2: { en: "Enter the amount of GAS you want to wager.", zh: "输入你想下注的 GAS 金额。" },
-  step3: {
-    en: "Click 'Flip Coin' and wait for the TEE-powered secure RNG.",
-    zh: "点击「抛硬币」，等待 TEE 驱动的安全随机数。",
-  },
-  step4: { en: "View your win/loss stats in the Stats tab.", zh: "在统计标签页查看您的胜负统计。" },
-  feature1Name: { en: "TEE Verification", zh: "TEE 验证" },
-  feature1Desc: { en: "Randomness is generated inside an Intel SGX enclave.", zh: "随机数在 Intel SGX 安全区内生成。" },
-  feature2Name: { en: "Instant Payout", zh: "即时支付" },
-  feature2Desc: { en: "Winnings are automatically sent via smart contract.", zh: "奖金通过智能合约自动发送。" },
-  wrongChain: { en: "Wrong Network", zh: "网络错误" },
-  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-};
-const t = createT(translations);
+const { t } = useI18n();
 
 const navTabs = computed<NavTab[]>(() => [
   { id: "game", icon: "game", label: t("game") },
@@ -130,8 +89,9 @@ const docFeatures = computed(() => [
 ]);
 
 const APP_ID = "miniapp-coinflip";
+const SCRIPT_NAME = "flip-coin";
 const { payGAS } = usePayments(APP_ID);
-const { address, connect, invokeContract, chainType, switchChain, getContractAddress } = useWallet() as any;
+const { address, connect, invokeContract, invokeRead, chainType, switchChain, getContractAddress } = useWallet() as any;
 const { list: listEvents } = useEvents();
 
 const betAmount = ref("1");
@@ -145,6 +105,7 @@ const displayOutcome = ref<"heads" | "tails" | null>(null);
 const showWinOverlay = ref(false);
 const winAmount = ref("0");
 const contractAddress = ref<string | null>(null);
+const flipScriptHash = ref<string | null>(null);
 const errorMessage = ref<string | null>(null);
 
 // Timer tracking for cleanup
@@ -152,12 +113,6 @@ let errorClearTimer: ReturnType<typeof setTimeout> | null = null;
 
 const formatNum = (n: number) => formatNumber(n, 2);
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const toFixed8 = (value: string) => {
-  const num = Number.parseFloat(value);
-  if (!Number.isFinite(num)) return "0";
-  return Math.floor(num * 1e8).toString();
-};
 
 const waitForEvent = async (txid: string, eventName: string) => {
   for (let attempt = 0; attempt < 20; attempt += 1) {
@@ -169,20 +124,39 @@ const waitForEvent = async (txid: string, eventName: string) => {
   return null;
 };
 
-const waitForResolved = async (betId: string) => {
-  for (let attempt = 0; attempt < 20; attempt += 1) {
-    const res = await listEvents({ app_id: APP_ID, event_name: "BetResolved", limit: 25 });
-    const match = res.events.find((evt) => {
-      const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
-      return String(values[3] ?? "") === String(betId);
-    });
-    if (match) return match;
-    await sleep(1500);
-  }
-  return null;
+const MAX_BET = 100; // Maximum bet amount in GAS
+
+/**
+ * Convert hex seed to BigInt for deterministic result calculation
+ */
+const hexToBigInt = (hex: string): bigint => {
+  const cleanHex = hex.startsWith("0x") ? hex.slice(2) : hex;
+  return BigInt("0x" + cleanHex);
 };
 
-const MAX_BET = 100; // Maximum bet amount in GAS
+const hashSeed = async (seed: string): Promise<string> => {
+  const raw = String(seed ?? "").trim();
+  const cleaned = raw.replace(/^0x/i, "");
+  const isHex = cleaned.length > 0 && /^[0-9a-fA-F]+$/.test(cleaned);
+  return isHex ? sha256HexFromHex(cleaned) : sha256Hex(raw);
+};
+
+/**
+ * Simulate coin flip result locally using the deterministic seed from contract
+ * This mirrors the on-chain CalculateExpectedResult logic
+ */
+const simulateCoinFlip = async (
+  seed: string,
+  playerChoice: boolean
+): Promise<{ won: boolean; outcome: "heads" | "tails" }> => {
+  // SHA256 the seed to get random number (mirrors contract logic)
+  const hashHex = await hashSeed(seed);
+  const rand = hexToBigInt(hashHex);
+  const resultFlip = rand % BigInt(2) === BigInt(0);
+  const won = resultFlip === playerChoice;
+  const outcome = resultFlip ? "heads" : "tails";
+  return { won, outcome };
+};
 
 const canBet = computed(() => {
   const n = parseFloat(betAmount.value);
@@ -196,12 +170,55 @@ const gameStats = computed<StatItem[]>(() => [
   { label: t("totalWon"), value: `${formatNum(totalWon.value)} GAS`, variant: "accent" },
 ]);
 
+const ensureContractAddress = async () => {
+  if (!contractAddress.value) {
+    contractAddress.value = await getContractAddress();
+  }
+  if (!contractAddress.value) {
+    throw new Error(t("contractUnavailable"));
+  }
+  return contractAddress.value;
+};
+
+const ensureScriptHash = async () => {
+  if (flipScriptHash.value) return flipScriptHash.value;
+  const contract = await ensureContractAddress();
+  const info = await invokeRead({ scriptHash: contract, operation: "getFlipScriptInfo" });
+  const parsed = parseInvokeResult(info);
+  let hash = "";
+  if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+    hash = String((parsed as Record<string, unknown>).hash ?? "");
+  }
+  if (!hash) {
+    const direct = await invokeRead({
+      scriptHash: contract,
+      operation: "getScriptHash",
+      args: [{ type: "String", value: SCRIPT_NAME }],
+    });
+    const parsedDirect = parseInvokeResult(direct);
+    hash = Array.isArray(parsedDirect) ? String(parsedDirect[0] ?? "") : String(parsedDirect ?? "");
+  }
+  if (!hash) {
+    throw new Error(t("scriptHashMissing"));
+  }
+  flipScriptHash.value = hash.replace(/^0x/i, "");
+  return flipScriptHash.value;
+};
+
+/**
+ * Hybrid Mode Flip Flow:
+ * 1. Pay GAS and call InitiateBet -> returns [betId, seed]
+ * 2. Simulate result locally using seed (instant feedback)
+ * 3. Call SettleBet with result -> verifies and transfers winnings
+ *
+ * Benefits: ~25% gas savings, instant UI feedback, verifiable fairness
+ */
 const flip = async () => {
   if (isFlipping.value || !canBet.value) return;
 
   isFlipping.value = true;
   result.value = null;
-  displayOutcome.value = null; // Reset for animation start if needed
+  displayOutcome.value = null;
   showWinOverlay.value = false;
 
   try {
@@ -211,72 +228,94 @@ const flip = async () => {
     if (!address.value) {
       throw new Error(t("connectWallet"));
     }
-    if (!contractAddress.value) {
-      contractAddress.value = await getContractAddress();
-    }
-    if (!contractAddress.value) {
-      throw new Error(t("error"));
-    }
+    const contract = await ensureContractAddress();
 
+    // Phase 1: Pay and initiate bet (on-chain)
     const payment = await payGAS(betAmount.value, `coinflip:${choice.value}`);
     const receiptId = payment.receipt_id;
     if (!receiptId) {
-      throw new Error("Missing payment receipt");
+      throw new Error(t("receiptMissing"));
     }
 
-    const amountInt = toFixed8(betAmount.value);
-    const tx = await invokeContract({
-      scriptHash: contractAddress.value as string,
-      operation: "PlaceBet",
+    const amountBase = Math.floor(Number.parseFloat(betAmount.value) * 1e8);
+    if (!Number.isFinite(amountBase) || amountBase <= 0) {
+      throw new Error(t("invalidBetAmount"));
+    }
+
+    // Call InitiateBet - returns [betId, seed] for hybrid mode
+    const initiateTx = await invokeContract({
+      scriptHash: contract,
+      operation: "initiateBet",
       args: [
         { type: "Hash160", value: address.value as string },
-        { type: "Integer", value: amountInt },
+        { type: "Integer", value: String(amountBase) },
         { type: "Boolean", value: choice.value === "heads" },
         { type: "Integer", value: String(receiptId) },
       ],
     });
 
-    const txid = String((tx as any)?.txid || (tx as any)?.txHash || "");
-    const placedEvent = txid ? await waitForEvent(txid, "BetPlaced") : null;
-    if (!placedEvent) {
-      throw new Error("Bet confirmation not available yet");
+    const initiateTxid = String((initiateTx as any)?.txid || (initiateTx as any)?.txHash || "");
+    const initiatedEvent = initiateTxid ? await waitForEvent(initiateTxid, "BetInitiated") : null;
+    if (!initiatedEvent) {
+      throw new Error(t("betPending"));
     }
-    const placedValues = Array.isArray((placedEvent as any)?.state)
-      ? (placedEvent as any).state.map(parseStackItem)
+
+    // Extract betId and seed from BetInitiated event
+    const initiatedValues = Array.isArray((initiatedEvent as any)?.state)
+      ? (initiatedEvent as any).state.map(parseStackItem)
       : [];
-    const betId = String(placedValues[3] ?? "");
-    if (!betId) {
-      throw new Error("Bet id missing");
+    const betId = String(initiatedValues[1] ?? "");
+    const seed = String(initiatedValues[4] ?? "");
+    if (!betId || !seed) {
+      throw new Error(t("betMissing"));
     }
 
-    const resolvedEvent = await waitForResolved(betId);
-    if (!resolvedEvent) {
-      throw new Error("Result not available yet");
-    }
-    const values = Array.isArray((resolvedEvent as any)?.state) ? (resolvedEvent as any).state.map(parseStackItem) : [];
-    const payoutRaw = values[1];
-    const won = Boolean(values[2]);
-    const payoutValue = Number(payoutRaw || 0) / 1e8;
-    const outcome = won ? choice.value : choice.value === "heads" ? "tails" : "heads";
+    // Phase 2: Simulate result locally (instant feedback)
+    const playerChoice = choice.value === "heads";
+    const simulated = await simulateCoinFlip(seed, playerChoice);
 
-    displayOutcome.value = outcome;
+    // Show result immediately for better UX
+    displayOutcome.value = simulated.outcome;
     await sleep(400);
     isFlipping.value = false;
-    result.value = { won, outcome: outcome.toUpperCase() };
+    result.value = { won: simulated.won, outcome: simulated.outcome.toUpperCase() };
 
-    if (won) {
-      wins.value++;
-      totalWon.value += payoutValue;
-      winAmount.value = payoutValue.toFixed(2);
-      showWinOverlay.value = true;
-    } else {
-      losses.value++;
+    // Phase 3: Settle bet (on-chain verification and transfer)
+    const scriptHash = await ensureScriptHash();
+    const settleTx = await invokeContract({
+      scriptHash: contract,
+      operation: "settleBet",
+      args: [
+        { type: "Hash160", value: address.value as string },
+        { type: "Integer", value: betId },
+        { type: "Boolean", value: simulated.won },
+        { type: "ByteArray", value: scriptHash },
+      ],
+    });
+
+    const settleTxid = String((settleTx as any)?.txid || (settleTx as any)?.txHash || "");
+    if (settleTxid) {
+      const resolvedEvent = await waitForEvent(settleTxid, "BetResolved");
+      if (resolvedEvent) {
+        const values = Array.isArray((resolvedEvent as any)?.state)
+          ? (resolvedEvent as any).state.map(parseStackItem)
+          : [];
+        const payoutRaw = values[3];
+        const payoutValue = Number(payoutRaw || 0) / 1e8;
+
+        if (simulated.won) {
+          wins.value++;
+          totalWon.value += payoutValue;
+          winAmount.value = payoutValue.toFixed(2);
+          showWinOverlay.value = true;
+        } else {
+          losses.value++;
+        }
+      }
     }
   } catch (e: any) {
-    console.error(e);
     errorMessage.value = e?.message || t("error");
     isFlipping.value = false;
-    // Auto-clear error after 5 seconds
     if (errorClearTimer) clearTimeout(errorClearTimer);
     errorClearTimer = setTimeout(() => {
       errorMessage.value = null;
@@ -298,6 +337,17 @@ onUnmounted(() => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+$arcade-gold: #ffcc00;
+$arcade-black: #202020;
+$arcade-red: #ff3366;
+$arcade-blue: #33ccff;
+$arcade-bg: #1a1a2e;
+$arcade-purple: #9900ff;
+
+:global(page) {
+  background: $arcade-bg;
+}
+
 .tab-content {
   padding: 20px;
   flex: 1;
@@ -306,19 +356,118 @@ onUnmounted(() => {
   gap: 16px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  background: radial-gradient(circle at 50% 50%, #2a2a4e 0%, #1a1a2e 100%);
+  position: relative;
+  font-family: 'Press Start 2P', cursive;
+  
+  /* Pixel grid overlay */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+  }
+
+  /* CRT Scanline */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 100;
+  }
 }
 
 .arena-container {
   margin-bottom: 8px;
   perspective: 1000px;
   z-index: 10;
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+  background: rgba(0,0,0,0.2);
+  border-radius: 16px;
+  border: 4px solid $arcade-blue;
+  box-shadow: 0 0 20px rgba(51, 204, 255, 0.3), inset 0 0 20px rgba(51, 204, 255, 0.1);
 }
 
 .controls-container {
   margin-top: 8px;
+  background: #000;
+  padding: 16px;
+  border-radius: 4px;
+  border: 4px solid $arcade-bg;
+  outline: 4px solid $arcade-purple;
+  box-shadow: 0 8px 0 rgba(0,0,0,0.5);
+  z-index: 10;
 }
 
+/* Override card styles for arcade feel */
+:deep(.neo-card) {
+  border: 4px solid #fff !important;
+  box-shadow: 6px 6px 0 #000 !important;
+  background: $arcade-black !important;
+  color: #fff !important;
+  border-radius: 0 !important;
+  image-rendering: pixelated;
+  
+  &.variant-danger {
+    background: $arcade-red !important;
+    color: #fff !important;
+    border-color: #ff99aa !important;
+  }
+  
+  &.variant-erobo {
+    background: $arcade-blue !important;
+    color: #000 !important;
+    border-color: #ccffff !important;
+  }
+}
 
+:deep(.neo-button) {
+  font-family: inherit !important;
+  font-weight: 800 !important;
+  text-transform: uppercase;
+  border: 4px solid #fff !important;
+  box-shadow: 4px 4px 0 #000 !important;
+  border-radius: 0 !important;
+  transition: transform 0.1s !important;
+  background: $arcade-gold !important;
+  color: #000 !important;
+  font-size: 12px !important;
+  padding: 12px 16px !important;
+  
+  &:active {
+    transform: translate(4px, 4px) !important;
+    box-shadow: 0 0 0 #000 !important;
+  }
+  
+  &.variant-primary {
+    background: $arcade-gold !important;
+    color: #000 !important;
+  }
+  
+  &.variant-secondary {
+    background: transparent !important;
+    color: #fff !important;
+    border: 4px solid #fff !important;
+  }
+}
+
+:deep(.neo-input) {
+  border: 4px solid #fff !important;
+  background: #000 !important;
+  color: $arcade-gold !important;
+  font-family: inherit !important;
+  border-radius: 0 !important;
+  box-shadow: 4px 4px 0 rgba(255,255,255,0.2) !important;
+}
 
 .scrollable {
   overflow-y: auto;

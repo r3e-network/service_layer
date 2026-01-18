@@ -5,9 +5,11 @@ import { useState, useEffect, useCallback } from "react";
 import { useWalletStore } from "@/stores/wallet";
 import { fetchTransactions, Transaction } from "@/lib/api/transactions";
 import { TransactionItem } from "@/components/TransactionItem";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function HistoryScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { address } = useWalletStore();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,7 +68,7 @@ export default function HistoryScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: "Transaction History" }} />
+      <Stack.Screen options={{ title: t("wallet.history_title") }} />
 
       {loading && transactions.length === 0 ? (
         <View style={styles.center}>
@@ -83,7 +85,7 @@ export default function HistoryScreen() {
           renderItem={({ item }) => <TransactionItem tx={item} onPress={() => navigateToDetail(item)} />}
           ListEmptyComponent={
             <View style={styles.center}>
-              <Text style={styles.empty}>No transactions yet</Text>
+              <Text style={styles.empty}>{t("wallet.history_empty")}</Text>
             </View>
           }
           ListFooterComponent={

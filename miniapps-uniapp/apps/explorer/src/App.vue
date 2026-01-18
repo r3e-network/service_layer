@@ -1,18 +1,16 @@
 <script setup lang="ts">
-import { onLaunch, onShow, onHide } from "@dcloudio/uni-app";
-import { initTheme } from "@/shared/utils/theme";
+import { onMounted, onUnmounted } from "vue";
+import { initTheme, listenForThemeChanges } from "@/shared/utils/theme";
 
-onLaunch(() => {
+let cleanupTheme: (() => void) | undefined;
+
+onMounted(() => {
   initTheme();
-  console.log("Neo Explorer launched");
+  cleanupTheme = listenForThemeChanges();
 });
 
-onShow(() => {
-  console.log("Neo Explorer shown");
-});
-
-onHide(() => {
-  console.log("Neo Explorer hidden");
+onUnmounted(() => {
+  cleanupTheme?.();
 });
 </script>
 

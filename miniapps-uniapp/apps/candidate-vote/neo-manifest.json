@@ -2,10 +2,30 @@
   "app_id": "miniapp-candidate-vote",
   "name": "Candidate Vote",
   "name_zh": "候选人投票",
-  "description": "Vote for Neo N3 consensus node candidates. Participate in network governance by supporting trusted validators with transparent on-chain voting.",
-  "description_zh": "为 Neo 共识节点候选人投票。参与网络治理，支持您信任的节点。",
+  "description": "Vote for platform candidate and earn GAS rewards",
+  "description_zh": "为平台候选人投票并获得 GAS 奖励",
+  "version": "1.0.0",
+  "entry_url": "mf://builtin?app=miniapp-candidate-vote",
   "category": "governance",
   "status": "active",
+  "tags": [
+    "voting",
+    "governance",
+    "rewards",
+    "staking"
+  ],
+  "permissions": [
+    "wallet",
+    "payments"
+  ],
+  "assets_allowed": [
+    "NEO",
+    "GAS"
+  ],
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
   "contracts": {
     "neo-n3-mainnet": {
       "address": "0xef4073a0f2b305a38ec4050e4d3d28bc40ea63f5"
@@ -14,8 +34,13 @@
       "address": "0xef4073a0f2b305a38ec4050e4d3d28bc40ea63f5"
     }
   },
-  "permissions": {
-    "governance": true
-  },
-  "supported_chains": ["neo-n3-mainnet", "neo-n3-testnet"]
+  "card": {
+    "display": {
+      "type": "live_voting",
+      "banner": "/static/banner.png"
+    },
+    "info": {
+      "logo": "/static/logo.png"
+    }
+  }
 }

@@ -21,6 +21,8 @@ interface RelationshipContractView {
   party1: string;
   party2: string;
   partner: string;
+  title: string;
+  terms: string;
   stake: number;
   stakeRaw: string;
   progress: number;
@@ -46,7 +48,7 @@ defineEmits(["sign", "break"]);
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-primary);
   padding-bottom: $space-1;
   letter-spacing: 0.1em;
   margin-left: 4px;

@@ -29,7 +29,7 @@
               :class="['period-option-glass', { active: selectedPeriod === period.days }]"
               @click="selectedPeriod = period.days"
             >
-              <text class="period-days">{{ period.days }}d</text>
+              <text class="period-days">{{ period.days }}{{ t("daysShort") }}</text>
             </view>
           </view>
         </view>
@@ -45,7 +45,7 @@
         <NeoButton variant="primary" size="lg" block :loading="isLoading" @click="createCapsule">
           {{ isLoading ? t("processing") : t("deposit") }}
         </NeoButton>
-        <text class="note">{{ t("minLock").replace("{days}", String(MIN_LOCK_DAYS)) }}</text>
+        <text class="note">{{ t("minLock", { days: MIN_LOCK_DAYS }) }}</text>
       </NeoCard>
 
       <!-- Your Summary -->
@@ -172,98 +172,27 @@
         :features="docFeatures"
       />
     </view>
+    <Fireworks :active="status?.type === 'success'" :duration="3000" />
   </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useWallet } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
-import { createT } from "@/shared/utils/i18n";
-import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard } from "@/shared/components";
+import { addressToScriptHash, normalizeScriptHash, parseInvokeResult } from "@/shared/utils/neo";
+import { useI18n } from "@/composables/useI18n";
+import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard, Fireworks } from "@/shared/components";
 
 const isLoading = ref(false);
 
-const translations = {
-  title: { en: "Compound Capsule", zh: "复利胶囊" },
-  vaultStats: { en: "Vault Overview", zh: "金库概览" },
-  totalLocked: { en: "Total Locked", zh: "总锁定量" },
-  totalCapsules: { en: "Total Capsules", zh: "胶囊总数" },
-  yourPosition: { en: "Your Summary", zh: "你的概览" },
-  deposited: { en: "Locked (NEO)", zh: "已锁定 (NEO)" },
-  earned: { en: "Accrued GAS", zh: "累计 GAS" },
-  capsulesCount: { en: "Capsules", zh: "胶囊数量" },
-  createCapsule: { en: "Create Capsule", zh: "创建胶囊" },
-  lockPeriod: { en: "Lock Period", zh: "锁定期限" },
-  unlockDate: { en: "Unlock Date", zh: "解锁日期" },
-  amountPlaceholder: { en: "Amount (NEO)", zh: "金额 (NEO)" },
-  processing: { en: "Creating...", zh: "创建中..." },
-  deposit: { en: "Create Capsule", zh: "创建胶囊" },
-  minLock: { en: "Minimum lock: {days} days", zh: "最短锁定：{days} 天" },
-  enterValidAmount: { en: "Enter a whole-number NEO amount", zh: "请输入整数 NEO 金额" },
-  contractUnavailable: { en: "Contract unavailable", zh: "合约不可用" },
-  connectWallet: { en: "Please connect your wallet", zh: "请连接钱包" },
-  capsuleCreated: { en: "Capsule created", zh: "胶囊已创建" },
-  capsuleUnlocked: { en: "Capsule unlocked", zh: "胶囊已解锁" },
-  unlockFailed: { en: "Unlock failed", zh: "解锁失败" },
-  main: { en: "Overview", zh: "概览" },
-  stats: { en: "My Capsules", zh: "我的胶囊" },
-  activeCapsules: { en: "Your Capsules", zh: "你的胶囊" },
-  maturesIn: { en: "Time remaining", zh: "剩余时间" },
-  rewards: { en: "Accrued GAS", zh: "累计 GAS" },
-  ready: { en: "Ready", zh: "可解锁" },
-  locked: { en: "Locked", zh: "已锁定" },
-  unlock: { en: "Unlock", zh: "解锁" },
-  noCapsules: { en: "No capsules yet", zh: "暂无胶囊" },
-  statistics: { en: "Totals", zh: "合计" },
-  totalAccrued: { en: "Total Accrued", zh: "累计收益" },
+const { t, locale } = useI18n();
 
-  docs: { en: "Docs", zh: "文档" },
-  docSubtitle: {
-    en: "Time-locked NEO capsules with auto-compounding",
-    zh: "自动复利的 NEO 时间锁胶囊",
-  },
-  docDescription: {
-    en: "Compound Capsule locks NEO in a time capsule until maturity. When it unlocks, you receive your principal back and any accrued GAS.",
-    zh: "Compound Capsule 将 NEO 锁定至到期。解锁时返还本金及累计 GAS。",
-  },
-  step1: {
-    en: "Connect your Neo wallet",
-    zh: "连接您的 Neo 钱包",
-  },
-  step2: {
-    en: "Choose a lock period and NEO amount",
-    zh: "选择锁定期限和 NEO 金额",
-  },
-  step3: {
-    en: "Create the capsule on-chain",
-    zh: "在链上创建胶囊",
-  },
-  step4: {
-    en: "Unlock when the capsule matures",
-    zh: "到期后解锁胶囊",
-  },
-  feature1Name: { en: "Time Lock", zh: "时间锁" },
-  feature1Desc: {
-    en: "NEO stays locked until the unlock date.",
-    zh: "NEO 将锁定至解锁日期。",
-  },
-  feature2Name: { en: "Auto-Compounding", zh: "自动复利" },
-  feature2Desc: {
-    en: "Accrued GAS is released on unlock.",
-    zh: "解锁时释放累计 GAS。",
-  },
-  wrongChain: { en: "Wrong Network", zh: "网络错误" },
-  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-};
-const t = createT(translations);
-
-const navTabs = [
+const navTabs = computed(() => [
   { id: "main", icon: "wallet", label: t("main") },
   { id: "stats", icon: "chart", label: t("stats") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 
 const activeTab = ref("main");
 
@@ -286,7 +215,7 @@ const docFeatures = computed(() => [
   { name: t("feature1Name"), desc: t("feature1Desc") },
   { name: t("feature2Name"), desc: t("feature2Desc") },
 ]);
-const { address, connect, chainType, switchChain, getContractAddress, invokeContract } = useWallet() as any;
+const { address, connect, chainType, switchChain, getContractAddress, invokeContract, invokeRead } = useWallet() as any;
 const contractAddress = ref<string | null>(null);
 
 const ensureContractAddress = async () => {
@@ -312,9 +241,10 @@ const lockPeriods = [{ days: 7 }, { days: 30 }, { days: 90 }, { days: 180 }];
 
 const fillPercentage = computed(() => (vault.value.totalLocked > 0 ? 100 : 0));
 
+const resolveDateLocale = () => (locale.value === "zh" ? "zh-CN" : "en-US");
 const unlockDateLabel = computed(() => {
   const unlockTime = Date.now() + selectedPeriod.value * DAY_MS;
-  return new Date(unlockTime).toLocaleDateString("en-US", {
+  return new Date(unlockTime).toLocaleDateString(resolveDateLocale(), {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -328,66 +258,64 @@ const formatCountdown = (ms: number) => {
   const days = Math.floor(totalSeconds / 86400);
   const hours = Math.floor((totalSeconds % 86400) / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
-  if (days > 0) return `${days}d ${hours}h`;
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  return `${minutes}m`;
+  if (days > 0) return `${days}${t("daysShort")} ${hours}${t("hoursShort")}`;
+  if (hours > 0) return `${hours}${t("hoursShort")} ${minutes}${t("minutesShort")}`;
+  return `${minutes}${t("minutesShort")}`;
 };
 const formatUnlockDate = (ms: number) =>
-  new Date(ms).toLocaleDateString("en-US", {
+  new Date(ms).toLocaleDateString(resolveDateLocale(), {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
+const toTimestampMs = (value: number) => {
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  return value > 1e12 ? value : value * 1000;
+};
 
 // Fetch capsules from smart contract
 const fetchData = async () => {
   try {
     const contract = await ensureContractAddress();
-    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
-    if (!sdk?.invoke) {
-      console.warn("[CompoundCapsule] SDK not available");
-      return;
-    }
-
-    const totalResult = (await sdk.invoke("invokeRead", {
-      contract,
-      method: "TotalCapsules",
+    const totalResult = await invokeRead({
+      contractAddress: contract,
+      operation: "totalCapsules",
       args: [],
-    })) as any;
-
-    const totalCapsules = parseInt(totalResult?.stack?.[0]?.value || "0");
+    });
+    const totalCapsules = Number(parseInvokeResult(totalResult) || 0);
+    const lockedResult = await invokeRead({ contractAddress: contract, operation: "totalLocked", args: [] });
+    const platformLocked = Number(parseInvokeResult(lockedResult) || 0);
     const userCapsules: Capsule[] = [];
-    let totalLocked = 0;
     let userLocked = 0;
     let userAccrued = 0;
     const now = Date.now();
-    const userAddress = address.value;
+    const userScriptHash = address.value ? addressToScriptHash(address.value) : "";
 
     for (let i = 1; i <= totalCapsules; i++) {
-      const capsuleResult = (await sdk.invoke("invokeRead", {
-        contract,
-        method: "GetCapsule",
+      const capsuleResult = await invokeRead({
+        contractAddress: contract,
+        operation: "getCapsuleDetails",
         args: [{ type: "Integer", value: i.toString() }],
-      })) as any;
+      });
+      const parsed = parseInvokeResult(capsuleResult);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        const data = parsed as Record<string, any>;
+        const owner = normalizeScriptHash(String(data?.owner ?? ""));
+        const principal = Number(data?.principal || 0);
+        const unlockTime = Number(data?.unlockTime || 0);
+        const unlockTimeMs = toTimestampMs(unlockTime);
+        const isActive = Boolean(data?.active);
+        const compoundRaw = Number(data?.compound || 0);
 
-      if (capsuleResult?.stack?.[0]) {
-        const data = capsuleResult.stack[0].value;
-        const owner = data?.owner;
-        const principal = parseInt(data?.principal || "0");
-        const unlockTime = parseInt(data?.unlockTime || "0");
-        const compoundRaw = parseInt(data?.compound || "0");
-
-        totalLocked += principal;
-
-        if (userAddress && owner === userAddress) {
-          const isReady = unlockTime <= now;
+        if (userScriptHash && isActive && owner === userScriptHash) {
+          const isReady = unlockTimeMs <= now;
           const compound = compoundRaw / 1e8;
           userCapsules.push({
             id: i.toString(),
             amount: principal,
-            unlockTime,
-            unlockDate: formatUnlockDate(unlockTime),
-            remaining: isReady ? t("ready") : formatCountdown(unlockTime - now),
+            unlockTime: unlockTimeMs,
+            unlockDate: formatUnlockDate(unlockTimeMs),
+            remaining: isReady ? t("ready") : formatCountdown(unlockTimeMs - now),
             compound,
             status: isReady ? "Ready" : "Locked",
           });
@@ -398,17 +326,20 @@ const fetchData = async () => {
       }
     }
 
-    vault.value = { totalLocked, totalCapsules };
+    vault.value = { totalLocked: platformLocked, totalCapsules };
     activeCapsules.value = userCapsules;
     position.value = { deposited: userLocked, earned: userAccrued, capsules: userCapsules.length };
     stats.value = { totalCapsules: userCapsules.length, totalLocked: userLocked, totalAccrued: userAccrued };
-  } catch (e) {
-    console.warn("[CompoundCapsule] Failed to fetch data:", e);
+  } catch (e: any) {
+    status.value = { msg: e?.message || t("loadFailed"), type: "error" };
   }
 };
 
 onMounted(() => {
-  connect().finally(() => fetchData());
+  fetchData();
+});
+watch(address, () => {
+  fetchData();
 });
 
 const createCapsule = async (): Promise<void> => {
@@ -420,7 +351,7 @@ const createCapsule = async (): Promise<void> => {
   }
 
   if (selectedPeriod.value < MIN_LOCK_DAYS) {
-    status.value = { msg: t("minLock").replace("{days}", String(MIN_LOCK_DAYS)), type: "error" };
+    status.value = { msg: t("minLock", { days: MIN_LOCK_DAYS }), type: "error" };
     return;
   }
 
@@ -434,15 +365,16 @@ const createCapsule = async (): Promise<void> => {
     }
 
     const contract = await ensureContractAddress();
-    const unlockTime = Date.now() + selectedPeriod.value * DAY_MS;
+    // Contract expects lockDays, not unlockTime timestamp
+    const lockDays = selectedPeriod.value;
 
     await invokeContract({
       scriptHash: contract,
-      operation: "CreateCapsule",
+      operation: "createCapsule",
       args: [
         { type: "Hash160", value: address.value },
         { type: "Integer", value: String(amt) },
-        { type: "Integer", value: String(unlockTime) },
+        { type: "Integer", value: String(lockDays) },
       ],
     });
 
@@ -468,11 +400,11 @@ const unlockCapsule = async (capsuleId: string) => {
     }
 
     const contract = await ensureContractAddress();
+    // Contract only needs capsuleId, owner is verified internally
     await invokeContract({
       scriptHash: contract,
-      operation: "UnlockCapsule",
+      operation: "unlockCapsule",
       args: [
-        { type: "Hash160", value: address.value },
         { type: "Integer", value: capsuleId },
       ],
     });
@@ -491,121 +423,194 @@ const unlockCapsule = async (capsuleId: string) => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+$alchemy-bg: #1c1917;
+$alchemy-gold: #fcc200;
+$alchemy-purple: #9333ea;
+$alchemy-emerald: #10b981;
+$alchemy-text: #e7e5e4;
+
+:global(page) {
+  background: $alchemy-bg;
+}
+
 .tab-content {
-  padding: 20px;
+  padding: 24px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
+  background-color: $alchemy-bg;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(147, 51, 234, 0.1) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgba(252, 194, 0, 0.1) 0%, transparent 20%);
+  min-height: 100vh;
 }
 
-.status-msg { font-size: 14px; color: white; letter-spacing: 0.05em; }
+/* Alchemy Component Overrides */
+:deep(.neo-card) {
+  background: rgba(28, 25, 23, 0.95) !important;
+  border: 1px solid #44403c !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+  color: $alchemy-text !important;
+  position: relative;
+  overflow: hidden;
 
-.capsule-container-glass { display: flex; align-items: center; gap: 24px; }
+  /* Decorative Corner Accents */
+  &::before, &::after {
+    content: '';
+    position: absolute;
+    width: 40px; height: 40px;
+    border: 1px solid $alchemy-gold;
+    opacity: 0.3;
+    pointer-events: none;
+  }
+  &::before { top: -20px; left: -20px; border-radius: 50%; }
+  &::after { bottom: -20px; right: -20px; border-radius: 50%; }
+}
+
+:deep(.neo-button) {
+  border-radius: 8px !important;
+  font-family: 'Cinzel', serif !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700 !important;
+  
+  &.variant-primary {
+    background: linear-gradient(135deg, $alchemy-gold, #d97706) !important;
+    color: #292524 !important;
+    border: 1px solid #fcd34d !important;
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3) !important;
+    
+    &:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 6px rgba(217, 119, 6, 0.2) !important;
+    }
+  }
+  
+  &.variant-secondary {
+    background: transparent !important;
+    border: 1px solid $alchemy-text !important;
+    color: $alchemy-text !important;
+    opacity: 0.8;
+  }
+}
+
+:deep(input), :deep(.neo-input input) {
+  font-family: 'Cinzel', serif !important;
+}
+
+/* Custom Elements */
+
+.status-msg { 
+  font-size: 14px; color: $alchemy-text; letter-spacing: 0.05em; font-family: 'Cinzel', serif;
+}
+
+.capsule-container-glass { display: flex; align-items: center; gap: 24px; padding: 12px; }
 .capsule-body-glass {
-  width: 60px; height: 100px; background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 30px; position: relative; overflow: hidden;
-  box-shadow: 0 0 20px rgba(0, 229, 153, 0.2);
+  width: 70px; height: 120px; 
+  background: rgba(255, 255, 255, 0.02);
+  border: 2px solid rgba(255, 255, 255, 0.1); 
+  border-radius: 40px; 
+  position: relative; 
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.1);
+  
+  /* Flask Shape approximation */
+  &::after {
+    content: ''; position: absolute; top: 10%; left: 10%; width: 20%; height: 10%; 
+    background: rgba(255,255,255,0.2); border-radius: 50%; filter: blur(2px);
+  }
 }
 .capsule-fill-glass {
   position: absolute; bottom: 0; left: 0; width: 100%;
-  background: linear-gradient(to top, #00e599, rgba(0, 229, 153, 0.3));
-  border-top: 1px solid rgba(255, 255, 255, 0.5); transition: height 0.5s ease;
+  background: linear-gradient(to top, rgba(16, 185, 129, 0.8), rgba(16, 185, 129, 0.2));
+  border-top: 1px solid rgba(255, 255, 255, 0.3); transition: height 0.5s ease;
+  
+  /* Bubbles */
+  background-image: radial-gradient(rgba(255,255,255,0.4) 1px, transparent 1px);
+  background-size: 10px 10px;
 }
 .capsule-label {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 2;
 }
-.capsule-apy { font-weight: 800; font-size: 14px; color: white; text-shadow: 0 0 5px rgba(0,0,0,0.5); }
-.capsule-apy-label { font-size: 8px; font-weight: 700; color: white; text-transform: uppercase; }
+.capsule-apy { font-weight: 800; font-size: 16px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.8); font-family: 'Cinzel', serif; }
+.capsule-apy-label { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.8); text-transform: uppercase; letter-spacing: 0.1em; }
 
 .vault-stats-grid { flex: 1; display: flex; flex-direction: column; gap: 12px; }
 .stat-item-glass {
-  padding: 12px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px;
+  padding: 16px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 12px;
 }
-.stat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: rgba(255, 255, 255, 0.5); letter-spacing: 0.1em; }
-.stat-value { font-weight: 800; font-family: $font-mono; font-size: 16px; color: white; }
-.stat-unit { font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-left: 4px; }
+.stat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #a8a29e; letter-spacing: 0.1em; }
+.stat-value { font-weight: 800; font-family: 'Cinzel', serif; font-size: 18px; color: $alchemy-gold; }
+.stat-unit { font-size: 10px; color: #78716c; margin-left: 4px; }
 
-.position-row {
-  display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-.position-row .label { font-size: 11px; color: rgba(255, 255, 255, 0.5); }
-.position-row .value { font-size: 13px; font-weight: 700; color: white; font-family: $font-mono; }
-.position-row.earned .value { color: #00e599; }
-
-.period-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 16px 0; }
+.period-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; }
 .period-option-glass {
-  padding: 12px 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s;
-  &:hover { background: rgba(255, 255, 255, 0.1); }
+  padding: 16px 8px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.3s;
+  
+  &:hover { background: rgba(255, 255, 255, 0.08); }
   &.active {
-    background: rgba(0, 229, 153, 0.1); border-color: #00e599;
-    box-shadow: 0 0 15px rgba(0, 229, 153, 0.2);
+    background: rgba(252, 194, 0, 0.1); border-color: $alchemy-gold;
+    box-shadow: 0 0 15px rgba(252, 194, 0, 0.15);
   }
 }
-.period-days { font-weight: 700; font-size: 13px; color: white; display: block; }
+.period-days { font-weight: 700; font-size: 14px; color: $alchemy-text; display: block; font-family: 'Cinzel', serif; }
 
 .projected-returns-glass {
-  background: rgba(0, 0, 0, 0.2); padding: 12px; border-radius: 12px; margin-bottom: 16px; text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.3); padding: 16px; border-radius: 8px; margin-bottom: 20px; text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
 }
-.returns-label { font-size: 10px; color: rgba(255, 255, 255, 0.5); display: block; margin-bottom: 4px; }
-.returns-value { font-size: 20px; font-weight: 800; color: white; font-family: $font-mono; }
-.note { font-size: 10px; color: rgba(255, 255, 255, 0.4); text-align: center; display: block; margin-top: 12px; }
+.returns-label { font-size: 11px; color: #a8a29e; display: block; margin-bottom: 8px; letter-spacing: 0.1em; text-transform: uppercase; }
+.returns-value { font-size: 24px; font-weight: 800; color: $alchemy-emerald; font-family: 'Cinzel', serif; text-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
 
 .capsule-item-glass {
-  padding: 16px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.05);
-  margin-bottom: 16px; border-radius: 16px;
+  padding: 20px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 20px; border-radius: 12px;
+  position: relative;
+  
+  /* Vintage Paper Texture Overlay (simulated) */
+  &::before {
+    content: ''; position: absolute; top:0; left:0; width:100%; height:100%;
+    background-image: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noise"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noise)" opacity="0.05"/%3E%3C/svg%3E');
+    opacity: 0.1; pointer-events: none; border-radius: 12px;
+  }
 }
-.capsule-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.capsule-icon { font-size: 24px; }
-.capsule-info { flex: 1; }
-.capsule-amount { font-size: 16px; font-weight: 700; color: white; display: block; }
-.capsule-period { font-size: 11px; color: rgba(255, 255, 255, 0.5); }
-.capsule-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
-.capsule-status { display: flex; }
-
+.capsule-header { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+.capsule-icon { font-size: 28px; filter: grayscale(0.5); }
+.capsule-amount { font-size: 18px; font-weight: 700; color: $alchemy-gold; display: block; font-family: 'Cinzel', serif; }
+.capsule-period { font-size: 12px; color: #a8a29e; }
 .status-badge {
-  padding: 4px 8px; border-radius: 99px; border: 1px solid transparent;
-  &.ready { background: rgba(0, 229, 153, 0.1); border-color: rgba(0, 229, 153, 0.3); }
-  &.locked { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.1); }
+  padding: 4px 12px; border-radius: 4px; border: 1px solid transparent; text-transform: uppercase; letter-spacing: 0.1em;
+  &.ready { background: rgba(16, 185, 129, 0.1); border-color: $alchemy-emerald; }
+  &.locked { background: rgba(255, 255, 255, 0.05); border-color: #57534e; }
 }
 .status-badge-text {
-  font-size: 10px; font-weight: 700; text-transform: uppercase;
-  .ready & { color: #00E599; }
-  .locked & { color: rgba(255, 255, 255, 0.5); }
-}
-
-.progress-bar-glass {
-  height: 6px; background: rgba(255, 255, 255, 0.1); margin: 8px 0; border-radius: 99px; overflow: hidden;
-}
-.progress-fill-glass { height: 100%; background: #00e599; border-radius: 99px; }
-.progress-text {
-  font-size: 10px; color: rgba(255, 255, 255, 0.5); font-weight: 600; text-align: right; display: block;
+  font-size: 10px; font-weight: 700;
+  .ready & { color: $alchemy-emerald; }
+  .locked & { color: #a8a29e; }
 }
 
 .capsule-footer {
-  display: flex; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex; justify-content: space-between; margin-top: 16px; padding-top: 16px; 
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
 }
-.countdown-label, .rewards-label { font-size: 10px; color: rgba(255, 255, 255, 0.5); display: block; }
-.countdown-value, .rewards-value { font-size: 12px; font-weight: 700; color: white; font-family: $font-mono; }
-.rewards-value { color: #00e599; }
-
-.stats-grid-glass { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-.stat-box-glass {
-  padding: 12px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px;
-}
-
-.empty-text {
-  font-size: 12px;
-  color: var(--text-muted, rgba(255, 255, 255, 0.4));
-  text-align: center;
-  display: block;
-  padding: 20px;
-}
+.countdown-value, .rewards-value { font-size: 14px; font-weight: 700; color: $alchemy-text; font-family: 'Cinzel', serif; }
+.rewards-value { color: $alchemy-emerald; text-shadow: 0 0 5px rgba(16, 185, 129, 0.3); }
 
 .scrollable {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.empty-text {
+   font-size: 14px;
+   color: #78716c;
+   text-align: center;
+   display: block;
+   padding: 32px;
+   font-style: italic;
+   font-family: 'Cinzel', serif;
 }
 </style>

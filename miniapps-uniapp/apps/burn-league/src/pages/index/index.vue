@@ -42,7 +42,7 @@
       />
 
       <!-- Leaderboard in Stats Tab -->
-      <LeaderboardList :leaderboard="leaderboard" :t="t as any" />
+      <LeaderboardList :leaderboard="leaderboard" />
     </view>
 
     <!-- Docs Tab -->
@@ -55,16 +55,17 @@
         :features="docFeatures"
       />
     </view>
+    <Fireworks :active="status?.type === 'success'" :duration="3000" />
   </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
-import { formatNumber } from "@/shared/utils/format";
 import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
 import { AppLayout, NeoCard, NeoDoc } from "@/shared/components";
+import Fireworks from "../../../../../shared/components/Fireworks.vue";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
 import HeroSection from "./components/HeroSection.vue";
@@ -73,73 +74,14 @@ import BurnActionCard from "./components/BurnActionCard.vue";
 import LeaderboardList, { type LeaderEntry } from "./components/LeaderboardList.vue";
 import StatsTab from "./components/StatsTab.vue";
 
-const translations = {
-  title: { en: "Burn League", zh: "燃烧联盟" },
-  subtitle: { en: "Burn tokens, earn rewards", zh: "燃烧代币，赚取奖励" },
-  totalBurned: { en: "Total Burned", zh: "总燃烧量" },
-  youBurned: { en: "You Burned", zh: "你的燃烧量" },
-  rank: { en: "Rank", zh: "排名" },
-  burnTokens: { en: "Burn Tokens", zh: "燃烧代币" },
-  amountPlaceholder: { en: "Amount to burn", zh: "燃烧数量" },
-  estimatedRewards: { en: "Estimated Rewards", zh: "预估奖励" },
-  points: { en: "GAS", zh: "GAS" },
-  burning: { en: "Burning...", zh: "燃烧中..." },
-  burnNow: { en: "Burn Now", zh: "立即燃烧" },
-  leaderboard: { en: "Leaderboard", zh: "排行榜" },
-  burned: { en: "Burned", zh: "已燃烧" },
-  success: { en: "successfully!", zh: "成功！" },
-  error: { en: "Error", zh: "错误" },
-  game: { en: "Game", zh: "游戏" },
-  stats: { en: "Stats", zh: "统计" },
-  statistics: { en: "Statistics", zh: "统计数据" },
-  totalGames: { en: "Total Games", zh: "总游戏数" },
-  docs: { en: "Docs", zh: "文档" },
-  docSubtitle: {
-    en: "Competitive token burning with seasonal rewards",
-    zh: "带有赛季奖励的竞争性代币销毁",
-  },
-  docDescription: {
-    en: "Burn League is a competitive token burning platform where participants compete to burn the most tokens during seasonal competitions. Climb the leaderboard, earn points, and win exclusive rewards.",
-    zh: "Burn League 是一个竞争性代币销毁平台，参与者在赛季竞赛中竞争销毁最多的代币。攀登排行榜，赚取积分，赢取独家奖励。",
-  },
-  step1: {
-    en: "Connect your Neo wallet and join the current season",
-    zh: "连接您的 Neo 钱包并加入当前赛季",
-  },
-  step2: {
-    en: "Burn tokens to earn points and climb the leaderboard",
-    zh: "销毁代币以赚取积分并攀登排行榜",
-  },
-  step3: {
-    en: "Compete with others for top positions before season ends",
-    zh: "在赛季结束前与他人竞争顶级位置",
-  },
-  step4: {
-    en: "Claim your seasonal rewards based on final ranking",
-    zh: "根据最终排名领取赛季奖励",
-  },
-  feature1Name: { en: "Seasonal Competitions", zh: "赛季竞赛" },
-  feature1Desc: {
-    en: "Time-limited seasons with fresh leaderboards and prize pools.",
-    zh: "限时赛季，全新排行榜和奖池。",
-  },
-  feature2Name: { en: "On-Chain Leaderboard", zh: "链上排行榜" },
-  feature2Desc: {
-    en: "All burns and rankings are transparently recorded on Neo N3.",
-    zh: "所有销毁和排名都透明地记录在 Neo N3 上。",
-  },
-  wrongChain: { en: "Wrong Network", zh: "网络错误" },
-  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-};
 
-const t = createT(translations);
+const { t } = useI18n();
 
-const navTabs: NavTab[] = [
+const navTabs = computed<NavTab[]>(() => [
   { id: "game", icon: "game", label: t("game") },
   { id: "stats", icon: "chart", label: t("stats") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 const activeTab = ref("game");
 
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
@@ -164,6 +106,7 @@ const status = ref<{ msg: string; type: string } | null>(null);
 const contractAddress = ref<string | null>(null);
 
 const leaderboard = ref<LeaderEntry[]>([]);
+const MIN_BURN = 1;
 
 const toFixed8 = (value: string) => {
   const num = Number.parseFloat(value);
@@ -187,8 +130,21 @@ const ensureContractAddress = async () => {
     contractAddress.value = await getContractAddress();
   }
   if (!contractAddress.value) {
-    throw new Error("Contract not configured");
+    throw new Error(t("missingContract"));
   }
+};
+
+const listAllEvents = async (eventName: string) => {
+  const events: any[] = [];
+  let afterId: string | undefined;
+  let hasMore = true;
+  while (hasMore) {
+    const res = await listEvents({ app_id: APP_ID, event_name: eventName, limit: 50, after_id: afterId });
+    events.push(...res.events);
+    hasMore = Boolean(res.has_more && res.last_id);
+    afterId = res.last_id || undefined;
+  }
+  return events;
 };
 
 const waitForEvent = async (txid: string, eventName: string) => {
@@ -202,68 +158,64 @@ const waitForEvent = async (txid: string, eventName: string) => {
 };
 
 const loadStats = async () => {
-  try {
-    await ensureContractAddress();
-    const totalRes = await invokeRead({ scriptHash: contractAddress.value!, operation: "TotalBurned" });
-    totalBurned.value = toGas(parseInvokeResult(totalRes));
-    const poolRes = await invokeRead({ scriptHash: contractAddress.value!, operation: "RewardPool" });
-    rewardPool.value = toGas(parseInvokeResult(poolRes));
-    if (address.value) {
-      const userRes = await invokeRead({
-        scriptHash: contractAddress.value!,
-        operation: "GetUserBurned",
-        args: [{ type: "Hash160", value: address.value }],
-      });
-      userBurned.value = toGas(parseInvokeResult(userRes));
-    } else {
-      userBurned.value = 0;
-    }
-  } catch (e) {
-    console.warn("Failed to load burn stats", e);
+  await ensureContractAddress();
+  const totalRes = await invokeRead({ scriptHash: contractAddress.value!, operation: "totalBurned" });
+  totalBurned.value = toGas(parseInvokeResult(totalRes));
+  const poolRes = await invokeRead({ scriptHash: contractAddress.value!, operation: "rewardPool" });
+  rewardPool.value = toGas(parseInvokeResult(poolRes));
+  if (address.value) {
+    const userRes = await invokeRead({
+      scriptHash: contractAddress.value!,
+      operation: "getUserTotalBurned",
+      args: [{ type: "Hash160", value: address.value }],
+    });
+    userBurned.value = toGas(parseInvokeResult(userRes));
+  } else {
+    userBurned.value = 0;
   }
 };
 
 const loadLeaderboard = async () => {
-  try {
-    const res = await listEvents({ app_id: APP_ID, event_name: "GasBurned", limit: 100 });
-    const totals: Record<string, number> = {};
-    let userBurns = 0;
-    res.events.forEach((evt) => {
-      const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
-      const burner = String(values[0] ?? "");
-      const amount = Number(values[1] ?? 0);
-      if (!burner) return;
-      totals[burner] = (totals[burner] || 0) + amount;
-      if (address.value && burner === address.value) {
-        userBurns += 1;
-      }
-    });
-    const entries = Object.entries(totals)
-      .map(([addr, amount]) => ({
-        address: addr,
-        burned: toGas(amount),
-        isUser: address.value ? addr === address.value : false,
-      }))
-      .sort((a, b) => b.burned - a.burned)
-      .map((entry, idx) => ({ rank: idx + 1, ...entry }));
-    leaderboard.value = entries;
-    const userEntry = entries.find((entry) => entry.isUser);
-    rank.value = userEntry ? userEntry.rank : 0;
-    burnCount.value = userBurns;
-  } catch (e) {
-    console.warn("Failed to load leaderboard", e);
-  }
+  const events = await listAllEvents("GasBurned");
+  const totals: Record<string, number> = {};
+  let userBurns = 0;
+  events.forEach((evt) => {
+    const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
+    const burner = String(values[0] ?? "");
+    const amount = Number(values[1] ?? 0);
+    if (!burner) return;
+    totals[burner] = (totals[burner] || 0) + amount;
+    if (address.value && burner === address.value) {
+      userBurns += 1;
+    }
+  });
+  const entries = Object.entries(totals)
+    .map(([addr, amount]) => ({
+      address: addr,
+      burned: toGas(amount),
+      isUser: address.value ? addr === address.value : false,
+    }))
+    .sort((a, b) => b.burned - a.burned)
+    .map((entry, idx) => ({ rank: idx + 1, ...entry }));
+  leaderboard.value = entries;
+  const userEntry = entries.find((entry) => entry.isUser);
+  rank.value = userEntry ? userEntry.rank : 0;
+  burnCount.value = userBurns;
 };
 
 const refreshData = async () => {
-  await Promise.all([loadStats(), loadLeaderboard()]);
+  try {
+    await Promise.all([loadStats(), loadLeaderboard()]);
+  } catch {
+    status.value = { msg: t("loadFailed"), type: "error" };
+  }
 };
 
 const burnTokens = async () => {
   if (isLoading.value) return;
   const amount = parseFloat(burnAmount.value);
-  if (amount < 1) {
-    status.value = { msg: `${t("error")}: Min burn: 1 GAS`, type: "error" };
+  if (!Number.isFinite(amount) || amount < MIN_BURN) {
+    status.value = { msg: t("minBurn", { amount: MIN_BURN }), type: "error" };
     return;
   }
   try {
@@ -278,11 +230,11 @@ const burnTokens = async () => {
     const payment = await payGAS(burnAmount.value, "burn");
     const receiptId = payment.receipt_id;
     if (!receiptId) {
-      throw new Error("Missing payment receipt");
+      throw new Error(t("receiptMissing"));
     }
     const tx = await invokeContract({
       scriptHash: contractAddress.value!,
-      operation: "BurnGas",
+      operation: "burnGas",
       args: [
         { type: "Hash160", value: address.value },
         { type: "Integer", value: toFixed8(burnAmount.value) },
@@ -314,12 +266,96 @@ watch(address, () => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+@import url('https://fonts.googleapis.com/css2?family=Russo+One&display=swap');
+
+$inferno-bg: #0f0505;
+$inferno-orange: #ff4500;
+$inferno-yellow: #ffd700;
+$inferno-text: #fff0f0;
+$inferno-font: 'Russo One', sans-serif;
+
+:global(page) {
+  background: $inferno-bg;
+  font-family: $inferno-font;
+}
+
 .tab-content {
-  padding: 20px;
+  padding: 24px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
+  background: radial-gradient(circle at 50% 100%, #300000 0%, #000 100%);
+  min-height: 100vh;
+  position: relative;
+  font-family: $inferno-font;
+  
+  /* Ember effects */
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; width: 100%; height: 100%;
+    background-image: 
+      url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj48Y2lyY2xlIGN4PSIyIiBjeT0iMiIgcj0iMSIgZmlsbD0iI2ZmNDUwMCIgb3BhY2l0eT0iMC41Ii8+PC9zdmc+');
+    opacity: 0.4;
+    pointer-events: none;
+    mask-image: linear-gradient(to top, black, transparent);
+  }
+}
+
+/* Inferno Component Overrides */
+:deep(.neo-card) {
+  background: rgba(40, 5, 5, 0.8) !important;
+  border: 1px solid #700 !important;
+  border-bottom: 4px solid $inferno-orange !important;
+  border-radius: 4px !important;
+  box-shadow: 0 4px 20px rgba(255, 69, 0, 0.2) !important;
+  color: $inferno-text !important;
+  backdrop-filter: blur(5px);
+  font-family: $inferno-font !important;
+  
+  &.variant-danger {
+    background: #2a0000 !important;
+    border-color: #f00 !important;
+  }
+}
+
+:deep(.neo-button) {
+  text-transform: uppercase;
+  font-weight: 900 !important;
+  font-style: italic;
+  letter-spacing: 0.05em;
+  transform: skewX(-10deg);
+  border-radius: 2px !important;
+  font-family: $inferno-font !important;
+  
+  &.variant-primary {
+    background: linear-gradient(45deg, $inferno-orange, #ff0000) !important;
+    color: #fff !important;
+    box-shadow: 4px 4px 0 #500 !important;
+    border: none !important;
+    
+    &:active {
+      transform: skewX(-10deg) translateY(2px);
+      box-shadow: 2px 2px 0 #500 !important;
+    }
+  }
+  
+  &.variant-secondary {
+    background: transparent !important;
+    border: 2px solid $inferno-orange !important;
+    color: $inferno-orange !important;
+    
+    &:active {
+      transform: skewX(-10deg) translateY(2px);
+    }
+  }
+  
+  /* Counter-skew content */
+  & > view, & > text {
+    transform: skewX(10deg);
+    display: inline-block;
+  }
 }
 
 .scrollable {

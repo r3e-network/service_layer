@@ -35,17 +35,17 @@
           <text class="info-value">10 {{ t("loansPerDay") }}</text>
         </view>
         <view class="info-item">
-          <text class="info-label">Network</text>
-          <text class="info-value">Neo N3 Mainnet</text>
+          <text class="info-label">{{ t("network") }}</text>
+          <text class="info-value">{{ t("neoN3Mainnet") }}</text>
         </view>
         <view class="info-item">
-          <text class="info-label">Protocol Fee</text>
+          <text class="info-label">{{ t("protocolFee") }}</text>
           <text class="info-value highlight">0.09%</text>
         </view>
       </view>
 
       <view class="hash-box mt-4">
-        <text class="info-label">Contract Hash</text>
+        <text class="info-label">{{ t("contractHash") }}</text>
         <view class="hash-value">
           <text class="mono-small">{{ contractAddress || t("notAvailable") }}</text>
         </view>
@@ -96,7 +96,7 @@
           <view class="param-item">
             <text class="param-name">loanId</text>
             <text class="param-type">Integer</text>
-            <text class="param-desc">Loan identifier</text>
+            <text class="param-desc">{{ t("loanIdentifier") }}</text>
           </view>
         </view>
       </view>
@@ -120,7 +120,7 @@
           <view class="param-item">
             <text class="param-name">depositor</text>
             <text class="param-type">Hash160</text>
-            <text class="param-desc">Depositor address</text>
+            <text class="param-desc">{{ t("depositorDesc") }}</text>
           </view>
           <view class="param-item">
             <text class="param-name">amount</text>
@@ -137,31 +137,29 @@
         <view class="u-step">
           <view class="u-num">01</view>
           <view class="u-content">
-            <text class="u-title">Deploy Callback Contract</text>
-            <text class="u-text"
-              >Implement a callback method that repays the principal plus fee within the same transaction.</text
-            >
+            <text class="u-title">{{ t("deployCallbackTitle") }}</text>
+            <text class="u-text">{{ t("deployCallbackDesc") }}</text>
           </view>
         </view>
         <view class="u-step">
           <view class="u-num">02</view>
           <view class="u-content">
-            <text class="u-title">Call RequestLoan</text>
-            <text class="u-text">Invoke `RequestLoan` from your bot or backend with callback details.</text>
+            <text class="u-title">{{ t("callRequestLoanTitle") }}</text>
+            <text class="u-text">{{ t("callRequestLoanDesc") }}</text>
           </view>
         </view>
         <view class="u-step">
           <view class="u-num">03</view>
           <view class="u-content">
-            <text class="u-title">TEE Verification</text>
-            <text class="u-text">TEE verifies your callback can repay before execution.</text>
+            <text class="u-title">{{ t("teeVerificationTitle") }}</text>
+            <text class="u-text">{{ t("teeVerificationDesc") }}</text>
           </view>
         </view>
         <view class="u-step">
           <view class="u-num">04</view>
           <view class="u-content">
-            <text class="u-title">Repay in Callback</text>
-            <text class="u-text">Return principal + 0.09% fee within the same transaction.</text>
+            <text class="u-title">{{ t("repayCallbackTitle") }}</text>
+            <text class="u-text">{{ t("repayCallbackDesc") }}</text>
           </view>
         </view>
       </view>
@@ -170,10 +168,7 @@
     <!-- Warning -->
     <view class="warning-box">
       <AppIcon name="alert-triangle" :size="20" />
-      <text class="warning-text"
-        >Flash loans require a programmatic callback contract; this miniapp is instructional only. Transactions fail
-        without full repayment plus fee.</text
-      >
+      <text class="warning-text">{{ t("warningText") }}</text>
     </view>
   </view>
 </template>
@@ -317,7 +312,7 @@ defineProps<{
 
 .method-params {
   background: black;
-  color: white;
+  color: var(--text-primary);
   padding: $space-3;
 }
 

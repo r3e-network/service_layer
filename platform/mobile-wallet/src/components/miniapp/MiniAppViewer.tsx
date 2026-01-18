@@ -3,10 +3,10 @@
  * Uses WebView with SDK bridge for communication
  */
 
-import React, { useRef, useState, useCallback, useMemo } from "react";
+import React, { useRef, useState, useCallback, useMemo, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
-import type { MiniAppInfo } from "@/types/miniapp";
+import type { ChainId, MiniAppInfo } from "@/types/miniapp";
 import { MiniAppLoader } from "./MiniAppLoader";
 import {
   createMiniAppSDK,
@@ -18,21 +18,24 @@ import {
 } from "@/lib/miniapp";
 import type { BridgeConfig, BridgeMessage } from "@/lib/miniapp";
 import { resolveChainType } from "@/lib/chains";
+import { getMiniappLocale } from "@neo/shared/i18n";
+import { useWalletStore } from "@/stores/wallet";
+import { EDGE_BASE_URL, MINIAPP_BASE_URL } from "@/lib/config";
 
 interface MiniAppViewerProps {
   app: MiniAppInfo;
   locale?: string;
   theme?: "light" | "dark";
+  chainId?: ChainId | null;
   getAddress: () => Promise<string>;
   invokeIntent: (requestId: string) => Promise<{ tx_hash: string }>;
+  invokeFunction?: (params: Record<string, unknown>) => Promise<unknown>;
+  switchChain?: (chainId: ChainId) => Promise<void>;
+  signMessage?: (message: string) => Promise<unknown>;
   onReady?: () => void;
   onError?: (error: Error) => void;
 }
 
-const EDGE_BASE_URL = "https://neomini.app/functions/v1";
-
-// Base URL for MiniApp static assets
-const MINIAPP_BASE_URL = "https://neomini.app";
 
 /**
  * JavaScript to inject into WebView for SDK bridge
@@ -94,7 +97,9 @@ const buildInjectedJS = (configJson: string) => `
     getAddress: () => request('wallet.getAddress'),
     wallet: {
       getAddress: () => request('wallet.getAddress'),
-      invokeIntent: (requestId) => request('wallet.invokeIntent', [requestId])
+      invokeIntent: (requestId) => request('wallet.invokeIntent', [requestId]),
+      switchChain: (chainId) => request('wallet.switchChain', [chainId]),
+      signMessage: (message) => request('wallet.signMessage', [message])
     },
     payments: {
       payGAS: (appId, amount, memo) => request('payments.payGAS', [appId, amount, memo]),
@@ -104,13 +109,17 @@ const buildInjectedJS = (configJson: string) => `
       vote: (appId, proposalId, neoAmount, support) =>
         request('governance.vote', [appId, proposalId, neoAmount, support]),
       voteAndInvoke: (appId, proposalId, neoAmount, support) =>
-        request('governance.voteAndInvoke', [appId, proposalId, neoAmount, support])
+        request('governance.voteAndInvoke', [appId, proposalId, neoAmount, support]),
+      getCandidates: () => request('governance.getCandidates', [])
     },
     rng: {
       requestRandom: (appId) => request('rng.requestRandom', [appId])
     },
     datafeed: {
-      getPrice: (symbol) => request('datafeed.getPrice', [symbol])
+      getPrice: (symbol) => request('datafeed.getPrice', [symbol]),
+      getPrices: () => request('datafeed.getPrices', []),
+      getNetworkStats: () => request('datafeed.getNetworkStats', []),
+      getRecentTransactions: (limit) => request('datafeed.getRecentTransactions', [limit])
     },
     stats: {
       getMyUsage: (appId, date) => request('stats.getMyUsage', [appId, date])
@@ -154,15 +163,19 @@ export function MiniAppViewer({
   app,
   locale = "en",
   theme = "dark",
+  chainId,
   getAddress,
   invokeIntent,
+  invokeFunction,
+  switchChain,
+  signMessage,
   onReady,
   onError,
 }: MiniAppViewerProps) {
   const webViewRef = useRef<WebView>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  const effectiveChainId = useMemo(() => resolveChainIdForApp(app), [app]);
+  const effectiveChainId = useMemo(() => resolveChainIdForApp(app, chainId), [app, chainId]);
   const chainType = useMemo(() => resolveChainType(effectiveChainId || null), [effectiveChainId]);
   const contractAddress = useMemo(
     () => getContractForChain(app, effectiveChainId),
@@ -206,13 +219,16 @@ export function MiniAppViewer({
       sdk,
       getAddress,
       invokeIntent,
+      invokeFunction,
+      switchChain,
+      signMessage,
     }),
-    [app.app_id, app.permissions, sdk, getAddress, invokeIntent],
+    [app.app_id, app.permissions, sdk, getAddress, invokeIntent, invokeFunction, switchChain, signMessage],
   );
 
   // Build entry URL with params
   const entryUrl = useMemo(() => {
-    const supportedLocale = locale === "zh" ? "zh" : "en";
+    const supportedLocale = getMiniappLocale(locale);
     // Convert relative paths to absolute URLs
     let baseUrl = getEntryUrlForChain(app, effectiveChainId);
     if (baseUrl.startsWith("/")) {
@@ -264,6 +280,21 @@ export function MiniAppViewer({
       balances: {},
     });
   }, [chainType, effectiveChainId, getAddress, postToWebView]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    const unsubscribe = useWalletStore.subscribe(() => {
+      void sendWalletState();
+    });
+    void sendWalletState();
+    const delayedSend = setTimeout(() => {
+      void sendWalletState();
+    }, 500);
+    return () => {
+      unsubscribe();
+      clearTimeout(delayedSend);
+    };
+  }, [isLoaded, sendWalletState]);
 
   // Handle messages from WebView
   const handleMessage = useCallback(

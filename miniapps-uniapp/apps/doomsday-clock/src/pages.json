@@ -5,12 +5,19 @@
       "style": {
         "navigationBarTitleText": "Doomsday Clock"
       }
+    },
+    {
+      "path": "pages/docs/index",
+      "style": {
+        "navigationBarTitleText": "Docs"
+      }
     }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "white",
     "navigationBarTitleText": "Doomsday Clock",
     "navigationBarBackgroundColor": "#0d1117",
-    "backgroundColor": "#0d1117"
+    "backgroundColor": "#0d1117",
+    "navigationStyle": "custom"
   }
 }

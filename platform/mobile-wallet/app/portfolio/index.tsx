@@ -3,6 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack } from "expo-router";
 import { useState, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   loadPortfolioData,
   PortfolioAsset,
@@ -13,6 +14,7 @@ import {
 } from "@/lib/portfolio";
 
 export default function PortfolioScreen() {
+  const { t, locale } = useTranslation();
   const [assets, setAssets] = useState<PortfolioAsset[]>([]);
 
   useFocusEffect(
@@ -35,7 +37,7 @@ export default function PortfolioScreen() {
         <Text style={styles.amount}>{item.amount}</Text>
       </View>
       <View style={styles.assetValue}>
-        <Text style={styles.value}>{formatCurrency(item.value)}</Text>
+        <Text style={styles.value}>{formatCurrency(item.value, locale)}</Text>
         <Text style={[styles.change, item.change24h >= 0 ? styles.up : styles.down]}>
           {formatPercent(item.change24h)}
         </Text>
@@ -45,11 +47,13 @@ export default function PortfolioScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: "Portfolio" }} />
+      <Stack.Screen options={{ title: t("portfolio.title") }} />
       <View style={styles.header}>
-        <Text style={styles.totalLabel}>Total Value</Text>
-        <Text style={styles.totalValue}>{formatCurrency(total)}</Text>
-        <Text style={[styles.totalChange, change >= 0 ? styles.up : styles.down]}>{formatPercent(change)} (24h)</Text>
+        <Text style={styles.totalLabel}>{t("portfolio.totalValue")}</Text>
+        <Text style={styles.totalValue}>{formatCurrency(total, locale)}</Text>
+        <Text style={[styles.totalChange, change >= 0 ? styles.up : styles.down]}>
+          {formatPercent(change)} {t("portfolio.change24hSuffix")}
+        </Text>
       </View>
       <FlatList
         data={assets}

@@ -36,6 +36,34 @@
       <text class="asset-hint">{{ t("assetHint") }}</text>
     </view>
 
+    <view class="form-section">
+      <view class="form-label">
+        <text class="label-icon">⏱️</text>
+        <text class="label-text">{{ t("heartbeatInterval") }}</text>
+      </view>
+      <NeoInput
+        :modelValue="intervalDays"
+        @update:modelValue="$emit('update:intervalDays', $event)"
+        type="number"
+        placeholder="30"
+        suffix="days"
+      />
+      <text class="asset-hint">{{ t("heartbeatHint") }}</text>
+    </view>
+
+    <view class="form-section">
+      <view class="form-label">
+        <text class="label-icon">📝</text>
+        <text class="label-text">{{ t("notes") }}</text>
+      </view>
+      <NeoInput
+        :modelValue="notes"
+        @update:modelValue="$emit('update:notes', $event)"
+        :placeholder="t('notesPlaceholder')"
+        type="textarea"
+      />
+    </view>
+
     <view class="info-banner">
       <text class="info-icon">ℹ️</text>
       <view class="info-content">
@@ -57,11 +85,13 @@ defineProps<{
   name: string;
   beneficiary: string;
   neoValue: string;
+  intervalDays: string;
+  notes: string;
   isLoading: boolean;
   t: (key: string) => string;
 }>();
 
-defineEmits(["update:name", "update:beneficiary", "update:neoValue", "create"]);
+defineEmits(["update:name", "update:beneficiary", "update:neoValue", "update:intervalDays", "update:notes", "create"]);
 </script>
 
 <style lang="scss" scoped>
@@ -82,7 +112,7 @@ defineEmits(["update:name", "update:beneficiary", "update:neoValue", "create"]);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: white;
+  color: var(--text-primary);
   opacity: 0.9;
 }
 
@@ -109,13 +139,13 @@ defineEmits(["update:name", "update:beneficiary", "update:neoValue", "create"]);
   font-size: 10px;
   font-weight: 600;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-primary);
 }
 
 .asset-hint {
   display: block;
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   margin-top: $space-2;
   font-weight: 500;
   font-style: italic;

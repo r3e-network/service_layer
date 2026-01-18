@@ -123,12 +123,25 @@ class OriginValidator {
 
   /** Get safe target origin (throws if unknown) */
   getSafeTargetOrigin(): string {
-    const target = this.getTargetOrigin();
-    if (!target || target === "null") {
-      // SECURITY: Fail-secure - reject unknown origins
-      throw new Error("Cannot determine safe target origin - origin is null or undefined");
+    try {
+      const target = this.getTargetOrigin();
+      if (target && target !== "null") {
+        return target;
+      }
+    } catch {
+      // fall through to iframe-safe fallback
     }
-    return target;
+
+    // If we're running inside an iframe and can't resolve the parent origin,
+    // use "*" for postMessage to avoid breaking the bridge on browsers that
+    // don't expose ancestorOrigins (e.g. Safari). The receiver still validates
+    // incoming origins.
+    if (typeof window !== "undefined" && window.parent !== window) {
+      return "*";
+    }
+
+    // SECURITY: Fail-secure - reject unknown origins
+    throw new Error("Cannot determine safe target origin - origin is null or undefined");
   }
 
   /** Add dynamic origin (for runtime additions) */
@@ -218,6 +231,7 @@ function createPostMessageSDK(): MiniAppSDK {
       getAddress: () => invoke("wallet.getAddress") as Promise<string>,
       switchChain: (chainId: ChainId) => invoke("wallet.switchChain", chainId) as Promise<void>,
       invokeIntent: (requestId: string) => invoke("wallet.invokeIntent", requestId),
+      signMessage: (message: string) => invoke("wallet.signMessage", message),
     },
     payments: {
       payGAS: (appId: string, amount: string, memo?: string) => invoke("payments.payGAS", appId, amount, memo),
@@ -242,6 +256,12 @@ function createPostMessageSDK(): MiniAppSDK {
     },
     stats: {
       getMyUsage: (appId: string, date?: string) => invoke("stats.getMyUsage", appId, date),
+    },
+    events: {
+      list: (params?: Record<string, unknown>) => invoke("events.list", params),
+    },
+    transactions: {
+      list: (params?: Record<string, unknown>) => invoke("transactions.list", params),
     },
   } as MiniAppSDK;
 }
@@ -271,7 +291,6 @@ export function waitForSDK(timeout = SDK_TIMEOUTS.SDK_INIT): Promise<MiniAppSDK>
       window.removeEventListener("miniapp-sdk-ready", handler);
       // Fallback to postMessage-based SDK for cross-origin iframes
       if (window.parent !== window) {
-        console.log("[MiniApp SDK] Direct injection timeout, using postMessage bridge");
         const proxySDK = createPostMessageSDK();
         window.MiniAppSDK = proxySDK;
         proxySDK
@@ -312,9 +331,7 @@ export function waitForSDK(timeout = SDK_TIMEOUTS.SDK_INIT): Promise<MiniAppSDK>
  * Create SDK bridge for H5 platform
  */
 export function createH5Bridge(config: MiniAppSDKConfig): Promise<MiniAppSDK> {
-  if (config.debug) {
-    console.log("[MiniApp SDK] Creating H5 bridge for:", config.appId);
-  }
+  void config;
   return waitForSDK();
 }
 
@@ -453,41 +470,12 @@ if (typeof window !== "undefined") {
 
 /**
  * Call SDK bridge method
+ * @deprecated Use `waitForSDK().then(sdk => sdk.invoke(method, ...args))` instead
  */
-export async function callBridge(method: string, params?: Record<string, unknown>): Promise<unknown> {
+export async function callBridge(method: string, ...args: unknown[]): Promise<unknown> {
   const sdk = await waitForSDK().catch(() => null);
   if (!sdk) {
     throw new Error("SDK not available");
   }
-
-  const safeTargetOrigin = originValidator.getSafeTargetOrigin();
-
-  // Use postMessage to communicate with host
-  return new Promise((resolve, reject) => {
-    const id = `${method}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const handler = (event: MessageEvent) => {
-      // CRITICAL: Validate origin before processing message
-      if (event.source !== window.parent) return;
-      if (!originValidator.isValid(event.origin)) {
-        console.warn("[MiniApp SDK] Rejected message from invalid origin:", event.origin);
-        return;
-      }
-
-      if (event.data?.id === id) {
-        window.removeEventListener("message", handler);
-        if (event.data.error) {
-          reject(new Error(event.data.error));
-        } else {
-          resolve(event.data.result);
-        }
-      }
-    };
-    window.addEventListener("message", handler);
-    window.parent.postMessage({ type: "bridge", method, params, id }, safeTargetOrigin);
-    // Timeout using centralized config
-    setTimeout(() => {
-      window.removeEventListener("message", handler);
-      reject(new Error("Bridge call timeout"));
-    }, SDK_TIMEOUTS.BRIDGE);
-  });
+  return sdk.invoke(method, ...args);
 }

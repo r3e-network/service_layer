@@ -90,7 +90,18 @@
             </view>
             <view class="input-section">
               <text class="input-label-glass">{{ t("tipperName") }}</text>
-              <NeoInput v-model="tipperName" :placeholder="t('tipperNamePlaceholder')" />
+              <NeoInput v-model="tipperName" :placeholder="t('tipperNamePlaceholder')" :disabled="anonymous" />
+            </view>
+            <view class="input-section">
+              <text class="input-label-glass">{{ t("anonymousLabel") }}</text>
+              <view class="toggle-row">
+                <NeoButton size="sm" :variant="anonymous ? 'primary' : 'secondary'" @click="anonymous = true">
+                  {{ t("anonymousOn") }}
+                </NeoButton>
+                <NeoButton size="sm" :variant="anonymous ? 'secondary' : 'primary'" @click="anonymous = false">
+                  {{ t("anonymousOff") }}
+                </NeoButton>
+              </view>
             </view>
 
             <!-- Send Button -->
@@ -138,6 +149,7 @@
         :features="docFeatures"
       />
     </view>
+    <Fireworks :active="status?.type === 'success'" :duration="3000" />
   </AppLayout>
 </template>
 
@@ -146,79 +158,13 @@ import { ref, computed, onMounted } from "vue";
 import { useWallet, useEvents, usePayments } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
 import { AppLayout, NeoDoc, NeoButton, NeoInput, NeoCard } from "@/shared/components";
+import Fireworks from "../../../../../shared/components/Fireworks.vue";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
-const translations = {
-  title: { en: "Dev Tipping", zh: "开发者打赏" },
-  subtitle: { en: "Support developers", zh: "支持开发者" },
-  topDevelopers: { en: "Top Developers", zh: "顶级开发者" },
-  tipsCount: { en: "tips", zh: "打赏次数" },
-  totalTips: { en: "Total Tips", zh: "总打赏" },
-  sendTip: { en: "Send Tip", zh: "发送打赏" },
-  selectDeveloper: { en: "Select Developer", zh: "选择开发者" },
-  tipAmount: { en: "Tip Amount", zh: "打赏金额" },
-  customAmount: { en: "Custom amount...", zh: "自定义金额..." },
-  optionalMessage: { en: "Optional Message", zh: "可选消息" },
-  messagePlaceholder: { en: "Say thanks...", zh: "说声谢谢..." },
-  tipperName: { en: "Your Name (optional)", zh: "您的昵称（可选）" },
-  tipperNamePlaceholder: { en: "Anonymous", zh: "匿名" },
-  sending: { en: "Sending...", zh: "发送中..." },
-  sendTipBtn: { en: "Send Tip", zh: "发送打赏" },
-  selected: { en: "Selected", zh: "已选择" },
-  tipSent: { en: "Tip sent successfully!", zh: "打赏发送成功！" },
-  invalidAmount: { en: "Invalid amount", zh: "无效金额" },
-  minTip: { en: "Minimum tip is 0.001 GAS", zh: "最低打赏为 0.001 GAS" },
-  receiptMissing: { en: "Payment receipt missing", zh: "支付凭证缺失" },
-  contractUnavailable: { en: "Contract unavailable", zh: "合约不可用" },
-  error: { en: "Error", zh: "错误" },
-  recentTips: { en: "Recent Tips", zh: "最近打赏" },
-  stats: { en: "Stats", zh: "统计" },
-  statistics: { en: "Statistics", zh: "统计数据" },
-  totalDonated: { en: "Total Donated", zh: "总打赏额" },
 
-  docs: { en: "Docs", zh: "文档" },
-  docSubtitle: {
-    en: "Support developers with direct GAS tips",
-    zh: "用 GAS 打赏直接支持开发者",
-  },
-  docDescription: {
-    en: "Dev Tipping lets you show appreciation to Neo developers by sending GAS tips directly to their wallets. Support open source projects and track your contribution history.",
-    zh: "Dev Tipping 让您通过直接向开发者钱包发送 GAS 打赏来表达感谢。支持开源项目并跟踪您的贡献历史。",
-  },
-  step1: {
-    en: "Connect your Neo wallet",
-    zh: "连接您的 Neo 钱包",
-  },
-  step2: {
-    en: "Find a developer or project to support",
-    zh: "找到要支持的开发者或项目",
-  },
-  step3: {
-    en: "Enter tip amount and optional message",
-    zh: "输入打赏金额和可选留言",
-  },
-  step4: {
-    en: "Confirm transaction - tips go directly to developer",
-    zh: "确认交易 - 打赏直接发送给开发者",
-  },
-  feature1Name: { en: "Direct Payments", zh: "直接支付" },
-  feature1Desc: {
-    en: "100% of your tip goes directly to the developer's wallet.",
-    zh: "您的打赏 100% 直接进入开发者钱包。",
-  },
-  feature2Name: { en: "Contribution Tracking", zh: "贡献追踪" },
-  feature2Desc: {
-    en: "All tips are recorded on-chain with full transparency.",
-    zh: "所有打赏都记录在链上，完全透明。",
-  },
-  wrongChain: { en: "Wrong Network", zh: "网络错误" },
-  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-};
-
-const t = createT(translations);
+const { t } = useI18n();
 
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
@@ -233,17 +179,18 @@ const { payGAS } = usePayments(APP_ID);
 const isLoading = ref(false);
 
 const activeTab = ref<string>("send");
-const navTabs: NavTab[] = [
-  { id: "send", label: "Send Tip", icon: "💰" },
-  { id: "developers", label: "Developers", icon: "👨‍💻" },
+const navTabs = computed<NavTab[]>(() => [
+  { id: "send", label: t("sendTip"), icon: "💰" },
+  { id: "developers", label: t("developers"), icon: "👨‍💻" },
   { id: "stats", label: t("stats"), icon: "chart" },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 
 const selectedDevId = ref<number | null>(null);
 const tipAmount = ref("1");
 const tipMessage = ref("");
 const tipperName = ref("");
+const anonymous = ref(false);
 const status = ref<{ msg: string; type: string } | null>(null);
 const totalDonated = ref(0);
 
@@ -308,38 +255,45 @@ const loadDevelopers = async () => {
     const ids = Array.from({ length: total }, (_, i) => i + 1);
     const devs = await Promise.all(
       ids.map(async (id) => {
-        const [nameRes, roleRes, walletRes, totalTipsRes, tipCountRes, balanceRes] = await Promise.all([
-          invokeRead({ contractAddress: contract, operation: "getDevName", args: [{ type: "Integer", value: id }] }),
-          invokeRead({ contractAddress: contract, operation: "getDevRole", args: [{ type: "Integer", value: id }] }),
-          invokeRead({ contractAddress: contract, operation: "getDevWallet", args: [{ type: "Integer", value: id }] }),
-          invokeRead({ contractAddress: contract, operation: "getDevTotalTips", args: [{ type: "Integer", value: id }] }),
-          invokeRead({ contractAddress: contract, operation: "getDevTipCount", args: [{ type: "Integer", value: id }] }),
-          invokeRead({ contractAddress: contract, operation: "getDevBalance", args: [{ type: "Integer", value: id }] }),
-        ]);
-        const name = String(parseInvokeResult(nameRes) ?? "").trim();
-        const role = String(parseInvokeResult(roleRes) ?? "").trim();
-        const wallet = String(parseInvokeResult(walletRes) ?? "").trim();
+        const detailsRes = await invokeRead({
+          contractAddress: contract,
+          operation: "getDeveloperDetails",
+          args: [{ type: "Integer", value: id }],
+        });
+        const parsed = parseInvokeResult(detailsRes);
+        const details =
+          parsed && typeof parsed === "object" && !Array.isArray(parsed) ? (parsed as Record<string, unknown>) : {};
+        const name = String(details.name || "").trim();
+        const role = String(details.role || "").trim();
+        const wallet = String(details.wallet || "").trim();
+        const totalReceived = toGas(details.totalReceived ?? 0);
+        const tipCount = toNumber(details.tipCount);
+        const balance = toGas(details.balance ?? 0);
+        if (!wallet) return null;
         return {
           id,
-          name: name || `Dev #${id}`,
-          role: role || "Neo Developer",
+          name: name || t("defaultDevName", { id }),
+          role: role || t("defaultDevRole"),
           wallet,
-          totalTips: toGas(parseInvokeResult(totalTipsRes)),
-          tipCount: toNumber(parseInvokeResult(tipCountRes)),
-          balance: toGas(parseInvokeResult(balanceRes)),
+          totalTips: totalReceived,
+          tipCount,
+          balance,
           rank: "",
         };
       }),
     );
     const donatedRes = await invokeRead({ contractAddress: contract, operation: "totalDonated", args: [] });
     totalDonated.value = toGas(parseInvokeResult(donatedRes));
-    devs.sort((a, b) => b.totalTips - a.totalTips);
-    devs.forEach((dev, idx) => {
+
+    // Filter before sorting to avoid null errors
+    const validDevs = devs.filter((d): d is Developer => d !== null);
+    
+    validDevs.sort((a, b) => b.totalTips - a.totalTips);
+    validDevs.forEach((dev, idx) => {
       dev.rank = `#${idx + 1}`;
     });
-    developers.value = devs;
-  } catch (e) {
-    console.warn("Failed to load developers from contract", e);
+    developers.value = validDevs;
+  } catch {
   }
 };
 
@@ -350,7 +304,7 @@ const loadRecentTips = async () => {
     const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
     const devId = toNumber(values[1] ?? 0);
     const amount = toGas(values[2]);
-    const to = devMap.get(devId) || `Dev #${devId}`;
+    const to = devMap.get(devId) || t("defaultDevName", { id: devId });
     return {
       id: evt.id,
       to,
@@ -364,8 +318,7 @@ const refreshData = async () => {
   try {
     await loadDevelopers();
     await loadRecentTips();
-  } catch (e) {
-    console.warn("Failed to load dev tipping data", e);
+  } catch {
   }
 };
 
@@ -383,7 +336,7 @@ const sendTip = async () => {
       await connect();
     }
     if (!address.value) {
-      throw new Error(t("error"));
+      throw new Error(t("connectWallet"));
     }
     const contract = await ensureContractAddress();
     const amount = Number.parseFloat(tipAmount.value);
@@ -410,6 +363,7 @@ const sendTip = async () => {
         { type: "Integer", value: amountInt },
         { type: "String", value: tipMessage.value || "" },
         { type: "String", value: tipperName.value || "" },
+        { type: "Boolean", value: anonymous.value },
         { type: "Integer", value: String(receiptId) },
       ],
     });
@@ -418,6 +372,7 @@ const sendTip = async () => {
     tipAmount.value = "1";
     tipMessage.value = "";
     tipperName.value = "";
+    anonymous.value = false;
     await refreshData();
   } catch (e: any) {
     status.value = { msg: e.message || t("error"), type: "error" };
@@ -435,156 +390,212 @@ onMounted(() => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+$cafe-bg: #1c1917;
+$cafe-neon: #f97316; /* Orange-500 */
+$cafe-glass: rgba(41, 37, 36, 0.8);
+$cafe-text: #fed7aa; /* Orange-100 */
+$cafe-border: #431407;
+
+:global(page) {
+  background: $cafe-bg;
+}
+
+.app-container {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100vh;
+  gap: 16px;
+  background-color: $cafe-bg;
+  /* Cyber Cafe Pattern */
+  background-image: 
+    linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
+    url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+CjxwYXRoIGQ9Ik0wIDIwaDQwTTIwIDB2NDAiIHN0cm9rZT0iIzQzMTQwNyIgc3Ryb2tlLXdpZHRoPSIxIiBmaWxsPSJub25lIiBvcGFjaXR5PSIwLjUiLz4KPC9zdmc+');
+}
+
 .tab-content {
-  padding: $space-4;
+  padding: 16px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: 20px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
+/* Cyber Cafe Component Overrides */
+:deep(.neo-card) {
+  background: linear-gradient(135deg, $cafe-glass 0%, rgba(20, 15, 10, 0.9) 100%) !important;
+  border: 1px solid $cafe-neon !important;
+  border-radius: 16px !important;
+  box-shadow: 0 0 15px rgba(249, 115, 22, 0.15) !important;
+  color: $cafe-text !important;
+  backdrop-filter: blur(10px);
+  
+  &.variant-danger {
+    border-color: #ef4444 !important;
+    background: rgba(69, 10, 10, 0.8) !important;
+  }
+}
+
+:deep(.neo-button) {
+  border-radius: 8px !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  
+  &.variant-primary {
+    background: $cafe-neon !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.4) !important;
+    
+    &:active {
+      transform: scale(0.98);
+      box-shadow: 0 0 5px rgba(249, 115, 22, 0.2) !important;
+    }
+  }
+  
+  &.variant-secondary {
+    background: transparent !important;
+    border: 1px solid $cafe-neon !important;
+    color: $cafe-neon !important;
+  }
+}
+
+:deep(input), :deep(.neo-input) {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid rgba(249, 115, 22, 0.3) !important;
+  color: $cafe-text !important;
+  border-radius: 8px !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  
+  &:focus {
+    border-color: $cafe-neon !important;
+    box-shadow: 0 0 0 1px $cafe-neon !important;
+  }
+}
+
+/* Custom Dev Card Styles */
 .dev-card-glass {
-  padding: $space-6;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 16px;
   border-radius: 12px;
-  margin-bottom: $space-6;
+  border: 1px solid rgba(249, 115, 22, 0.2);
+  margin-bottom: 16px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(5px);
+  transition: all 0.2s;
   
   &:active {
-    background: rgba(255, 255, 255, 0.1);
-    transform: scale(0.98);
+    background: rgba(249, 115, 22, 0.1);
   }
 }
 
 .dev-card-header {
   display: flex;
-  gap: $space-5;
-  margin-bottom: $space-4;
+  gap: 16px;
+  align-items: center;
 }
 
 .dev-avatar-glass {
-  width: 60px;
-  height: 60px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #292524, #000);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 1px solid $cafe-neon;
+  font-size: 28px;
   position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.avatar-emoji {
-  font-size: 32px;
-}
 .avatar-badge-glass {
   position: absolute;
-  top: -4px;
-  right: -4px;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  bottom: -6px;
+  right: -6px;
+  background: $cafe-neon;
   color: white;
-  padding: 2px 8px;
   font-size: 10px;
-  font-weight: $font-weight-black;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 .dev-info {
   flex: 1;
 }
+
 .dev-name-glass {
-  font-size: 18px;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  display: block;
-  margin-bottom: 4px;
+  font-size: 16px;
+  font-weight: 800;
   color: white;
+  font-family: 'JetBrains Mono', monospace;
+  display: block;
 }
 .dev-projects-glass {
   font-size: 10px;
-  font-weight: $font-weight-bold;
-  opacity: 0.8;
-  text-transform: uppercase;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 2px 8px;
-  border-radius: 12px;
+  color: $cafe-neon;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
   display: inline-block;
-  color: rgba(255, 255, 255, 0.8);
+  margin-top: 4px;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 .dev-contributions-glass {
   font-size: 10px;
-  font-weight: $font-weight-bold;
-  color: #a78bfa;
-  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
   display: block;
   margin-top: 4px;
 }
 
 .dev-card-footer-glass {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(249, 115, 22, 0.2);
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  padding-top: $space-4;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
+
 .tip-label-glass {
   font-size: 10px;
-  font-weight: $font-weight-bold;
-  opacity: 0.6;
   text-transform: uppercase;
-  color: white;
+  color: rgba(255, 255, 255, 0.5);
 }
 .tip-amount-glass {
-  font-family: $font-mono;
-  font-weight: $font-weight-bold;
-  color: #34d399;
-  font-size: 16px;
-  margin-left: 8px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: $space-6;
-}
-.input-label-glass {
-  font-size: 12px;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 8px;
-  display: block;
-}
-
-.dev-selector {
-  display: flex;
-  flex-direction: column;
-  gap: $space-2;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  color: $cafe-neon;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(249, 115, 22, 0.3);
 }
 
 .dev-select-item-glass {
-  padding: $space-3;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px;
+  background: rgba(0,0,0,0.3);
   border-radius: 8px;
+  margin-bottom: 8px;
+  border: 1px solid transparent;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  cursor: pointer;
   
   &.active {
-    background: rgba(16, 185, 129, 0.2);
-    border-color: #34d399;
+    border-color: $cafe-neon;
+    background: rgba(249, 115, 22, 0.1);
   }
 }
 .dev-select-name-glass {
   color: white;
-  font-weight: $font-weight-bold;
+  font-weight: bold;
+  font-family: 'JetBrains Mono', monospace;
 }
 .dev-select-role-glass {
   color: rgba(255, 255, 255, 0.5);
@@ -592,111 +603,96 @@ onMounted(() => {
 }
 
 .preset-amounts {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: $space-3;
-  margin-bottom: $space-4;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 12px;
 }
+
 .preset-btn-glass {
-  padding: $space-4;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex: 1;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: 8px;
+  padding: 10px;
   text-align: center;
-  cursor: pointer;
-  color: white;
-  transition: all 0.2s ease;
   
   &.active {
-    background: rgba(245, 158, 11, 0.3);
-    border-color: #fbbf24;
-    color: #fbbf24;
+    background: $cafe-neon;
+    border-color: $cafe-neon;
+    color: #fff;
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.3);
+    .preset-value-glass, .preset-unit-glass { color: #fff; }
   }
 }
+
 .preset-value-glass {
-  font-weight: $font-weight-black;
-  font-size: 18px;
-  display: block;
-  line-height: 1;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
 }
 .preset-unit-glass {
   font-size: 10px;
-  font-weight: $font-weight-bold;
-  opacity: 0.6;
+  color: rgba(255, 255, 255, 0.5);
 }
 
-.recent-tips-glass {
-  margin-top: $space-8;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: $space-6;
-}
-.recent-tips-title-glass {
-  font-size: 14px;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  margin-bottom: $space-4;
-  color: rgba(255, 255, 255, 0.8);
-  display: inline-block;
-}
 .recent-tip-item-glass {
-  padding: $space-4;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0,0,0,0.3);
+  padding: 12px;
   border-radius: 8px;
-  margin-bottom: $space-4;
+  margin-bottom: 8px;
   display: flex;
   align-items: center;
-  gap: $space-4;
-  color: white;
-}
-
-.stats-grid-neo {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: $space-4;
-}
-.stat-item-neo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: $space-4;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 12px;
-}
-.stat-label-neo {
-  font-size: 12px;
-  opacity: 0.6;
-  text-transform: uppercase;
-  margin-bottom: 4px;
-}
-.stat-value-neo {
-  font-size: 24px;
-  font-weight: 800;
-  color: #34d399;
-}
-.recent-tip-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  gap: 12px;
+  border-left: 2px solid $cafe-neon;
 }
 .recent-tip-to-glass {
-  font-weight: $font-weight-bold;
-  font-size: 14px;
-  text-transform: uppercase;
   color: white;
+  font-weight: bold;
+  font-size: 14px;
 }
 .recent-tip-time-glass {
+  color: rgba(255, 255, 255, 0.3);
   font-size: 10px;
-  font-weight: $font-weight-medium;
-  opacity: 0.5;
-  color: rgba(255, 255, 255, 0.7);
 }
 .recent-tip-amount-glass {
-  font-family: $font-mono;
-  font-weight: $font-weight-bold;
-  color: #34d399;
-  font-size: 14px;
+  margin-left: auto;
+  color: $cafe-neon;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: bold;
 }
+
+.stat-item-neo {
+  text-align: center;
+}
+.stat-label-neo {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.stat-value-neo {
+  font-size: 28px;
+  color: $cafe-neon;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: bold;
+  text-shadow: 0 0 15px rgba(249, 115, 22, 0.4);
+}
+
+.input-label-glass {
+  color: $cafe-text;
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.form-group { display: flex; flex-direction: column; gap: 20px; }
+.input-section { display: flex; flex-direction: column; }
+.toggle-row { display: flex; gap: 10px; }
 
 .scrollable {
   overflow-y: auto;

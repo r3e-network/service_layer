@@ -2,7 +2,7 @@
 
 Canonical source for all Neo N3 MiniApp frontends built with UniApp + Vue 3.
 
-All MiniApps use the **UniversalMiniApp** contract - developers only need to focus on frontend code.
+MiniApps typically use **dedicated on-chain contracts** (one per app) built from `contracts/`. The shared **UniversalMiniApp** contract remains available for lightweight prototypes or experiments that do not need custom logic.
 
 ## Structure
 
@@ -95,7 +95,7 @@ which copies built MiniApps and runs auto-discovery. You can still call
 
 ## SDK Usage
 
-The `@neo/uniapp-sdk` provides Vue 3 composables for all UniversalMiniApp features:
+The `@neo/uniapp-sdk` provides Vue 3 composables for wallet access, platform services, and contract invocations:
 
 ```vue
 <script setup lang="ts">
@@ -126,6 +126,8 @@ const { emit, list } = useEvents();
 </script>
 ```
 
+When invoking MiniApp contract methods, use the method names defined in the contract README (PascalCase in the updated contracts).
+
 ### SDK API Reference
 
 | Composable      | Methods                                              | Description                          |
@@ -151,7 +153,7 @@ const { emit, list } = useEvents();
 
 ## UniversalMiniApp Contract
 
-All MiniApps use the shared `UniversalMiniApp` contract. No custom contract deployment needed.
+The shared `UniversalMiniApp` contract is optional and best suited for rapid prototypes or MiniApps that only need basic storage, payments, and events.
 
 **Features:**
 

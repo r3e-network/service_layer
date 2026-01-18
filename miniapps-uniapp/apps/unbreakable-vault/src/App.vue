@@ -1,23 +1,16 @@
 <script setup lang="ts">
-import { onLaunch, onShow, onHide } from "@dcloudio/uni-app";
-import { onMounted } from "vue";
+import { onMounted, onUnmounted } from "vue";
 import { initTheme, listenForThemeChanges } from "@/shared/utils/theme";
 
-onLaunch(() => {
-  console.log("Unbreakable Vault launched");
-});
-
-onShow(() => {
-  console.log("Unbreakable Vault shown");
-});
-
-onHide(() => {
-  console.log("Unbreakable Vault hidden");
-});
+let cleanupTheme: (() => void) | undefined;
 
 onMounted(() => {
   initTheme();
-  listenForThemeChanges();
+  cleanupTheme = listenForThemeChanges();
+});
+
+onUnmounted(() => {
+  cleanupTheme?.();
 });
 </script>
 

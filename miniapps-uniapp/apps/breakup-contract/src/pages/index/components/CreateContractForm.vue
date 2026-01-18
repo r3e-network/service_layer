@@ -18,6 +18,15 @@
           />
         </view>
 
+        <view class="form-group full-width">
+          <text class="form-label">{{ t("titleLabel") }}</text>
+          <NeoInput
+            :modelValue="title"
+            @update:modelValue="$emit('update:title', $event)"
+            :placeholder="t('titlePlaceholder')"
+          />
+        </view>
+
         <view class="form-group">
           <text class="form-label">{{ t("stakeLabel") }}</text>
           <NeoInput
@@ -36,7 +45,17 @@
             @update:modelValue="$emit('update:duration', $event)"
             type="number"
             :placeholder="t('durationPlaceholder')"
-            suffix="Days"
+            :suffix="t('daysSuffix')"
+          />
+        </view>
+
+        <view class="form-group full-width">
+          <text class="form-label">{{ t("termsLabel") }}</text>
+          <NeoInput
+            :modelValue="terms"
+            @update:modelValue="$emit('update:terms', $event)"
+            type="textarea"
+            :placeholder="t('termsPlaceholder')"
           />
         </view>
       </view>
@@ -73,12 +92,14 @@ defineProps<{
   partnerAddress: string;
   stakeAmount: string;
   duration: string;
+  title: string;
+  terms: string;
   address: string | null;
   isLoading: boolean;
   t: (key: string) => string;
 }>();
 
-defineEmits(["update:partnerAddress", "update:stakeAmount", "update:duration", "create"]);
+defineEmits(["update:partnerAddress", "update:stakeAmount", "update:duration", "update:title", "update:terms", "create"]);
 
 </script>
 
@@ -174,7 +195,7 @@ defineEmits(["update:partnerAddress", "update:stakeAmount", "update:duration", "
   position: absolute;
   width: 8px;
   height: 8px;
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--text-muted);
   border-style: solid;
   
   &.top-left {
@@ -191,7 +212,7 @@ defineEmits(["update:partnerAddress", "update:stakeAmount", "update:duration", "
   font-size: 12px;
   font-weight: 500;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-primary);
   font-family: serif; /* Elegant contract font */
   font-style: italic;
   text-align: center;
@@ -210,7 +231,7 @@ defineEmits(["update:partnerAddress", "update:stakeAmount", "update:duration", "
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   letter-spacing: 0.1em;
   margin-bottom: 8px;
   display: block;
@@ -223,7 +244,7 @@ defineEmits(["update:partnerAddress", "update:stakeAmount", "update:duration", "
 .signature-label {
   font-size: 10px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: 8px;
@@ -255,7 +276,7 @@ defineEmits(["update:partnerAddress", "update:stakeAmount", "update:duration", "
 .signature-text {
   font-family: 'Dancing Script', cursive, serif; /* Fallback to serif/cursive */
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-muted);
   z-index: 2;
   transition: all 0.3s;
   

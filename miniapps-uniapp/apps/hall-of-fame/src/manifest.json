@@ -13,9 +13,5 @@
     "devServer": {
       "port": 5173
     }
-  },
-  "supported_chains": [
-    "neo-n3-mainnet",
-    "neo-n3-testnet"
-  ]
+  }
 }

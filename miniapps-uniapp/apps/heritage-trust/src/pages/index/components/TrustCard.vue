@@ -1,6 +1,6 @@
 <template>
   <NeoCard variant="erobo" class="trust-document-card">
-    <view class="official-banner">OFFICIAL TRUST</view>
+    <view class="official-banner">{{ t("officialTrust") }}</view>
     
     <!-- Document Header -->
     <view class="document-header">
@@ -142,7 +142,7 @@ defineEmits(["heartbeat", "claimYield", "execute"]);
   right: 0;
   height: 24px;
   background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   font-size: 9px;
   font-weight: 700;
   display: flex;
@@ -218,21 +218,21 @@ defineEmits(["heartbeat", "claimYield", "execute"]);
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 16px;
-  color: white;
+  color: var(--text-primary);
 }
 .title-text {
   font-size: 24px;
   font-weight: 800;
   display: block;
   text-transform: uppercase;
-  color: white;
+  color: var(--text-primary);
   text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
   margin-bottom: 8px;
 }
 .title-subtitle {
   font-size: 10px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   display: block;
@@ -250,7 +250,7 @@ defineEmits(["heartbeat", "claimYield", "execute"]);
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   letter-spacing: 0.05em;
   padding: 0;
   background: transparent;
@@ -305,7 +305,7 @@ defineEmits(["heartbeat", "claimYield", "execute"]);
   border-radius: 12px;
   padding: $space-4;
   margin-bottom: $space-6;
-  color: white;
+  color: var(--text-primary);
 }
 .beneficiary-header {
   display: flex;
@@ -318,7 +318,7 @@ defineEmits(["heartbeat", "claimYield", "execute"]);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   border-bottom: none;
 }
 .beneficiary-address {
@@ -332,7 +332,7 @@ defineEmits(["heartbeat", "claimYield", "execute"]);
   display: block;
   margin: $space-2 0;
   word-break: break-all;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
 }
 .beneficiary-allocation {
   display: flex;
@@ -342,12 +342,12 @@ defineEmits(["heartbeat", "claimYield", "execute"]);
   margin-top: 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   padding-top: 8px;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-primary);
 }
 
 .trigger-section {
   background: rgba(0, 0, 0, 0.2);
-  color: white;
+  color: var(--text-primary);
   padding: $space-5;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
@@ -364,7 +364,7 @@ defineEmits(["heartbeat", "claimYield", "execute"]);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: white;
+  color: var(--text-primary);
 }
 .trigger-timeline {
   display: flex;
@@ -421,13 +421,13 @@ defineEmits(["heartbeat", "claimYield", "execute"]);
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   padding-top: $space-3;
   margin-top: $space-4;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
 }
 .footer-signature {
   background: rgba(255, 255, 255, 0.05);
   padding: 4px 10px;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  color: white;
+  color: var(--text-primary);
 }
 </style>

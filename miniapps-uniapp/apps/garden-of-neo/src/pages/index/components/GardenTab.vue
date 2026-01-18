@@ -57,6 +57,7 @@
         </NeoButton>
       </view>
     </NeoCard>
+    <Fireworks :active="localStatus?.type === 'success'" :duration="3000" />
   </view>
 </template>
 
@@ -64,7 +65,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { addressToScriptHash, normalizeScriptHash, parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
-import { NeoButton, NeoCard } from "@/shared/components";
+import { NeoButton, NeoCard, Fireworks } from "@/shared/components";
 
 const props = defineProps<{
   t: (key: string) => string;
@@ -91,7 +92,6 @@ interface Plant {
   icon: string;
   name: string;
   growth: number;
-  color: number;
   isMature: boolean;
   harvested: boolean;
 }
@@ -152,31 +152,26 @@ const ownerMatches = (value: unknown) => {
 const seedByType = (seedType: number) => seeds.value.find((seed) => seed.id === seedType);
 
 const buildPlant = async (plantId: number, seedType: number): Promise<Plant> => {
-  const statusRes = await invokeRead({
+  const detailsRes = await invokeRead({
     contractHash: props.contractAddress!,
-    operation: "GetPlantStatus",
+    operation: "getPlantDetails",
     args: [{ type: "Integer", value: plantId }],
   });
-  const status = parseInvokeResult(statusRes) || [];
-  const size = Number(status[0] || 0);
-  const color = Number(status[1] || 0);
-  const isMature = Boolean(status[2]);
+  const details = parseInvokeResult(detailsRes);
+  const data =
+    details && typeof details === "object" && !Array.isArray(details) ? (details as Record<string, any>) : {};
+  const actualSeedType = Number(data.seedType ?? seedType);
+  const harvested = Boolean(data.harvested);
+  const size = Number(data.growthPercent ?? (harvested ? 100 : 0));
+  const isMature = Boolean(data.isMature ?? harvested);
 
-  const harvestedRes = await invokeRead({
-    contractHash: props.contractAddress!,
-    operation: "IsHarvested",
-    args: [{ type: "Integer", value: plantId }],
-  });
-  const harvested = Boolean(parseInvokeResult(harvestedRes));
-
-  const seed = seedByType(seedType);
+  const seed = seedByType(actualSeedType);
   return {
     id: plantId,
-    seedType,
+    seedType: actualSeedType,
     icon: seed?.icon || "🌱",
-    name: seed?.name || `Seed #${seedType}`,
+    name: seed?.name || `Seed #${actualSeedType}`,
     growth: size,
-    color,
     isMature,
     harvested,
   };
@@ -265,11 +260,11 @@ const plantSeed = async (seed: { id: number; name: string; icon: string; price: 
     showStatus(props.t("plantingSeed"), "loading");
     const payment = await payGAS(seed.price, `plant:${seed.id}`);
     const receiptId = payment.receipt_id;
-    if (!receiptId) throw new Error("Missing payment receipt");
+    if (!receiptId) throw new Error(props.t("receiptMissing"));
 
     await invokeContract({
       scriptHash: props.contractAddress!,
-      operation: "Plant",
+      operation: "plant",
       args: [
         { type: "Hash160", value: address.value },
         { type: "Integer", value: seed.id },
@@ -293,7 +288,7 @@ const harvestPlant = async (plant: Plant, skipRefresh = false) => {
     isHarvesting.value = true;
     await invokeContract({
       scriptHash: props.contractAddress!,
-      operation: "Harvest",
+      operation: "harvest",
       args: [
         { type: "Hash160", value: address.value },
         { type: "Integer", value: plant.id },
@@ -344,13 +339,13 @@ watch(address, async () => {
   flex-direction: column;
   gap: $space-4;
   background: transparent;
-  color: white;
+  color: var(--text-primary);
 }
 
 .status-text-glass {
   font-weight: $font-weight-bold;
   text-transform: uppercase;
-  color: white;
+  color: var(--text-primary);
   letter-spacing: 0.05em;
   font-size: 14px;
 }
@@ -381,13 +376,13 @@ watch(address, async () => {
 
   &.empty {
     border-style: dashed;
-    border-color: rgba(255, 255, 255, 0.2);
+    border-color: var(--text-muted);
     background: rgba(0, 0, 0, 0.1);
     opacity: 0.7;
     
     &:hover {
       background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.4);
+      border-color: var(--text-secondary);
       opacity: 1;
     }
   }
@@ -437,7 +432,7 @@ watch(address, async () => {
   top: -8px;
   right: -8px;
   background: linear-gradient(135deg, #34d399, #10b981);
-  color: white;
+  color: var(--text-primary);
   font-size: 10px;
   font-weight: $font-weight-black;
   padding: 4px 8px;
@@ -463,7 +458,7 @@ watch(address, async () => {
   text-align: center;
 }
 .growth-text-glass {
-  color: white;
+  color: var(--text-primary);
   font-size: 10px;
   font-weight: $font-weight-bold;
   font-family: $font-mono;
@@ -514,13 +509,13 @@ watch(address, async () => {
   font-size: 16px;
   font-weight: $font-weight-bold;
   text-transform: uppercase;
-  color: white;
+  color: var(--text-primary);
   display: block;
 }
 .seed-time-glass {
   font-size: 12px;
   font-weight: $font-weight-medium;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   margin-top: 4px;
   display: inline-block;
   background: rgba(0,0,0,0.3);

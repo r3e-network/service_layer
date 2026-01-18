@@ -1,0 +1,95 @@
+// ============================================
+// TURTLE MATCH CSS CUSTOM PROPERTIES
+// Runtime theming with CSS variables
+// ============================================
+
+@use "./tokens.scss" as *;
+
+// === ROOT VARIABLES (Dark Theme Default) ===
+
+:global(:root) {
+  // Colors
+  --neo-green: #{$neo-green};
+  --neo-purple: #{$neo-purple};
+  --neo-black: #{$neo-black};
+  --neo-white: #{$neo-white};
+
+  // Turtle colors
+  --turtle-red: #{$turtle-red};
+  --turtle-orange: #{$turtle-orange};
+  --turtle-yellow: #{$turtle-yellow};
+  --turtle-green: #{$turtle-green};
+  --turtle-blue: #{$turtle-blue};
+  --turtle-purple: #{$turtle-purple};
+  --turtle-pink: #{$turtle-pink};
+  --turtle-gold: #{$turtle-gold};
+
+  // Accent palette
+  --brutal-yellow: #{$brutal-yellow};
+  --brutal-pink: #{$brutal-pink};
+  --brutal-blue: #{$brutal-blue};
+  --brutal-orange: #{$brutal-orange};
+  --brutal-red: #{$brutal-red};
+  --brutal-lime: #{$brutal-lime};
+
+  // Backgrounds
+  --bg-primary: #{$bg-primary};
+  --bg-secondary: #{$bg-secondary};
+  --bg-card: #{$bg-card};
+  --bg-elevated: #{$bg-elevated};
+
+  // Text
+  --text-primary: #{$text-primary};
+  --text-secondary: #{$text-secondary};
+  --text-muted: #{$text-muted};
+
+  // Borders
+  --border-color: #{$neo-white};
+  --border-width: #{$border-width-md};
+
+  // Shadows
+  --shadow-color: #{$neo-black};
+  --shadow-sm: #{$shadow-sm};
+  --shadow-md: #{$shadow-md};
+  --shadow-lg: #{$shadow-lg};
+
+  // Status
+  --status-success: #{$status-success};
+  --status-error: #{$status-error};
+  --status-warning: #{$status-warning};
+  --status-info: #{$status-info};
+}
+
+// === LIGHT THEME ===
+
+:global([data-theme="light"]),
+:global(.theme-light) {
+  --bg-primary: #{$bg-primary-light};
+  --bg-secondary: #{$bg-secondary-light};
+  --bg-card: #{$bg-card-light};
+  --bg-elevated: #{$bg-elevated-light};
+
+  --text-primary: #{$text-primary-light};
+  --text-secondary: #{$text-secondary-light};
+  --text-muted: #888888;
+
+  --border-color: #{$neo-black};
+  --shadow-color: #{$neo-black};
+}
+
+// === SYSTEM PREFERENCE ===
+
+@media (prefers-color-scheme: light) {
+  :global(:root:not([data-theme="dark"]):not(.theme-dark)) {
+    --bg-primary: #{$bg-primary-light};
+    --bg-secondary: #{$bg-secondary-light};
+    --bg-card: #{$bg-card-light};
+    --bg-elevated: #{$bg-elevated-light};
+
+    --text-primary: #{$text-primary-light};
+    --text-secondary: #{$text-secondary-light};
+    --text-muted: #888888;
+
+    --border-color: #{$neo-black};
+  }
+}

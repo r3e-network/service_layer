@@ -62,7 +62,7 @@ defineProps<{
 .title-neo {
   font-size: 32px;
   font-weight: 800;
-  color: white;
+  color: var(--text-primary);
   margin-bottom: 8px;
   display: block;
   font-family: $font-family;
@@ -74,7 +74,7 @@ defineProps<{
 .subtitle-neo {
   font-size: 11px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.2em;
   display: block;
@@ -89,7 +89,7 @@ defineProps<{
 }
 
 .text-gold { color: #FCD34D; filter: drop-shadow(0 0 8px rgba(252, 211, 77, 0.5)); }
-.text-white { color: white; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5)); }
+.text-white { color: var(--text-primary); filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5)); }
 
 .glow-animate {
   animation: glow 2s ease-in-out infinite;

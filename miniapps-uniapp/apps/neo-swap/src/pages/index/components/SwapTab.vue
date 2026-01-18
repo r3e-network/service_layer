@@ -100,7 +100,7 @@ const props = defineProps<{
   t: (key: string) => string;
 }>();
 
-const { getAddress, invokeContract, getBalance, getContractAddress } = useWallet() as any;
+const { getAddress, invokeContract, balances, getContractAddress } = useWallet() as any;
 const SWAP_ROUTER = ref<string | null>(null);
 
 interface Token {
@@ -128,6 +128,25 @@ const status = ref<{ msg: string; type: string } | null>(null);
 const showSelector = ref(false);
 const selectorTarget = ref<"from" | "to">("from");
 const isSwapping = ref(false);
+
+// Watch for balance updates
+import { watch } from "vue";
+watch(
+  balances,
+  (newVal) => {
+    const neo = newVal["NEO"] || 0;
+    const gas = newVal["GAS"] || 0;
+    TOKENS[0].balance = Number(neo);
+    TOKENS[1].balance = Number(gas);
+
+    // Update active tokens if they match
+    if (fromToken.value.symbol === "NEO") fromToken.value.balance = TOKENS[0].balance;
+    if (fromToken.value.symbol === "GAS") fromToken.value.balance = TOKENS[1].balance;
+    if (toToken.value.symbol === "NEO") toToken.value.balance = TOKENS[0].balance;
+    if (toToken.value.symbol === "GAS") toToken.value.balance = TOKENS[1].balance;
+  },
+  { deep: true, immediate: true },
+);
 
 const availableTokens = computed(() => TOKENS);
 
@@ -166,21 +185,8 @@ function showStatus(msg: string, type: "success" | "error") {
   setTimeout(() => (status.value = null), 5000);
 }
 
-async function loadBalances() {
-  try {
-    const neo = await getBalance("NEO");
-    const gas = await getBalance("GAS");
-    TOKENS[0].balance = typeof neo === "object" ? 0 : Number(neo || 0);
-    TOKENS[1].balance = typeof gas === "object" ? 0 : Number(gas || 0);
-    // Refresh current tokens if they are in the list
-    if (fromToken.value.symbol === "NEO") fromToken.value.balance = TOKENS[0].balance;
-    if (fromToken.value.symbol === "GAS") fromToken.value.balance = TOKENS[1].balance;
-    if (toToken.value.symbol === "NEO") toToken.value.balance = TOKENS[0].balance;
-    if (toToken.value.symbol === "GAS") toToken.value.balance = TOKENS[1].balance;
-  } catch (e) {
-    console.error("Failed to load balances:", e);
-  }
-}
+// function loadBalances() removed - replaced by reactive watch
+
 
 async function fetchExchangeRate() {
   if (rateLoading.value) return;
@@ -200,8 +206,7 @@ async function fetchExchangeRate() {
         }
       }
     }
-  } catch (e) {
-    console.warn("[SwapTab] Failed to fetch exchange rate:", e);
+  } catch {
   } finally {
     rateLoading.value = false;
   }
@@ -211,8 +216,7 @@ async function loadRouter() {
   if (SWAP_ROUTER.value) return;
   try {
     SWAP_ROUTER.value = await getContractAddress();
-  } catch (e) {
-    console.warn("[SwapTab] Failed to load swap router:", e);
+  } catch {
   }
 }
 
@@ -281,7 +285,7 @@ async function executeSwap() {
     const minOutputInt = Math.floor(minOutputAmount * Math.pow(10, toDecimals));
 
     const routerAddress = SWAP_ROUTER.value || (await getContractAddress());
-    if (!routerAddress) throw new Error("Swap router unavailable");
+    if (!routerAddress) throw new Error(props.t("swapRouterUnavailable"));
 
     await invokeContract({
       scriptHash: routerAddress,
@@ -298,7 +302,7 @@ async function executeSwap() {
     showStatus(`${props.t("swapSuccess")} ${amount} ${fromToken.value.symbol}!`, "success");
     fromAmount.value = "";
     toAmount.value = "";
-    await loadBalances();
+    // await loadBalances(); // Auto-updated by reactivity
   } catch (e: any) {
     showStatus(e.message || props.t("swapFailed"), "error");
   } finally {
@@ -307,7 +311,7 @@ async function executeSwap() {
 }
 
 onMounted(() => {
-  loadBalances();
+  // loadBalances(); // Handled by watch
   loadRouter();
   fetchExchangeRate();
 });
@@ -359,7 +363,7 @@ onMounted(() => {
 
   &:hover {
     background: #9f9df3;
-    color: white;
+    color: var(--text-primary);
     box-shadow: 0 0 20px rgba(159, 157, 243, 0.4);
     transform: scale(1.1) rotate(180deg);
   }
@@ -382,6 +386,6 @@ onMounted(() => {
 
 .rate-empty-text {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
 }
 </style>

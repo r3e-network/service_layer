@@ -2,10 +2,24 @@
   "app_id": "miniapp-guardianpolicy",
   "name": "Guardian Policy",
   "name_zh": "守护策略",
-  "description": "Define and enforce smart contract policies for your wallet. Set spending limits, whitelist addresses, require multi-sig for large transfers, and protect your assets.",
+  "description": "Guardian Policy - Neo MiniApp",
   "description_zh": "为您的钱包定义和执行智能合约策略。",
+  "version": "1.0.0",
+  "entry_url": "mf://builtin?app=miniapp-guardian-policy",
   "category": "utility",
   "status": "active",
+  "tags": [],
+  "permissions": {
+    "payments": true
+  },
+  "assets_allowed": [
+    "NEO",
+    "GAS"
+  ],
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
   "contracts": {
     "neo-n3-mainnet": {
       "address": "0x893a774957244b83a0efed1d42771fe1e424cfec"
@@ -14,11 +28,13 @@
       "address": "0x893a774957244b83a0efed1d42771fe1e424cfec"
     }
   },
-  "permissions": {
-    "payments": true
-  },
-  "supported_chains": [
-    "neo-n3-mainnet",
-    "neo-n3-testnet"
-  ]
+  "card": {
+    "display": {
+      "type": "icon_title",
+      "banner": "/static/banner.png"
+    },
+    "info": {
+      "logo": "/static/logo.png"
+    }
+  }
 }

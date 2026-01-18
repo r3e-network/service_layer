@@ -32,11 +32,11 @@
     <NeoCard v-else-if="result.type === 'address'" :title="t('address')" variant="erobo" class="mb-6">
       <view class="result-rows mb-4">
         <view class="result-row-neo">
-          <text class="label-neo">Address:</text>
+          <text class="label-neo">{{ t("addressLabel") }}</text>
           <text class="value-neo">{{ result.data.address }}</text>
         </view>
         <view class="result-row-neo">
-          <text class="label-neo">Transactions:</text>
+          <text class="label-neo">{{ t("transactionsLabel") }}</text>
           <text class="value-neo">{{ result.data.txCount }}</text>
         </view>
       </view>
@@ -147,7 +147,7 @@ const truncateHash = (hash: string) => {
   font-family: $font-mono;
   font-size: 13px;
   font-weight: 600;
-  color: white;
+  color: var(--text-primary);
   word-break: break-all;
 }
 
@@ -162,7 +162,7 @@ const truncateHash = (hash: string) => {
   font-weight: 700;
   text-transform: uppercase;
   opacity: 0.6;
-  color: white;
+  color: var(--text-primary);
   margin-bottom: 8px;
   display: block;
   letter-spacing: 0.05em;
@@ -190,7 +190,7 @@ const truncateHash = (hash: string) => {
   font-family: $font-mono;
   font-size: 13px;
   font-weight: 600;
-  color: white;
+  color: var(--text-primary);
 }
 
 .tx-time {

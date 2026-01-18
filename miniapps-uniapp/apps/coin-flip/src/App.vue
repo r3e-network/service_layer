@@ -1,23 +1,16 @@
 <script setup lang="ts">
-import { onLaunch, onShow, onHide } from "@dcloudio/uni-app";
-import { onMounted } from "vue";
+import { onMounted, onUnmounted } from "vue";
 import { initTheme, listenForThemeChanges } from "@/shared/utils/theme";
 
-onLaunch(() => {
-  console.log("Coin Flip launched");
-});
-
-onShow(() => {
-  console.log("Coin Flip shown");
-});
-
-onHide(() => {
-  console.log("Coin Flip hidden");
-});
+let cleanupTheme: (() => void) | undefined;
 
 onMounted(() => {
   initTheme();
-  listenForThemeChanges();
+  cleanupTheme = listenForThemeChanges();
+});
+
+onUnmounted(() => {
+  cleanupTheme?.();
 });
 </script>
 

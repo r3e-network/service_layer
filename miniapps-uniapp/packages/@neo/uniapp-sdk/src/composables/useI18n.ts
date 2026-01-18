@@ -1,5 +1,5 @@
 import { ref, computed, onMounted } from "vue";
-import { callBridge } from "../bridge";
+import { waitForSDK } from "../bridge";
 
 export type Locale = "en" | "zh";
 
@@ -33,7 +33,8 @@ export function useI18n(appId: string) {
     initialized = true;
 
     try {
-      const result = (await callBridge("getLocale", { appId })) as { locale?: string } | null;
+      const sdk = await waitForSDK();
+      const result = (await sdk.invoke("getLocale", { appId })) as { locale?: string } | null;
       if (result?.locale && isValidLocale(result.locale)) {
         currentLocale.value = result.locale;
       }
@@ -61,7 +62,8 @@ export function useI18n(appId: string) {
       localStorage.setItem("lang", newLocale);
     }
     try {
-      await callBridge("setLocale", { appId, locale: newLocale });
+      const sdk = await waitForSDK();
+      await sdk.invoke("setLocale", { appId, locale: newLocale });
     } catch {
       // Silent fail
     }

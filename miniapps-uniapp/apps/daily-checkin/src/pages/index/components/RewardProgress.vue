@@ -23,11 +23,13 @@
 
 <script setup lang="ts">
 import { NeoCard } from "@/shared/components";
+import { useI18n } from "@/composables/useI18n";
+
+const { t } = useI18n();
 
 defineProps<{
   milestones: Array<{ day: number; reward: number; cumulative: number }>;
   currentStreak: number;
-  t: (key: string) => string;
 }>();
 </script>
 
@@ -79,7 +81,7 @@ defineProps<{
   display: block;
   font-size: 13px;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
   margin: 4px 0;
   font-family: $font-family;
 }

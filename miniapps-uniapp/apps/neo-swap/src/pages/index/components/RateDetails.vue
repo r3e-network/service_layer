@@ -99,7 +99,7 @@ const priceImpactClass = computed(() => {
   font-weight: 700;
   font-size: 13px;
   font-family: $font-mono;
-  color: white;
+  color: var(--text-primary);
 }
 
 .rate-actions {
@@ -135,11 +135,11 @@ const priceImpactClass = computed(() => {
 .detail-value {
   font-size: 11px;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
 
   &.impact-low { color: #10b981; }
   &.impact-medium { color: #F59E0B; }
   &.impact-high { color: #EF4444; }
-  &.impact-na { color: rgba(255, 255, 255, 0.6); }
+  &.impact-na { color: var(--text-secondary); }
 }
 </style>

@@ -5,12 +5,19 @@
       "style": {
         "navigationBarTitleText": "Red Envelope"
       }
+    },
+    {
+      "path": "pages/docs/index",
+      "style": {
+        "navigationBarTitleText": "Docs"
+      }
     }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "white",
     "navigationBarTitleText": "Red Envelope",
     "navigationBarBackgroundColor": "#0d1117",
-    "backgroundColor": "#0d1117"
+    "backgroundColor": "#0d1117",
+    "navigationStyle": "custom"
   }
 }

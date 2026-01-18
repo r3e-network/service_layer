@@ -155,7 +155,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useWallet, useGasSponsor } from "@neo/uniapp-sdk";
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
 import { AppLayout, NeoCard, NeoDoc, NeoButton, NeoInput } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 import GasTank from "./components/GasTank.vue";
@@ -166,99 +166,8 @@ import UsageStatisticsCard from "./components/UsageStatisticsCard.vue";
 import EligibilityStatusCard from "./components/EligibilityStatusCard.vue";
 import HowItWorksCard from "./components/HowItWorksCard.vue";
 
-const translations = {
-  title: { en: "Gas Sponsor", zh: "Gas 赞助" },
-  subtitle: { en: "Get free GAS for transactions", zh: "获取免费 GAS 进行交易" },
-  yourBalance: { en: "Your Balance", zh: "您的余额" },
-  dailyQuota: { en: "Daily Quota", zh: "每日配额" },
-  remainingToday: { en: "Remaining Today", zh: "今日剩余" },
-  resetsIn: { en: "Resets In", zh: "重置时间" },
-  balanceExceeds: { en: "Your GAS balance exceeds 0.1 GAS.", zh: "您的 GAS 余额超过 0.1 GAS。" },
-  newUsersOnly: { en: "This service is for new users only.", zh: "此服务仅供新用户使用。" },
-  quotaExhausted: { en: "Daily quota exhausted", zh: "每日配额已用完" },
-  tryTomorrow: { en: "Please try again tomorrow.", zh: "请明天再试。" },
-  amountToRequest: { en: "Amount to request", zh: "请求数量" },
-  requesting: { en: "Requesting...", zh: "请求中..." },
-  requestGas: { en: "Request GAS", zh: "请求 GAS" },
-  maxRequest: { en: "Max request", zh: "最大请求" },
-  remaining: { en: "Remaining", zh: "剩余" },
-  requestSuccess: { en: "GAS sponsored successfully!", zh: "GAS 赞助成功！" },
-  error: { en: "Error", zh: "错误" },
-  tabSponsor: { en: "Sponsor", zh: "赞助" },
-  tabStats: { en: "Stats", zh: "统计" },
-  needsFuel: { en: "Needs Fuel", zh: "需要加油" },
-  tankFull: { en: "Tank Full", zh: "油箱已满" },
-  checkingEligibility: { en: "Checking eligibility...", zh: "检查资格中..." },
-  walletAddress: { en: "Wallet Address", zh: "钱包地址" },
-  gasBalance: { en: "GAS Balance", zh: "GAS 余额" },
-  eligibility: { en: "Eligibility", zh: "资格" },
-  eligible: { en: "Eligible", zh: "符合资格" },
-  notEligible: { en: "Not Eligible", zh: "不符合资格" },
-  notEligibleTitle: { en: "Not Eligible", zh: "不符合资格" },
-  requestAmount: { en: "Request Amount", zh: "请求数量" },
-  howItWorks: { en: "How It Works", zh: "如何使用" },
-  step1: { en: "New users with less than 0.1 GAS are eligible", zh: "余额少于 0.1 GAS 的新用户符合资格" },
-  step2: { en: "Request up to 0.1 GAS per day for free", zh: "每天可免费请求最多 0.1 GAS" },
-  step3: { en: "Use sponsored gas to pay transaction fees", zh: "使用赞助的 gas 支付交易费用" },
-  step4: { en: "Once you have enough GAS, help others!", zh: "当您有足够的 GAS 后，帮助其他人！" },
-  todayUsage: { en: "Today's Usage", zh: "今日使用" },
-  statistics: { en: "Statistics", zh: "统计数据" },
-  usedToday: { en: "Used Today", zh: "今日已用" },
-  available: { en: "Available", zh: "可用" },
-  dailyLimit: { en: "Daily Limit", zh: "每日限额" },
-  nextReset: { en: "Next Reset", zh: "下次重置" },
-  eligibilityStatus: { en: "Eligibility Status", zh: "资格状态" },
-  balanceCheck: { en: "Balance < 0.1 GAS", zh: "余额 < 0.1 GAS" },
-  quotaCheck: { en: "Quota Available", zh: "配额可用" },
-  walletCheck: { en: "Wallet Connected", zh: "钱包已连接" },
-  docs: { en: "Docs", zh: "文档" },
-  docSubtitle: {
-    en: "Free GAS for new users to start transacting",
-    zh: "为新用户提供免费 GAS 开始交易",
-  },
-  docDescription: {
-    en: "Gas Sponsor provides free GAS to new Neo users with low balances. Request up to 0.1 GAS daily to cover transaction fees and get started on the Neo network.",
-    zh: "Gas Sponsor 为低余额的 Neo 新用户提供免费 GAS。每天可请求最多 0.1 GAS 来支付交易费用，开始使用 Neo 网络。",
-  },
-  feature1Name: { en: "Daily Quota", zh: "每日配额" },
-  feature1Desc: {
-    en: "Request up to 0.1 GAS per day when your balance is low.",
-    zh: "当余额较低时，每天可请求最多 0.1 GAS。",
-  },
-  feature2Name: { en: "Auto-Reset", zh: "自动重置" },
-  feature2Desc: {
-    en: "Quota resets daily at midnight UTC for continued access.",
-    zh: "配额每天 UTC 午夜自动重置，持续可用。",
-  },
-  wrongChain: { en: "Wrong Network", zh: "网络错误" },
-  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-  // Donate tab
-  tabDonate: { en: "Donate", zh: "捐赠" },
-  donateTitle: { en: "Donate to Gas Pool", zh: "捐赠到 Gas 池" },
-  donateSubtitle: { en: "Help new users get started on Neo", zh: "帮助新用户开始使用 Neo" },
-  donateAmount: { en: "Donation Amount", zh: "捐赠金额" },
-  donating: { en: "Donating...", zh: "捐赠中..." },
-  donateBtn: { en: "Donate GAS", zh: "捐赠 GAS" },
-  donateSuccess: { en: "Thank you for your donation!", zh: "感谢您的捐赠！" },
-  donateDescription: {
-    en: "Your donation helps new users cover transaction fees.",
-    zh: "您的捐赠帮助新用户支付交易费用。",
-  },
-  // Send tab
-  tabSend: { en: "Send", zh: "发送" },
-  sendTitle: { en: "Send GAS to Address", zh: "发送 GAS 到地址" },
-  sendSubtitle: { en: "Help someone with low GAS balance", zh: "帮助 GAS 余额不足的人" },
-  recipientAddress: { en: "Recipient Address", zh: "接收地址" },
-  recipientPlaceholder: { en: "Enter Neo N3 address...", zh: "输入 Neo N3 地址..." },
-  sendAmount: { en: "Amount to Send", zh: "发送金额" },
-  sending: { en: "Sending...", zh: "发送中..." },
-  sendBtn: { en: "Send GAS", zh: "发送 GAS" },
-  sendSuccess: { en: "GAS sent successfully!", zh: "GAS 发送成功！" },
-  invalidAddress: { en: "Invalid address", zh: "无效地址" },
-};
 
-const t = createT(translations);
+const { t } = useI18n();
 
 const { address, connect, invokeContract, chainType, switchChain } = useWallet() as any;
 const { isRequestingSponsorship: isRequesting, checkEligibility, requestSponsorship: apiRequest } = useGasSponsor();
@@ -266,13 +175,13 @@ const { isRequestingSponsorship: isRequesting, checkEligibility, requestSponsors
 const ELIGIBILITY_THRESHOLD = 0.1;
 
 const activeTab = ref("sponsor");
-const navTabs: NavTab[] = [
+const navTabs = computed<NavTab[]>(() => [
   { id: "sponsor", icon: "gift", label: t("tabSponsor") },
   { id: "donate", icon: "heart", label: t("tabDonate") },
   { id: "send", icon: "send", label: t("tabSend") },
   { id: "stats", icon: "chart", label: t("tabStats") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 
 const userAddress = ref("");
 const gasBalance = ref("0");
@@ -296,7 +205,11 @@ const SPONSOR_POOL_ADDRESS = "NikhQp1aAD1YFCiwknhM5LQQebj4464bCJ"; // Gas sponso
 
 const isEligible = computed(() => parseFloat(gasBalance.value) < ELIGIBILITY_THRESHOLD);
 const remainingQuota = computed(() => Math.max(0, parseFloat(dailyLimit.value) - parseFloat(usedQuota.value)));
-const quotaPercent = computed(() => (parseFloat(usedQuota.value) / parseFloat(dailyLimit.value)) * 100);
+const quotaPercent = computed(() => {
+  const limit = parseFloat(dailyLimit.value);
+  if (!Number.isFinite(limit) || limit <= 0) return 0;
+  return (parseFloat(usedQuota.value) / limit) * 100;
+});
 const maxRequestAmount = computed(() => Math.min(remainingQuota.value, 0.05).toString());
 const fuelLevelPercent = computed(() => {
   const balance = parseFloat(gasBalance.value);
@@ -308,10 +221,10 @@ const resetTime = computed(() => {
   const resetDate = new Date(resetsAt.value);
   const now = new Date();
   const diff = resetDate.getTime() - now.getTime();
-  if (diff <= 0) return "Now";
+  if (diff <= 0) return t("now");
   const hours = Math.floor(diff / (1000 * 60 * 60));
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  return `${hours}h ${minutes}m`;
+  return `${hours}${t("hoursShort")} ${minutes}${t("minutesShort")}`;
 });
 
 const showStatus = (msg: string, type: string) => {
@@ -331,7 +244,7 @@ const loadUserData = async () => {
     dailyLimit.value = statusData.daily_limit;
     resetsAt.value = statusData.resets_at;
   } catch (e: any) {
-    showStatus(e.message || "Failed to load data", "error");
+    showStatus(e.message || t("loadFailed"), "error");
   } finally {
     loading.value = false;
   }
@@ -342,18 +255,18 @@ const requestSponsorship = async () => {
 
   const amount = parseFloat(requestAmount.value);
   if (Number.isNaN(amount) || amount <= 0 || amount > remainingQuota.value) {
-    showStatus("Invalid amount", "error");
+    showStatus(t("invalidAmount"), "error");
     return;
   }
 
   try {
-    showStatus("Requesting sponsored gas...", "loading");
+    showStatus(t("requestingSponsorship"), "loading");
     const result = await apiRequest(requestAmount.value);
-    showStatus(`Request submitted! ID: ${result.request_id.slice(0, 8)}...`, "success");
+    showStatus(t("requestSubmitted", { id: `${result.request_id.slice(0, 8)}...` }), "success");
     requestAmount.value = "0.01";
     await loadUserData();
   } catch (e: any) {
-    showStatus(e.message || "Sponsorship request failed", "error");
+    showStatus(e.message || t("requestFailed"), "error");
   }
 };
 
@@ -367,13 +280,13 @@ const handleDonate = async () => {
   if (isDonating.value) return;
   const amount = parseFloat(donateAmount.value);
   if (Number.isNaN(amount) || amount <= 0) {
-    showStatus("Invalid amount", "error");
+    showStatus(t("invalidAmount"), "error");
     return;
   }
   isDonating.value = true;
   try {
     if (!address.value) await connect();
-    if (!address.value) throw new Error("Wallet not connected");
+    if (!address.value) throw new Error(t("walletNotConnected"));
     await invokeContract({
       contractAddress: GAS_CONTRACT,
       operation: "transfer",
@@ -402,13 +315,13 @@ const handleSend = async () => {
   }
   const amount = parseFloat(sendAmount.value);
   if (Number.isNaN(amount) || amount <= 0) {
-    showStatus("Invalid amount", "error");
+    showStatus(t("invalidAmount"), "error");
     return;
   }
   isSending.value = true;
   try {
     if (!address.value) await connect();
-    if (!address.value) throw new Error("Wallet not connected");
+    if (!address.value) throw new Error(t("walletNotConnected"));
     await invokeContract({
       contractAddress: GAS_CONTRACT,
       operation: "transfer",
@@ -446,12 +359,81 @@ const docFeatures = computed(() => [
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+$gas-bg: #1a0b2e;
+$gas-pink: #d946ef;
+$gas-cyan: #06b6d4;
+$gas-purple: #701a75;
+$gas-grid: rgba(217, 70, 239, 0.15);
+
+:global(page) {
+  background: $gas-bg;
+}
+
 .app-container {
-  padding: 12px;
+  padding: 24px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 24px;
+  background-color: $gas-bg;
+  background-image: 
+    linear-gradient($gas-grid 1px, transparent 1px),
+    linear-gradient(90deg, $gas-grid 1px, transparent 1px);
+  background-size: 40px 40px;
+  min-height: 100vh;
+  box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
+}
+
+/* Gas Station Component Overrides */
+:deep(.neo-card) {
+  background: rgba(26, 11, 46, 0.9) !important;
+  border: 1px solid $gas-pink !important;
+  border-bottom: 2px solid $gas-cyan !important;
+  border-radius: 4px !important;
+  box-shadow: 0 0 15px rgba(217, 70, 239, 0.2), inset 0 0 20px rgba(6, 182, 212, 0.1) !important;
+  color: #fff !important;
+  backdrop-filter: blur(10px);
+  
+  &.variant-danger {
+    border-color: #ef4444 !important;
+    background: rgba(40, 10, 10, 0.9) !important;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.3) !important;
+  }
+}
+
+:deep(.neo-button) {
+  border-radius: 99px !important; /* Pill shape */
+  font-family: 'Orbitron', sans-serif !important;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 800 !important;
+  
+  &.variant-primary {
+    background: linear-gradient(90deg, $gas-pink, $gas-cyan) !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow: 0 0 20px rgba(217, 70, 239, 0.5) !important;
+    
+    &:active {
+      transform: scale(0.95);
+      box-shadow: 0 0 10px rgba(217, 70, 239, 0.8) !important;
+    }
+  }
+  
+  &.variant-secondary {
+    background: transparent !important;
+    border: 1px solid $gas-cyan !important;
+    color: $gas-cyan !important;
+    box-shadow: 0 0 5px rgba(6, 182, 212, 0.3) !important;
+  }
+}
+
+:deep(.neo-input) {
+  background: rgba(0,0,0,0.4) !important;
+  border: 1px solid $gas-pink !important;
+  border-radius: 4px !important;
+  color: #fff !important;
+  font-family: 'Courier New', monospace !important;
 }
 
 .tab-content {
@@ -465,7 +447,8 @@ const docFeatures = computed(() => [
   text-transform: uppercase;
   font-family: $font-mono;
   font-size: 12px;
-  color: white;
+  color: $gas-cyan;
+  text-shadow: 0 0 5px rgba(6, 182, 212, 0.8);
 }
 
 .scrollable {
@@ -483,14 +466,16 @@ const docFeatures = computed(() => [
 .form-subtitle {
   font-weight: 800;
   font-size: 14px;
-  color: white;
+     color: $gas-pink;
   text-transform: uppercase;
+  letter-spacing: 0.1em;
   margin-bottom: 4px;
+  text-shadow: 0 0 8px $gas-pink;
 }
 
 .form-description {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
+  color: #d1d5db;
   line-height: 1.5;
   margin-bottom: 8px;
 }
@@ -505,8 +490,9 @@ const docFeatures = computed(() => [
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
+  color: $gas-cyan;
   letter-spacing: 0.05em;
+  text-shadow: 0 0 5px $gas-cyan;
 }
 
 .preset-amounts {
@@ -519,11 +505,11 @@ const docFeatures = computed(() => [
 .preset-btn {
   padding: 16px 8px;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  border: 1px solid $gas-purple;
+  border-radius: 4px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -536,16 +522,17 @@ const docFeatures = computed(() => [
   }
 
   &.active {
-    background: rgba(0, 229, 153, 0.15);
-    border-color: #00e599;
-    box-shadow: 0 0 15px rgba(0, 229, 153, 0.2);
+    background: rgba(217, 70, 239, 0.2);
+    border-color: $gas-pink;
+    box-shadow: 0 0 15px rgba(217, 70, 239, 0.5);
+    .preset-value { color: $gas-pink; }
   }
 }
 
 .preset-value {
   font-weight: 800;
   font-size: 18px;
-  color: white;
+  color: #fff;
   font-family: $font-mono;
 }
 
@@ -554,10 +541,11 @@ const docFeatures = computed(() => [
   font-weight: 700;
   text-transform: uppercase;
   opacity: 0.7;
-  color: rgba(255, 255, 255, 0.8);
+  color: $gas-cyan;
 }
 
 .glass-status {
+  text-align: center;
   backdrop-filter: blur(10px);
 }
 </style>

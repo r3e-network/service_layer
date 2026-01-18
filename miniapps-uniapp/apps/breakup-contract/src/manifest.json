@@ -1,6 +1,6 @@
 {
   "name": "Breakup Contract",
-  "appid": "miniapp-breakupcontract",
+  "appid": "miniapp-breakup-contract",
   "description": "Breakup Contract - Neo MiniApp",
   "versionName": "1.0.0",
   "versionCode": "100",
@@ -9,9 +9,6 @@
     "title": "Breakup Contract",
     "router": {
       "mode": "hash"
-    },
-    "devServer": {
-      "port": 5173
     }
   }
 }

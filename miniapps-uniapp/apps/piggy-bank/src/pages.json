@@ -1,0 +1,56 @@
+{
+    "pages": [
+        {
+            "path": "pages/index/index",
+            "style": {
+                "navigationBarTitleText": "Piggy Bank"
+            }
+        },
+        {
+            "path": "pages/create/create",
+            "style": {
+                "navigationBarTitleText": "Create Piggy Bank"
+            }
+        },
+        {
+            "path": "pages/detail/detail",
+            "style": {
+                "navigationBarTitleText": "Piggy Bank Detail"
+            }
+        },
+        {
+            "path": "pages/docs/docs",
+            "style": {
+                "navigationBarTitleText": "Documentation",
+                "navigationBarBackgroundColor": "#000000",
+                "navigationBarTextStyle": "white"
+            }
+        }
+    ],
+    "globalStyle": {
+        "navigationBarTextStyle": "white",
+        "navigationBarTitleText": "Piggy Bank",
+        "navigationBarBackgroundColor": "#000000",
+        "backgroundColor": "#111111"
+    },
+    "tabBar": {
+        "color": "#999999",
+        "selectedColor": "#00ff9d",
+        "backgroundColor": "#000000",
+        "borderStyle": "black",
+        "list": [
+            {
+                "pagePath": "pages/index/index",
+                "text": "Home",
+                "iconPath": "static/tab-home.png",
+                "selectedIconPath": "static/tab-home-active.png"
+            },
+            {
+                "pagePath": "pages/docs/docs",
+                "text": "Docs",
+                "iconPath": "static/tab-doc.png",
+                "selectedIconPath": "static/tab-doc-active.png"
+            }
+        ]
+    }
+}

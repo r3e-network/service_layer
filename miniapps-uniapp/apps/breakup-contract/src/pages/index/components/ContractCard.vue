@@ -27,6 +27,8 @@
         </view>
       </view>
 
+      <text class="contract-title" v-if="contract.title">{{ contract.title }}</text>
+
       <view class="info-grid-glass">
         <view class="info-item">
           <text class="info-label">{{ t("stake") }}</text>
@@ -97,6 +99,8 @@ interface RelationshipContractView {
   party1: string;
   party2: string;
   partner: string;
+  title: string;
+  terms: string;
   stake: number;
   stakeRaw: string;
   progress: number;
@@ -193,6 +197,18 @@ const canSign = computed(() =>
   padding: 0 16px;
 }
 
+.contract-title {
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .avatar {
   width: 40px; height: 40px;
   border-radius: 50%;
@@ -201,7 +217,7 @@ const canSign = computed(() =>
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
   border: 2px solid rgba(255, 255, 255, 0.2);
   text-transform: uppercase;
   z-index: 2;
@@ -260,7 +276,7 @@ const canSign = computed(() =>
   font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   display: block;
   margin-bottom: 4px;
 }
@@ -268,7 +284,7 @@ const canSign = computed(() =>
 .info-value {
   font-size: 14px;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
   font-family: $font-mono;
   
   &.stake {
@@ -290,7 +306,7 @@ const canSign = computed(() =>
   margin-bottom: 8px;
 }
 
-.progress-label { font-size: 10px; font-weight: 700; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; }
+.progress-label { font-size: 10px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; }
 .progress-val { font-size: 10px; font-weight: 700; color: #ff6b6b; font-family: $font-mono; }
 
 .progress-track-glass {
@@ -326,7 +342,7 @@ const canSign = computed(() =>
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
 }
 
 .glow-btn {

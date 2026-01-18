@@ -1,6 +1,6 @@
 {
   "name": "Daily Check-in",
-  "appid": "miniapp-dailycheckin",
+  "appid": "miniapp-daily-checkin",
   "description": "Daily Check-in - Neo MiniApp",
   "versionName": "1.0.0",
   "versionCode": "100",
@@ -9,9 +9,6 @@
     "title": "Daily Check-in",
     "router": {
       "mode": "hash"
-    },
-    "devServer": {
-      "port": 5173
     }
   }
 }

@@ -2,15 +2,15 @@
 import { initTheme, listenForThemeChanges } from "@/shared/utils/theme";
 import { onMounted, onUnmounted } from "vue";
 
-let cleanup: (() => void) | undefined;
+let cleanupTheme: (() => void) | undefined;
 
 onMounted(() => {
   initTheme();
-  cleanup = listenForThemeChanges();
+  cleanupTheme = listenForThemeChanges();
 });
 
 onUnmounted(() => {
-  cleanup?.();
+  cleanupTheme?.();
 });
 </script>
 

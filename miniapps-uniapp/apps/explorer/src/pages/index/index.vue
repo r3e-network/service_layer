@@ -61,9 +61,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { formatNumber } from "@/shared/utils/format";
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
 import { useWallet } from "@neo/uniapp-sdk";
 import { AppLayout, NeoDoc, NeoCard, NeoButton } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
@@ -74,75 +74,8 @@ import SearchPanel from "./components/SearchPanel.vue";
 import SearchResult from "./components/SearchResult.vue";
 import RecentTransactions from "./components/RecentTransactions.vue";
 
-const translations = {
-  title: { en: "Neo Explorer", zh: "Neo 浏览器" },
-  subtitle: { en: "Search transactions, addresses, contracts", zh: "搜索交易、地址、合约" },
-  mainnet: { en: "Mainnet", zh: "主网" },
-  testnet: { en: "Testnet", zh: "测试网" },
-  blockHeight: { en: "Block Height", zh: "区块高度" },
-  transactions: { en: "Transactions", zh: "交易数" },
-  searchPlaceholder: { en: "Search tx hash, address, or contract...", zh: "搜索交易哈希、地址或合约..." },
-  search: { en: "Search", zh: "搜索" },
-  searching: { en: "Searching...", zh: "搜索中..." },
-  searchResult: { en: "Search Result", zh: "搜索结果" },
-  transaction: { en: "Transaction", zh: "交易" },
-  address: { en: "Address", zh: "地址" },
-  contract: { en: "Contract", zh: "合约" },
-  hash: { en: "Hash:", zh: "哈希:" },
-  block: { en: "Block:", zh: "区块:" },
-  time: { en: "Time:", zh: "时间:" },
-  sender: { en: "Sender:", zh: "发送者:" },
-  gasConsumed: { en: "Gas Consumed:", zh: "消耗Gas:" },
-  recentTransactions: { en: "Recent Transactions", zh: "最近交易" },
-  pleaseEnterQuery: { en: "Please enter a search query", zh: "请输入搜索内容" },
-  noResults: { en: "No results found", zh: "未找到结果" },
-  searchFailed: { en: "Search failed", zh: "搜索失败" },
-  tabSearch: { en: "Search", zh: "搜索" },
-  tabHistory: { en: "History", zh: "历史" },
-  wrongChain: { en: "Wrong Network", zh: "网络错误" },
-  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 
-  docs: { en: "Docs", zh: "文档" },
-  docSubtitle: {
-    en: "Browse Neo N3 blockchain data in real-time",
-    zh: "实时浏览 Neo N3 区块链数据",
-  },
-  docDescription: {
-    en: "Explorer provides a comprehensive view of the Neo N3 blockchain. Search transactions, inspect addresses, and analyze smart contracts.",
-    zh: "Explorer 提供 Neo N3 区块链的全面视图。搜索交易、检查地址并分析智能合约。",
-  },
-  step1: {
-    en: "Enter a transaction hash, address, or contract address",
-    zh: "输入交易哈希、地址或合约哈希",
-  },
-  step2: {
-    en: "View detailed information about the searched item",
-    zh: "查看搜索项目的详细信息",
-  },
-  step3: {
-    en: "Explore related transactions and contract interactions",
-    zh: "探索相关交易和合约交互",
-  },
-  step4: {
-    en: "Bookmark addresses you want to monitor",
-    zh: "收藏您想监控的地址",
-  },
-  feature1Name: { en: "Real-Time Data", zh: "实时数据" },
-  feature1Desc: {
-    en: "Live blockchain data updated as new blocks are confirmed.",
-    zh: "实时区块链数据，随新区块确认而更新。",
-  },
-  feature2Name: { en: "Deep Analysis", zh: "深度分析" },
-  feature2Desc: {
-    en: "Detailed transaction traces and contract state inspection.",
-    zh: "详细的交易追踪和合约状态检查。",
-  },
-  error: { en: "Error", zh: "错误" },
-};
-
-const t = createT(translations);
-const APP_ID = "miniapp-explorer";
+const { t } = useI18n();
 
 // Detect host URL for API calls (miniapp runs in iframe)
 const getApiBase = () => {
@@ -166,12 +99,12 @@ const docFeatures = computed(() => [
 ]);
 
 const activeTab = ref("search");
-const navTabs: NavTab[] = [
+const navTabs = computed<NavTab[]>(() => [
   { id: "search", icon: "search", label: t("tabSearch") },
   { id: "network", icon: "activity", label: t("mainnet") },
   { id: "history", icon: "clock", label: t("tabHistory") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 
 const { chainType, switchChain } = useWallet() as any;
 
@@ -215,29 +148,16 @@ const fetchStats = async () => {
 
   let freshStats = null;
 
-  // Try SDK first
   try {
-    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
-    if (sdk?.invoke) {
-      freshStats = (await sdk.invoke("datafeed.getNetworkStats", { appId: APP_ID })) as typeof stats.value | null;
+    const res = await uni.request({
+      url: `${API_BASE}/stats`,
+      method: "GET",
+    });
+    if (res.statusCode === 200 && res.data) {
+      freshStats = res.data as any;
     }
-  } catch (e) {
-    console.warn("[Explorer] SDK stats fetch failed, falling back to API:", e);
-  }
-
-  // Fallback to REST API if SDK failed or returned null
-  if (!freshStats) {
-    try {
-      const res = await uni.request({
-        url: `${API_BASE}/stats`,
-        method: "GET",
-      });
-      if (res.statusCode === 200 && res.data) {
-        freshStats = res.data as any;
-      }
-    } catch (e) {
-      console.error("[Explorer] API stats fetch failed:", e);
-    }
+  } catch {
+    // Ignore and fall back to cached stats.
   }
 
   if (freshStats) {
@@ -256,34 +176,16 @@ const fetchRecentTxs = async () => {
 
   let freshTxs = null;
 
-  // Try SDK first
   try {
-    const sdk = await import("@neo/uniapp-sdk").then((m) => m.waitForSDK?.() || null);
-    if (sdk?.invoke) {
-      const data = (await sdk.invoke("datafeed.getRecentTransactions", {
-        appId: APP_ID,
-        network: selectedNetwork.value,
-        limit: 10,
-      })) as { transactions: any[] } | null;
-      if (data?.transactions) freshTxs = data.transactions;
+    const res = await uni.request({
+      url: `${API_BASE}/recent?network=${selectedNetwork.value}&limit=10`,
+      method: "GET",
+    });
+    if (res.statusCode === 200 && res.data) {
+      freshTxs = (res.data as any).transactions || [];
     }
-  } catch (e) {
-    console.warn("[Explorer] SDK tx fetch failed, falling back to API:", e);
-  }
-
-  // Fallback to REST API
-  if (!freshTxs) {
-    try {
-      const res = await uni.request({
-        url: `${API_BASE}/recent?network=${selectedNetwork.value}&limit=10`,
-        method: "GET",
-      });
-      if (res.statusCode === 200 && res.data) {
-        freshTxs = (res.data as any).transactions || [];
-      }
-    } catch (e) {
-      console.error("[Explorer] API tx fetch failed:", e);
-    }
+  } catch {
+    // Ignore and fall back to cached txs.
   }
 
   if (freshTxs) {
@@ -295,7 +197,7 @@ const fetchRecentTxs = async () => {
 const search = async () => {
   const query = searchQuery.value.trim();
   if (!query) {
-    status.value = { msg: "Please enter a search query", type: "error" };
+    status.value = { msg: t("pleaseEnterQuery"), type: "error" };
     return;
   }
 
@@ -312,10 +214,10 @@ const search = async () => {
     if (res.statusCode === 200 && res.data) {
       searchResult.value = res.data;
     } else {
-      status.value = { msg: "No results found", type: "error" };
+      status.value = { msg: t("noResults"), type: "error" };
     }
   } catch (e: any) {
-    status.value = { msg: e.message || "Search failed", type: "error" };
+    status.value = { msg: t("searchFailed"), type: "error" };
   } finally {
     isLoading.value = false;
   }
@@ -333,6 +235,10 @@ onMounted(() => {
   statsInterval = setInterval(fetchStats, 15000);
 });
 
+watch(selectedNetwork, () => {
+  fetchRecentTxs();
+});
+
 onUnmounted(() => {
   if (statsInterval) {
     clearInterval(statsInterval);
@@ -345,28 +251,96 @@ onUnmounted(() => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+$matrix-bg: #000;
+$matrix-green: #00ff00;
+$matrix-dim: #003300;
+$matrix-font: 'Courier New', monospace;
+
+:global(page) {
+  background: $matrix-bg;
+  font-family: $matrix-font;
+}
+
 .app-container {
-  padding: 12px;
+  padding: 16px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  gap: 16px;
+  background-color: $matrix-bg;
+  color: $matrix-green;
+  min-height: 100vh;
+  /* Scanlines */
+  background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  background-size: 100% 2px, 3px 100%;
 }
 
 .tab-content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
+}
+
+/* Matrix Component Overrides */
+:deep(.neo-card) {
+  background: black !important;
+  border: 1px solid $matrix-green !important;
+  border-radius: 0 !important;
+  box-shadow: 0 0 10px $matrix-dim, inset 0 0 20px $matrix-dim !important;
+  color: $matrix-green !important;
+  
+  &.variant-danger {
+    border-color: red !important;
+    color: red !important;
+    box-shadow: 0 0 10px #300 !important;
+  }
+}
+
+:deep(.neo-button) {
+  background: black !important;
+  border: 1px solid $matrix-green !important;
+  color: $matrix-green !important;
+  border-radius: 0 !important;
+  text-transform: uppercase;
+  font-family: $matrix-font;
+  
+  &:active {
+    background: $matrix-green !important;
+    color: black !important;
+  }
+}
+
+:deep(input), :deep(.neo-input) {
+  background: #001100 !important;
+  border: 1px solid $matrix-green !important;
+  color: $matrix-green !important;
+  font-family: $matrix-font !important;
+  border-radius: 0 !important;
+}
+
+:deep(text), :deep(view) {
+  font-family: $matrix-font !important;
 }
 
 .status-text {
-  font-family: $font-family;
-  font-size: 13px;
-  font-weight: 600;
-  color: white;
+  font-family: $matrix-font;
+  font-size: 14px;
+  font-weight: bold;
+  color: $matrix-green;
   text-align: center;
+  text-shadow: 0 0 5px $matrix-green;
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 .scrollable {

@@ -5,7 +5,7 @@ export function useTranslation() {
     const { locale } = useWalletStore();
 
     return {
-        t: (key: string) => t(locale, key),
+        t: (key: string, options?: Record<string, string | number>) => t(locale, key, options),
         locale,
     };
 }

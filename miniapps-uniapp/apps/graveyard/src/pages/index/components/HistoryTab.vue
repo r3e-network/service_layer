@@ -83,7 +83,7 @@ const getDestructionIcon = (index: number) => {
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   letter-spacing: 0.1em;
 }
 
@@ -91,7 +91,7 @@ const getDestructionIcon = (index: number) => {
   font-size: 12px;
   font-weight: 800;
   background: rgba(255, 255, 255, 0.1);
-  color: white;
+  color: var(--text-primary);
   padding: 2px 8px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -139,14 +139,14 @@ const getDestructionIcon = (index: number) => {
   font-family: $font-mono;
   font-size: 13px;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
   display: block;
   margin-bottom: 2px;
 }
 
 .history-time {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -184,7 +184,7 @@ const getDestructionIcon = (index: number) => {
   font-size: 13px;
   font-weight: 600;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-secondary);
   letter-spacing: 0.05em;
 }
 

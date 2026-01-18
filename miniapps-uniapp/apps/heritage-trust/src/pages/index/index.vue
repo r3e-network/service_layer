@@ -32,7 +32,7 @@
           />
         </view>
         <view v-if="trusts.length === 0" class="text-center p-4">
-          <text>{{ t("noTrusts") || "No trusts found" }}</text>
+          <text>{{ t("noTrusts") }}</text>
         </view>
       </NeoCard>
 
@@ -41,6 +41,8 @@
         v-model:name="newTrust.name"
         v-model:beneficiary="newTrust.beneficiary"
         v-model:neo-value="newTrust.neoValue"
+        v-model:interval-days="newTrust.intervalDays"
+        v-model:notes="newTrust.notes"
         :is-loading="isLoading"
         :t="t as any"
         @create="create"
@@ -67,8 +69,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { useWallet, useEvents } from "@neo/uniapp-sdk";
-import { createT } from "@/shared/utils/i18n";
+import { useWallet, useEvents, usePayments } from "@neo/uniapp-sdk";
+import { useI18n } from "@/composables/useI18n";
 import { AppLayout, NeoDoc, NeoCard } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 import { addressToScriptHash, normalizeScriptHash, parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
@@ -77,102 +79,14 @@ import TrustCard, { type Trust } from "./components/TrustCard.vue";
 import CreateTrustForm from "./components/CreateTrustForm.vue";
 import StatsCard from "./components/StatsCard.vue";
 
-const translations = {
-  title: { en: "Heritage Trust", zh: "遗产信托" },
-  yourTrusts: { en: "Your Trusts", zh: "您的信托" },
-  to: { en: "To", zh: "受益人" },
-  createTrust: { en: "Create Trust", zh: "创建信托" },
-  trustName: { en: "Trust name", zh: "信托名称" },
-  beneficiaryAddress: { en: "Beneficiary address", zh: "受益人地址" },
-  amount: { en: "Amount", zh: "金额" },
-  assetHint: { en: "Enter the NEO amount to lock as principal", zh: "输入要锁定的 NEO 本金" },
-  infoText: { en: "Trust activates after 30 days of inactivity", zh: "信托在30天不活跃后激活" },
-  creating: { en: "Creating...", zh: "创建中..." },
-  trustCreated: { en: "Trust created!", zh: "信托已创建！" },
-  error: { en: "Error", zh: "错误" },
-  main: { en: "Main", zh: "主页" },
-  stats: { en: "Stats", zh: "统计" },
-  statistics: { en: "Statistics", zh: "统计数据" },
-  totalTrusts: { en: "Total Trusts", zh: "总信托数" },
-  totalNeoValue: { en: "Total NEO", zh: "总 NEO" },
-  activeTrusts: { en: "Active Trusts", zh: "活跃信托" },
-  noTrusts: { en: "No trusts yet", zh: "暂无信托" },
 
-  // New translations for enhanced UI
-  sealed: { en: "SEALED", zh: "已封存" },
-  trustDocument: { en: "Trust Document", zh: "信托文件" },
-  totalAssets: { en: "Total Assets", zh: "总资产" },
-  beneficiary: { en: "Beneficiary", zh: "受益人" },
-  allocation: { en: "Allocation", zh: "分配比例" },
-  triggerCondition: { en: "Trigger Condition", zh: "触发条件" },
-  now: { en: "Now", zh: "现在" },
-  inactivityPeriod: { en: "Inactivity Period", zh: "不活跃期" },
-  days: { en: "days", zh: "天" },
-  trustActivates: { en: "Trust Activates", zh: "信托激活" },
-  automatic: { en: "Automatic", zh: "自动" },
-  documentId: { en: "Document ID", zh: "文档编号" },
-  digitalSignature: { en: "Digital Signature", zh: "数字签名" },
-  trustDetails: { en: "Trust Details", zh: "信托详情" },
-  beneficiaryInfo: { en: "Beneficiary Information", zh: "受益人信息" },
-  assetAmount: { en: "Asset Amount", zh: "资产金额" },
-  importantNotice: { en: "Important Notice", zh: "重要提示" },
-  active: { en: "ACTIVE", zh: "活跃" },
-  pending: { en: "PENDING", zh: "待定" },
-  triggered: { en: "TRIGGERED", zh: "已触发" },
-  executed: { en: "EXECUTED", zh: "已执行" },
-  ready: { en: "Ready", zh: "可执行" },
-  heartbeat: { en: "Heartbeat", zh: "续期" },
-  claimYield: { en: "Claim Yield", zh: "领取收益" },
-  executeTrust: { en: "Execute Trust", zh: "执行信托" },
-  insufficientNeo: { en: "Insufficient NEO balance", zh: "NEO 余额不足" },
+const { t } = useI18n();
 
-  docs: { en: "Docs", zh: "文档" },
-  docSubtitle: {
-    en: "Automated digital inheritance with inactivity-triggered transfers",
-    zh: "基于不活跃触发的自动数字遗产转移",
-  },
-  docDescription: {
-    en: "Heritage Trust enables secure digital asset inheritance on Neo. Create trusts that automatically transfer assets to beneficiaries after a configurable inactivity period, ensuring your digital wealth passes to loved ones.",
-    zh: "Heritage Trust 在 Neo 上实现安全的数字资产继承。创建信托，在可配置的不活跃期后自动将资产转移给受益人，确保您的数字财富传承给亲人。",
-  },
-  step1: {
-    en: "Connect your Neo wallet and deposit assets into a new trust",
-    zh: "连接您的 Neo 钱包并将资产存入新信托",
-  },
-  step2: {
-    en: "Set the beneficiary address and maintain your heartbeat every 30 days",
-    zh: "设置受益人地址并每 30 天续期",
-  },
-  step3: {
-    en: "The smart contract monitors your wallet activity automatically",
-    zh: "智能合约自动监控您的钱包活动",
-  },
-  step4: {
-    en: "If inactivity threshold is reached, assets transfer to beneficiary automatically",
-    zh: "如果达到不活跃阈值，资产将自动转移给受益人",
-  },
-  feature1Name: { en: "Inactivity Trigger", zh: "不活跃触发" },
-  feature1Desc: {
-    en: "Automated monitoring detects wallet inactivity and triggers inheritance transfer.",
-    zh: "自动监控检测钱包不活跃状态并触发遗产转移。",
-  },
-  feature2Name: { en: "Secure Beneficiary", zh: "安全受益人" },
-  feature2Desc: {
-    en: "Beneficiary addresses are locked on-chain and cannot be changed without owner signature.",
-    zh: "受益人地址锁定在链上，未经所有者签名无法更改。",
-  },
-  wrongChain: { en: "Wrong Network", zh: "网络错误" },
-  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-};
-
-const t = createT(translations);
-
-const navTabs: NavTab[] = [
+const navTabs = computed<NavTab[]>(() => [
   { id: "main", icon: "wallet", label: t("main") },
   { id: "stats", icon: "chart", label: t("stats") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 
 const activeTab = ref("main");
 
@@ -185,6 +99,7 @@ const APP_ID = "miniapp-heritage-trust";
 const { address, connect, invokeContract, invokeRead, getBalance, chainType, switchChain, getContractAddress } =
   useWallet() as any;
 const { list: listEvents } = useEvents();
+const { payGAS } = usePayments(APP_ID);
 const isLoading = ref(false);
 const contractAddress = ref<string | null>(null);
 
@@ -219,7 +134,7 @@ const saveTrustName = (id: string, name: string) => {
 };
 
 const trusts = ref<Trust[]>([]);
-const newTrust = ref({ name: "", beneficiary: "", neoValue: "" });
+const newTrust = ref({ name: "", beneficiary: "", neoValue: "", intervalDays: "30", notes: "" });
 const status = ref<{ msg: string; type: string } | null>(null);
 const isLoadingData = ref(false);
 
@@ -280,7 +195,7 @@ const fetchData = async () => {
     for (let i = 1; i <= totalTrusts; i++) {
       const trustResult = await invokeRead({
         contractAddress: contract,
-        operation: "getTrust",
+        operation: "getTrustDetails",
         args: [{ type: "Integer", value: i.toString() }],
       });
       const parsed = parseInvokeResult(trustResult);
@@ -290,26 +205,30 @@ const fetchData = async () => {
       if (!ownerMatches(owner)) continue;
 
       const deadlineMs = toTimestampMs(trustData.deadline);
-      const active = Boolean(trustData.active);
-      const status = active ? (deadlineMs && deadlineMs <= now ? "triggered" : "active") : "executed";
+      const rawStatus = String(trustData.status || "");
+      let status: Trust["status"] = "pending";
+      if (rawStatus === "active") status = "active";
+      else if (rawStatus === "grace_period") status = "pending";
+      else if (rawStatus === "executable") status = "triggered";
+      else if (rawStatus === "executed") status = "executed";
+      else status = "pending";
       const daysRemaining = deadlineMs ? Math.max(0, Math.ceil((deadlineMs - now) / 86400000)) : 0;
 
       userTrusts.push({
         id: i.toString(),
-        name: trustNames.value?.[String(i)] || `Trust #${i}`,
-        beneficiary: String(trustData.heir || "Unknown"),
+        name: String(trustData.trustName || trustNames.value?.[String(i)] || t("trustFallback", { id: i })),
+        beneficiary: String(trustData.primaryHeir || t("unknown")),
         neoValue: Number(trustData.principal || 0),
         icon: "📜",
         status,
         daysRemaining,
-        deadline: deadlineMs ? new Date(deadlineMs).toISOString().split("T")[0] : "N/A",
-        canExecute: active && deadlineMs > 0 && deadlineMs <= now,
+        deadline: deadlineMs ? new Date(deadlineMs).toISOString().split("T")[0] : t("notAvailable"),
+        canExecute: status === "triggered",
       });
     }
 
     trusts.value = userTrusts.sort((a, b) => Number(b.id) - Number(a.id));
-  } catch (e) {
-    console.warn("[HeritageTrust] Failed to fetch data:", e);
+  } catch {
   } finally {
     isLoadingData.value = false;
   }
@@ -317,7 +236,16 @@ const fetchData = async () => {
 
 const create = async () => {
   const neoAmount = Math.floor(parseFloat(newTrust.value.neoValue));
-  if (isLoading.value || !newTrust.value.name || !newTrust.value.beneficiary || !(neoAmount > 0)) return;
+  const intervalDays = Math.floor(parseFloat(newTrust.value.intervalDays));
+  if (
+    isLoading.value ||
+    !newTrust.value.name ||
+    !newTrust.value.beneficiary ||
+    !(neoAmount > 0) ||
+    !(intervalDays > 0)
+  ) {
+    return;
+  }
 
   try {
     status.value = { msg: t("creating"), type: "loading" };
@@ -336,6 +264,9 @@ const create = async () => {
     }
 
     const contract = await ensureContractAddress();
+    const payment = await payGAS(String(neoAmount), `trust:create:${newTrust.value.beneficiary}`);
+    const receiptId = payment.receipt_id;
+    if (!receiptId) throw new Error(t("receiptMissing"));
     const tx = await invokeContract({
       scriptHash: contract,
       operation: "createTrust",
@@ -343,6 +274,10 @@ const create = async () => {
         { type: "Hash160", value: address.value },
         { type: "Hash160", value: newTrust.value.beneficiary },
         { type: "Integer", value: neoAmount },
+        { type: "Integer", value: intervalDays },
+        { type: "String", value: newTrust.value.name.trim().slice(0, 100) },
+        { type: "String", value: newTrust.value.notes.trim().slice(0, 300) },
+        { type: "Integer", value: String(receiptId) },
       ],
     });
 
@@ -359,7 +294,7 @@ const create = async () => {
     }
 
     status.value = { msg: t("trustCreated"), type: "success" };
-    newTrust.value = { name: "", beneficiary: "", neoValue: "" };
+    newTrust.value = { name: "", beneficiary: "", neoValue: "", intervalDays: "30", notes: "" };
     await fetchData();
   } catch (e: any) {
     status.value = { msg: e.message || t("error"), type: "error" };
@@ -378,10 +313,7 @@ const heartbeatTrust = async (trust: Trust) => {
     await invokeContract({
       scriptHash: contract,
       operation: "heartbeat",
-      args: [
-        { type: "Hash160", value: address.value },
-        { type: "Integer", value: trust.id },
-      ],
+      args: [{ type: "Integer", value: trust.id }],
     });
     status.value = { msg: t("heartbeat"), type: "success" };
     await fetchData();
@@ -404,10 +336,7 @@ const claimYield = async (trust: Trust) => {
     await invokeContract({
       scriptHash: contract,
       operation: "claimYield",
-      args: [
-        { type: "Hash160", value: address.value },
-        { type: "Integer", value: trust.id },
-      ],
+      args: [{ type: "Integer", value: trust.id }],
     });
     status.value = { msg: t("claimYield"), type: "success" };
     await fetchData();
@@ -446,14 +375,96 @@ onMounted(() => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
-.tab-content {
-  padding: $space-4;
+$library-bg: #2b2118;
+$library-parchment: #f0e6d2;
+$library-leather: #5c4033;
+$library-gold: #c5a059;
+$library-ink: #3e2723;
+
+:global(page) {
+  background: $library-bg;
+}
+
+.app-container {
+  padding: 32px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  gap: 32px;
+  background-color: $library-bg;
+  /* Leather Texture */
+  background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMmIyMTE4Ii8+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiMzZTI3MjMiIG9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=');
+  min-height: 100vh;
+}
+
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Library Component Overrides */
+:deep(.neo-card) {
+  background: $library-parchment !important;
+  border: 8px solid $library-leather !important;
+  border-radius: 4px !important;
+  box-shadow: 10px 10px 20px rgba(0,0,0,0.5), inset 0 0 40px rgba(92, 64, 51, 0.2) !important;
+  color: $library-ink !important;
+  position: relative;
+  
+  /* Book Spine Effect */
+  &::before {
+    content: '';
+    position: absolute;
+    left: -8px; top: -8px; bottom: -8px;
+    width: 20px;
+    background: linear-gradient(to right, #3e2723, #5c4033, #3e2723);
+    border-radius: 4px 0 0 4px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.5);
+  }
+
+  &.variant-danger {
+    border-color: #8b0000 !important;
+    background: #ffebee !important;
+  }
+}
+
+:deep(.neo-button) {
+  border-radius: 4px !important;
+  font-family: 'Times New Roman', serif !important;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700 !important;
+  
+  &.variant-primary {
+    background: linear-gradient(135deg, $library-leather, #3e2723) !important;
+    color: $library-gold !important;
+    border: 1px solid $library-gold !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4) !important;
+    
+    &:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4) !important;
+    }
+  }
+  
+  &.variant-secondary {
+    background: transparent !important;
+    border: 1px solid $library-ink !important;
+    color: $library-ink !important;
+  }
+}
+
+:deep(input), :deep(.neo-input) {
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid $library-leather !important;
+  border-radius: 2px !important;
+  color: $library-ink !important;
+  font-family: 'Courier New', monospace !important;
+}
+
+:deep(text), :deep(view) {
+  font-family: 'Times New Roman', serif;
 }
 
 .scrollable {

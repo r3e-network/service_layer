@@ -7,7 +7,7 @@
         <text class="indicator-text">{{ canCheckIn ? t("ready") : t("checkedInToday") }}</text>
       </view>
       <view class="utc-clock">
-        <text class="clock-label">UTC CLOCK</text>
+        <text class="clock-label">{{ t('utcClock') }}</text>
         <text class="clock-time">{{ utcTimeDisplay }}</text>
       </view>
     </view>
@@ -37,7 +37,7 @@
         <view class="status-info">
           <text class="status-main">{{ canCheckIn ? t("notCheckedIn") : t("checkedInToday") }}</text>
           <text class="status-sub">
-            {{ canCheckIn ? "Complete your daily check-in now!" : "You have secured your streak for today." }}
+            {{ canCheckIn ? t("statusReady") : t("statusDone") }}
           </text>
         </view>
       </view>
@@ -47,13 +47,15 @@
 
 <script setup lang="ts">
 import { AppIcon, NeoCard } from "@/shared/components";
+import { useI18n } from "@/composables/useI18n";
+
+const { t } = useI18n();
 
 defineProps<{
   countdownProgress: number;
   countdownLabel: string;
   canCheckIn: boolean;
   utcTimeDisplay: string;
-  t: (key: string) => string;
 }>();
 </script>
 
@@ -80,7 +82,7 @@ defineProps<{
   gap: 8px;
   padding: 6px 12px;
   background: rgba(0, 0, 0, 0.4);
-  color: white;
+  color: var(--text-primary);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 100px;
   backdrop-filter: blur(5px);

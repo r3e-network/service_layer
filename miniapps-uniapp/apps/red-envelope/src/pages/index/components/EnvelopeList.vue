@@ -42,6 +42,9 @@
             >
               {{ env.expired ? t("expired") : env.ready ? t("ready") : t("notReady") }}
             </text>
+            <view class="share-btn" @click.stop="$emit('share', env)">
+              <text>🔗</text>
+            </view>
           </view>
         </view>
       </view>
@@ -75,7 +78,7 @@ defineProps<{
   t: (key: string) => string;
 }>();
 
-defineEmits(["claim"]);
+defineEmits(["claim", "share"]);
 
 const formatAddress = (addr: string): string => {
   if (!addr || addr.length < 12) return addr;
@@ -87,6 +90,10 @@ const formatAddress = (addr: string): string => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+$gold: #f1c40f;
+$premium-red-light: #e74c3c;
+$premium-red-dark: #922b21;
+
 .envelope-list {
   display: flex;
   flex-direction: column;
@@ -94,27 +101,26 @@ const formatAddress = (addr: string): string => {
 }
 
 .glass-envelope {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
+  background: linear-gradient(135deg, $premium-red-light 0%, $premium-red-dark 100%);
+  border: 1px solid rgba(255, 230, 230, 0.2);
+  border-radius: 12px;
   padding: 16px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  backdrop-filter: blur(10px);
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 
   &:hover:not(.disabled) {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    border-color: rgba($gold, 0.5);
   }
 
   &.disabled {
-    opacity: 0.5;
+    opacity: 0.6;
+    filter: grayscale(0.8);
     pointer-events: none;
-    filter: grayscale(0.5);
   }
 }
 
@@ -123,25 +129,26 @@ const formatAddress = (addr: string): string => {
   align-items: center;
   gap: 16px;
   width: 100%;
+  position: relative;
+  z-index: 2;
 }
 
 .envelope-icon {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #ff4d4d 0%, #cc0000 100%);
-  border-radius: 12px;
+  background: $gold;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 15px rgba(255, 77, 77, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  border: 2px solid #fff;
 }
 
 .envelope-symbol {
   font-size: 24px;
   font-weight: 700;
-  color: #ffde59;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  color: $premium-red-dark; /* Red text on gold background */
 }
 
 .envelope-info {
@@ -155,19 +162,21 @@ const formatAddress = (addr: string): string => {
   font-family: $font-mono;
   font-size: 14px;
   font-weight: 600;
-  color: white;
+  color: #fff;
+  opacity: 0.9;
 }
 
 .envelope-detail {
   font-size: 12px;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .envelope-name {
   font-size: 16px;
-  font-weight: 700;
-  color: #ffde59;
+  font-weight: 800;
+  color: $gold;
   margin-bottom: 2px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .best-luck {
@@ -176,9 +185,10 @@ const formatAddress = (addr: string): string => {
   gap: 4px;
   margin-top: 4px;
   padding: 4px 8px;
-  background: rgba(255, 222, 89, 0.1);
-  border-radius: 8px;
+  background: rgba($gold, 0.2);
+  border-radius: 6px;
   width: fit-content;
+  border: 1px solid rgba($gold, 0.3);
 }
 
 .best-luck-icon {
@@ -187,35 +197,35 @@ const formatAddress = (addr: string): string => {
 
 .best-luck-text {
   font-size: 10px;
-  font-weight: 600;
-  color: #ffde59;
+  font-weight: 700;
+  color: $gold;
 }
 
 .status-badge {
-  padding: 6px 12px;
-  font-size: 11px;
-  font-weight: 700;
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: 800;
   text-transform: uppercase;
   border-radius: 100px;
   display: inline-block;
+  backdrop-filter: blur(4px);
 
   &.status-ready {
-    background: rgba(0, 229, 153, 0.1);
-    color: #00e599;
-    border: 1px solid rgba(0, 229, 153, 0.2);
-    box-shadow: 0 0 10px rgba(0, 229, 153, 0.1);
+    background: rgba(46, 204, 113, 0.2);
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.3);
   }
 
   &.status-pending {
-    background: rgba(255, 222, 89, 0.1);
-    color: #ffde59;
-    border: 1px solid rgba(255, 222, 89, 0.2);
+    background: rgba($gold, 0.2);
+    color: $gold;
+    border: 1px solid rgba($gold, 0.3);
   }
 
   &.status-expired {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-    border: 1px solid rgba(239, 68, 68, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.2);
   }
 }
 
@@ -224,9 +234,31 @@ const formatAddress = (addr: string): string => {
   padding: 40px;
   font-weight: 500;
   font-family: $font-family;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-secondary);
   border: 1px dashed rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.02);
+}
+
+.share-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+  }
+  
+  text {
+    font-size: 14px;
+    filter: grayscale(1) brightness(2);
+  }
 }
 </style>

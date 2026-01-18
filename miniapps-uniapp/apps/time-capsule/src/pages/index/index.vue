@@ -39,9 +39,11 @@
       <!-- Create Tab -->
       <view v-if="activeTab === 'create'" class="tab-content">
         <CreateCapsuleForm
+          v-model:title="newCapsule.title"
           v-model:content="newCapsule.content"
           v-model:days="newCapsule.days"
           v-model:is-public="newCapsule.isPublic"
+          v-model:category="newCapsule.category"
           :is-loading="isBusy"
           :can-create="canCreate"
           :t="t as any"
@@ -66,7 +68,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
 import { sha256Hex } from "@/shared/utils/hash";
 import { addressToScriptHash, normalizeScriptHash, parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 import { AppLayout, NeoDoc, NeoCard, NeoButton } from "@/shared/components";
@@ -75,106 +77,8 @@ import type { NavTab } from "@/shared/components/NavBar.vue";
 import CapsuleList, { type Capsule } from "./components/CapsuleList.vue";
 import CreateCapsuleForm from "./components/CreateCapsuleForm.vue";
 
-const translations = {
-  title: { en: "Time Capsule", zh: "时间胶囊" },
-  subtitle: { en: "Lock content until future date", zh: "锁定内容直到未来日期" },
-  yourCapsules: { en: "Your Capsules", zh: "你的胶囊" },
-  noCapsules: { en: "No capsules yet. Create your first one!", zh: "还没有胶囊。创建你的第一个吧！" },
-  timeRemaining: { en: "Time Remaining", zh: "剩余时间" },
-  unlocks: { en: "Unlocks:", zh: "解锁时间：" },
-  unlocked: { en: "Unlocked", zh: "已解锁" },
-  revealed: { en: "Revealed", zh: "已揭示" },
-  reveal: { en: "Reveal Capsule", zh: "揭示胶囊" },
-  open: { en: "Open Capsule", zh: "打开胶囊" },
-  createCapsule: { en: "Create New Capsule", zh: "创建新胶囊" },
-  secretMessage: { en: "Secret Message", zh: "秘密消息" },
-  secretMessagePlaceholder: { en: "Enter your secret message", zh: "输入你的秘密消息" },
-  contentStorageNote: {
-    en: "Your full message is stored locally on this device. Keep a backup if you want to reveal it later.",
-    zh: "完整消息仅保存在本设备本地。请自行备份以便日后揭示。",
-  },
-  unlockIn: { en: "Lock Duration", zh: "锁定时长" },
-  daysPlaceholder: { en: "30", zh: "30" },
-  days: { en: "days", zh: "天" },
-  daysShort: { en: "D", zh: "天" },
-  hoursShort: { en: "H", zh: "时" },
-  minShort: { en: "M", zh: "分" },
-  unlockDateHelper: { en: "Your capsule will unlock after this many days", zh: "你的胶囊将在这么多天后解锁" },
-  visibility: { en: "Visibility", zh: "可见性" },
-  private: { en: "Private", zh: "私密" },
-  public: { en: "Public", zh: "公开" },
-  privateHint: { en: "Only you can reveal after unlock", zh: "仅您可在解锁后揭示" },
-  publicHint: { en: "Anyone can reveal after unlock", zh: "解锁后任何人可揭示" },
-  createCapsuleButton: { en: "Create Capsule (0.2 GAS)", zh: "创建胶囊 (0.2 GAS)" },
-  creating: { en: "Creating...", zh: "创建中..." },
-  creatingCapsule: { en: "Sealing capsule...", zh: "封存胶囊中..." },
-  capsuleCreated: { en: "Capsule sealed on-chain!", zh: "胶囊已封存上链！" },
-  capsuleRevealed: { en: "Capsule revealed", zh: "胶囊已揭示" },
-  revealing: { en: "Revealing capsule...", zh: "揭示胶囊中..." },
-  fish: { en: "Fish a capsule", zh: "打捞胶囊" },
-  fishing: { en: "Fishing...", zh: "打捞中..." },
-  fishButton: { en: "Fish (0.05 GAS)", zh: "打捞 (0.05 GAS)" },
-  fishDescription: {
-    en: "Try your luck to discover a public capsule. A capsule is returned only if a public, unrevealed one exists.",
-    zh: "尝试发现公开胶囊，仅在存在公开且未揭示的胶囊时返回。",
-  },
-  fishResult: { en: "Fished capsule #{id}", zh: "打捞到胶囊 #{id}" },
-  fishNone: { en: "No public capsule found", zh: "未发现公开胶囊" },
-  hashStored: { en: "Content hash stored on-chain", zh: "内容哈希已上链" },
-  hashLabel: { en: "Hash:", zh: "哈希：" },
-  contentUnavailable: {
-    en: "No local message found. The on-chain hash is shown below.",
-    zh: "未找到本地消息，下面展示链上哈希。",
-  },
-  notUnlocked: { en: "Capsule is still locked", zh: "胶囊仍处于锁定状态" },
-  error: { en: "Error", zh: "错误" },
-  message: { en: "Message:", zh: "消息：" },
-  tabCapsules: { en: "Capsules", zh: "胶囊" },
-  tabCreate: { en: "Create", zh: "创建" },
-  docs: { en: "Docs", zh: "文档" },
-  docSubtitle: {
-    en: "Lock messages and assets until a future date",
-    zh: "锁定消息和资产直到未来日期",
-  },
-  docDescription: {
-    en: "Time Capsule lets you lock a message hash on-chain until a future date. Keep the message safe off-chain and reveal the capsule when the unlock time arrives.",
-    zh: "时间胶囊允许您将消息哈希封存上链直到未来日期。请离线保存消息内容，解锁后再揭示。",
-  },
-  step1: {
-    en: "Connect your Neo wallet and create a new time capsule",
-    zh: "连接您的 Neo 钱包并创建新的时间胶囊",
-  },
-  step2: {
-    en: "Enter your secret message and set the lock duration in days",
-    zh: "输入您的秘密消息并设置锁定天数",
-  },
-  step3: {
-    en: "Pay the creation fee to seal your capsule on-chain",
-    zh: "支付创建费用将您的胶囊封存在链上",
-  },
-  step4: {
-    en: "Open your capsule when the unlock date arrives",
-    zh: "当解锁日期到达时打开您的胶囊",
-  },
-  feature1Name: { en: "Time-Locked", zh: "时间锁定" },
-  feature1Desc: {
-    en: "Commit the message hash on-chain until the unlock date.",
-    zh: "在解锁日期前将消息哈希封存上链。",
-  },
-  feature2Name: { en: "Permanent Storage", zh: "永久存储" },
-  feature2Desc: {
-    en: "Capsule metadata is stored on Neo permanently.",
-    zh: "胶囊元数据永久存储在 Neo 区块链上。",
-  },
-  wrongChain: { en: "Wrong Chain", zh: "链错误" },
-  wrongChainMessage: {
-    en: "This app requires Neo N3. Please switch networks.",
-    zh: "此应用需要 Neo N3 网络，请切换网络。",
-  },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-};
 
-const t = createT(translations);
+const { t } = useI18n();
 
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
@@ -197,11 +101,11 @@ const ensureContractAddress = async () => {
 };
 
 const activeTab = ref("capsules");
-const navTabs: NavTab[] = [
+const navTabs = computed<NavTab[]>(() => [
   { id: "capsules", icon: "lock", label: t("tabCapsules") },
   { id: "create", icon: "plus", label: t("tabCreate") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 
 const capsules = ref<Capsule[]>([]);
 const isLoadingData = ref(false);
@@ -245,7 +149,7 @@ const saveLocalContent = (hash: string, content: string) => {
   }
 };
 
-const newCapsule = ref({ content: "", days: "30", isPublic: false });
+const newCapsule = ref({ title: "", content: "", days: "30", isPublic: false, category: 1 });
 const status = ref<{ msg: string; type: string } | null>(null);
 const currentTime = ref(Date.now());
 const isProcessing = ref(false);
@@ -272,7 +176,11 @@ watch(address, () => {
 });
 
 const canCreate = computed(() => {
-  return newCapsule.value.content.trim() !== "" && parseInt(newCapsule.value.days) > 0;
+  return (
+    newCapsule.value.title.trim() !== "" &&
+    newCapsule.value.content.trim() !== "" &&
+    parseInt(newCapsule.value.days) > 0
+  );
 });
 
 const ownerMatches = (value: unknown) => {
@@ -324,11 +232,12 @@ const fetchData = async () => {
         let unlockTime = unlockTimeEvent;
         let isPublic = isPublicEvent;
         let revealed = false;
+        let title = "";
 
         try {
           const capsuleRes = await invokeRead({
             contractAddress: contract,
-            operation: "getCapsule",
+            operation: "getCapsuleDetails",
             args: [{ type: "Integer", value: id }],
           });
           const parsed = parseInvokeResult(capsuleRes);
@@ -338,6 +247,7 @@ const fetchData = async () => {
             unlockTime = toNumber(data.unlockTime ?? unlockTimeEvent);
             isPublic = typeof data.isPublic === "boolean" ? data.isPublic : Boolean(data.isPublic ?? isPublicEvent);
             revealed = Boolean(data.isRevealed);
+            title = String(data.title || "");
           }
         } catch {
           // fallback to event values
@@ -348,6 +258,7 @@ const fetchData = async () => {
 
         return {
           id,
+          title,
           contentHash,
           unlockDate,
           unlockTime,
@@ -362,8 +273,7 @@ const fetchData = async () => {
     capsules.value = (userCapsules.filter(Boolean) as Capsule[]).sort(
       (a, b) => Number(b.id) - Number(a.id)
     );
-  } catch (e) {
-    console.warn("[TimeCapsule] Failed to fetch data:", e);
+  } catch {
   } finally {
     isLoadingData.value = false;
   }
@@ -381,7 +291,7 @@ const create = async () => {
       await connect();
     }
     if (!address.value) {
-      throw new Error("Please connect wallet");
+      throw new Error(t("connectWallet"));
     }
 
     const contract = await ensureContractAddress();
@@ -390,7 +300,7 @@ const create = async () => {
     const payment = await payGAS(BURY_FEE, `time-capsule:bury:${Date.now()}`);
     const receiptId = payment.receipt_id;
     if (!receiptId) {
-      throw new Error("Payment receipt missing");
+      throw new Error(t("receiptMissing"));
     }
 
     // Calculate unlock timestamp
@@ -407,8 +317,10 @@ const create = async () => {
       args: [
         { type: "Hash160", value: address.value },
         { type: "String", value: contentHash },
+        { type: "String", value: newCapsule.value.title.trim().slice(0, 100) },
         { type: "Integer", value: String(unlockTimestamp) },
         { type: "Boolean", value: newCapsule.value.isPublic },
+        { type: "Integer", value: String(newCapsule.value.category) },
         { type: "Integer", value: String(receiptId) },
       ],
     });
@@ -416,7 +328,7 @@ const create = async () => {
     saveLocalContent(contentHash, content);
 
     status.value = { msg: t("capsuleCreated"), type: "success" };
-    newCapsule.value = { content: "", days: "30", isPublic: false };
+    newCapsule.value = { title: "", content: "", days: "30", isPublic: false, category: 1 };
     activeTab.value = "capsules";
     await fetchData();
   } catch (e: any) {
@@ -441,7 +353,7 @@ const open = async (cap: Capsule) => {
       await connect();
     }
     if (!address.value) {
-      throw new Error("Please connect wallet");
+      throw new Error(t("connectWallet"));
     }
 
     if (!cap.revealed) {
@@ -484,14 +396,14 @@ const fish = async () => {
       await connect();
     }
     if (!address.value) {
-      throw new Error("Please connect wallet");
+      throw new Error(t("connectWallet"));
     }
 
     const contract = await ensureContractAddress();
     const payment = await payGAS(FISH_FEE, `time-capsule:fish:${Date.now()}`);
     const receiptId = payment.receipt_id;
     if (!receiptId) {
-      throw new Error("Payment receipt missing");
+      throw new Error(t("receiptMissing"));
     }
 
     await invokeContract({
@@ -529,29 +441,110 @@ const fish = async () => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+$vault-bg: #0f172a;
+$vault-panel: #1e293b;
+$vault-cyan: #06b6d4;
+$vault-text: #e2e8f0;
+
+:global(page) {
+  background: $vault-bg;
+}
+
 .app-container {
-  padding: $space-4;
+  padding: 24px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: 24px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  background: radial-gradient(circle at 50% 0%, #334155 0%, #0f172a 100%);
+  min-height: 100vh;
+  position: relative;
+  
+  /* Tech Grid Background */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(6, 182, 212, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
 }
 
 .tab-content {
   flex: 1;
+  z-index: 1;
 }
 
 .helper-text {
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
-  opacity: 0.7;
+  color: $vault-cyan;
+  opacity: 0.8;
+  letter-spacing: 0.05em;
 }
 
+/* Sci-fi UI Overrides */
+:deep(.neo-card) {
+  background: rgba(30, 41, 59, 0.8) !important;
+  border: 1px solid rgba(6, 182, 212, 0.3) !important;
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.1) !important;
+  border-radius: 8px !important;
+  color: $vault-text !important;
+  backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
+  
+  /* Corner accents */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 10px; height: 10px;
+    border-top: 2px solid $vault-cyan;
+    border-left: 2px solid $vault-cyan;
+  }
+}
 
+:deep(.neo-button) {
+  border-radius: 4px !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  
+  &.variant-primary {
+    background: linear-gradient(90deg, $vault-cyan 0%, #0891b2 100%) !important;
+    color: #fff !important;
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.4) !important;
+  }
+  
+  &.variant-secondary {
+    background: transparent !important;
+    border: 1px solid $vault-cyan !important;
+    color: $vault-cyan !important;
+    
+    &:hover {
+      background: rgba(6, 182, 212, 0.1) !important;
+    }
+  }
+}
+
+:deep(.neo-input) {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border: 1px solid #334155 !important;
+  color: $vault-cyan !important;
+  font-family: monospace !important;
+  
+  &:focus-within {
+    border-color: $vault-cyan !important;
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.2) !important;
+  }
+}
 
 @keyframes slideDown {
   from {

@@ -18,63 +18,187 @@ export type MiniAppSDKConfig = {
   getAPIKey?: () => Promise<string | undefined>;
 };
 
+export type InvocationIntent =
+  | {
+      chain_id: ChainId;
+      chain_type: "neo-n3";
+      contract_address: string;
+      method: string;
+      params?: unknown[];
+      args?: unknown[];
+    }
+  | {
+      chain_id: ChainId;
+      chain_type: "evm";
+      contract_address: string;
+      data: string;
+      value?: string;
+      gas?: string;
+      gas_price?: string;
+      method?: string;
+      args?: unknown[];
+    };
+
 export type PayGASResponse = {
   request_id: string;
-  intent?: {
-    contract: string;
-    method: string;
-    params: unknown[];
-  };
+  user_id: string;
+  intent: "payments";
+  constraints: { settlement: "GAS_ONLY" | "NATIVE_TOKEN" };
+  chain_id: ChainId;
+  chain_type: ChainType;
+  invocation: InvocationIntent;
+  txid?: string | null;
+  receipt_id?: string | null;
 };
 
-export type VoteResponse = {
+export type VoteBNEOResponse = {
   request_id: string;
-  intent?: {
-    contract: string;
-    method: string;
-    params: unknown[];
-  };
+  user_id: string;
+  intent: "governance";
+  constraints: { governance: "BNEO_ONLY" };
+  chain_id: ChainId;
+  chain_type: ChainType;
+  invocation: InvocationIntent;
+  txid?: string | null;
 };
 
-export type RandomResponse = {
+export type RNGResponse = {
+  request_id: string;
+  app_id: string;
+  chain_id: ChainId;
+  chain_type: ChainType;
   randomness: string;
-  attestation?: {
-    signature: string;
-    public_key: string;
-    attestation_hash: string;
-  };
+  signature?: string;
+  public_key?: string;
+  attestation_hash?: string;
+  report_hash?: string;
+  anchored_tx?: unknown;
 };
 
 export type PriceResponse = {
-  symbol: string;
+  feed_id: string;
+  pair: string;
   price: string;
+  decimals: number;
   timestamp: string;
+  sources: string[];
+  signature?: string;
+  public_key?: string;
 };
 
-export type UsageResponse = {
-  app_id: string;
-  date: string;
-  gas_used: string;
-  transaction_count: number;
+export type PricesResponse = {
+  neo: { usd: number; usd_24h_change: number };
+  gas: { usd: number; usd_24h_change: number };
+  timestamp: number;
+};
+
+export type NetworkStatsResponse = {
+  blockHeight: number;
+  validatorCount: number;
+  network: string;
+  version: string;
+};
+
+export type RecentTransaction = {
+  txid: string;
+  blockHeight: number;
+  blockTime?: number;
+  sender?: string | null;
+  size?: number;
+  sysfee?: string;
+  netfee?: string;
+};
+
+export type RecentTransactionsResponse = {
+  transactions: RecentTransaction[];
+  blockHeight: number;
 };
 
 export type EventsListParams = {
   app_id?: string;
   event_name?: string;
+  chain_id?: ChainId;
+  contract_address?: string;
   limit?: number;
   after_id?: string;
+};
+
+export type ContractEvent = {
+  id: string;
+  tx_hash: string;
+  chain_id: ChainId;
+  block_index: number;
+  contract_address: string;
+  event_name: string;
+  app_id?: string | null;
+  state?: unknown;
+  created_at: string;
+};
+
+export type EventsListResponse = {
+  events: ContractEvent[];
+  has_more: boolean;
+  last_id: string | null;
 };
 
 export type TransactionsListParams = {
   app_id?: string;
+  chain_id?: ChainId;
   limit?: number;
   after_id?: string;
 };
 
-export type ListResponse<T> = {
-  items: T[];
+export type ChainTransaction = {
+  id: string;
+  tx_hash: string | null;
+  request_id: string;
+  from_service: string;
+  tx_type: string;
+  contract_address: string;
+  chain_id: string | null;
+  method_name: string;
+  params: Record<string, unknown>;
+  gas_consumed: number | null;
+  status: string;
+  retry_count: number;
+  error_message: string | null;
+  rpc_endpoint: string | null;
+  submitted_at: string;
+  confirmed_at: string | null;
+};
+
+export type TransactionsListResponse = {
+  transactions: ChainTransaction[];
   has_more: boolean;
-  last_id?: string;
+  last_id: string | null;
+};
+
+export type MiniAppUsage = {
+  app_id: string;
+  chain_id?: ChainId;
+  usage_date: string;
+  gas_used: string;
+  governance_used: string;
+  tx_count: number;
+};
+
+export type MiniAppUsageResponse = {
+  usage: MiniAppUsage | MiniAppUsage[];
+  date?: string;
+};
+
+export type Candidate = {
+  address: string;
+  publicKey: string;
+  name?: string;
+  votes: string;
+  active: boolean;
+};
+
+export type CandidatesResponse = {
+  candidates: Candidate[];
+  totalVotes: string;
+  blockHeight: number;
 };
 
 export interface MiniAppSDK {
@@ -111,34 +235,40 @@ export interface MiniAppSDK {
   getAddress?: () => Promise<string>;
   wallet: {
     getAddress: () => Promise<string>;
-    invokeIntent: (requestId: string) => Promise<{ tx_hash: string }>;
+    switchChain?: (chainId: ChainId) => Promise<void>;
+    invokeIntent?: (requestId: string) => Promise<{ tx_hash: string }>;
+    signMessage?: (message: string) => Promise<unknown>;
   };
   payments: {
     payGAS: (appId: string, amount: string, memo?: string) => Promise<PayGASResponse>;
-    payGASAndInvoke?: (appId: string, amount: string, memo?: string) => Promise<{ tx_hash: string }>;
+    payGASAndInvoke?: (appId: string, amount: string, memo?: string) => Promise<PayGASResponse>;
   };
   governance: {
-    vote: (appId: string, proposalId: string, neoAmount: string, support?: boolean) => Promise<VoteResponse>;
+    vote: (appId: string, proposalId: string, neoAmount: string, support?: boolean) => Promise<VoteBNEOResponse>;
     voteAndInvoke?: (
       appId: string,
       proposalId: string,
       neoAmount: string,
       support?: boolean,
-    ) => Promise<{ tx_hash: string }>;
+    ) => Promise<VoteBNEOResponse>;
+    getCandidates: () => Promise<CandidatesResponse>;
   };
   rng: {
-    requestRandom: (appId: string) => Promise<RandomResponse>;
+    requestRandom: (appId: string) => Promise<RNGResponse>;
   };
   datafeed: {
     getPrice: (symbol: string) => Promise<PriceResponse>;
+    getPrices?: () => Promise<PricesResponse>;
+    getNetworkStats?: () => Promise<NetworkStatsResponse>;
+    getRecentTransactions?: (limit?: number) => Promise<RecentTransactionsResponse>;
   };
-  stats: {
-    getMyUsage: (appId: string, date?: string) => Promise<UsageResponse>;
+  stats?: {
+    getMyUsage: (appId: string, date?: string) => Promise<MiniAppUsageResponse>;
   };
-  events: {
-    list: (params: EventsListParams) => Promise<ListResponse<unknown>>;
+  events?: {
+    list: (params: EventsListParams) => Promise<EventsListResponse>;
   };
-  transactions: {
-    list: (params: TransactionsListParams) => Promise<ListResponse<unknown>>;
+  transactions?: {
+    list: (params: TransactionsListParams) => Promise<TransactionsListResponse>;
   };
 }

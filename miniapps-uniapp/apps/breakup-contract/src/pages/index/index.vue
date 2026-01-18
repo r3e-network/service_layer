@@ -21,6 +21,8 @@
           v-model:partnerAddress="partnerAddress"
           v-model:stakeAmount="stakeAmount"
           v-model:duration="duration"
+          v-model:title="contractTitle"
+          v-model:terms="contractTerms"
           :address="address"
           :is-loading="isLoading"
           :t="t as any"
@@ -57,74 +59,14 @@
 import { ref, computed, onMounted } from "vue";
 import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
 import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
 import { AppLayout, NeoDoc, NeoCard } from "@/shared/components";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 import CreateContractForm from "./components/CreateContractForm.vue";
 import ContractList from "./components/ContractList.vue";
 
-const translations = {
-  title: { en: "Breakup Contract", zh: "分手合约" },
-  subtitle: { en: "Relationship stakes on-chain", zh: "链上关系赌注" },
-  contractTitle: { en: "RELATIONSHIP CONTRACT", zh: "关系合约" },
-  clause1: {
-    en: "This contract binds two parties in a commitment backed by cryptocurrency stakes.",
-    zh: "本合约将双方绑定在由加密货币质押支持的承诺中。",
-  },
 
-  partnerLabel: { en: "Partner Address", zh: "伴侣地址" },
-  stakeLabel: { en: "Stake Amount", zh: "质押金额" },
-  durationLabel: { en: "Contract Duration", zh: "合约期限" },
-  signatureLabel: { en: "Your Signature", zh: "您的签名" },
-
-  partnerPlaceholder: { en: "Enter partner's NEO address", zh: "输入伴侣的 NEO 地址" },
-  stakePlaceholder: { en: "Amount in GAS", zh: "GAS 金额" },
-  durationPlaceholder: { en: "Days", zh: "天数" },
-  connectWallet: { en: "Connect wallet to sign", zh: "连接钱包以签名" },
-
-  creating: { en: "Creating...", zh: "创建中..." },
-  createBtn: { en: "Sign & Create Contract", zh: "签署并创建合约" },
-
-  activeContracts: { en: "Active Contracts", zh: "活跃合约" },
-  partner: { en: "Partner", zh: "伴侣" },
-  stake: { en: "Stake", zh: "质押" },
-  duration: { en: "Duration", zh: "期限" },
-  daysLeft: { en: "days left", zh: "天剩余" },
-  progress: { en: "Progress", zh: "进度" },
-
-  pending: { en: "Pending", zh: "待签署" },
-  active: { en: "Active", zh: "活跃" },
-  broken: { en: "Broken", zh: "已破裂" },
-  ended: { en: "Ended", zh: "已结束" },
-
-  signContract: { en: "Sign Contract", zh: "签署合约" },
-  breakContract: { en: "Break Contract", zh: "违约" },
-
-  contractCreated: { en: "Contract created successfully!", zh: "合约创建成功！" },
-  contractSigned: { en: "Contract signed", zh: "合约已签署" },
-  contractBroken: { en: "Contract broken! Stake forfeited.", zh: "合约已破裂！质押被没收。" },
-  error: { en: "Error", zh: "错误" },
-
-  docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Learn about relationship contracts.", zh: "了解关系合约。" },
-  docDescription: {
-    en: "Create binding relationship contracts with cryptocurrency stakes. Complete the duration to claim rewards, or break early and forfeit your stake.",
-    zh: "创建具有加密货币质押的约束性关系合约。完成期限以领取奖励，或提前违约并没收质押。",
-  },
-  step1: { en: "Connect your wallet.", zh: "连接您的钱包。" },
-  step2: { en: "Enter partner address and stake amount.", zh: "输入伴侣地址和质押金额。" },
-  step3: { en: "Sign the contract and wait for completion!", zh: "签署合约并等待完成！" },
-  step4: { en: "Track active contracts in the Contracts tab.", zh: "在合约标签页跟踪活跃合约。" },
-  feature1Name: { en: "Crypto Stakes", zh: "加密质押" },
-  feature1Desc: { en: "Real GAS locked in contract.", zh: "真实的 GAS 锁定在合约中。" },
-  feature2Name: { en: "On-Chain Proof", zh: "链上证明" },
-  feature2Desc: { en: "Immutable relationship records.", zh: "不可变的关系记录。" },
-  wrongChain: { en: "Wrong Network", zh: "网络错误" },
-  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-};
-
-const t = createT(translations);
+const { t } = useI18n();
 
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
@@ -139,15 +81,17 @@ const { payGAS, isLoading } = usePayments(APP_ID);
 const contractAddress = ref<string | null>(null);
 
 const activeTab = ref<string>("create");
-const navTabs: NavTab[] = [
-  { id: "create", label: "Create", icon: "💔" },
-  { id: "contracts", label: "Contracts", icon: "📋" },
+const navTabs = computed<NavTab[]>(() => [
+  { id: "create", label: t("tabCreate"), icon: "💔" },
+  { id: "contracts", label: t("tabContracts"), icon: "📋" },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 
 const partnerAddress = ref("");
 const stakeAmount = ref("");
 const duration = ref("");
+const contractTitle = ref("");
+const contractTerms = ref("");
 const status = ref<{ msg: string; type: string } | null>(null);
 
 type ContractStatus = "pending" | "active" | "broken" | "ended";
@@ -156,6 +100,8 @@ interface RelationshipContractView {
   party1: string;
   party2: string;
   partner: string;
+  title: string;
+  terms: string;
   stake: number;
   stakeRaw: string;
   progress: number;
@@ -180,31 +126,83 @@ const ensureContractAddress = async () => {
   if (!contractAddress.value) {
     contractAddress.value = await getContractAddress();
   }
+  if (!contractAddress.value) {
+    throw new Error(t("contractUnavailable"));
+  }
   return contractAddress.value;
 };
 
-const parseContract = (id: number, data: any[]): RelationshipContractView | null => {
-  if (!Array.isArray(data) || data.length < 9) return null;
-  const party1 = String(data[0] ?? "");
-  const party2 = String(data[1] ?? "");
-  const stakeRaw = String(data[2] ?? "0");
-  const party1Signed = Boolean(data[3]);
-  const party2Signed = Boolean(data[4]);
-  const startTime = Number(data[5] ?? 0) * 1000;
-  const duration = Number(data[6] ?? 0);
-  const active = Boolean(data[7]);
-  const completed = Boolean(data[8]);
+const isValidNeoAddress = (value: string) => /^N[0-9a-zA-Z]{33}$/.test(value.trim());
 
+const listAllEvents = async (eventName: string) => {
+  const events: any[] = [];
+  let afterId: string | undefined;
+  let hasMore = true;
+  while (hasMore) {
+    const res = await listEvents({ app_id: APP_ID, event_name: eventName, limit: 50, after_id: afterId });
+    events.push(...res.events);
+    hasMore = Boolean(res.has_more && res.last_id);
+    afterId = res.last_id || undefined;
+  }
+  return events;
+};
+
+const parseContract = (id: number, data: any): RelationshipContractView | null => {
+  if (!data || typeof data !== "object") return null;
+  const details = Array.isArray(data)
+    ? {
+        party1: data[0],
+        party2: data[1],
+        stake: data[2],
+        party1Signed: data[3],
+        party2Signed: data[4],
+        createdTime: data[5],
+        startTime: data[6],
+        duration: data[7],
+        signDeadline: data[8],
+        active: data[9],
+        completed: data[10],
+        cancelled: data[11],
+        title: data[12],
+        terms: data[13],
+        milestonesReached: data[14],
+        totalPenaltyPaid: data[15],
+        breakupInitiator: data[16],
+      }
+    : (data as Record<string, any>);
+
+  const party1 = String(details.party1 ?? "");
+  const party2 = String(details.party2 ?? "");
+  const stakeRaw = String(details.stake ?? "0");
+  const party2Signed = Boolean(details.party2Signed);
+  const startTimeSeconds = Number(details.startTime ?? 0);
+  const durationSeconds = Number(details.duration ?? 0);
+  const active = Boolean(details.active);
+  const completed = Boolean(details.completed);
+  const cancelled = Boolean(details.cancelled);
+  const title = String(details.title ?? "");
+  const terms = String(details.terms ?? "");
+
+  const startTimeMs = startTimeSeconds * 1000;
+  const durationMs = durationSeconds * 1000;
   const now = Date.now();
-  const endTime = startTime + duration;
-  const elapsed = startTime > 0 ? Math.max(0, Math.min(duration, now - startTime)) : 0;
-  const progress = duration > 0 ? Math.round((elapsed / duration) * 100) : 0;
-  const daysLeft = duration > 0 ? Math.max(0, Math.ceil((endTime - now) / 86400000)) : 0;
+  const endTime = startTimeMs + durationMs;
+  const elapsed = startTimeMs > 0 ? Math.max(0, Math.min(durationMs, now - startTimeMs)) : 0;
+  const computedProgress = durationMs > 0 ? Math.round((elapsed / durationMs) * 100) : 0;
+  const progressPercent = Number(details.progressPercent ?? 0);
+  const progress = progressPercent > 0 ? Math.min(100, Math.max(0, Math.floor(progressPercent))) : computedProgress;
+  const remainingSeconds = Number(details.remainingTime ?? 0);
+  const daysLeft =
+    remainingSeconds > 0
+      ? Math.max(0, Math.ceil(remainingSeconds / 86400))
+      : durationMs > 0
+        ? Math.max(0, Math.ceil((endTime - now) / 86400000))
+        : 0;
 
   let status: ContractStatus = "pending";
-  if (party2Signed && active) status = "active";
+  if (active) status = "active";
   else if (completed) status = "broken";
-  else if (party2Signed && !active) status = "ended";
+  else if (party2Signed || cancelled) status = "ended";
 
   const partner = address.value && address.value === party1 ? party2 : party1;
 
@@ -213,6 +211,8 @@ const parseContract = (id: number, data: any[]): RelationshipContractView | null
     party1,
     party2,
     partner,
+    title,
+    terms,
     stake: toGas(stakeRaw),
     stakeRaw,
     progress,
@@ -224,9 +224,9 @@ const parseContract = (id: number, data: any[]): RelationshipContractView | null
 const loadContracts = async () => {
   try {
     await ensureContractAddress();
-    const createdEvents = await listEvents({ app_id: APP_ID, event_name: "ContractCreated", limit: 50 });
+    const createdEvents = await listAllEvents("ContractCreated");
     const ids = new Set<number>();
-    createdEvents.events.forEach((evt) => {
+    createdEvents.forEach((evt) => {
       const values = Array.isArray((evt as any)?.state) ? (evt as any).state.map(parseStackItem) : [];
       const id = Number(values[0] ?? 0);
       if (id > 0) ids.add(id);
@@ -236,7 +236,7 @@ const loadContracts = async () => {
     for (const id of Array.from(ids).sort((a, b) => b - a)) {
       const res = await invokeRead({
         contractAddress: contractAddress.value!,
-        operation: "GetContract",
+        operation: "getContractDetails",
         args: [{ type: "Integer", value: id }],
       });
       const parsed = parseContract(id, parseInvokeResult(res));
@@ -244,16 +244,43 @@ const loadContracts = async () => {
     }
     contracts.value = contractViews;
   } catch (e) {
-    console.warn("Failed to load contracts", e);
+    status.value = { msg: t("loadFailed"), type: "error" };
   }
 };
 
 const createContract = async () => {
-  if (!partnerAddress.value || !stakeAmount.value || isLoading.value) return;
+  if (isLoading.value) return;
+  const partnerValue = partnerAddress.value.trim();
+  if (!partnerValue) {
+    status.value = { msg: t("partnerRequired"), type: "error" };
+    return;
+  }
+  if (!isValidNeoAddress(partnerValue)) {
+    status.value = { msg: t("partnerInvalid"), type: "error" };
+    return;
+  }
+  if (!stakeAmount.value) {
+    status.value = { msg: t("error"), type: "error" };
+    return;
+  }
   const stake = parseFloat(stakeAmount.value);
   const durationDays = parseInt(duration.value, 10);
+  const titleValue = contractTitle.value.trim();
+  const termsValue = contractTerms.value.trim();
   if (!Number.isFinite(stake) || stake < 1 || !Number.isFinite(durationDays) || durationDays < 30) {
     status.value = { msg: t("error"), type: "error" };
+    return;
+  }
+  if (!titleValue) {
+    status.value = { msg: t("titleRequired"), type: "error" };
+    return;
+  }
+  if (titleValue.length > 100) {
+    status.value = { msg: t("titleTooLong"), type: "error" };
+    return;
+  }
+  if (termsValue.length > 2000) {
+    status.value = { msg: t("termsTooLong"), type: "error" };
     return;
   }
   try {
@@ -264,19 +291,21 @@ const createContract = async () => {
       throw new Error(t("error"));
     }
     await ensureContractAddress();
-    const payment = await payGAS(stakeAmount.value, `contract:${partnerAddress.value.slice(0, 10)}`);
+    const payment = await payGAS(stakeAmount.value, `contract:${partnerValue.slice(0, 10)}`);
     const receiptId = payment.receipt_id;
     if (!receiptId) {
-      throw new Error("Missing payment receipt");
+      throw new Error(t("receiptMissing"));
     }
     await invokeContract({
       contractAddress: contractAddress.value!,
-      operation: "CreateContract",
+      operation: "createContract",
       args: [
         { type: "Hash160", value: address.value },
-        { type: "Hash160", value: partnerAddress.value },
+        { type: "Hash160", value: partnerValue },
         { type: "Integer", value: toFixed8(stakeAmount.value) },
         { type: "Integer", value: durationDays },
+        { type: "String", value: titleValue },
+        { type: "String", value: termsValue },
         { type: "Integer", value: receiptId },
       ],
     });
@@ -284,6 +313,8 @@ const createContract = async () => {
     partnerAddress.value = "";
     stakeAmount.value = "";
     duration.value = "";
+    contractTitle.value = "";
+    contractTerms.value = "";
     await loadContracts();
   } catch (e: any) {
     status.value = { msg: e.message || t("error"), type: "error" };
@@ -297,11 +328,11 @@ const signContract = async (contract: RelationshipContractView) => {
     const payment = await payGAS(contract.stake.toFixed(8), `contract:sign:${contract.id}`);
     const receiptId = payment.receipt_id;
     if (!receiptId) {
-      throw new Error("Missing payment receipt");
+      throw new Error(t("receiptMissing"));
     }
     await invokeContract({
       contractAddress: contractAddress.value!,
-      operation: "SignContract",
+      operation: "signContract",
       args: [
         { type: "Integer", value: contract.id },
         { type: "Hash160", value: address.value },
@@ -324,7 +355,7 @@ const breakContract = async (contract: RelationshipContractView) => {
     await ensureContractAddress();
     await invokeContract({
       contractAddress: contractAddress.value!,
-      operation: "TriggerBreakup",
+      operation: "triggerBreakup",
       args: [
         { type: "Integer", value: contract.id },
         { type: "Hash160", value: address.value },
@@ -346,44 +377,99 @@ onMounted(() => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+$heartbreak-bg: #1a050f;
+$heartbreak-pink: #ff0055;
+$heartbreak-purple: #8b0046;
+$heartbreak-text: #ffeef5;
+
+:global(page) {
+  background: $heartbreak-bg;
+}
+
 .app-container {
-  padding: $space-4;
+  padding: 24px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: 24px;
+  background: radial-gradient(circle at 20% 20%, #4a0420 0%, $heartbreak-bg 100%);
+  min-height: 100vh;
+  position: relative;
+  
+  /* Broken glass shards overlay (simulated with gradients) */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.1;
+    background-image: 
+      linear-gradient(45deg, transparent 48%, $heartbreak-pink 49%, transparent 51%),
+      linear-gradient(-45deg, transparent 40%, $heartbreak-pink 41%, transparent 42%);
+    background-size: 200px 200px;
+    pointer-events: none;
+  }
 }
 
-.title {
-  font-size: 28px;
-  font-weight: 800;
-  text-transform: uppercase;
-  color: white;
-  text-shadow: 0 0 20px rgba(255, 107, 107, 0.4);
-  letter-spacing: 0.05em;
-}
-.subtitle {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
-  letter-spacing: 0.1em;
-}
 .status-msg {
-  color: white;
+  color: #fff;
   text-transform: uppercase;
+  font-weight: 800;
   font-size: 13px;
   letter-spacing: 0.05em;
+  text-shadow: 0 0 5px $heartbreak-pink;
 }
 
 .tab-content {
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: 24px;
+  z-index: 10;
 }
 
 .scrollable {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Neon Heartbreak Component Overrides */
+:deep(.neo-card) {
+  background: rgba(40, 5, 20, 0.7) !important;
+  border: 1px solid rgba(255, 0, 85, 0.3) !important;
+  border-left: 4px solid $heartbreak-pink !important;
+  box-shadow: 0 0 20px rgba(255, 0, 85, 0.1) !important;
+  border-radius: 2px !important; /* Sharp edges */
+  color: $heartbreak-text !important;
+  backdrop-filter: blur(10px);
+  
+  &.variant-danger {
+    background: rgba(100, 0, 30, 0.8) !important;
+    border-color: #ff0000 !important;
+  }
+}
+
+:deep(.neo-button) {
+  border-radius: 0 !important;
+  text-transform: uppercase;
+  font-weight: 800 !important;
+  letter-spacing: 0.1em;
+  border: 1px solid $heartbreak-pink !important;
+  
+  &.variant-primary {
+    background: linear-gradient(135deg, $heartbreak-pink 0%, $heartbreak-purple 100%) !important;
+    color: #fff !important;
+    box-shadow: 4px 4px 0 rgba(0,0,0,0.5) !important;
+    
+    &:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 rgba(0,0,0,0.5) !important;
+    }
+  }
+}
+
+:deep(.neo-input) {
+  background: rgba(0, 0, 0, 0.6) !important;
+  border-bottom: 2px solid $heartbreak-pink !important;
+  border-radius: 0 !important;
+  color: #fff !important;
 }
 </style>

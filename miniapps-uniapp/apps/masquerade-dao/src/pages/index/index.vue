@@ -24,6 +24,20 @@
               <text class="input-label">{{ t("identitySeed") }}</text>
               <NeoInput v-model="identitySeed" :placeholder="t('identityPlaceholder')" />
             </view>
+            <view class="input-group">
+              <text class="input-label">{{ t("maskTypeLabel") }}</text>
+              <view class="mask-type-actions">
+                <NeoButton size="sm" :variant="maskType === 1 ? 'primary' : 'secondary'" @click="maskType = 1">
+                  {{ t("maskTypeBasic") }}
+                </NeoButton>
+                <NeoButton size="sm" :variant="maskType === 2 ? 'primary' : 'secondary'" @click="maskType = 2">
+                  {{ t("maskTypeCipher") }}
+                </NeoButton>
+                <NeoButton size="sm" :variant="maskType === 3 ? 'primary' : 'secondary'" @click="maskType = 3">
+                  {{ t("maskTypePhantom") }}
+                </NeoButton>
+              </view>
+            </view>
 
             <view v-if="identityHash" class="hash-preview">
               <text class="hash-label">{{ t("hashPreview") }}</text>
@@ -90,17 +104,15 @@
               </view>
             </view>
 
-            <view class="input-group">
-              <text class="input-label">{{ t("zkProof") }}</text>
-              <NeoInput v-model="proof" :placeholder="t('proofPlaceholder')" />
-            </view>
-
             <view class="vote-actions">
-              <NeoButton variant="primary" size="lg" :disabled="!canVote" @click="submitVote(true)">
+              <NeoButton variant="primary" size="lg" :disabled="!canVote" @click="submitVote(1)">
                 {{ t("for") }}
               </NeoButton>
-              <NeoButton variant="danger" size="lg" :disabled="!canVote" @click="submitVote(false)">
+              <NeoButton variant="danger" size="lg" :disabled="!canVote" @click="submitVote(2)">
                 {{ t("against") }}
+              </NeoButton>
+              <NeoButton variant="secondary" size="lg" :disabled="!canVote" @click="submitVote(3)">
+                {{ t("abstain") }}
               </NeoButton>
             </view>
           </view>
@@ -123,7 +135,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
-import { createT } from "@/shared/utils/i18n";
+
+import { useI18n } from "@/composables/useI18n";
 import { sha256Hex } from "@/shared/utils/hash";
 import { addressToScriptHash, normalizeScriptHash, parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 import AppLayout from "@/shared/components/AppLayout.vue";
@@ -132,78 +145,26 @@ import NeoButton from "@/shared/components/NeoButton.vue";
 import NeoCard from "@/shared/components/NeoCard.vue";
 import NeoInput from "@/shared/components/NeoInput.vue";
 
-const translations = {
-  title: { en: "Masquerade DAO", zh: "假面DAO" },
-  identity: { en: "Identity", zh: "身份" },
-  vote: { en: "Vote", zh: "投票" },
-  docs: { en: "Docs", zh: "文档" },
-  identitySeed: { en: "Identity Seed", zh: "身份种子" },
-  identityPlaceholder: { en: "Enter a secret seed", zh: "输入身份种子" },
-  hashPreview: { en: "Identity Hash", zh: "身份哈希" },
-  createNewMask: { en: "Create Mask", zh: "创建面具" },
-  creatingMask: { en: "Creating mask...", zh: "创建面具中..." },
-  maskFeeNote: { en: "Mask fee: 0.1 GAS", zh: "面具费用：0.1 GAS" },
-  maskCreated: { en: "Mask created!", zh: "面具已创建！" },
-  yourMasks: { en: "Your Masks", zh: "您的面具" },
-  noMasks: { en: "No masks yet", zh: "暂无面具" },
-  active: { en: "Active", zh: "可用" },
-  inactive: { en: "Inactive", zh: "不可用" },
-  proposalId: { en: "Proposal ID", zh: "提案编号" },
-  proposalPlaceholder: { en: "Enter proposal ID", zh: "输入提案编号" },
-  selectMask: { en: "Select Mask", zh: "选择面具" },
-  zkProof: { en: "Proof (optional)", zh: "证明（可选）" },
-  proofPlaceholder: { en: "Leave empty if not required", zh: "如无需证明可留空" },
-  for: { en: "For", zh: "支持" },
-  against: { en: "Against", zh: "反对" },
-  voteCast: { en: "Vote submitted", zh: "投票已提交" },
-  selectMaskFirst: { en: "Select a mask first", zh: "请先选择面具" },
-  connectWallet: { en: "Connect wallet", zh: "请连接钱包" },
-  receiptMissing: { en: "Payment receipt missing", zh: "支付凭证缺失" },
-  contractUnavailable: { en: "Contract unavailable", zh: "合约不可用" },
-
-  docSubtitle: {
-    en: "Anonymous governance voting with cryptographic identity masks",
-    zh: "使用加密身份面具的匿名治理投票",
-  },
-  docDescription: {
-    en: "Masquerade DAO lets you create cryptographic masks and vote without revealing your identity. Votes are recorded on-chain while the identity remains hidden.",
-    zh: "Masquerade DAO 允许创建加密面具并在不暴露身份的情况下投票。投票记录在链上，身份保持匿名。",
-  },
-  step1: { en: "Create a mask identity with a secret seed", zh: "使用身份种子创建面具" },
-  step2: { en: "Select a proposal and a mask", zh: "选择提案和面具" },
-  step3: { en: "Submit your vote on-chain", zh: "在链上提交投票" },
-  step4: { en: "Track results without revealing identity", zh: "在不暴露身份的情况下查看结果" },
-  feature1Name: { en: "Anonymous Voting", zh: "匿名投票" },
-  feature1Desc: { en: "Identity hashes keep voter privacy intact.", zh: "身份哈希确保投票者隐私。" },
-  feature2Name: { en: "On-chain Audit", zh: "链上审计" },
-  feature2Desc: { en: "Votes are verifiable on-chain.", zh: "投票可在链上验证。" },
-  wrongChain: { en: "Wrong Chain", zh: "链错误" },
-  wrongChainMessage: {
-    en: "This app requires Neo N3. Please switch networks.",
-    zh: "此应用需要 Neo N3 网络，请切换网络。",
-  },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-};
-
-const t = createT(translations);
+const { t } = useI18n();
 const APP_ID = "miniapp-masqueradedao";
 const MASK_FEE = 0.1;
+const VOTE_FEE = 0.01;
 
 const { address, connect, chainType, switchChain, invokeContract, invokeRead, getContractAddress } = useWallet() as any;
 const { payGAS, isLoading } = usePayments(APP_ID);
 const { list: listEvents } = useEvents();
 
 const activeTab = ref("identity");
-const navTabs = [
+const navTabs = computed(() => [
   { id: "identity", label: t("identity"), icon: "👤" },
   { id: "vote", label: t("vote"), icon: "🗳️" },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 
 const identitySeed = ref("");
 const identityHash = ref("");
+const maskType = ref(1);
 const proposalId = ref("");
-const proof = ref("");
 const selectedMaskId = ref<string | null>(null);
 const status = ref<{ msg: string; type: "success" | "error" } | null>(null);
 
@@ -257,19 +218,20 @@ const loadMasks = async () => {
         });
         const parsed = parseInvokeResult(res);
         const values = Array.isArray(parsed) ? parsed : [];
-        const identity = String(values[0] ?? "");
+        const owner = String(values[0] ?? "");
+        const identity = String(values[1] ?? "");
         const createdAt = mask.createdAt ? new Date(mask.createdAt).toLocaleString() : "--";
-        const active = Boolean(values[2]);
+        const active = Boolean(values[9]);
+        if (!owner || /^0+$/.test(normalizeScriptHash(owner))) return null;
         return { id: mask.id, identityHash: identity, active, createdAt };
       }),
     );
 
-    masks.value = details;
+    masks.value = details.filter(Boolean) as typeof masks.value;
     if (!selectedMaskId.value && masks.value.length > 0) {
       selectedMaskId.value = masks.value[0].id;
     }
-  } catch (e) {
-    console.warn("[MasqueradeDAO] Failed to load masks:", e);
+  } catch {
   }
 };
 
@@ -293,6 +255,7 @@ const createMask = async () => {
       args: [
         { type: "Hash160", value: address.value as string },
         { type: "ByteArray", value: hash },
+        { type: "Integer", value: String(maskType.value) },
         { type: "Integer", value: String(receiptId) },
       ],
     });
@@ -306,7 +269,7 @@ const createMask = async () => {
   }
 };
 
-const submitVote = async (support: boolean) => {
+const submitVote = async (choice: number) => {
   if (!canVote.value) return;
   status.value = null;
   try {
@@ -316,14 +279,17 @@ const submitVote = async (support: boolean) => {
     if (!address.value) throw new Error(t("connectWallet"));
     if (!selectedMaskId.value) throw new Error(t("selectMaskFirst"));
     const contract = await ensureContractAddress();
+    const payment = await payGAS(String(VOTE_FEE), `vote:${proposalId.value}`);
+    const receiptId = payment.receipt_id;
+    if (!receiptId) throw new Error(t("receiptMissing"));
     await invokeContract({
       contractAddress: contract,
       operation: "submitVote",
       args: [
         { type: "Integer", value: proposalId.value },
         { type: "Integer", value: selectedMaskId.value },
-        { type: "Integer", value: support ? 1 : 0 },
-        { type: "ByteArray", value: proof.value ? proof.value : "" },
+        { type: "Integer", value: String(choice) },
+        { type: "Integer", value: String(receiptId) },
       ],
     });
     status.value = { msg: t("voteCast"), type: "success" };
@@ -351,21 +317,101 @@ onMounted(() => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+$mask-bg: #09090b;
+$mask-purple: #8b5cf6;
+$mask-gold: #fbbf24;
+$mask-velvet: #4c1d95;
+$mask-text: #f4f4f5;
+
+:global(page) {
+  background: $mask-bg;
+}
+
 .app-container {
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: 0;
+  min-height: 100vh;
+  background-color: $mask-bg;
+  /* Velvet Pattern */
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.15), transparent 70%),
+    linear-gradient(0deg, rgba(0,0,0,0.8), transparent 50%),
+    url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMTM5LDkyLDI0NiwwLjEpIi8+PC9zdmc+');
 }
 
 .tab-content {
-  padding: $space-4;
+  padding: 24px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: 24px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Mask Component Overrides */
+:deep(.neo-card) {
+  background: rgba(24, 24, 27, 0.8) !important;
+  border: 1px solid rgba(139, 92, 246, 0.2) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5) !important;
+  backdrop-filter: blur(12px);
+  color: $mask-text !important;
+  
+  /* Gold Trim */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 80%; height: 1px;
+    background: linear-gradient(90deg, transparent, $mask-gold, transparent);
+    opacity: 0.3;
+  }
+}
+
+:deep(.neo-button) {
+  border-radius: 8px !important;
+  font-family: 'Cinzel', serif !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700 !important;
+  
+  &.variant-primary {
+    background: linear-gradient(135deg, $mask-purple, $mask-velvet) !important;
+    border: 1px solid rgba(139, 92, 246, 0.5) !important;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3) !important;
+    color: #fff !important;
+    
+    &:active {
+      transform: scale(0.98);
+      box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2) !important;
+    }
+  }
+  
+  &.variant-secondary {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #d4d4d8 !important;
+  }
+  
+  &.variant-danger {
+    background: rgba(220, 38, 38, 0.2) !important;
+    border: 1px solid rgba(220, 38, 38, 0.5) !important;
+    color: #f87171 !important;
+  }
+}
+
+:deep(input), :deep(.neo-input) {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(139, 92, 246, 0.2) !important;
+  color: #fff !important;
+  border-radius: 8px !important;
+  
+  &:focus {
+    border-color: $mask-purple !important;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2) !important;
+  }
 }
 
 .scrollable {
@@ -375,36 +421,43 @@ onMounted(() => {
 
 .status-msg {
   text-align: center;
-  padding: $space-3;
-  border-radius: 99px;
+  padding: 12px;
+  border-radius: 8px;
   font-weight: 700;
   text-transform: uppercase;
-  font-size: 10px;
-  margin-bottom: $space-4;
+  font-size: 11px;
+  margin: 16px 24px 0;
   backdrop-filter: blur(10px);
+  letter-spacing: 0.05em;
 
   &.success {
-    background: rgba(0, 229, 153, 0.1);
-    border: 1px solid rgba(0, 229, 153, 0.3);
-    color: #00e599;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    color: #34d399;
   }
   &.error {
     background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #f87171;
   }
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: 20px;
 }
 
 .input-group {
   display: flex;
   flex-direction: column;
-  gap: $space-2;
+  gap: 8px;
+}
+
+.mask-type-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .input-label {
@@ -412,19 +465,22 @@ onMounted(() => {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.7);
+  color: #a1a1aa;
+  margin-left: 4px;
 }
 
 .helper-text {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.55);
+  color: #71717a;
+  text-align: center;
+  font-style: italic;
 }
 
 .hash-preview {
-  padding: $space-3;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.03);
+  padding: 16px;
+  border: 1px dashed rgba(139, 92, 246, 0.3);
+  border-radius: 8px;
+  background: rgba(139, 92, 246, 0.05);
 }
 
 .hash-label {
@@ -433,112 +489,144 @@ onMounted(() => {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  color: $mask-purple;
 }
 
 .hash-value {
-  font-family: $font-mono;
+  font-family: 'Fira Code', monospace;
   font-size: 11px;
   word-break: break-all;
+  color: #e4e4e7;
 }
 
 .section-title {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
+  color: $mask-gold;
+  margin-bottom: 16px;
+  display: block;
+  text-align: center;
+  font-family: 'Cinzel', serif;
 }
 
 .empty-state {
   text-align: center;
-  padding: $space-4;
+  padding: 32px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 8px;
 }
 
 .empty-text {
   font-size: 12px;
-  opacity: 0.6;
+  opacity: 0.5;
+  font-style: italic;
 }
 
 .mask-list {
   display: flex;
   flex-direction: column;
-  gap: $space-3;
+  gap: 12px;
 }
 
 .mask-item {
-  padding: $space-3;
+  padding: 16px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
   cursor: pointer;
+  transition: all 0.2s;
 
   &.active {
-    border-color: rgba(159, 157, 243, 0.4);
-    box-shadow: 0 0 10px rgba(159, 157, 243, 0.2);
+    border-color: $mask-purple;
+    background: rgba(139, 92, 246, 0.1);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
+  }
+  
+  &:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.05);
   }
 }
 
 .mask-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .mask-id {
   font-weight: 700;
+  color: $mask-gold;
+  font-family: 'Cinzel', serif;
 }
 
 .mask-status {
-  font-size: 10px;
+  font-size: 9px;
   text-transform: uppercase;
-  opacity: 0.7;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
 }
 
 .mask-status.active {
-  color: #00e599;
+  background: rgba(16, 185, 129, 0.1);
+  color: #34d399;
 }
 
 .mask-status.inactive {
-  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
 }
 
 .mask-hash {
-  font-size: 11px;
+  font-size: 10px;
   word-break: break-all;
+  color: #a1a1aa;
 }
 
 .mask-time {
-  margin-top: 4px;
+  margin-top: 8px;
   font-size: 10px;
-  opacity: 0.5;
+  color: #52525b;
 }
 
 .mask-picker {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  padding: 8px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
 }
 
 .mask-chip {
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.03);
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   font-size: 11px;
   cursor: pointer;
+  color: #d4d4d8;
+  font-family: 'Cinzel', serif;
 
   &.active {
-    border-color: rgba(159, 157, 243, 0.4);
-    color: #9f9df3;
+    border-color: $mask-purple;
+    background: rgba(139, 92, 246, 0.2);
+    color: #fff;
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
   }
 }
 
 .vote-actions {
   display: flex;
-  gap: $space-3;
+  gap: 12px;
+  margin-top: 8px;
 }
 
 .mono {
-  font-family: $font-mono;
+  font-family: 'Fira Code', monospace;
 }
 </style>

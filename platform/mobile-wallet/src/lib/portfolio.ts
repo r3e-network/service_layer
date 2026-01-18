@@ -65,8 +65,8 @@ export function calc24hChange(assets: PortfolioAsset[]): number {
 /**
  * Format currency
  */
-export function formatCurrency(value: number): string {
-  return `$${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+export function formatCurrency(value: number, locale = "en"): string {
+  return `$${value.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 /**

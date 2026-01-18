@@ -36,3 +36,4 @@ export type { GlowColor } from "./BlurGlow.vue";
 
 export { default as GradientCard } from "./GradientCard.vue";
 export type { GradientVariant } from "./GradientCard.vue";
+export { default as Fireworks } from "./Fireworks.vue";

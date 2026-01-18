@@ -12,10 +12,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@cityofzion/neon-core": "^5.8.0",
     "@expo/vector-icons": "^15.0.3",
     "@noble/curves": "^2.0.1",
     "@noble/hashes": "^2.0.1",
     "@react-navigation/native": "^7.1.26",
+    "buffer": "^6.0.3",
     "expo": "^54.0.0",
     "expo-camera": "~17.0.10",
     "expo-clipboard": "~8.0.8",

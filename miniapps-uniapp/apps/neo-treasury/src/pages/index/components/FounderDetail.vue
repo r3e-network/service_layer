@@ -167,7 +167,7 @@ function toggleWallet(idx: number) {
   font-weight: 800;
   font-family: $font-family;
   text-shadow: 0 0 30px rgba(0, 229, 153, 0.4);
-  color: white;
+  color: var(--text-primary);
   margin-top: 8px;
   line-height: 1;
 }
@@ -203,7 +203,7 @@ function toggleWallet(idx: number) {
   font-size: 20px;
   font-weight: 700;
   font-family: $font-family;
-  color: white;
+  color: var(--text-primary);
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
 }
 
@@ -290,7 +290,7 @@ function toggleWallet(idx: number) {
   font-size: 14px;
   font-weight: 600;
   font-family: $font-mono;
-  color: white;
+  color: var(--text-primary);
 }
 
 .wallet-right {
@@ -309,7 +309,7 @@ function toggleWallet(idx: number) {
 .arrow {
   transition: transform 0.2s;
   opacity: 0.4;
-  color: white;
+  color: var(--text-primary);
   
   &.rotated {
     transform: rotate(90deg);
@@ -381,7 +381,7 @@ function toggleWallet(idx: number) {
   font-size: 16px;
   font-weight: 700;
   font-family: $font-mono;
-  color: white;
+  color: var(--text-primary);
   margin-bottom: 2px;
 }
 

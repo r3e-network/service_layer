@@ -36,7 +36,7 @@ function validateManifest(manifest, appDir) {
 function discoverMiniApps() {
   const apps = [];
   const categories = {
-    gaming: [],
+    games: [],
     defi: [],
     social: [],
     nft: [],
@@ -82,27 +82,69 @@ function discoverMiniApps() {
           : {};
 
       const app = {
-        app_id: manifest.appid || `miniapp-${appDir}`,
-        name: manifest.name || appDir,
+        app_id: neoManifest.app_id || manifest.appid || `miniapp-${appDir}`,
+        name: neoManifest.name || manifest.name || appDir,
         name_zh: neoManifest.name_zh || manifest.name,
         description: neoManifest.description || manifest.description || "",
         description_zh: neoManifest.description_zh || "",
-        icon: `/miniapps/${appDir}/static/icon.svg`,
+        icon: neoManifest.card?.info?.logo
+          ? `/miniapps/${appDir}${neoManifest.card.info.logo}`
+          : `/miniapps/${appDir}/static/logo.png`,
+        banner: (() => {
+          const explicit = neoManifest.card?.display?.banner;
+          if (explicit) return `/miniapps/${appDir}${explicit}`;
+
+          const srcStatic = path.join(appsDir, appDir, 'src/static');
+          if (fs.existsSync(path.join(srcStatic, 'banner.png'))) return `/miniapps/${appDir}/static/banner.png`;
+          if (fs.existsSync(path.join(srcStatic, 'banner.svg'))) return `/miniapps/${appDir}/static/banner.svg`;
+          return undefined;
+        })(),
         entry_url: `/miniapps/${appDir}/index.html`,
         status: neoManifest.status || "active",
+        category: neoManifest.category || "utility",
+        tags: neoManifest.tags || [],
         supportedChains,
         chainContracts,
         permissions: neoManifest.permissions || DEFAULT_PERMISSIONS,
       };
 
-      const category = neoManifest.category || "utility";
-      if (categories[category]) {
-        categories[category].push(app);
+      // Standardize categories
+      const categoryMap = {
+        "games": "games",
+        "game": "games",
+        "gaming": "games",
+        "entertainment": "games",
+
+        "defi": "defi",
+        "finance": "defi",
+
+        "social": "social",
+        "rewards": "social",
+
+        "nft": "nft",
+        "collectibles": "nft",
+
+        "governance": "governance",
+
+        "tools": "utility",
+        "utilities": "utility",
+        "utility": "utility",
+        "security": "utility",
+        "identity": "utility"
+      };
+
+      const rawCategory = neoManifest.category || "utility";
+      const mappedCategory = categoryMap[rawCategory.toLowerCase()] || "utility";
+
+      app.category = mappedCategory;
+
+      if (categories[mappedCategory]) {
+        categories[mappedCategory].push(app);
       } else {
         categories.utility.push(app);
       }
 
-      console.log(`✅ Discovered: ${app.name} (${category})`);
+      console.log(`✅ Discovered: ${app.name} (${mappedCategory} <- ${rawCategory})`);
     } catch (err) {
       console.error(`❌ Error processing ${appDir}:`, err.message);
     }

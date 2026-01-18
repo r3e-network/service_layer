@@ -72,6 +72,28 @@ npm run build
 
 - **Allowed Assets**: GAS
 
+## Contract Methods
+
+### Query Methods
+
+| Method | Parameters | Description |
+|--------|------------|-------------|
+| `GetGameStatus` | - | Get current round status (roundId, pot, active, lastBuyer, remainingTime) |
+| `GetPlayerKeys` | `player, roundId` | Get player's key count for a round |
+| `GetRoundDetails` | `roundId` | Get detailed round information |
+
+### User Methods
+
+#### `BuyKeys(player, keyCount, receiptId)`
+
+Purchase keys for the current round.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `player` | Hash160 | Player wallet address |
+| `keyCount` | Integer | Number of keys to buy |
+| `receiptId` | Integer | Payment receipt ID from PaymentHub |
+
 
 ## License
 

@@ -1,11 +1,28 @@
 {
-  "app_id": "miniapp-dailycheckin",
+  "app_id": "miniapp-daily-checkin",
   "name": "Daily Check-in",
   "name_zh": "每日签到",
-  "description": "Check in daily to build your streak and earn GAS rewards. Complete 7 consecutive days for 1 GAS, then earn 1.5 GAS for every additional 7 days. Miss a day and start over!",
-  "description_zh": "每日签到累积连续天数赚取 GAS 奖励。连续7天获得1 GAS，之后每7天额外获得1.5 GAS。错过一天重新开始！",
-  "category": "utility",
+  "description": "Daily check-in rewards and streak tracking",
+  "description_zh": "每日签到奖励和连续签到追踪",
+  "version": "1.0.0",
+  "entry_url": "mf://builtin?app=miniapp-daily-checkin",
+  "category": "rewards",
   "status": "active",
+  "tags": [
+    "rewards",
+    "daily",
+    "streak"
+  ],
+  "permissions": [
+    "wallet"
+  ],
+  "assets_allowed": [
+    "GAS"
+  ],
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
   "contracts": {
     "neo-n3-mainnet": {
       "address": "0x5a3f580fc14cd5f4d7746306eec7e2b44727ae2c"
@@ -14,11 +31,13 @@
       "address": "0x5a3f580fc14cd5f4d7746306eec7e2b44727ae2c"
     }
   },
-  "permissions": {
-    "payments": true
-  },
-  "supported_chains": [
-    "neo-n3-mainnet",
-    "neo-n3-testnet"
-  ]
+  "card": {
+    "display": {
+      "type": "icon_title",
+      "banner": "/static/banner.png"
+    },
+    "info": {
+      "logo": "/static/logo.png"
+    }
+  }
 }

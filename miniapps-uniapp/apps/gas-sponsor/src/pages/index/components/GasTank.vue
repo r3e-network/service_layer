@@ -106,7 +106,7 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
     right: 18px;
     top: -3px;
     font-size: 8px;
-    color: rgba(255, 255, 255, 0.3);
+    color: var(--text-muted);
   }
 }
 
@@ -189,7 +189,7 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   font-size: 28px;
   font-weight: 800;
   font-family: $font-family;
-  color: white;
+  color: var(--text-primary);
   text-shadow: 0 2px 10px rgba(0,0,0,0.5);
 }
 

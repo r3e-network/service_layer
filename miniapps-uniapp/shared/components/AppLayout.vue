@@ -79,9 +79,6 @@ $aspect-ratio: calc(516 / 932);
 .mobile-container {
   width: 100%;
   height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   background: var(--bg-primary, #05060d);
   overflow: hidden;
   position: relative;
@@ -92,10 +89,8 @@ $aspect-ratio: calc(516 / 932);
 }
 
 .aspect-wrapper {
+  width: 100%;
   height: 100%;
-  max-height: 100%;
-  aspect-ratio: $aspect-ratio;
-  max-width: 100%;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -117,28 +112,11 @@ $aspect-ratio: calc(516 / 932);
   position: relative;
 }
 
-// Embedded mode
+// Embedded mode support (now consistent with default)
 .mobile-container.embedded {
-  height: 100%;
-  max-height: 100%;
-  align-items: stretch;
-
-  .aspect-wrapper {
-    aspect-ratio: unset;
-    width: 100%;
-    height: 100%;
-    max-height: 100%;
-    position: static;
-  }
-
   .app-layout {
-    position: absolute;
-    inset: 0;
-    width: 100%;
     height: 100% !important;
     max-height: 100% !important;
-    border: none;
-    margin: 0;
   }
 }
 

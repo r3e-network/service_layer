@@ -1,23 +1,16 @@
 <script setup lang="ts">
-import { onLaunch, onShow, onHide } from "@dcloudio/uni-app";
-import { onMounted } from "vue";
+import { onMounted, onUnmounted } from "vue";
 import { initTheme, listenForThemeChanges } from "@/shared/utils/theme";
 
-onLaunch(() => {
-  console.log("Garden of Neo launched");
-});
-
-onShow(() => {
-  console.log("Garden of Neo shown");
-});
-
-onHide(() => {
-  console.log("Garden of Neo hidden");
-});
+let cleanupTheme: (() => void) | undefined;
 
 onMounted(() => {
   initTheme();
-  listenForThemeChanges();
+  cleanupTheme = listenForThemeChanges();
+});
+
+onUnmounted(() => {
+  cleanupTheme?.();
 });
 </script>
 

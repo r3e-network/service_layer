@@ -1,23 +1,16 @@
 <script setup lang="ts">
-import { onLaunch, onShow, onHide } from "@dcloudio/uni-app";
-import { onMounted } from "vue";
+import { onMounted, onUnmounted } from "vue";
 import { initTheme, listenForThemeChanges } from "@/shared/utils/theme";
 
-onLaunch(() => {
-  console.log("Compound Capsule launched");
-});
-
-onShow(() => {
-  console.log("Compound Capsule shown");
-});
-
-onHide(() => {
-  console.log("Compound Capsule hidden");
-});
+let cleanupTheme: (() => void) | undefined;
 
 onMounted(() => {
   initTheme();
-  listenForThemeChanges();
+  cleanupTheme = listenForThemeChanges();
+});
+
+onUnmounted(() => {
+  cleanupTheme?.();
 });
 </script>
 

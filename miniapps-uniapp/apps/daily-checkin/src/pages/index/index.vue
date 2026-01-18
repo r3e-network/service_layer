@@ -38,21 +38,21 @@
         :countdown-label="countdownLabel"
         :can-check-in="canCheckIn"
         :utc-time-display="utcTimeDisplay"
-        :t="t as any"
+       
       />
 
-      <StreakDisplay :current-streak="currentStreak" :highest-streak="highestStreak" :t="t as any" />
+      <StreakDisplay :current-streak="currentStreak" :highest-streak="highestStreak" />
 
     </view>
 
     <!-- Stats Tab -->
     <view v-if="activeTab === 'stats'" class="tab-content scrollable">
-      <RewardProgress :milestones="milestones" :current-streak="currentStreak" :t="t as any" />
+      <RewardProgress :milestones="milestones" :current-streak="currentStreak" />
       <UserRewards
         :unclaimed-rewards="unclaimedRewards"
         :total-claimed="totalClaimed"
         :is-claiming="isClaiming"
-        :t="t as any"
+       
         @claim="claimRewards"
         class="mb-4"
       />
@@ -60,7 +60,7 @@
         :global-stats="globalStats"
         :user-stats="userStats"
         :checkin-history="checkinHistory"
-        :t="t as any"
+       
       />
     </view>
 
@@ -74,78 +74,24 @@
         :features="docFeatures"
       />
     </view>
+    <Fireworks :active="status?.type === 'success'" :duration="3000" />
   </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
 import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 import { AppLayout, NeoButton, NeoCard, NeoDoc, type StatItem } from "@/shared/components";
+import Fireworks from "@/shared/components/Fireworks.vue";
 import CountdownHero from "./components/CountdownHero.vue";
 import StreakDisplay from "./components/StreakDisplay.vue";
 import RewardProgress from "./components/RewardProgress.vue";
 import UserRewards from "./components/UserRewards.vue";
 import StatsTab from "./components/StatsTab.vue";
 
-const translations = {
-  title: { en: "Daily Check-in", zh: "每日签到" },
-  checkin: { en: "Check-in", zh: "签到" },
-  stats: { en: "Stats", zh: "统计" },
-  docs: { en: "Docs", zh: "文档" },
-  ready: { en: "Ready!", zh: "可签到!" },
-  nextCheckin: { en: "Next Check-in", zh: "下次签到" },
-  dayStreak: { en: "Day Streak", zh: "天连续" },
-  bestStreak: { en: "Best", zh: "最高" },
-  days: { en: "days", zh: "天" },
-  day: { en: "Day", zh: "第" },
-  rewardProgress: { en: "Reward Progress", zh: "奖励进度" },
-  checkInNow: { en: "Check In Now", zh: "立即签到" },
-  waitForNext: { en: "Wait for Next", zh: "等待下次" },
-  yourRewards: { en: "Your Rewards", zh: "你的奖励" },
-  unclaimed: { en: "Unclaimed", zh: "待领取" },
-  totalClaimed: { en: "Total Claimed", zh: "已领取" },
-  total: { en: "total", zh: "累计" },
-  claimRewards: { en: "Claim Rewards", zh: "领取奖励" },
-  globalStats: { en: "Global Stats", zh: "全局统计" },
-  totalUsers: { en: "Total Users", zh: "总用户数" },
-  totalCheckins: { en: "Total Check-ins", zh: "总签到次数" },
-  totalRewarded: { en: "Total Rewarded", zh: "总奖励发放" },
-  yourStats: { en: "Your Stats", zh: "你的统计" },
-  currentStreak: { en: "Current Streak", zh: "当前连续" },
-  highestStreak: { en: "Highest Streak", zh: "最高连续" },
-  totalUserCheckins: { en: "Your Check-ins", zh: "你的签到" },
-  recentCheckins: { en: "Recent Check-ins", zh: "最近签到" },
-  noCheckins: { en: "No check-ins yet", zh: "暂无签到记录" },
-  checkinSuccess: { en: "Check-in successful!", zh: "签到成功!" },
-  claimSuccess: { en: "Rewards claimed!", zh: "奖励已领取!" },
-  error: { en: "Error occurred", zh: "发生错误" },
-  connectWallet: { en: "Connect wallet first", zh: "请先连接钱包" },
-  docSubtitle: { en: "Earn GAS by checking in daily", zh: "每日签到赚取 GAS" },
-  docDescription: {
-    en: "Check in every day to build your streak. Complete 7 consecutive days to earn 1 GAS, then earn 1.5 GAS for every additional 7 days. Miss a day and your streak resets!",
-    zh: "每天签到累积连续天数。连续签到7天可获得1 GAS，之后每连续7天可额外获得1.5 GAS。错过一天连续天数将重置！",
-  },
-  step1: { en: "Connect your Neo wallet", zh: "连接你的 Neo 钱包" },
-  step2: { en: "Check in once per UTC day", zh: "每个 UTC 日签到一次" },
-  step3: { en: "Build your streak to earn rewards", zh: "累积连续天数获得奖励" },
-  step4: { en: "Claim your GAS rewards anytime", zh: "随时领取你的 GAS 奖励" },
-  feature1Name: { en: "UTC Day Reset", zh: "UTC 日重置" },
-  feature1Desc: {
-    en: "Global countdown to UTC 00:00, same for all users",
-    zh: "全局倒计时至 UTC 00:00，所有用户相同",
-  },
-  feature2Name: { en: "Streak Rewards", zh: "连续奖励" },
-  feature2Desc: { en: "Day 7: 1 GAS, Day 14+: +1.5 GAS every 7 days", zh: "第7天: 1 GAS，第14天起: 每7天+1.5 GAS" },
-  notCheckedIn: { en: "Not checked in today", zh: "今日未签到" },
-  checkedInToday: { en: "Checked in today!", zh: "今日已签到!" },
-  wrongChain: { en: "Wrong Network", zh: "网络错误" },
-  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-};
-
-const t = createT(translations);
+const { t } = useI18n();
 
 const APP_ID = "miniapp-dailycheckin";
 const CHECK_IN_FEE = 0.001;
@@ -261,7 +207,7 @@ const ensureContractAddress = async () => {
   if (!contractAddress.value) {
     contractAddress.value = await getContractAddress();
   }
-  if (!contractAddress.value) throw new Error("Contract unavailable");
+  if (!contractAddress.value) throw new Error(t("contractUnavailable"));
   return contractAddress.value;
 };
 
@@ -282,7 +228,7 @@ const loadUserStats = async () => {
     const contract = await ensureContractAddress();
     const res = await invokeRead({
       contractHash: contract,
-      operation: "GetUserStats",
+      operation: "getUserStats",
       args: [{ type: "Hash160", value: address.value }],
     });
     const data = parseInvokeResult(res);
@@ -294,8 +240,7 @@ const loadUserStats = async () => {
       totalClaimed.value = Number(data[4] ?? 0);
       totalUserCheckins.value = Number(data[5] ?? 0);
     }
-  } catch (e) {
-    console.warn("Failed to load user stats:", e);
+  } catch {
   }
 };
 
@@ -304,7 +249,7 @@ const loadGlobalStats = async () => {
     const contract = await ensureContractAddress();
     const res = await invokeRead({
       contractHash: contract,
-      operation: "GetGlobalStats",
+      operation: "getPlatformStats",
       args: [],
     });
     const data = parseInvokeResult(res);
@@ -315,8 +260,7 @@ const loadGlobalStats = async () => {
         totalRewarded: Number(data[2] ?? 0),
       };
     }
-  } catch (e) {
-    console.warn("Failed to load global stats:", e);
+  } catch {
   }
 };
 
@@ -338,8 +282,7 @@ const loadHistory = async () => {
           reward: Number(values[2] ?? 0),
         };
       });
-  } catch (e) {
-    console.warn("Failed to load history:", e);
+  } catch {
   }
 };
 
@@ -356,11 +299,11 @@ const doCheckIn = async () => {
     const contract = await ensureContractAddress();
     const payment = await payGAS(String(CHECK_IN_FEE), "checkin");
     const receiptId = payment.receipt_id;
-    if (!receiptId) throw new Error("Payment failed");
+    if (!receiptId) throw new Error(t("receiptMissing"));
 
     const tx = await invokeContract({
       scriptHash: contract,
-      operation: "CheckIn",
+      operation: "checkIn",
       args: [
         { type: "Hash160", value: address.value },
         { type: "Integer", value: String(receiptId) },
@@ -372,7 +315,7 @@ const doCheckIn = async () => {
 
     if (result.pending) {
       // Transaction submitted but event not yet indexed - show pending status
-      status.value = { msg: t("checkinSuccess") + " (pending confirmation)", type: "success" };
+      status.value = { msg: t("pendingConfirmation", { action: t("checkinSuccess") }), type: "success" };
     } else {
       status.value = { msg: t("checkinSuccess"), type: "success" };
     }
@@ -396,7 +339,7 @@ const claimRewards = async () => {
     const contract = await ensureContractAddress();
     const tx = await invokeContract({
       scriptHash: contract,
-      operation: "ClaimRewards",
+      operation: "claimRewards",
       args: [{ type: "Hash160", value: address.value }],
     });
 
@@ -404,7 +347,7 @@ const claimRewards = async () => {
     const result = txid ? await waitForEvent(txid, "RewardsClaimed") : { event: null, pending: true };
 
     if (result.pending) {
-      status.value = { msg: t("claimSuccess") + " (pending confirmation)", type: "success" };
+      status.value = { msg: t("pendingConfirmation", { action: t("claimSuccess") }), type: "success" };
     } else {
       status.value = { msg: t("claimSuccess"), type: "success" };
     }
@@ -439,17 +382,114 @@ onUnmounted(() => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Quicksand:wght@300;400;500;600;700&display=swap');
+
+$sunrise-bg: #fffbf0;
+$sunrise-yellow: #fcd34d;
+$sunrise-orange: #f97316;
+$sunrise-red: #ef4444;
+$sunrise-blue: #0ea5e9;
+$sunrise-text: #78350f;
+$sunrise-font: 'Fredoka', 'Quicksand', sans-serif;
+
+:global(page) {
+  background: $sunrise-bg;
+  font-family: $sunrise-font;
+}
+
 .tab-content {
-  padding: 12px;
+  padding: 20px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
+  background: linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%);
+  min-height: 100vh;
+  position: relative;
+  font-family: $sunrise-font;
+  
+  /* Sun Ray Pattern */
+  &::before {
+    content: '';
+    position: absolute;
+    top: -20%; left: 50%;
+    width: 200%; height: 100%;
+    transform: translateX(-50%);
+    background: repeating-conic-gradient(
+      from 0deg,
+      rgba(255, 215, 0, 0.05) 0deg 20deg,
+      transparent 20deg 40deg
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+/* Gamified/Sunrise Card Overrides */
+:deep(.neo-card) {
+  background: #ffffff !important;
+  border: 2px solid #fed7aa !important; /* Orange-200 */
+  border-bottom: 6px solid #fdba74 !important; /* Orange-300 */
+  border-radius: 24px !important;
+  box-shadow: 0 10px 20px rgba(249, 115, 22, 0.1) !important;
+  color: $sunrise-text !important;
+  position: relative;
+  z-index: 1;
+  
+  &.variant-erobo-neo {
+    background: #fff !important;
+    border-color: #fde68a !important; /* Yellow-200 */
+    border-bottom-color: #fcd34d !important; /* Yellow-300 */
+  }
+  
+  &.variant-danger {
+    background: #fef2f2 !important;
+    border-color: #fecaca !important;
+    border-bottom-color: #f87171 !important;
+    color: #991b1b !important;
+  }
+}
+
+.status-msg {
+  color: $sunrise-text;
+  font-weight: 800;
+  font-size: 16px;
+}
+
+:deep(.neo-button) {
+  border-radius: 20px !important;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.1) !important;
+  font-weight: 800 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  font-family: $sunrise-font !important;
+  
+  &:active {
+    transform: translateY(4px);
+    box-shadow: none !important;
+    border-bottom-width: 0 !important; 
+  }
+  
+  &.variant-primary {
+    background: linear-gradient(135deg, $sunrise-yellow 0%, $sunrise-orange 100%) !important;
+    border: none !important;
+    border-bottom: 4px solid #ea580c !important; /* Darker orange */
+    color: #fff !important;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.1);
+  }
+  
+  &.variant-secondary {
+    background: #fff !important;
+    border: 2px solid $sunrise-blue !important;
+    border-bottom: 4px solid #0284c7 !important;
+    color: $sunrise-blue !important;
+  }
 }
 
 .checkin-btn {
-  margin-top: 24px;
-  box-shadow: 0 0 20px rgba(0, 229, 153, 0.4);
+  margin-top: 16px;
+  transform: scale(1.02);
 }
 
 .btn-content {
@@ -457,13 +497,13 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: 18px;
 }
 
 .btn-icon {
   font-size: 24px;
-  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
 }
 
 .scrollable {

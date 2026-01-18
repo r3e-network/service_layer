@@ -143,7 +143,18 @@ export async function isHardwareConnected(): Promise<boolean> {
 /**
  * Get signing method label
  */
-export function getMethodLabel(method: SigningMethod): string {
+export function getMethodLabel(
+  method: SigningMethod,
+  t?: (key: string, options?: Record<string, string | number>) => string,
+): string {
+  if (t) {
+    const keyMap: Record<SigningMethod, string> = {
+      software: "signing.method.software",
+      hardware: "signing.method.hardware",
+      multisig: "signing.method.multisig",
+    };
+    return t(keyMap[method]);
+  }
   const labels: Record<SigningMethod, string> = {
     software: "Software Wallet",
     hardware: "Hardware Wallet",
@@ -155,6 +166,6 @@ export function getMethodLabel(method: SigningMethod): string {
 /**
  * Format signing date
  */
-export function formatSigningDate(timestamp: number): string {
-  return new Date(timestamp).toLocaleDateString();
+export function formatSigningDate(timestamp: number, locale = "en"): string {
+  return new Date(timestamp).toLocaleDateString(locale);
 }

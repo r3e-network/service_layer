@@ -48,7 +48,7 @@ defineProps<{
   line-height: 1.6;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: white;
+  color: var(--text-primary);
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 

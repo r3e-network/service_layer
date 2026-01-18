@@ -42,81 +42,19 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useWallet } from "@neo/uniapp-sdk";
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
 import { AppLayout, NeoDoc, NeoCard, NeoButton } from "@/shared/components";
 import GardenTab from "./components/GardenTab.vue";
 import StatsTab from "./components/StatsTab.vue";
 
-const translations = {
-  title: { en: "Garden of Neo", zh: "Neo花园" },
-  subtitle: { en: "Grow and trade virtual garden NFTs", zh: "种植和交易虚拟花园NFT" },
-  garden: { en: "Garden", zh: "花园" },
-  stats: { en: "Stats", zh: "统计" },
-  yourGarden: { en: "Your Garden", zh: "你的花园" },
-  availableSeeds: { en: "Available Seeds", zh: "可用种子" },
-  hoursToGrow: { en: "blocks to mature", zh: "区块成熟" },
-  actions: { en: "Actions", zh: "操作" },
-  refreshStatus: { en: "Refresh Status", zh: "刷新状态" },
-  refreshing: { en: "Refreshing...", zh: "刷新中..." },
-  harvesting: { en: "Harvesting...", zh: "收获中..." },
-  plantFee: { en: "Plant fee: 0.1 GAS", zh: "种植费用：0.1 GAS" },
-  harvestReady: { en: "Harvest Ready Plants", zh: "收获成熟植物" },
-  gardenStats: { en: "Garden Stats", zh: "花园统计" },
-  plants: { en: "Plants", zh: "植物" },
-  ready: { en: "Ready", zh: "成熟" },
-  harvested: { en: "Harvested", zh: "已收获" },
-  noEmptyPlots: { en: "No empty plots available", zh: "没有空闲地块" },
-  plantingSeed: { en: "Planting seed...", zh: "种植中..." },
-  plantSuccess: { en: "Seed planted", zh: "种子已种植" },
-  harvested2: { en: "Harvested", zh: "已收获" }, // cleanup dupes if needed but keeping safe
-  harvestedPlants: { en: "plants!", zh: "株植物！" },
-  noReady: { en: "No plants ready to harvest", zh: "没有可收获的植物" },
-  error: { en: "Error", zh: "错误" },
-  connectWallet: { en: "Connect wallet", zh: "连接钱包" },
-  missingContract: { en: "Contract not configured", zh: "合约未配置" },
-  failedToLoad: { en: "Failed to load garden", zh: "加载花园失败" },
-  harvestSuccess: { en: "Plant harvested", zh: "植物已收获" },
-  seedFire: { en: "Fire Seed", zh: "火种" },
-  seedIce: { en: "Ice Seed", zh: "冰种" },
-  seedEarth: { en: "Earth Seed", zh: "土种" },
-  seedWind: { en: "Wind Seed", zh: "风种" },
-  seedLight: { en: "Light Seed", zh: "光种" },
-  wrongChain: { en: "Wrong Network", zh: "网络错误" },
-  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
 
-  docs: { en: "Docs", zh: "文档" },
-  docSubtitle: {
-    en: "Virtual garden where plants grow with blockchain activity",
-    zh: "植物随区块链活动生长的虚拟花园",
-  },
-  docDescription: {
-    en: "Garden of Neo is a blockchain-powered virtual garden. Plant elemental seeds, watch them grow as blocks are mined, and harvest mature plants for rewards.",
-    zh: "Neo 花园是一个区块链驱动的虚拟花园。种植元素种子，随着区块挖掘观察它们生长，收获成熟植物获得奖励。",
-  },
-  step1: { en: "Connect your wallet.", zh: "连接钱包。" },
-  step2: { en: "Plant seeds and wait for maturity.", zh: "种植并等待成熟。" },
-  step3: { en: "Harvest mature plants.", zh: "收获成熟植物。" },
-  step4: { en: "Collect rewards and replant for more.", zh: "收集奖励并重新种植获取更多。" },
-  feature1Name: { en: "Block-Based Growth", zh: "基于区块的生长" },
-  feature1Desc: {
-    en: "Plant growth is tied to Neo blockchain activity.",
-    zh: "植物生长与 Neo 区块链活动相关联。",
-  },
-  feature2Name: { en: "Elemental Seeds", zh: "元素种子" },
-  feature2Desc: {
-    en: "Choose from Fire, Ice, Earth, Wind, and Light seeds.",
-    zh: "从火、冰、土、风、光种子中选择。",
-  },
-};
+const { t } = useI18n();
 
-const t = createT(translations);
-
-const navTabs = [
+const navTabs = computed(() => [
   { id: "garden", icon: "leaf", label: t("garden") },
   { id: "stats", icon: "chart", label: t("stats") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 
 const activeTab = ref("garden");
 
@@ -140,6 +78,7 @@ const ensureContractAddress = async () => {
     contractAddress.value = await getContractAddress();
   }
   if (!contractAddress.value) throw new Error(t("missingContract"));
+  return contractAddress.value;
 };
 
 // Docs
@@ -154,16 +93,99 @@ const docFeatures = computed(() => [
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+$garden-bg-light: #f1f8e9;
+$garden-bg-dark: #dcedc8;
+$garden-accent: #2e7d32;
+$garden-soil: #5d4037;
+$garden-leaf: #66bb6a;
+$garden-font: 'Nunito', sans-serif;
+
+:global(page) {
+  background: $garden-bg-light;
+  font-family: $garden-font;
+}
+
 .tab-content {
-  padding: $space-6;
+  padding: 16px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-6;
-  background-color: transparent;
+  gap: 16px;
+  background: linear-gradient(180deg, $garden-bg-light 0%, #e8f5e9 100%);
+  min-height: 100vh;
+  position: relative;
+  font-family: $garden-font;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  
+  /* Leaf Pattern */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: 
+      url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj48cGF0aCBmaWxsPSIjYTVkNmE3IiBkPSJNMTAgMGE5Ljk5IDkuOTkgMCAwIDEgMTAgMTBhoS45OSA5Ljk5IDAgMCAxLTEwIDEwQTkuOTkgOS45OSAwIDAgMSAwIDEwIDkuOTkgOS45OSAwIDAgMSAxMCAwem0wIDJjLTQuNDEgMC04IDMuNTktOCA4czMuNTkgOCA4IDggOC0zLjU5IDgtOC0zLjU5LTgtOC04eiIgb3BhY2l0eT0iMC4xIi8+PC9zdmc+');
+    background-size: 40px 40px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+  }
 }
+
 .scrollable {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Organic/Ethereal Overrides */
+:deep(.neo-card) {
+  background: rgba(255, 255, 255, 0.7) !important;
+  border: 1px solid rgba(139, 195, 74, 0.3) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 8px 32px rgba(46, 125, 50, 0.1) !important;
+  color: $garden-soil !important;
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+
+  /* Glass sheen */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 100%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 100%);
+    pointer-events: none;
+  }
+}
+
+:deep(.neo-button) {
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+  
+  &.variant-primary {
+    background: linear-gradient(135deg, $garden-leaf 0%, $garden-accent 100%) !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3) !important;
+    
+    &:active {
+      transform: scale(0.96);
+      box-shadow: 0 2px 10px rgba(46, 125, 50, 0.2) !important;
+    }
+  }
+  &.variant-secondary {
+    background: rgba(255, 255, 255, 0.5) !important;
+    border: 2px solid $garden-leaf !important;
+    color: $garden-accent !important;
+    
+    &:hover {
+      background: rgba(102, 187, 106, 0.1) !important;
+    }
+  }
 }
 </style>

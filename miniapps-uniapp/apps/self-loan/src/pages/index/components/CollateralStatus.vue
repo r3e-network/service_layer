@@ -101,7 +101,7 @@ const fmt = (n: number, d = 2) => formatNumber(n, d);
 
 .info-label {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   text-transform: uppercase;
   font-weight: 700;
   letter-spacing: 0.05em;

@@ -50,7 +50,7 @@ defineProps<{
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  color: white;
+  color: var(--text-primary);
 
   &.neo {
     background: linear-gradient(90deg, rgba(0, 229, 153, 0.1), transparent);
@@ -61,13 +61,13 @@ defineProps<{
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   letter-spacing: 0.05em;
 }
 .stat-value {
   font-size: 16px;
   font-weight: 700;
   font-family: $font-mono;
-  color: white;
+  color: var(--text-primary);
 }
 </style>

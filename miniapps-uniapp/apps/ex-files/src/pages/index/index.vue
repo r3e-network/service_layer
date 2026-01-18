@@ -32,6 +32,7 @@
         <UploadForm
           v-model:recordContent="recordContent"
           v-model:recordRating="recordRating"
+          v-model:recordCategory="recordCategory"
           :is-loading="isLoading"
           :can-create="canCreate"
           :t="t as any"
@@ -63,7 +64,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useWallet, usePayments, useEvents } from "@neo/uniapp-sdk";
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
 import { parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
 import { sha256Hex } from "@/shared/utils/hash";
 import { AppLayout, NeoDoc, NeoCard, NeoStats } from "@/shared/components";
@@ -75,95 +76,8 @@ import QueryRecordForm, { type RecordItem } from "./components/QueryRecordForm.v
 import MemoryArchive from "./components/MemoryArchive.vue";
 import UploadForm from "./components/UploadForm.vue";
 
-const translations = {
-  title: { en: "Ex Files", zh: "前任档案" },
-  subtitle: { en: "Anonymous record vault", zh: "匿名记录保险库" },
 
-  // Stats
-  totalMemories: { en: "Total Memories", zh: "总回忆" },
-  daysTogether: { en: "Days Together", zh: "相处天数" },
-  lockedFiles: { en: "Locked Files", zh: "已锁定" },
-  totalRecords: { en: "Total Records", zh: "记录总数" },
-  averageRating: { en: "Avg Rating", zh: "平均评分" },
-  totalQueries: { en: "Total Queries", zh: "查询总数" },
-  record: { en: "Record", zh: "记录" },
-  statusActive: { en: "Active", zh: "有效" },
-  statusInactive: { en: "Inactive", zh: "已删除" },
-
-  // Archive
-  memoryArchive: { en: "Record Archive", zh: "记录档案" },
-  tapToView: { en: "Tap to view", zh: "点击查看" },
-
-  // Upload
-  uploadMemory: { en: "Create Record", zh: "创建记录" },
-  uploadSubtitle: { en: "Add a hashed record to the archive", zh: "将哈希记录加入档案" },
-  memoryTitle: { en: "Memory Title", zh: "回忆标题" },
-  memoryTitlePlaceholder: { en: "e.g., First Date at Cafe", zh: "例如：咖啡馆的初次约会" },
-  memoryType: { en: "Memory Type", zh: "回忆类型" },
-  contentOrUrl: { en: "Content / URL", zh: "内容 / 链接" },
-  contentPlaceholder: { en: "Describe the record or paste a URL", zh: "填写记录内容或粘贴链接" },
-  uploading: { en: "Uploading...", zh: "上传中..." },
-  uploadMemoryBtn: { en: "Upload to Archive", zh: "上传到档案" },
-  recordContent: { en: "Record Content", zh: "记录内容" },
-  rating: { en: "Rating (1-5)", zh: "评分（1-5）" },
-  hashNote: { en: "Content is hashed locally before upload.", zh: "内容将在本地哈希后上传。" },
-  createRecord: { en: "Create Record", zh: "创建记录" },
-  queryRecord: { en: "Query Record", zh: "查询记录" },
-  queryLabel: { en: "Hash or Content", zh: "哈希或内容" },
-  queryPlaceholder: { en: "Paste hash or enter content to hash", zh: "粘贴哈希或输入内容生成哈希" },
-  querying: { en: "Querying...", zh: "查询中..." },
-  queryResult: { en: "Query Result", zh: "查询结果" },
-  hashLabel: { en: "Hash", zh: "哈希" },
-
-  // Memory types
-  typePhoto: { en: "Photo", zh: "照片" },
-  typeText: { en: "Letter", zh: "信件" },
-  typeVideo: { en: "Video", zh: "视频" },
-  typeAudio: { en: "Audio", zh: "音频" },
-
-  // Status
-  viewing: { en: "Viewing", zh: "查看中" },
-  memoryUploaded: { en: "Memory uploaded to archive!", zh: "回忆已上传到档案！" },
-  error: { en: "Error", zh: "错误" },
-  invalidContent: { en: "Enter content to hash", zh: "请输入内容" },
-  invalidRating: { en: "Rating must be between 1 and 5", zh: "评分必须在 1-5 之间" },
-  recordCreated: { en: "Record created", zh: "记录已创建" },
-  recordQueried: { en: "Record queried", zh: "记录已查询" },
-  failedToLoad: { en: "Failed to load records", zh: "加载记录失败" },
-  missingContract: { en: "Contract not configured", zh: "合约未配置" },
-
-  // Sample memories
-  firstDate: { en: "First Date", zh: "初次约会" },
-  loveLetter: { en: "Love Letter", zh: "情书" },
-  anniversary: { en: "Anniversary", zh: "纪念日" },
-  breakupLetter: { en: "Breakup Letter", zh: "分手信" },
-
-  // Tabs
-  tabFiles: { en: "Archive", zh: "档案" },
-  tabUpload: { en: "Upload", zh: "上传" },
-  tabStats: { en: "Stats", zh: "统计" },
-  docs: { en: "Docs", zh: "文档" },
-
-  // Docs
-  docSubtitle: { en: "Privacy-first record storage", zh: "隐私优先的记录存储" },
-  docDescription: {
-    en: "Store hashed records on-chain and query by hash with TEE-backed privacy.",
-    zh: "将记录哈希存储在链上，并通过哈希查询，TEE 保障隐私。",
-  },
-  step1: { en: "Connect your wallet", zh: "连接钱包" },
-  step2: { en: "Create records with hashed content", zh: "创建哈希记录" },
-  step3: { en: "Query records by hash when needed", zh: "按需通过哈希查询记录" },
-  step4: { en: "View your archive and track query statistics.", zh: "查看档案并跟踪查询统计。" },
-  feature1Name: { en: "TEE Secured", zh: "TEE 安全" },
-  feature1Desc: { en: "Hardware-level memory protection", zh: "硬件级回忆保护" },
-  feature2Name: { en: "On-Chain Storage", zh: "链上存储" },
-  feature2Desc: { en: "Immutable relationship records", zh: "不可篡改的关系记录" },
-  wrongChain: { en: "Wrong Network", zh: "网络错误" },
-  wrongChainMessage: { en: "This app requires Neo N3 network.", zh: "此应用需 Neo N3 网络。" },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-};
-
-const t = createT(translations);
+const { t } = useI18n();
 
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
 const docFeatures = computed(() => [
@@ -180,17 +94,18 @@ const { payGAS, isLoading } = usePayments(APP_ID);
 const { list: listEvents } = useEvents();
 
 const activeTab = ref("files");
-const navTabs: NavTab[] = [
+const navTabs = computed<NavTab[]>(() => [
   { id: "files", icon: "folder", label: t("tabFiles") },
   { id: "upload", icon: "upload", label: t("tabUpload") },
   { id: "stats", icon: "chart", label: t("tabStats") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 
 const contractAddress = ref<string | null>(null);
 const records = ref<RecordItem[]>([]);
 const recordContent = ref("");
 const recordRating = ref("3");
+const recordCategory = ref(0);
 const queryInput = ref("");
 const queryResult = ref<RecordItem | null>(null);
 const status = ref<{ msg: string; type: string } | null>(null);
@@ -249,6 +164,7 @@ const parseRecord = (recordId: number, raw: any): RecordItem => {
     queryCount: Number(values[3] || 0),
     createTime,
     active: Boolean(values[5]),
+    category: Number(values[6] || 0),
     date: createTime ? new Date(createTime * 1000).toISOString().split("T")[0] : "--",
     hashShort: formatHash(dataHash),
   };
@@ -271,7 +187,7 @@ const loadRecords = async () => {
   for (const id of ids) {
     const recordRes = await invokeRead({
       scriptHash: contractAddress.value as string,
-      operation: "GetRecord",
+      operation: "getRecord",
       args: [{ type: "Integer", value: id }],
     });
     const data = parseInvokeResult(recordRes);
@@ -301,22 +217,24 @@ const createRecord = async () => {
       await connect();
     }
     if (!address.value) {
-      throw new Error(t("error"));
+      throw new Error(t("connectWallet"));
     }
     await ensureContractAddress();
     const hashHex = await sha256Hex(recordContent.value.trim());
     const payment = await payGAS(CREATE_FEE, `create:${hashHex.slice(0, 8)}`);
     const receiptId = payment.receipt_id;
     if (!receiptId) {
-      throw new Error("Missing payment receipt");
+      throw new Error(t("receiptMissing"));
     }
+    // Contract signature: CreateRecord(creator, dataHash, rating, category, receiptId)
     await invokeContract({
       scriptHash: contractAddress.value as string,
-      operation: "CreateRecord",
+      operation: "createRecord",
       args: [
         { type: "Hash160", value: address.value as string },
         { type: "ByteArray", value: hashHex },
         { type: "Integer", value: rating },
+        { type: "Integer", value: recordCategory.value },
         { type: "Integer", value: String(receiptId) },
       ],
     });
@@ -347,7 +265,7 @@ const queryRecord = async () => {
       await connect();
     }
     if (!address.value) {
-      throw new Error(t("error"));
+      throw new Error(t("connectWallet"));
     }
     await ensureContractAddress();
     const input = queryInput.value.trim();
@@ -356,11 +274,11 @@ const queryRecord = async () => {
     const payment = await payGAS(QUERY_FEE, `query:${hashHex.slice(0, 8)}`);
     const receiptId = payment.receipt_id;
     if (!receiptId) {
-      throw new Error("Missing payment receipt");
+      throw new Error(t("receiptMissing"));
     }
     const tx = await invokeContract({
       scriptHash: contractAddress.value as string,
-      operation: "QueryByHash",
+      operation: "queryByHash",
       args: [
         { type: "Hash160", value: address.value as string },
         { type: "ByteArray", value: hashHex },
@@ -376,7 +294,7 @@ const queryRecord = async () => {
         if (recordId > 0) {
           const recordRes = await invokeRead({
             scriptHash: contractAddress.value as string,
-            operation: "GetRecord",
+            operation: "getRecord",
             args: [{ type: "Integer", value: recordId }],
           });
           const data = parseInvokeResult(recordRes);
@@ -404,21 +322,88 @@ onMounted(async () => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+@import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
+
+$noir-bg: #1c1c1c;
+$noir-paper: #e3dcd2;
+$noir-text: #2d2d2d;
+$noir-accent: #8b0000;
+$noir-shadow: rgba(0, 0, 0, 0.4);
+
+:global(page) {
+  background: $noir-bg;
+}
+
 .app-container {
-  padding: $space-4;
+  padding: 24px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  gap: 24px;
+  background-color: $noir-bg;
+  background-image: 
+    linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
+    url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiIHZpZXdCb3g9IjAgMCA0IDQiPjxwYXRoIGZpbGw9IiMyMjIiIGQ9Ik0xIDNoMXYxSDFWM3ptMi0yaDF2MUgzVjF6Ii8+PC9zdmc+');
+  min-height: 100vh;
+  font-family: 'Special Elite', 'Courier Prime', monospace;
+}
+
+/* Noir Component Overrides */
+:deep(.neo-card) {
+  background: $noir-paper !important;
+  border: 1px solid #c7c0b8 !important;
+  border-radius: 2px !important;
+  box-shadow: 4px 4px 8px $noir-shadow, inset 0 0 40px rgba(0,0,0,0.05) !important;
+  color: $noir-text !important;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 2px;
+    background: rgba(0,0,0,0.1);
+  }
+}
+
+:deep(.neo-button) {
+  border-radius: 2px !important;
+  font-family: 'Special Elite', monospace !important;
+  text-transform: uppercase;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.3) !important;
+  
+  &.variant-primary {
+    background: #333 !important;
+    color: #f0f0f0 !important;
+    border: 1px solid #555 !important;
+    
+    &:active {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 rgba(0,0,0,0.3) !important;
+    }
+  }
+  
+  &.variant-secondary {
+    background: transparent !important;
+    border: 2px solid #555 !important;
+    color: #333 !important;
+  }
+}
+
+:deep(.neo-input) {
+  background: rgba(255,255,255,0.5) !important;
+  border: 1px solid #999 !important;
+  border-radius: 0 !important;
+  font-family: 'Special Elite', monospace !important;
+  color: #000 !important;
 }
 
 .tab-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: 20px;
 }
 
 .scrollable {

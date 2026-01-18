@@ -126,7 +126,7 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   font-size: 13px;
   font-weight: 600;
   font-family: $font-family;
-  color: white;
+  color: var(--text-primary);
 
   &.highlight {
     color: #00E599;

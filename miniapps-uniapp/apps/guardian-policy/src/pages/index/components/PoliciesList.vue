@@ -128,7 +128,7 @@ const getLevelText = (level: string) => {
 .policy-name {
   font-weight: 700;
   font-size: 14px;
-  color: white;
+  color: var(--text-primary);
 }
 
 .level-badge {
@@ -139,7 +139,7 @@ const getLevelText = (level: string) => {
   border-radius: 4px;
   letter-spacing: 0.05em;
   
-  &.low { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); }
+  &.low { background: rgba(255, 255, 255, 0.1); color: var(--text-primary); }
   &.medium { background: rgba(0, 229, 153, 0.1); color: #00e599; }
   &.high { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
   &.critical { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
@@ -147,7 +147,7 @@ const getLevelText = (level: string) => {
 
 .policy-desc {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -159,7 +159,7 @@ const getLevelText = (level: string) => {
   padding: 2px 6px;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-primary);
 
   &.active {
     background: rgba(0, 229, 153, 0.12);
@@ -179,6 +179,6 @@ const getLevelText = (level: string) => {
   font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
 }
 </style>

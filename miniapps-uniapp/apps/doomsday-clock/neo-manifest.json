@@ -2,10 +2,28 @@
   "app_id": "miniapp-doomsday-clock",
   "name": "Doomsday Clock",
   "name_zh": "末日时钟",
-  "description": "A community-controlled countdown that resets when people contribute. If it hits zero, locked funds redistribute. Keep the clock alive or watch it all burn.",
-  "description_zh": "社区控制的倒计时，有人贡献时重置。",
-  "category": "governance",
+  "description": "Set deadlines and countdown timers with on-chain consequences",
+  "description_zh": "设置链上截止时间和倒计时",
+  "version": "1.0.0",
+  "entry_url": "mf://builtin?app=miniapp-doomsday-clock",
+  "category": "utilities",
   "status": "active",
+  "tags": [
+    "timer",
+    "deadline",
+    "countdown"
+  ],
+  "permissions": [
+    "wallet"
+  ],
+  "assets_allowed": [
+    "NEO",
+    "GAS"
+  ],
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
   "contracts": {
     "neo-n3-mainnet": {
       "address": "0xe4f386057d6308b83a5fd2e84bc3eb9149adc719"
@@ -14,12 +32,13 @@
       "address": "0xe4f386057d6308b83a5fd2e84bc3eb9149adc719"
     }
   },
-  "permissions": {
-    "payments": true,
-    "automation": true
-  },
-  "supported_chains": [
-    "neo-n3-mainnet",
-    "neo-n3-testnet"
-  ]
+  "card": {
+    "display": {
+      "type": "icon_title",
+      "banner": "/static/banner.png"
+    },
+    "info": {
+      "logo": "/static/logo.png"
+    }
+  }
 }

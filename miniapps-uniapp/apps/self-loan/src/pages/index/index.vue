@@ -63,115 +63,21 @@ import { ref, computed, onMounted } from "vue";
 import { useWallet, useEvents } from "@neo/uniapp-sdk";
 import { formatNumber } from "@/shared/utils/format";
 import { addressToScriptHash, normalizeScriptHash, parseInvokeResult, parseStackItem } from "@/shared/utils/neo";
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
 import { AppLayout, NeoDoc, NeoCard, NeoButton } from "@/shared/components";
 import PositionSummary from "./components/PositionSummary.vue";
 import CollateralStatus from "./components/CollateralStatus.vue";
 import BorrowForm from "./components/BorrowForm.vue";
 import StatsTab from "./components/StatsTab.vue";
 
-const translations = {
-  title: { en: "Self Loan", zh: "自我贷款" },
-  loanTerms: { en: "Loan Terms", zh: "贷款条款" },
-  maxBorrow: { en: "Borrow limit", zh: "借款上限" },
-  yourLoan: { en: "Your Loan", zh: "你的贷款" },
-  borrowed: { en: "Borrowed", zh: "已借款" },
-  collateralLocked: { en: "Collateral locked", zh: "锁定抵押品" },
-  takeSelfLoan: { en: "Take Self-Loan", zh: "申请自我贷款" },
-  collateralAmount: { en: "Collateral Amount", zh: "抵押金额" },
-  amountToLock: { en: "NEO to lock", zh: "锁定 NEO" },
-  estimatedBorrow: { en: "Estimated Borrow", zh: "预计借款" },
-  collateralRatio: { en: "Collateral ratio", zh: "抵押率" },
-  minDuration: { en: "Minimum duration", zh: "最短期限" },
-  hours: { en: "hours", zh: "小时" },
-  borrowNow: { en: "Borrow Now", zh: "立即借款" },
-  processing: { en: "Processing...", zh: "处理中..." },
-  note: {
-    en: "Collateral locks until repaid (min 24h). Fixed 20% LTV with no liquidation.",
-    zh: "抵押品需还清后解锁（最短 24 小时）。固定 20% LTV，无清算。",
-  },
-  enterAmount: { en: "Enter 1-{max} NEO", zh: "请输入 1-{max} NEO" },
-  loanApproved: { en: "Loan created: {amount} GAS borrowed", zh: "贷款已创建：已借 {amount} GAS" },
-  paymentFailed: { en: "Transaction failed", zh: "交易失败" },
-  contractUnavailable: { en: "Contract unavailable", zh: "合约不可用" },
-  main: { en: "Borrow", zh: "借款" },
-  stats: { en: "Stats", zh: "统计" },
-  statistics: { en: "Statistics", zh: "统计数据" },
-  totalLoans: { en: "Total Loans", zh: "总贷款数" },
-  totalBorrowed: { en: "Total Borrowed", zh: "总借款额" },
-  totalRepaid: { en: "Total Repaid", zh: "总还款额" },
-  avgLoanSize: { en: "Avg Loan Size", zh: "平均贷款额" },
-  loanHistory: { en: "Loan History", zh: "贷款历史" },
-  noHistory: { en: "No history yet", zh: "暂无记录" },
-  borrowedLabel: { en: "Borrowed", zh: "借款" },
-  repaidLabel: { en: "Repaid", zh: "还款" },
-  closedLabel: { en: "Closed", zh: "结清" },
-  healthFactor: { en: "Health Factor", zh: "健康因子" },
-  safe: { en: "Safe", zh: "安全" },
-  warning: { en: "Warning", zh: "警告" },
-  danger: { en: "Danger", zh: "危险" },
-  currentLTV: { en: "Current LTV", zh: "当前 LTV" },
-  maxLTV: { en: "Max LTV", zh: "最大 LTV" },
-  collateralStatus: { en: "Collateral Status", zh: "抵押品状态" },
-  locked: { en: "Locked", zh: "已锁定" },
-  available: { en: "Available", zh: "可用" },
-  loanToValue: { en: "Loan-to-Value (LTV)", zh: "贷款价值比 (LTV)" },
-  docs: { en: "Docs", zh: "文档" },
-  docSubtitle: {
-    en: "Borrow against your own collateral with zero liquidation risk",
-    zh: "用自己的抵押品借款，零清算风险",
-  },
-  docDescription: {
-    en: "Self Loan lets you lock NEO collateral and borrow GAS at a fixed 20% LTV. Loans have a 24h minimum duration and can be repaid to unlock collateral.",
-    zh: "Self Loan 让您锁定 NEO 抵押品并以固定 20% LTV 借入 GAS。贷款最短 24 小时，可还款解锁抵押品。",
-  },
-  step1: {
-    en: "Connect your Neo wallet and check your available collateral",
-    zh: "连接您的 Neo 钱包并查看可用抵押品",
-  },
-  step2: {
-    en: "Enter the NEO collateral amount (borrow 20% of its value in GAS)",
-    zh: "输入 NEO 抵押金额（可借出 20% 的 GAS）",
-  },
-  step3: {
-    en: "Lock your collateral and receive borrowed GAS instantly",
-    zh: "锁定您的抵押品并立即收到借入的 GAS",
-  },
-  step4: {
-    en: "Repay the loan anytime to unlock your collateral",
-    zh: "随时还款以解锁您的抵押品",
-  },
-  feature1Name: { en: "Zero Liquidation", zh: "零清算" },
-  feature1Desc: {
-    en: "Your collateral is never at risk - no forced liquidations regardless of market conditions.",
-    zh: "您的抵押品永远不会有风险 - 无论市场条件如何都不会强制清算。",
-  },
-  feature2Name: { en: "Flexible Repayment", zh: "灵活还款" },
-  feature2Desc: {
-    en: "Repay anytime after 24 hours to unlock your collateral.",
-    zh: "24 小时后可随时还款解锁抵押品。",
-  },
-  wrongChain: { en: "Wrong Chain", zh: "链错误" },
-  wrongChainMessage: {
-    en: "This app requires Neo N3. Please switch networks.",
-    zh: "此应用需要 Neo N3 网络，请切换网络。",
-  },
-  switchToNeo: { en: "Switch to Neo N3", zh: "切换到 Neo N3" },
-  insufficientNeo: { en: "Insufficient NEO balance", zh: "NEO 余额不足" },
-  connectWallet: { en: "Please connect wallet", zh: "请连接钱包" },
-  repayLoan: { en: "Repay Loan", zh: "还款" },
-  repaying: { en: "Repaying...", zh: "还款中..." },
-  repaySuccess: { en: "Loan repaid successfully", zh: "还款成功" },
-  neoCollateral: { en: "NEO Collateral", zh: "NEO 抵押品" },
-};
 
-const t = createT(translations);
+const { t } = useI18n();
 
-const navTabs = [
+const navTabs = computed(() => [
   { id: "main", icon: "wallet", label: t("main") },
   { id: "stats", icon: "chart", label: t("stats") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 
 const activeTab = ref("main");
 
@@ -187,6 +93,7 @@ const docFeatures = computed(() => [
 ]);
 const APP_ID = "miniapp-self-loan";
 const LTV_PERCENT = 20;
+const LTV_TIER = 1;
 const MIN_DURATION_HOURS = 24;
 
 const { address, connect, invokeContract, invokeRead, getBalance, chainType, switchChain, getContractAddress } =
@@ -271,6 +178,7 @@ const takeLoan = async (): Promise<void> => {
       args: [
         { type: "Hash160", value: address.value },
         { type: "Integer", value: collateral }, // NEO is indivisible
+        { type: "Integer", value: LTV_TIER },
       ],
     });
 
@@ -427,8 +335,7 @@ const fetchData = async () => {
     neoBalance.value = typeof neo === "string" ? parseFloat(neo) || 0 : typeof neo === "number" ? neo : 0;
 
     await loadHistory();
-  } catch (e) {
-    console.warn("[SelfLoan] Failed to fetch data:", e);
+  } catch {
   }
 };
 
@@ -441,8 +348,18 @@ onMounted(() => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+$checkbook-bg: #fdfbf7;
+$checkbook-line: #b0c4de;
+$checkbook-text: #2f4f4f;
+$checkbook-acc: #4682b4;
+
+:global(page) {
+  background: $checkbook-bg;
+  font-family: 'Courier New', Courier, monospace;
+}
+
 .tab-content {
-  padding: $space-3;
+  padding: 16px;
   flex: 1;
   min-height: 0;
   display: flex;
@@ -450,6 +367,66 @@ onMounted(() => {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  background-color: $checkbook-bg;
+  background-image: repeating-linear-gradient(transparent, transparent 19px, $checkbook-line 20px);
+  background-attachment: local;
+}
+
+/* Checkbook Component Overrides */
+:deep(.neo-card) {
+  background: white !important;
+  border: 1px solid $checkbook-line !important;
+  border-radius: 2px !important;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.1) !important;
+  color: $checkbook-text !important;
+  font-family: 'Courier New', Courier, monospace !important;
+  margin-bottom: 20px !important;
+  
+  &.variant-danger {
+    border-color: #ffcccb !important;
+    background: #fff5f5 !important;
+  }
+}
+
+:deep(.neo-button) {
+  border-radius: 4px !important;
+  font-family: 'Courier New', Courier, monospace !important;
+  font-weight: 700 !important;
+  text-transform: capitalize !important;
+  letter-spacing: 0 !important;
+  
+  &.variant-primary {
+    background: $checkbook-acc !important;
+    color: white !important;
+    border: none !important;
+    
+    &:active {
+      opacity: 0.8;
+    }
+  }
+}
+
+:deep(input), :deep(.neo-input) {
+  font-family: 'Courier New', Courier, monospace !important;
+  border: none !important;
+  border-bottom: 1px solid $checkbook-line !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding-left: 0 !important;
+  color: $checkbook-text !important;
+  
+  &:focus {
+    border-bottom: 2px solid $checkbook-acc !important;
+    box-shadow: none !important;
+  }
+}
+
+:deep(.text-center) {
+  text-align: center;
+}
+
+:deep(.font-bold) {
+  font-weight: bold;
 }
 
 .scrollable {

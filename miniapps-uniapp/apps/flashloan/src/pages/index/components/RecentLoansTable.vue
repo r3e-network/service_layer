@@ -57,7 +57,7 @@ const statusText = (status: LoanStatus) => {
   text-transform: uppercase;
   margin-bottom: $space-4;
   display: block;
-  color: white;
+  color: var(--text-primary);
   letter-spacing: 0.05em;
 }
 .loans-table-glass {
@@ -69,7 +69,7 @@ const statusText = (status: LoanStatus) => {
 .table-header-glass {
   display: flex;
   background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-primary);
 }
 .th-glass {
   flex: 1;
@@ -92,7 +92,7 @@ const statusText = (status: LoanStatus) => {
   font-size: 12px;
   font-family: $font-mono;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
 }
 .td-loan {
   display: flex;
@@ -115,7 +115,7 @@ const statusText = (status: LoanStatus) => {
   text-align: center;
   padding: $space-6;
   opacity: 0.6;
-  color: white;
+  color: var(--text-primary);
 }
 .empty-icon {
   font-size: 32px;

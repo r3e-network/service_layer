@@ -40,7 +40,3 @@ export { createMiniAppSDK } from "./sdk-client";
 
 // WebView bridge
 export { dispatchBridgeCall } from "./webview-bridge";
-
-// Intent service
-export { fetchIntent, submitTransaction } from "./intent-service";
-export type { TransactionIntent, IntentResult } from "./intent-service";

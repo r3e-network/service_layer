@@ -1,0 +1,31 @@
+{
+  "app_id": "miniapp-neo-convert",
+  "name": "Neo Convert",
+  "name_zh": "Neo 转换工具",
+  "description": "Convert Neo addresses, private keys, and script hashes",
+  "description_zh": "转换 Neo 地址、私钥和脚本哈希",
+  "version": "1.0.0",
+  "entry_url": "mf://builtin?app=miniapp-neo-convert",
+  "category": "utilities",
+  "status": "active",
+  "tags": [
+    "tools",
+    "developer"
+  ],
+  "permissions": [],
+  "assets_allowed": [],
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
+  "contracts": {},
+  "card": {
+    "display": {
+      "type": "icon_title",
+      "banner": "/static/banner.png"
+    },
+    "info": {
+      "logo": "/static/logo.png"
+    }
+  }
+}

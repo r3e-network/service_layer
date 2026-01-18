@@ -4,18 +4,28 @@
  */
 
 import type { MiniAppInfo, MiniAppCategory } from "@/types/miniapp";
-import miniappsData from "@/data/miniapps.json";
+import { coerceMiniAppInfo } from "./normalize";
+import miniappsData from "../../../../host-app/data/miniapps.json";
 
-// Type assertion for JSON data
-type RawMiniAppData = Record<MiniAppCategory, Omit<MiniAppInfo, "category">[]>;
+// Type assertion for JSON data (host-app may use "games" or "gaming" as keys)
+type RawMiniAppData = Record<string, Omit<MiniAppInfo, "category">[]>;
 const data = miniappsData as RawMiniAppData;
 
 // Add category to each app
-const addCategory = (apps: Omit<MiniAppInfo, "category">[], category: MiniAppCategory): MiniAppInfo[] =>
-  apps.map((app) => ({ ...app, category }));
+const addCategory = (
+  apps: Omit<MiniAppInfo, "category">[] | undefined,
+  category: MiniAppCategory,
+): MiniAppInfo[] =>
+  (apps ?? [])
+    .map((app) => {
+      const normalized = coerceMiniAppInfo(app, app as MiniAppInfo);
+      return normalized ? { ...normalized, category } : null;
+    })
+    .filter((app): app is MiniAppInfo => Boolean(app));
 
 // Category arrays
-export const GAMING_APPS = addCategory(data.gaming, "gaming");
+const gamingSource = [...(data.gaming ?? []), ...(data.games ?? [])];
+export const GAMING_APPS = addCategory(gamingSource, "gaming");
 export const DEFI_APPS = addCategory(data.defi, "defi");
 export const SOCIAL_APPS = addCategory(data.social, "social");
 export const NFT_APPS = addCategory(data.nft, "nft");

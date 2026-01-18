@@ -60,39 +60,16 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { AppLayout, NeoCard, NeoDoc } from "@/shared/components";
-import { createT } from "@/shared/utils/i18n";
+import { useI18n } from "@/composables/useI18n";
 import type { NavTab } from "@/shared/components/NavBar.vue";
 
-const translations = {
-  title: { en: "Neo News Today", zh: "Neo今日新闻" },
-  tagline: { en: "Latest Neo Ecosystem News", zh: "Neo生态最新资讯" },
-  loading: { en: "Loading articles...", zh: "加载文章中..." },
-  noArticles: { en: "No articles available", zh: "暂无文章" },
-  loadFailed: { en: "Unable to load articles", zh: "文章加载失败" },
-  readMore: { en: "Read Report", zh: "阅读报告" },
-  news: { en: "News", zh: "新闻" },
-  docs: { en: "Docs", zh: "文档" },
-  docSubtitle: { en: "Your source for Neo ecosystem updates", zh: "您的Neo生态更新来源" },
-  docDescription: {
-    en: "Neo News Today (NNT) delivers the latest news, interviews, and events from the Neo blockchain ecosystem. Stay informed about developments, dApps, and community initiatives.",
-    zh: "Neo News Today (NNT) 提供来自 Neo 区块链生态系统的最新新闻、采访和活动。随时了解开发进展、dApp 和社区倡议。",
-  },
-  step1: { en: "Read the latest community news", zh: "阅读最新社区新闻" },
-  step2: { en: "Tap on any article to read the full report", zh: "点击任意文章阅读完整报告" },
-  step3: { en: "Stay updated with ecosystem developments", zh: "随时了解生态系统发展" },
-  step4: { en: "Share interesting news with the community", zh: "与社区分享有趣的新闻" },
-  feature1Name: { en: "Ecosystem Coverage", zh: "生态系统覆盖" },
-  feature1Desc: { en: "Comprehensive news on Neo N3 and legacy.", zh: "全面报道 Neo N3 和传统链。" },
-  feature2Name: { en: "Community Focus", zh: "社区聚焦" },
-  feature2Desc: { en: "Highlighting developers and projects.", zh: "聚焦开发者和项目。" },
-};
 
-const t = createT(translations);
+const { t } = useI18n();
 
-const navTabs: NavTab[] = [
+const navTabs = computed<NavTab[]>(() => [
   { id: "news", icon: "news", label: t("news") },
   { id: "docs", icon: "book", label: t("docs") },
-];
+]);
 const activeTab = ref("news");
 
 const docSteps = computed(() => [t("step1"), t("step2"), t("step3"), t("step4")]);
@@ -125,7 +102,7 @@ async function fetchArticles() {
     // Fetch from NNT RSS or API
     const res = await fetch("/api/nnt-news?limit=20");
     if (!res.ok) {
-      throw new Error("Failed to fetch articles");
+      throw new Error(t("loadFailed"));
     }
     const data = await res.json();
     const rawArticles = Array.isArray(data.articles) ? data.articles : [];
@@ -140,7 +117,6 @@ async function fetchArticles() {
       }))
       .filter((article: Article) => article.id && article.title && article.url);
   } catch (err) {
-    console.error("Failed to fetch articles:", err);
     articles.value = [];
     errorMessage.value = t("loadFailed");
   } finally {
@@ -189,31 +165,65 @@ function openArticle(article: Article) {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Oswald:wght@200..700&display=swap');
+
+$news-bg: #f3f4f6;
+$news-dark: #1f2937;
+$news-red: #ef4444;
+$news-blue: #3b82f6;
+$news-paper: #ffffff;
+
+:global(page) {
+  background: $news-bg;
+}
+
 .nnt-container {
-  padding: $space-4;
+  padding: 16px;
   padding-bottom: 80px; 
+  background-color: $news-bg;
+  min-height: 100vh;
+  /* Dot Matrix Pattern */
+  background-image: radial-gradient(#d1d5db 1px, transparent 1px);
+  background-size: 20px 20px;
 }
 
-.nnt-header-glass {
-  text-align: center;
-  padding: $space-4;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+/* Newsroom Component Overrides */
+:deep(.neo-card) {
+  background: $news-paper !important;
+  border: 1px solid #e5e7eb !important;
+  border-left: 4px solid $news-red !important;
+  border-radius: 2px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  color: $news-dark !important;
+  
+  &.variant-danger {
+    border-color: $news-red !important;
+    background: #fef2f2 !important;
+  }
 }
 
-.nnt-logo {
-  width: 140px;
-  height: 48px;
-  margin-bottom: 8px;
-  filter: brightness(1.2) drop-shadow(0 0 5px rgba(255,255,255,0.2));
-}
-
-.nnt-tagline-glass {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
+:deep(.neo-button) {
+  border-radius: 2px !important;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  font-weight: 800 !important;
+  font-family: 'Oswald', sans-serif !important;
+  letter-spacing: 0.05em;
+  
+  &.variant-primary {
+    background: $news-red !important;
+    color: #fff !important;
+    border: none !important;
+    
+    &:active {
+      background: #dc2626 !important;
+    }
+  }
+  
+  &.variant-secondary {
+    background: white !important;
+    border: 1px solid #d1d5db !important;
+    color: #374151 !important;
+  }
 }
 
 .nnt-loading {
@@ -226,8 +236,8 @@ function openArticle(article: Article) {
 .nnt-spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid rgba(0, 229, 153, 0.2);
-  border-top-color: #00E599;
+  border: 4px solid #e5e7eb;
+  border-top-color: $news-red;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -238,28 +248,32 @@ function openArticle(article: Article) {
 
 .nnt-loading-text {
   margin-top: 12px;
-  color: rgba(255, 255, 255, 0.5);
+  color: #6b7280;
   font-size: 12px;
+  text-transform: uppercase;
+  font-weight: bold;
 }
 
 .nnt-articles {
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  gap: 16px;
 }
 .nnt-empty-card {
   text-align: center;
-  padding: $space-5;
+  padding: 32px;
 }
 .nnt-empty-text {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  color: #6b7280;
+  font-style: italic;
 }
 
 .nnt-article-card {
-  transition: transform 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
   &:active {
-    transform: scale(0.98);
+    transform: translateY(2px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
   }
 }
 
@@ -271,9 +285,9 @@ function openArticle(article: Article) {
 .nnt-article-image {
   width: 100%;
   height: 180px;
-  margin-bottom: $space-4;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 16px;
+  border-radius: 2px;
+  filter: contrast(1.1) saturate(0.9);
 }
 
 .nnt-article-content {
@@ -282,11 +296,12 @@ function openArticle(article: Article) {
 }
 
 .nnt-article-title-glass {
-  font-size: 18px;
-  font-weight: 700;
-  color: white;
-  margin-bottom: $space-2;
-  line-height: 1.3;
+  font-size: 20px;
+  font-weight: 800;
+  color: $news-dark;
+  margin-bottom: 8px;
+  line-height: 1.25;
+  font-family: 'Merriweather', serif;
 }
 
 .nnt-meta {
@@ -296,39 +311,45 @@ function openArticle(article: Article) {
 
 .nnt-article-date-glass {
   font-size: 10px;
-  color: #00E599;
+  color: white;
   text-transform: uppercase;
   font-weight: 700;
-  background: rgba(0, 229, 153, 0.1);
-  padding: 2px 8px;
-  border-radius: 4px;
+  background: $news-red;
+  padding: 2px 6px;
+  border-radius: 2px;
 }
 
 .nnt-article-excerpt-glass {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
-  line-height: 1.5;
+  color: #4b5563;
+  line-height: 1.6;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  font-family: 'Georgia', serif;
 }
 
 .read-more {
   display: flex;
   justify-content: flex-end;
+  border-top: 1px dashed #e5e7eb;
+  padding-top: 12px;
 }
 .read-more-text {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  color: #9f9df3;
+  color: $news-blue;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .tab-content {
-  padding: $space-4;
+  padding: 16px;
   padding-bottom: 80px;
 }
 .scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }

@@ -5,10 +5,12 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import * as WebBrowser from "expo-web-browser";
 import { useWalletStore } from "@/stores/wallet";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const EXPLORER_URL = "https://dora.coz.io/transaction/neo3/mainnet";
 
 export default function TransactionDetailScreen() {
+  const { t, locale } = useTranslation();
   const params = useLocalSearchParams<{
     id: string;
     type: string;
@@ -23,10 +25,17 @@ export default function TransactionDetailScreen() {
 
   const { network } = useWalletStore();
   const isReceive = params.type === "receive";
+  const statusKey = (params.status || "confirmed").toLowerCase();
+  const statusLabelMap: Record<string, string> = {
+    confirmed: t("transactions.statusConfirmed"),
+    pending: t("transactions.statusPending"),
+    failed: t("transactions.statusFailed"),
+  };
+  const statusLabel = statusLabelMap[statusKey] || params.status || t("transactions.statusConfirmed");
 
   const copyToClipboard = async (text: string, label: string) => {
     await Clipboard.setStringAsync(text);
-    Alert.alert("Copied", `${label} copied to clipboard`);
+    Alert.alert(t("common.copied"), t("transactions.copiedMessage", { label }));
   };
 
   const openExplorer = async () => {
@@ -36,56 +45,59 @@ export default function TransactionDetailScreen() {
 
   const formatDate = (timestamp: string) => {
     const date = new Date(parseInt(timestamp));
-    return date.toLocaleString();
+    return date.toLocaleString(locale);
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: "Transaction Details" }} />
+      <Stack.Screen options={{ title: t("transactions.detailsTitle") }} />
 
       <ScrollView contentContainerStyle={styles.content}>
         {/* Status Header */}
         <View style={styles.header}>
           <View style={[styles.statusIcon, { backgroundColor: isReceive ? "#22c55e20" : "#ef444420" }]}>
-            <Ionicons
-              name={isReceive ? "arrow-down" : "arrow-up"}
-              size={32}
-              color={isReceive ? "#22c55e" : "#ef4444"}
-            />
-          </View>
-          <Text style={styles.statusText}>{isReceive ? "Received" : "Sent"}</Text>
-          <Text style={[styles.amount, { color: isReceive ? "#22c55e" : "#ef4444" }]}>
-            {isReceive ? "+" : "-"}
-            {params.amount} {params.asset}
-          </Text>
+          <Ionicons
+            name={isReceive ? "arrow-down" : "arrow-up"}
+            size={32}
+            color={isReceive ? "#22c55e" : "#ef4444"}
+          />
         </View>
+        <Text style={styles.statusText}>{isReceive ? t("transactions.received") : t("transactions.sent")}</Text>
+        <Text style={[styles.amount, { color: isReceive ? "#22c55e" : "#ef4444" }]}>
+          {isReceive ? "+" : "-"}
+          {params.amount} {params.asset}
+        </Text>
+      </View>
 
         {/* Details Section */}
         <View style={styles.section}>
-          <DetailRow label="Status" value={params.status || "Confirmed"} icon="checkmark-circle" iconColor="#22c55e" />
-          <DetailRow label="Time" value={formatDate(params.time || "0")} icon="time" />
-          <DetailRow label="Block" value={params.block || "N/A"} icon="cube" />
+          <DetailRow label={t("transactions.status")} value={statusLabel} icon="checkmark-circle" iconColor="#22c55e" />
+          <DetailRow label={t("transactions.time")} value={formatDate(params.time || "0")} icon="time" />
+          <DetailRow label={t("transactions.block")} value={params.block || t("transactions.notAvailable")} icon="cube" />
         </View>
 
         {/* Addresses Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Addresses</Text>
+          <Text style={styles.sectionTitle}>{t("transactions.addresses")}</Text>
           <AddressRow
-            label="From"
+            label={t("transactions.from")}
             address={params.from || ""}
-            onCopy={() => copyToClipboard(params.from || "", "From address")}
+            onCopy={() => copyToClipboard(params.from || "", t("transactions.fromAddress"))}
           />
           <AddressRow
-            label="To"
+            label={t("transactions.to")}
             address={params.to || ""}
-            onCopy={() => copyToClipboard(params.to || "", "To address")}
+            onCopy={() => copyToClipboard(params.to || "", t("transactions.toAddress"))}
           />
         </View>
 
         {/* Transaction Hash */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Transaction Hash</Text>
-          <TouchableOpacity style={styles.hashBox} onPress={() => copyToClipboard(params.id || "", "Transaction hash")}>
+          <Text style={styles.sectionTitle}>{t("transactions.hash")}</Text>
+          <TouchableOpacity
+            style={styles.hashBox}
+            onPress={() => copyToClipboard(params.id || "", t("transactions.hashLabel"))}
+          >
             <Text style={styles.hashText} selectable>
               {params.id}
             </Text>
@@ -96,7 +108,7 @@ export default function TransactionDetailScreen() {
         {/* Explorer Button */}
         <TouchableOpacity style={styles.explorerBtn} onPress={openExplorer}>
           <Ionicons name="open-outline" size={20} color="#fff" />
-          <Text style={styles.explorerText}>View in Explorer</Text>
+          <Text style={styles.explorerText}>{t("transactions.viewExplorer")}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

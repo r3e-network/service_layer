@@ -3,7 +3,7 @@
     <view class="card-header" style="margin-bottom: 12px; height: 32px">
       <view class="live-indicator">
         <view class="live-dot"></view>
-        <text class="live-text">LIVE</text>
+        <text class="live-text">{{ t("live") }}</text>
       </view>
       <text class="card-title">{{ t("poolBalance") }}</text>
       <view class="lightning-badge" style="width: 24px; height: 24px; font-size: 12px">⚡</view>
@@ -48,7 +48,7 @@ const formatNum = (n: number) => formatNumber(n, 4);
   font-size: 14px;
   font-weight: 800;
   text-transform: uppercase;
-  color: white;
+  color: var(--text-primary);
   letter-spacing: 0.05em;
   text-shadow: 0 0 10px rgba(0, 229, 153, 0.2);
 }
@@ -124,7 +124,7 @@ const formatNum = (n: number) => formatNumber(n, 4);
   font-family: $font-mono;
   font-weight: 700;
   font-size: 20px;
-  color: white;
+  color: var(--text-primary);
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
 }
 
@@ -132,7 +132,7 @@ const formatNum = (n: number) => formatNumber(n, 4);
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
 }
 
 @keyframes pulse {

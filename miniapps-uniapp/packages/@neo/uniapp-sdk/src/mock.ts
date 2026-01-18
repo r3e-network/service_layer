@@ -11,6 +11,11 @@ import type {
 } from "./types";
 
 const generateId = () => `mock-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+const encodeBase64 = (value: string) => {
+  if (typeof btoa === "function") return btoa(value);
+  if (typeof Buffer !== "undefined") return Buffer.from(value, "utf8").toString("base64");
+  return value;
+};
 
 export const mockSDK: MiniAppSDK = {
   // New interface methods
@@ -29,6 +34,10 @@ export const mockSDK: MiniAppSDK = {
     },
     async switchChain(chainId: string) {
       console.log("[MockSDK] switchChain called:", chainId);
+    },
+    async signMessage(message: string) {
+      console.log("[MockSDK] signMessage:", message);
+      return `mock-signature-${encodeBase64(message).slice(0, 12)}`;
     },
     async invokeIntent(requestId: string) {
       console.log("[MockSDK] invokeIntent:", requestId);
@@ -57,6 +66,10 @@ export const mockSDK: MiniAppSDK = {
         },
       };
     },
+    async payGASAndInvoke(appId, amount, memo): Promise<PayGASResponse> {
+      const base = await this.payGAS(appId, amount, memo);
+      return { ...base, txid: generateId() };
+    },
   },
   governance: {
     async vote(appId, proposalId, amount, support): Promise<VoteBNEOResponse> {
@@ -77,6 +90,10 @@ export const mockSDK: MiniAppSDK = {
           params: [proposalId, amount, support],
         },
       };
+    },
+    async voteAndInvoke(appId, proposalId, amount, support): Promise<VoteBNEOResponse> {
+      const base = await this.vote(appId, proposalId, amount, support);
+      return { ...base, txid: generateId() };
     },
     async getCandidates(): Promise<CandidatesResponse> {
       console.log("[MockSDK] getCandidates called");
@@ -146,6 +163,39 @@ export const mockSDK: MiniAppSDK = {
         sources: ["mock"],
       };
     },
+    async getPrices() {
+      console.log("[MockSDK] getPrices called");
+      return {
+        neo: { usd: 12.45, usd_24h_change: 1.2 },
+        gas: { usd: 4.32, usd_24h_change: -0.4 },
+        timestamp: Date.now(),
+      };
+    },
+    async getNetworkStats() {
+      console.log("[MockSDK] getNetworkStats called");
+      return {
+        blockHeight: 1234567,
+        validatorCount: 7,
+        network: "neo-n3-mainnet",
+        version: "mock-1.0",
+      };
+    },
+    async getRecentTransactions(limit = 10) {
+      console.log("[MockSDK] getRecentTransactions called:", limit);
+      const count = Math.max(1, Math.min(limit, 5));
+      return {
+        blockHeight: 1234567,
+        transactions: Array.from({ length: count }, () => ({
+          txid: generateId(),
+          blockHeight: 1234567,
+          blockTime: Date.now(),
+          sender: "NQiQvS9s5XbPpKXt9g6z4yUaqE8h4PGnRy",
+          size: 123,
+          sysfee: "0.1",
+          netfee: "0.01",
+        })),
+      };
+    },
   },
   events: {
     async list(params: { app_id?: string; event_name?: string; chain_id?: string; limit?: number } = {}) {
@@ -168,6 +218,37 @@ export const mockSDK: MiniAppSDK = {
         ],
         has_more: false,
         last_id: eventId,
+      };
+    },
+  },
+  transactions: {
+    async list(params: { app_id?: string; chain_id?: string; limit?: number } = {}) {
+      console.log("[MockSDK] transactions.list:", params);
+      await new Promise((r) => setTimeout(r, 300));
+      const txId = generateId();
+      return {
+        transactions: [
+          {
+            id: txId,
+            tx_hash: `0x${txId}`,
+            request_id: generateId(),
+            from_service: "mock",
+            tx_type: "contract",
+            chain_id: params.chain_id || "neo-n3-mainnet",
+            contract_address: "0x0000000000000000000000000000000000000000",
+            method_name: "transfer",
+            params: {},
+            gas_consumed: 0.1,
+            status: "confirmed",
+            retry_count: 0,
+            error_message: null,
+            rpc_endpoint: null,
+            submitted_at: new Date().toISOString(),
+            confirmed_at: new Date().toISOString(),
+          },
+        ],
+        has_more: false,
+        last_id: txId,
       };
     },
   },

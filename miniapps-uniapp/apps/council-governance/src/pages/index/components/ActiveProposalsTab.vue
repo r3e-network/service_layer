@@ -171,7 +171,7 @@ const getQuorumPercent = (p: any) => {
   color: #00e599;
 }
 .text-primary {
-  color: white;
+  color: var(--text-primary);
 }
 
 .soft-loading-neo {
@@ -301,7 +301,7 @@ const getQuorumPercent = (p: any) => {
 }
 .candidate-status {
   font-weight: 900;
-  color: white;
+  color: var(--text-primary);
   font-size: 18px;
   text-transform: uppercase;
 }
@@ -337,7 +337,7 @@ const getQuorumPercent = (p: any) => {
   font-family: $font-mono;
   font-size: 11px;
   font-weight: 600;
-  color: white;
+  color: var(--text-primary);
   background: rgba(255, 255, 255, 0.1);
   padding: 4px 8px;
   border-radius: 4px;
@@ -346,7 +346,7 @@ const getQuorumPercent = (p: any) => {
 .proposal-title-neo {
   font-size: 18px;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
   letter-spacing: -0.01em;
   margin-bottom: 16px;
   display: block;

@@ -8,9 +8,10 @@
     }
   ],
   "globalStyle": {
-    "navigationBarTextStyle": "white",
+    "navigationBarTextStyle": "black",
     "navigationBarTitleText": "NeoBurger",
-    "navigationBarBackgroundColor": "#1a1a2e",
-    "backgroundColor": "#0f0f1a"
+    "navigationBarBackgroundColor": "#f7f2ea",
+    "backgroundColor": "#f7f2ea",
+    "navigationStyle": "custom"
   }
 }

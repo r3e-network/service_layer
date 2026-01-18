@@ -16,6 +16,7 @@ vi.mock("@neo/uniapp-sdk", () => ({
     switchChain: vi.fn(),
     getContractAddress: mockGetContractAddress,
     invokeContract: mockInvokeContract,
+    invokeRead: vi.fn().mockResolvedValue({ stack: [{ value: "0", type: "Integer" }] }),
   }),
   waitForSDK: vi.fn().mockResolvedValue({
     invoke: vi.fn().mockResolvedValue({ stack: [{ value: "0" }] }),
@@ -85,9 +86,7 @@ describe("Compound Capsule MiniApp", () => {
     expect(mockInvokeContract).not.toHaveBeenCalled();
   });
 
-  it("invokes CreateCapsule with correct unlock time", async () => {
-    const now = 1_700_000_000_000;
-    const dateSpy = vi.spyOn(Date, "now").mockReturnValue(now);
+  it("invokes createCapsule with correct lock days", async () => {
     wrapper = mount(IndexPage);
     await flushPromises();
     await nextTick();
@@ -96,20 +95,18 @@ describe("Compound Capsule MiniApp", () => {
     wrapper.vm.selectedPeriod = 30;
     await wrapper.vm.createCapsule();
 
-    const expectedUnlock = now + 30 * 24 * 60 * 60 * 1000;
     expect(mockInvokeContract).toHaveBeenCalledWith(
       expect.objectContaining({
         scriptHash: "0x123",
-        operation: "CreateCapsule",
+        operation: "createCapsule",
         args: [
           { type: "Hash160", value: "NX_TEST" },
           { type: "Integer", value: "10" },
-          { type: "Integer", value: String(expectedUnlock) },
+          { type: "Integer", value: "30" },
         ],
       }),
     );
     expect(wrapper.vm.status.msg).toBe("Capsule created");
     expect(wrapper.vm.amount).toBe("");
-    dateSpy.mockRestore();
   });
 });
