@@ -50,7 +50,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -87,7 +87,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -124,7 +124,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -167,7 +167,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -204,7 +204,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -241,7 +241,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -281,7 +281,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -318,7 +318,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -355,7 +355,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -392,7 +392,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -429,7 +429,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -466,7 +466,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -503,7 +503,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -540,7 +540,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -577,7 +577,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -614,7 +614,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -651,7 +651,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -688,7 +688,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -725,7 +725,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -762,7 +762,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -799,7 +799,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -836,7 +836,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -873,7 +873,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -910,7 +910,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -950,7 +950,7 @@ importers:
         version: 5.8.0
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -1000,8 +1000,8 @@ importers:
         specifier: ^1.4.1
         version: 1.4.1
       jspdf:
-        specifier: ^2.5.1
-        version: 2.5.2
+        specifier: ^4.0.0
+        version: 4.0.0
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -1068,7 +1068,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -1108,7 +1108,7 @@ importers:
         version: 5.8.0
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -1161,8 +1161,8 @@ importers:
         specifier: ^1.4.1
         version: 1.4.1
       jspdf:
-        specifier: ^2.5.1
-        version: 2.5.2
+        specifier: ^4.0.0
+        version: 4.0.0
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -1229,7 +1229,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -1266,7 +1266,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -1303,7 +1303,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -1343,7 +1343,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -1380,7 +1380,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -1417,7 +1417,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -1457,7 +1457,7 @@ importers:
         version: 1.11.1
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -1590,7 +1590,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -1627,7 +1627,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -1664,7 +1664,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -1701,7 +1701,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -1738,7 +1738,7 @@ importers:
     dependencies:
       '@dcloudio/uni-app':
         specifier: 3.0.0-4060620250520001
-        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
+        version: 3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components':
         specifier: 3.0.0-4060620250520001
         version: 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -2344,6 +2344,9 @@ packages:
 
   '@dcloudio/types@3.4.28':
     resolution: {integrity: sha512-uVIRp1VLBkrL0LaGLgIS/sT3bl1zzVTKZQbfqJEQcSAvBffRdirbSh5OvOHfA1WV5lmCAGfjhKsUQouNEVUQHg==}
+
+  '@dcloudio/types@3.4.29':
+    resolution: {integrity: sha512-7uBInqqYLoLmQMqlzW4FsYCEHTUgTkrtZVsFGgQnJT7ZCA12U9y0ovrqAM1ZWkLruHYfOS7xIqO77Who6UBLJg==}
 
   '@dcloudio/uni-app@3.0.0-4060620250520001':
     resolution: {integrity: sha512-lF9bNbAyeGNP0uAgpcdby5+Wbf4gdvjtW2J/DIWe5E0zoFfTDJkyiE3Zg90i3uF7aZ4unw/hwBdlGLZ6xuQIAg==}
@@ -3615,6 +3618,9 @@ packages:
   '@types/node@25.0.3':
     resolution: {integrity: sha512-W609buLVRVmeW693xKfzHeIV6nJGGz98uCPfeXI1ELMLXVeKYZ9m15fAMSaUPBHYLGFsVRcMmSCksQOrZV9BYA==}
 
+  '@types/pako@2.0.4':
+    resolution: {integrity: sha512-VWDCbrLeVXJM9fihYodcLiIv0ku+AlOa/TQ1SvYOaBuyrSKgEcro95LJyIsJ4vSo6BXIxOKxiJAat04CmST9Fw==}
+
   '@types/qrcode@1.5.6':
     resolution: {integrity: sha512-te7NQcV2BOvdj2b1hCAHzAoMNuj65kNBMz0KBaxM6c3VGBOhU0dURQKOtH8CFNI/dsKkwlv32p26qYQTWoB5bw==}
 
@@ -3980,11 +3986,6 @@ packages:
   asynckit@0.4.0:
     resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
 
-  atob@2.1.2:
-    resolution: {integrity: sha512-Wm6ukoaOGJi/73p/cl2GvLjTI5JM1k/O14isD73YML8StrH/7/lRFgmg8nICZgD3bZZvjwCGxtMOD3wWNAu8cg==}
-    engines: {node: '>= 4.5.0'}
-    hasBin: true
-
   atomic-sleep@1.0.0:
     resolution: {integrity: sha512-kNOjDqAh7px0XWNI+4QbzoiR/nTkHAWNud2uvnJquD1/x5a7EQZMJT0AczqK0Qn67oY/TTQ1LbUKajZpp3I9tQ==}
     engines: {node: '>=8.0.0'}
@@ -4151,11 +4152,6 @@ packages:
 
   bs58@6.0.0:
     resolution: {integrity: sha512-PD0wEnEYg6ijszw/u8s+iI3H17cTymlrwkKhDhPZq+Sokl3AU4htyBFTjAeNAlCCmg0f53g6ih3jATyCKftTfw==}
-
-  btoa@1.2.1:
-    resolution: {integrity: sha512-SB4/MIGlsiVkMcHmT+pSmIPoNDoHg+7cMzmt3Uxt628MTz2487DKSqK/fuhFBrkuqrYv5UCEnACpF4dTFNKc/g==}
-    engines: {node: '>= 0.4.0'}
-    hasBin: true
 
   buffer-from@1.1.2:
     resolution: {integrity: sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==}
@@ -4472,9 +4468,6 @@ packages:
     resolution: {integrity: sha512-IGBwjF7tNk3cwypFNH/7bfzBcgSCbaMOD3GsaY1AU/JRrnHnYgEM0+9kQt52iZxjNsjBtJYtao146V+f8jFZNw==}
     engines: {node: '>=10'}
 
-  dompurify@2.5.8:
-    resolution: {integrity: sha512-o1vSNgrmYMQObbSSvF/1brBYEQPHhV1+gsmrusO7/GXtp1T9rCS8cXFqVxK/9crT1jA6Ccv+5MTSjBNqr7Sovw==}
-
   dompurify@3.3.1:
     resolution: {integrity: sha512-qkdCKzLNtrgPFP1Vo+98FRzJnBRGe4ffyCea9IwHB1fyxPOeNTHpLKYGd4Uk9xvNoH0ZoOjwZxNptyMwqrId1Q==}
 
@@ -4650,6 +4643,9 @@ packages:
 
   fast-levenshtein@2.0.6:
     resolution: {integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==}
+
+  fast-png@6.4.0:
+    resolution: {integrity: sha512-kAqZq1TlgBjZcLr5mcN6NP5Rv4V2f22z00c3g8vRrwkcqjerx7BEhPbOnWCPqaHUl2XWQBJQvOT/FQhdMT7X/Q==}
 
   fast-stable-stringify@1.0.0:
     resolution: {integrity: sha512-wpYMUmFu5f00Sm0cj2pfivpmawLZ0NKdviQ4w9zJeR8JVtOpOxHmLaJuj0vxvGqMJQWyP/COUkF75/57OKyRag==}
@@ -4887,6 +4883,9 @@ packages:
     resolution: {integrity: sha512-CYdFeFexxhv/Bcny+Q0BfOV+ltRlJcd4BBZBYFX/O0u4npJrgZtIcjokegtiSMAvlMTJ+Koq0GBCc//3bueQxw==}
     engines: {node: '>=8'}
 
+  iobuffer@5.4.0:
+    resolution: {integrity: sha512-DRebOWuqDvxunfkNJAlc3IzWIPD5xVxwUNbHr7xKB8E6aLJxIPfNX3CoMJghcFjpv6RWQsrcJbghtEwSPoJqMA==}
+
   ipaddr.js@1.9.1:
     resolution: {integrity: sha512-0KI/607xoxSToH7GjN1FfSbLoU0+btTicjsQSWQlh/hZykN8KpmMf7uYwPW3R+akZ6R/w18ZlXSHBYXiYUPO3g==}
     engines: {node: '>= 0.10'}
@@ -5060,8 +5059,8 @@ packages:
   jsonpath@1.1.1:
     resolution: {integrity: sha512-l6Cg7jRpixfbgoWgkrl77dgEj8RPvND0wMH6TwQmi9Qs4TFfS9u5cUFnbeKTwj5ga5Y3BTGGNI28k117LJ009w==}
 
-  jspdf@2.5.2:
-    resolution: {integrity: sha512-myeX9c+p7znDWPk0eTrujCzNjT+CXdXyk7YmJq5nD5V7uLLKmSXnlQ/Jn/kuo3X09Op70Apm0rQSnFWyGK8uEQ==}
+  jspdf@4.0.0:
+    resolution: {integrity: sha512-w12U97Z6edKd2tXDn3LzTLg7C7QLJlx0BPfM3ecjK2BckUl9/81vZ+r5gK4/3KQdhAcEZhENUxRhtgYBj75MqQ==}
 
   keyvaluestorage-interface@1.0.0:
     resolution: {integrity: sha512-8t6Q3TclQ4uZynJY9IGr2+SsIGwK9JHcO6ootkHCGA0CrQCRy+VkouYNO2xicET6b9al7QKzpebNow+gkpCL8g==}
@@ -5413,6 +5412,9 @@ packages:
 
   pako@1.0.11:
     resolution: {integrity: sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==}
+
+  pako@2.1.0:
+    resolution: {integrity: sha512-w+eufiZ1WuJYgPXbV/PO3NCMEc3xqylkKHzp8bxp1uW4qaSNQUkwmLLEc3kKsfz8lpV1F8Ht3U1Cm+9Srog2ug==}
 
   parse-asn1@5.1.9:
     resolution: {integrity: sha512-fIYNuZ/HastSb80baGOuPRo1O9cf4baWw5WsAp7dBuUzeTD/BoaG8sVTdlPFksBE2lF21dN+A1AnrpIjSWqHHg==}
@@ -7352,9 +7354,11 @@ snapshots:
 
   '@dcloudio/types@3.4.28': {}
 
-  '@dcloudio/uni-app@3.0.0-4060620250520001(@dcloudio/types@3.4.28)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))':
+  '@dcloudio/types@3.4.29': {}
+
+  '@dcloudio/uni-app@3.0.0-4060620250520001(@dcloudio/types@3.4.29)(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))':
     dependencies:
-      '@dcloudio/types': 3.4.28
+      '@dcloudio/types': 3.4.29
       '@dcloudio/uni-cloud': 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-components': 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
       '@dcloudio/uni-console': 3.0.0-4060620250520001(postcss@8.5.6)(rollup@4.54.0)(vue@3.5.26(typescript@5.9.3))
@@ -9636,6 +9640,8 @@ snapshots:
     dependencies:
       undici-types: 7.16.0
 
+  '@types/pako@2.0.4': {}
+
   '@types/qrcode@1.5.6':
     dependencies:
       '@types/node': 25.0.3
@@ -10725,8 +10731,6 @@ snapshots:
 
   asynckit@0.4.0: {}
 
-  atob@2.1.2: {}
-
   atomic-sleep@1.0.0: {}
 
   autoprefixer@10.4.23(postcss@8.5.6):
@@ -10947,8 +10951,6 @@ snapshots:
   bs58@6.0.0:
     dependencies:
       base-x: 5.0.1
-
-  btoa@1.2.1: {}
 
   buffer-from@1.1.2: {}
 
@@ -11287,9 +11289,6 @@ snapshots:
 
   domain-browser@4.22.0: {}
 
-  dompurify@2.5.8:
-    optional: true
-
   dompurify@3.3.1:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
@@ -11550,6 +11549,12 @@ snapshots:
       micromatch: 4.0.8
 
   fast-levenshtein@2.0.6: {}
+
+  fast-png@6.4.0:
+    dependencies:
+      '@types/pako': 2.0.4
+      iobuffer: 5.4.0
+      pako: 2.1.0
 
   fast-stable-stringify@1.0.0:
     optional: true
@@ -11818,6 +11823,8 @@ snapshots:
 
   invert-kv@3.0.1: {}
 
+  iobuffer@5.4.0: {}
+
   ipaddr.js@1.9.1: {}
 
   iron-webcrypto@1.2.1: {}
@@ -12018,16 +12025,15 @@ snapshots:
       static-eval: 2.0.2
       underscore: 1.12.1
 
-  jspdf@2.5.2:
+  jspdf@4.0.0:
     dependencies:
       '@babel/runtime': 7.28.6
-      atob: 2.1.2
-      btoa: 1.2.1
+      fast-png: 6.4.0
       fflate: 0.8.2
     optionalDependencies:
       canvg: 3.0.11
       core-js: 3.47.0
-      dompurify: 2.5.8
+      dompurify: 3.3.1
       html2canvas: 1.4.1
 
   keyvaluestorage-interface@1.0.0: {}
@@ -12415,6 +12421,8 @@ snapshots:
   package-json-from-dist@1.0.1: {}
 
   pako@1.0.11: {}
+
+  pako@2.1.0: {}
 
   parse-asn1@5.1.9:
     dependencies:
