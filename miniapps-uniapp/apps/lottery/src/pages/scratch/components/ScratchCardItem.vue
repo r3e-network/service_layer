@@ -7,7 +7,7 @@
       <text class="card-name">{{ lottery.name }}</text>
       <text class="card-price">{{ lottery.priceDisplay }}</text>
       <view class="card-info">
-        <text class="max-prize">最高 {{ lottery.maxJackpotDisplay }}</text>
+      <text class="max-prize">{{ t("maxPrize") }} {{ lottery.maxJackpotDisplay }}</text>
       </view>
     </view>
   </view>
@@ -15,6 +15,9 @@
 
 <script setup lang="ts">
 import type { LotteryTypeInfo } from '../../../shared/composables/useLotteryTypes'
+import { useI18n } from '../../../composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   lottery: LotteryTypeInfo
@@ -29,8 +32,8 @@ const handleClick = () => emit('select', props.lottery)
 
 <style lang="scss" scoped>
 .scratch-card-item {
-  background: linear-gradient(145deg, #2d1a1a, #3d2020);
-  border: 2rpx solid rgba(#F59E0B, 0.3);
+  background: linear-gradient(145deg, var(--bg-card), var(--bg-elevated));
+  border: 2rpx solid var(--lucky-gold-soft);
   border-radius: 16rpx;
   overflow: hidden;
   transition: transform 0.2s;
@@ -58,7 +61,7 @@ const handleClick = () => emit('select', props.lottery)
 .card-name {
   display: block;
   font-size: 32rpx;
-  color: #F59E0B;
+  color: var(--lucky-gold-text);
   font-weight: bold;
   margin-bottom: 8rpx;
 }
@@ -66,14 +69,14 @@ const handleClick = () => emit('select', props.lottery)
 .card-price {
   display: block;
   font-size: 28rpx;
-  color: #D4A574;
+  color: var(--text-muted);
   margin-bottom: 12rpx;
 }
 
 .card-info {
   .max-prize {
     font-size: 24rpx;
-    color: #DC2626;
+    color: var(--lucky-red-text);
   }
 }
 </style>

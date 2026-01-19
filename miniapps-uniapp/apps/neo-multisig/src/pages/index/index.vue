@@ -116,7 +116,32 @@ const formatDate = (ts: string) => new Date(ts).toLocaleDateString();
 @use "@/shared/styles/tokens.scss" as *;
 
 .container {
+  --multisig-accent: var(--status-success);
+  --multisig-accent-muted: rgba(0, 229, 153, 0.7);
+  --multisig-input-bg: rgba(255, 255, 255, 0.05);
+  --multisig-input-text: var(--text-primary);
+  --multisig-border: rgba(255, 255, 255, 0.1);
+  --multisig-status-warning-bg: rgba(255, 193, 7, 0.1);
+  --multisig-status-info-bg: rgba(56, 189, 248, 0.15);
+  --multisig-status-success-bg: rgba(0, 229, 153, 0.1);
+  --multisig-status-error-bg: rgba(239, 68, 68, 0.12);
+  --multisig-status-muted-bg: rgba(255, 255, 255, 0.08);
+  --multisig-status-muted-text: rgba(255, 255, 255, 0.7);
+
   padding: 24px;
+}
+
+:global(.theme-light) .container,
+:global([data-theme="light"]) .container {
+  --multisig-accent-muted: rgba(0, 170, 115, 0.8);
+  --multisig-input-bg: rgba(15, 23, 42, 0.04);
+  --multisig-border: rgba(15, 23, 42, 0.12);
+  --multisig-status-warning-bg: rgba(245, 158, 11, 0.16);
+  --multisig-status-info-bg: rgba(56, 189, 248, 0.18);
+  --multisig-status-success-bg: rgba(16, 185, 129, 0.18);
+  --multisig-status-error-bg: rgba(239, 68, 68, 0.18);
+  --multisig-status-muted-bg: rgba(15, 23, 42, 0.08);
+  --multisig-status-muted-text: rgba(15, 23, 42, 0.6);
 }
 
 .hero {
@@ -127,7 +152,7 @@ const formatDate = (ts: string) => new Date(ts).toLocaleDateString();
   font-size: 12px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(0, 229, 153, 0.7);
+  color: var(--multisig-accent-muted);
   display: block;
   margin-bottom: 12px;
 }
@@ -176,15 +201,15 @@ const formatDate = (ts: string) => new Date(ts).toLocaleDateString();
 
 .input {
   flex: 1;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--multisig-input-bg);
+  border: 1px solid var(--multisig-border);
   border-radius: 12px;
   padding: 12px;
-  color: white;
+  color: var(--multisig-input-text);
   font-size: 14px;
   
   &:focus {
-    border-color: #00E599;
+    border-color: var(--multisig-accent);
   }
 }
 
@@ -229,24 +254,24 @@ const formatDate = (ts: string) => new Date(ts).toLocaleDateString();
   border-radius: 4px;
   
   &.pending {
-    background: rgba(255, 193, 7, 0.1);
-    color: #ffd700;
+    background: var(--multisig-status-warning-bg);
+    color: var(--status-warning);
   }
   &.ready {
-    background: rgba(56, 189, 248, 0.15);
-    color: #38bdf8;
+    background: var(--multisig-status-info-bg);
+    color: var(--status-info);
   }
   &.broadcasted {
-    background: rgba(0, 229, 153, 0.1);
-    color: #00e599;
+    background: var(--multisig-status-success-bg);
+    color: var(--multisig-accent);
   }
   &.cancelled {
-    background: rgba(239, 68, 68, 0.12);
-    color: #ef4444;
+    background: var(--multisig-status-error-bg);
+    color: var(--status-error);
   }
   &.expired {
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.7);
+    background: var(--multisig-status-muted-bg);
+    color: var(--multisig-status-muted-text);
   }
 }
 

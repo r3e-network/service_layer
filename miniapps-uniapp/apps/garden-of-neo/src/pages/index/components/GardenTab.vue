@@ -345,7 +345,7 @@ watch(address, async () => {
 .status-text-glass {
   font-weight: $font-weight-bold;
   text-transform: uppercase;
-  color: var(--text-primary);
+  color: inherit;
   letter-spacing: 0.05em;
   font-size: 14px;
 }
@@ -363,8 +363,8 @@ watch(address, async () => {
 
 .plot-glass {
   aspect-ratio: 1;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--garden-plot-bg);
+  border: 1px solid var(--garden-plot-border);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -372,16 +372,16 @@ watch(address, async () => {
   position: relative;
   transition: all 0.3s ease;
   backdrop-filter: blur(5px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--garden-plot-shadow);
 
   &.empty {
     border-style: dashed;
-    border-color: var(--text-muted);
-    background: rgba(0, 0, 0, 0.1);
+    border-color: var(--garden-plot-empty-border);
+    background: var(--garden-plot-empty-bg);
     opacity: 0.7;
     
     &:hover {
-      background: rgba(255, 255, 255, 0.1);
+      background: var(--garden-plot-empty-hover-bg);
       border-color: var(--text-secondary);
       opacity: 1;
     }
@@ -392,31 +392,31 @@ watch(address, async () => {
   }
 
   &.stage-seedling {
-    background: rgba(16, 185, 129, 0.1);
-    border-color: rgba(16, 185, 129, 0.3);
+    background: var(--garden-stage-seedling-bg);
+    border-color: var(--garden-stage-seedling-border);
   }
   &.stage-sprouting {
-    background: rgba(16, 185, 129, 0.2);
-    border-color: rgba(16, 185, 129, 0.4);
+    background: var(--garden-stage-sprouting-bg);
+    border-color: var(--garden-stage-sprouting-border);
   }
   &.stage-growing {
-    background: rgba(245, 158, 11, 0.2);
-    border-color: rgba(245, 158, 11, 0.4);
+    background: var(--garden-stage-growing-bg);
+    border-color: var(--garden-stage-growing-border);
   }
   &.stage-blooming {
-    background: rgba(236, 72, 153, 0.2);
-    border-color: rgba(236, 72, 153, 0.4);
+    background: var(--garden-stage-blooming-bg);
+    border-color: var(--garden-stage-blooming-border);
   }
   &.stage-mature {
-    background: rgba(16, 185, 129, 0.3);
-    border-color: rgba(16, 185, 129, 0.5);
-    box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+    background: var(--garden-stage-mature-bg);
+    border-color: var(--garden-stage-mature-border);
+    box-shadow: var(--garden-stage-mature-shadow);
   }
 }
 
 .plant-icon-glass {
   font-size: 48px;
-  filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2));
+  filter: drop-shadow(var(--garden-plant-shadow));
   &.ready {
     animation: glass-bounce 1.5s infinite ease-in-out;
   }
@@ -431,13 +431,13 @@ watch(address, async () => {
   position: absolute;
   top: -8px;
   right: -8px;
-  background: linear-gradient(135deg, #34d399, #10b981);
-  color: var(--text-primary);
+  background: linear-gradient(135deg, var(--garden-ready-start), var(--garden-ready-end));
+  color: var(--garden-ready-text);
   font-size: 10px;
   font-weight: $font-weight-black;
   padding: 4px 8px;
   border-radius: 12px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: var(--garden-ready-shadow);
   z-index: 10;
 }
 
@@ -451,7 +451,7 @@ watch(address, async () => {
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--garden-growth-bg);
   padding: 4px;
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
@@ -475,15 +475,15 @@ watch(address, async () => {
   align-items: center;
   gap: $space-6;
   padding: $space-4;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--garden-seed-item-bg);
+  border: 1px solid var(--garden-seed-item-border);
   border-radius: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
   backdrop-filter: blur(5px);
   
   &:active {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--garden-seed-item-active-bg);
     transform: scale(0.98);
   }
 }
@@ -491,12 +491,12 @@ watch(address, async () => {
 .seed-icon-wrapper-glass {
   width: 56px;
   height: 56px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--garden-seed-icon-bg);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--garden-seed-icon-border);
 }
 
 .seed-icon {
@@ -518,15 +518,15 @@ watch(address, async () => {
   color: var(--text-secondary);
   margin-top: 4px;
   display: inline-block;
-  background: rgba(0,0,0,0.3);
+  background: var(--garden-seed-time-bg);
   padding: 2px 8px;
   border-radius: 12px;
 }
 
 .seed-price-tag-glass {
-  background: rgba(16, 185, 129, 0.2);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #34d399;
+  background: var(--garden-price-bg);
+  border: 1px solid var(--garden-price-border);
+  color: var(--garden-price-text);
   padding: 8px 12px;
   border-radius: 12px;
   text-align: right;

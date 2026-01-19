@@ -101,7 +101,7 @@
               </view>
               <view>
                  <text class="block text-sm font-bold">{{ shortenAddress(w.address) }}</text>
-                 <text class="block text-xs opacity-60">Round #{{ w.round }}</text>
+                <text class="block text-xs opacity-60">{{ t("roundLabel", { round: w.round }) }}</text>
               </view>
             </view>
             <text class="text-green-400 font-bold">{{ formatNum(w.prize) }} GAS</text>
@@ -349,14 +349,14 @@ onMounted(() => {
 }
 
 .glow-text {
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  text-shadow: var(--lottery-glow, 0 0 10px rgba(255, 255, 255, 0.5));
 }
 
 .text-gold {
-  color: #fbbf24;
+  color: var(--status-warning, #fbbf24);
 }
 
 .border-gold {
-  border: 1px solid rgba(251, 191, 36, 0.4);
+  border: 1px solid var(--lottery-gold-border, rgba(251, 191, 36, 0.4));
 }
 </style>

@@ -304,10 +304,36 @@ const broadcast = async () => {
 @use "@/shared/styles/tokens.scss" as *;
 
 .page-container {
+  --multisig-accent: var(--status-success);
+  --multisig-accent-soft: rgba(0, 229, 153, 0.12);
+  --multisig-accent-strong: rgba(0, 229, 153, 0.2);
+  --multisig-accent-text: #0b0c16;
+  --multisig-surface: rgba(255, 255, 255, 0.04);
+  --multisig-surface-strong: rgba(255, 255, 255, 0.08);
+  --multisig-border: rgba(255, 255, 255, 0.1);
+  --multisig-border-subtle: rgba(255, 255, 255, 0.05);
+  --multisig-divider: rgba(255, 255, 255, 0.05);
+  --multisig-input-bg: rgba(255, 255, 255, 0.05);
+  --multisig-input-text: var(--text-primary);
+
   padding: 24px;
   background: var(--bg-body);
   min-height: 100vh;
-  color: white;
+  color: var(--text-primary);
+}
+
+:global(.theme-light) .page-container,
+:global([data-theme="light"]) .page-container {
+  --multisig-accent-soft: rgba(0, 229, 153, 0.18);
+  --multisig-accent-strong: rgba(0, 229, 153, 0.22);
+  --multisig-accent-text: #0b0c16;
+  --multisig-surface: rgba(15, 23, 42, 0.04);
+  --multisig-surface-strong: rgba(15, 23, 42, 0.08);
+  --multisig-border: rgba(15, 23, 42, 0.12);
+  --multisig-border-subtle: rgba(15, 23, 42, 0.08);
+  --multisig-divider: rgba(15, 23, 42, 0.1);
+  --multisig-input-bg: rgba(15, 23, 42, 0.04);
+  --multisig-input-text: var(--text-primary);
 }
 
 .nav-header {
@@ -359,16 +385,16 @@ const broadcast = async () => {
   text-transform: uppercase;
   font-weight: 700;
 
-  &.pending { color: #ffd700; }
-  &.ready { color: #38bdf8; }
-  &.broadcasted { color: #00E599; }
-  &.cancelled { color: #ef4444; }
-  &.expired { color: rgba(255, 255, 255, 0.6); }
+  &.pending { color: var(--status-warning); }
+  &.ready { color: var(--status-info); }
+  &.broadcasted { color: var(--multisig-accent); }
+  &.cancelled { color: var(--status-error); }
+  &.expired { color: var(--text-muted); }
 }
 
 .progress-bar {
   height: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--multisig-border);
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 8px;
@@ -376,7 +402,7 @@ const broadcast = async () => {
 
 .progress-fill {
   height: 100%;
-  background: #00E599;
+  background: var(--multisig-accent);
   transition: width 0.3s ease;
 }
 
@@ -421,8 +447,8 @@ const broadcast = async () => {
 .raw-input {
   width: 100%;
   height: 80px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--multisig-input-bg);
+  border: 1px solid var(--multisig-border);
   border-radius: 8px;
   padding: 8px;
   font-size: 10px;
@@ -435,7 +461,7 @@ const broadcast = async () => {
   justify-content: space-between;
   margin-bottom: 12px;
   padding: 12px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--multisig-surface);
   border-radius: 8px;
 }
 
@@ -461,8 +487,8 @@ const broadcast = async () => {
   border-radius: 4px;
   margin-top: 6px;
 
-  &.signed { background: rgba(0, 229, 153, 0.2); color: #00E599; }
-  &.pending { background: rgba(255, 255, 255, 0.1); color: var(--text-secondary); }
+  &.signed { background: var(--multisig-accent-strong); color: var(--multisig-accent-text); }
+  &.pending { background: var(--multisig-surface-strong); color: var(--text-secondary); }
 }
 
 .actions {
@@ -477,7 +503,7 @@ const broadcast = async () => {
 }
 
 .success-text {
-  color: #00E599;
+  color: var(--multisig-accent);
   font-weight: 700;
 }
 

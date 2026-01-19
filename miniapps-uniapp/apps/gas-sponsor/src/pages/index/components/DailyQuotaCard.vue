@@ -56,32 +56,32 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  color: var(--gas-text-secondary);
   letter-spacing: 0.05em;
 }
 
 .quota-percent {
   font-size: 16px;
   font-weight: 800;
-  color: #7000FF;
+  color: var(--gas-quota-fill);
   font-family: $font-family;
 }
 
 .quota-bar-container {
   height: 8px;
-  background: var(--bg-card, rgba(255, 255, 255, 0.05));
+  background: var(--gas-quota-bar-bg);
   border-radius: 4px;
   margin: 8px 0;
   position: relative;
   overflow: hidden;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0 1px 2px var(--shadow-color);
 }
 
 .quota-fill {
   height: 100%;
-  background: #7000FF;
+  background: var(--gas-quota-fill);
   transition: width 0.5s ease-out;
-  box-shadow: 0 0 10px rgba(112, 0, 255, 0.4);
+  box-shadow: var(--gas-quota-fill-shadow);
   border-radius: 4px;
 }
 
@@ -90,7 +90,7 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   justify-content: space-between;
   font-size: 10px;
   margin-top: 4px;
-  color: var(--text-muted, rgba(255, 255, 255, 0.4));
+  color: var(--gas-text-muted);
   font-weight: 500;
 }
 
@@ -101,7 +101,7 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   display: block;
   margin-top: 12px;
   margin-bottom: 16px;
-  color: var(--text-primary, rgba(255, 255, 255, 0.8));
+  color: var(--gas-text);
 }
 
 .info-row {
@@ -109,7 +109,7 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--gas-divider);
   &:last-child {
     border-bottom: none;
   }
@@ -119,18 +119,18 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  opacity: 0.5;
+  color: var(--gas-text-muted);
 }
 
 .info-value {
   font-size: 13px;
   font-weight: 600;
   font-family: $font-family;
-  color: var(--text-primary);
+  color: var(--gas-text);
 
   &.highlight {
-    color: #00E599;
-    text-shadow: 0 0 10px rgba(0, 229, 153, 0.2);
+    color: var(--gas-highlight);
+    text-shadow: var(--gas-highlight-shadow);
   }
 }
 </style>

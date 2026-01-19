@@ -186,8 +186,8 @@ const formatMeta = (item: any) => {
 .machine-tag {
   font-size: 10px;
   padding: 2px 6px;
-  background: rgba(0, 229, 153, 0.15);
-  color: #00e599;
+  background: var(--gacha-tag-bg);
+  color: var(--gacha-tag-text);
   border-radius: 6px;
 }
 
@@ -211,7 +211,7 @@ const formatMeta = (item: any) => {
   }
   .sale-price {
     font-weight: 800;
-    color: #fbbf24;
+    color: var(--gacha-accent-amber);
   }
 }
 .capsule-container {
@@ -225,9 +225,9 @@ const formatMeta = (item: any) => {
   width: 200px;
   height: 200px;
   border-radius: 50% 50% 10% 10%;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2), rgba(0, 229, 153, 0.05));
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 20px rgba(0, 229, 153, 0.2);
+  background: radial-gradient(circle at 30% 30%, var(--gacha-dome-sheen), var(--gacha-dome-tint));
+  border: 1px solid var(--gacha-dome-border);
+  box-shadow: var(--gacha-dome-shadow);
   position: relative;
   overflow: hidden;
   z-index: 2;
@@ -243,15 +243,15 @@ const formatMeta = (item: any) => {
 .capsule-decoration {
   position: absolute;
   font-size: 24px;
-  filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
+  filter: var(--gacha-capsule-shadow);
 }
 
 .machine-body {
   height: 100px;
-  background: #111;
+  background: var(--gacha-machine-body-bg);
   margin-top: -10px;
   border-radius: 0 0 12px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--gacha-machine-body-border);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -262,8 +262,8 @@ const formatMeta = (item: any) => {
 .coin-slot {
   width: 80%;
   height: 30px;
-  background: #222;
-  border: 1px solid #333;
+  background: var(--gacha-slot-bg);
+  border: 1px solid var(--gacha-slot-border);
   border-radius: 4px;
   display: flex;
   align-items: center;
@@ -276,7 +276,7 @@ const formatMeta = (item: any) => {
 
 .slot-text {
   font-size: 10px;
-  color: #FDE047;
+  color: var(--gacha-slot-text);
   font-weight: 700;
   letter-spacing: 0.1em;
 }
@@ -284,9 +284,9 @@ const formatMeta = (item: any) => {
 .dispenser-chute {
   width: 60px;
   height: 40px;
-  background: #000;
+  background: var(--gacha-chute-bg);
   border-radius: 4px 4px 0 0;
-  border: 1px solid #333;
+  border: 1px solid var(--gacha-slot-border);
   position: relative;
 }
 
@@ -305,7 +305,7 @@ const formatMeta = (item: any) => {
 }
 
 .play-btn {
-  box-shadow: 0 0 20px rgba(0, 229, 153, 0.3);
+  box-shadow: var(--gacha-play-shadow);
 }
 
 .status-card {
@@ -343,7 +343,7 @@ const formatMeta = (item: any) => {
   justify-content: space-between;
   align-items: center;
   padding: 8px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--gacha-row-bg);
   border-radius: 6px;
 }
 
@@ -371,12 +371,12 @@ const formatMeta = (item: any) => {
 }
 
 .item-stock {
-  color: #f87171;
+  color: var(--gacha-danger-text);
   font-size: 10px;
 }
 
 .item-chance {
-  color: #00E599;
+  color: var(--gacha-accent-green);
   font-weight: 700;
   font-size: 13px;
   font-family: $font-mono;
@@ -405,7 +405,7 @@ const formatMeta = (item: any) => {
 .result-rarity {
   font-size: 12px;
   text-transform: uppercase;
-  color: #FDE047;
+  color: var(--gacha-accent-yellow);
   letter-spacing: 0.1em;
   font-weight: 700;
 }
@@ -418,8 +418,8 @@ const formatMeta = (item: any) => {
 }
 
 @keyframes glow-pulse {
-  0% { border-color: #333; box-shadow: none; }
-  50% { border-color: #FDE047; box-shadow: 0 0 10px rgba(253, 224, 71, 0.3); }
-  100% { border-color: #333; box-shadow: none; }
+  0% { border-color: var(--gacha-slot-border); box-shadow: none; }
+  50% { border-color: var(--gacha-glow-border); box-shadow: var(--gacha-glow-shadow); }
+  100% { border-color: var(--gacha-slot-border); box-shadow: none; }
 }
 </style>

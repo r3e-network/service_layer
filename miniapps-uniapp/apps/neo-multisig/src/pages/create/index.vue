@@ -49,7 +49,7 @@
           :value="threshold"
           :min="1"
           :max="signers.length"
-          activeColor="#00E599"
+          activeColor="var(--multisig-accent)"
           @change="onThresholdChange"
         />
 
@@ -350,10 +350,44 @@ const formatGas = (value: string) => formatFixed8(value);
 @use "@/shared/styles/tokens.scss" as *;
 
 .page-container {
+  --multisig-accent: var(--status-success);
+  --multisig-accent-soft: rgba(0, 229, 153, 0.12);
+  --multisig-accent-strong: rgba(0, 229, 153, 0.2);
+  --multisig-accent-text: #0b0c16;
+  --multisig-surface: rgba(255, 255, 255, 0.04);
+  --multisig-surface-strong: rgba(255, 255, 255, 0.08);
+  --multisig-border: rgba(255, 255, 255, 0.1);
+  --multisig-border-subtle: rgba(255, 255, 255, 0.05);
+  --multisig-divider: rgba(255, 255, 255, 0.05);
+  --multisig-pill-bg: rgba(255, 255, 255, 0.05);
+  --multisig-pill-active-bg: rgba(0, 229, 153, 0.12);
+  --multisig-pill-active-text: var(--text-primary);
+  --multisig-remove: var(--status-error);
+  --multisig-highlight: var(--status-success);
+  --multisig-input-bg: rgba(255, 255, 255, 0.05);
+  --multisig-input-text: var(--text-primary);
+
   padding: 24px;
   background: var(--bg-body);
   min-height: 100vh;
-  color: white;
+  color: var(--text-primary);
+}
+
+:global(.theme-light) .page-container,
+:global([data-theme="light"]) .page-container {
+  --multisig-accent-soft: rgba(0, 229, 153, 0.18);
+  --multisig-accent-strong: rgba(0, 229, 153, 0.22);
+  --multisig-accent-text: #0b0c16;
+  --multisig-surface: rgba(15, 23, 42, 0.04);
+  --multisig-surface-strong: rgba(15, 23, 42, 0.08);
+  --multisig-border: rgba(15, 23, 42, 0.12);
+  --multisig-border-subtle: rgba(15, 23, 42, 0.08);
+  --multisig-divider: rgba(15, 23, 42, 0.1);
+  --multisig-pill-bg: rgba(15, 23, 42, 0.05);
+  --multisig-pill-active-bg: rgba(0, 229, 153, 0.16);
+  --multisig-pill-active-text: #0b0c16;
+  --multisig-input-bg: rgba(15, 23, 42, 0.04);
+  --multisig-input-text: var(--text-primary);
 }
 
 .nav-header {
@@ -393,7 +427,7 @@ const formatGas = (value: string) => formatFixed8(value);
   font-weight: 700;
   margin-bottom: 8px;
   display: block;
-  color: #00E599;
+  color: var(--multisig-accent);
 }
 
 .step-desc {
@@ -419,18 +453,18 @@ const formatGas = (value: string) => formatFixed8(value);
 
 .input {
   flex: 1;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--multisig-input-bg);
+  border: 1px solid var(--multisig-border);
   border-radius: 8px;
   padding: 12px;
-  color: white;
+  color: var(--multisig-input-text);
   font-size: 12px;
   font-family: $font-mono;
 }
 
 .remove-btn {
   font-size: 20px;
-  color: #ef4444;
+  color: var(--multisig-remove);
 }
 
 .add-btn {
@@ -445,7 +479,7 @@ const formatGas = (value: string) => formatFixed8(value);
 .threshold-val {
   font-size: 48px;
   font-weight: 800;
-  color: #00E599;
+  color: var(--multisig-accent);
 }
 
 .threshold-total {
@@ -453,7 +487,7 @@ const formatGas = (value: string) => formatFixed8(value);
 }
 
 .summary-block {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--multisig-surface);
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 20px;
@@ -499,21 +533,21 @@ const formatGas = (value: string) => formatFixed8(value);
 .pill {
   padding: 8px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--multisig-border);
   color: var(--text-secondary);
   font-size: 12px;
   transition: all 0.2s ease;
 
   &.active {
-    border-color: #00E599;
-    color: white;
-    background: rgba(0, 229, 153, 0.12);
+    border-color: var(--multisig-accent);
+    color: var(--multisig-pill-active-text);
+    background: var(--multisig-pill-active-bg);
   }
 }
 
 .asset-toggle {
   display: flex;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--multisig-pill-bg);
   border-radius: 8px;
   padding: 4px;
 
@@ -526,8 +560,8 @@ const formatGas = (value: string) => formatFixed8(value);
     font-weight: 600;
 
     &.active {
-      background: #00E599;
-      color: black;
+      background: var(--multisig-accent);
+      color: var(--multisig-accent-text);
     }
   }
 }
@@ -547,11 +581,11 @@ const formatGas = (value: string) => formatFixed8(value);
   justify-content: space-between;
   margin-bottom: 12px;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--multisig-divider);
 }
 
 .highlight {
-  color: #00E599;
+  color: var(--multisig-highlight);
   font-weight: 700;
   font-size: 16px;
 }

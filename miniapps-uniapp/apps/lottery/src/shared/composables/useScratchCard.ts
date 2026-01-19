@@ -437,6 +437,15 @@ export function useScratchCard() {
    * Get prize tier label
    */
   const getPrizeTierLabel = (tier: number): string => {
+    const tierKeyMap: Record<number, string> = {
+      1: "tierBreakEven",
+      2: "tierDoubleUp",
+      3: "tierLuckyStrike",
+      4: "tierFortune",
+      5: "tierJackpot"
+    }
+    const key = tierKeyMap[tier]
+    if (key) return translate(key)
     const prizeTier = PRIZE_TIERS.find(t => t.tier === tier)
     return prizeTier?.label || ''
   }

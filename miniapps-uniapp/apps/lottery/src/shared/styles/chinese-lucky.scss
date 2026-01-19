@@ -19,10 +19,21 @@ $lucky-bg-secondary: #2d1010;
 $lucky-bg-card: #3d1515;
 $lucky-bg-elevated: #4d1a1a;
 
+// === LIGHT BACKGROUNDS ===
+$lucky-light-bg-primary: #fff7ef;
+$lucky-light-bg-secondary: #ffe9dc;
+$lucky-light-bg-card: #fff1e8;
+$lucky-light-bg-elevated: #ffe4d5;
+
 // === TEXT COLORS ===
 $lucky-text-primary: #FEF3C7;
 $lucky-text-secondary: #FDE68A;
 $lucky-text-muted: #D4A574;
+
+// === LIGHT TEXT COLORS ===
+$lucky-light-text-primary: #3d1515;
+$lucky-light-text-secondary: #6b2e2e;
+$lucky-light-text-muted: #8a5a4d;
 
 // === GRADIENTS ===
 $lucky-gradient-red: linear-gradient(135deg, $lucky-red 0%, $lucky-crimson 100%);
@@ -52,6 +63,13 @@ $lucky-shadow-glow: 0 0 20px rgba($lucky-gold, 0.3);
   --lucky-gold-dark: #{$lucky-gold-dark};
   --lucky-gold-light: #{$lucky-gold-light};
   --lucky-amber: #{$lucky-amber};
+  --lucky-gold-text: #{$lucky-gold};
+  --lucky-red-text: #{$lucky-red};
+  --lucky-gold-soft: rgba(245, 158, 11, 0.3);
+  --lucky-banner-text: #1a0a0a;
+  --lucky-banner-muted: rgba(26, 10, 10, 0.7);
+  --lucky-overlay: rgba(0, 0, 0, 0.85);
+  --lucky-scratch-coating: #c0c0c0;
 
   // Backgrounds
   --bg-primary: #{$lucky-bg-primary};
@@ -78,6 +96,43 @@ $lucky-shadow-glow: 0 0 20px rgba($lucky-gold, 0.3);
   --status-error: #{$lucky-red};
   --status-warning: #{$lucky-amber};
   --status-info: #{$lucky-gold-light};
+}
+
+:global(.theme-light) .theme-chinese-lucky {
+  --lucky-red: #b91c1c;
+  --lucky-red-dark: #991b1b;
+  --lucky-red-light: #dc2626;
+  --lucky-crimson: #9f1239;
+  --lucky-gold: #b45309;
+  --lucky-gold-dark: #92400e;
+  --lucky-gold-light: #d97706;
+  --lucky-amber: #f59e0b;
+  --lucky-gold-text: #92400e;
+  --lucky-red-text: #991b1b;
+  --lucky-gold-soft: rgba(180, 83, 9, 0.25);
+  --lucky-banner-text: #1a0a0a;
+  --lucky-banner-muted: rgba(26, 10, 10, 0.7);
+  --lucky-overlay: rgba(0, 0, 0, 0.6);
+  --lucky-scratch-coating: #d4d4d4;
+
+  --bg-primary: #{$lucky-light-bg-primary};
+  --bg-secondary: #{$lucky-light-bg-secondary};
+  --bg-card: #{$lucky-light-bg-card};
+  --bg-elevated: #{$lucky-light-bg-elevated};
+
+  --text-primary: #{$lucky-light-text-primary};
+  --text-secondary: #{$lucky-light-text-secondary};
+  --text-muted: #{$lucky-light-text-muted};
+
+  --border-color: rgba(180, 83, 9, 0.4);
+  --shadow-sm: 0 4px 14px rgba(185, 28, 28, 0.18);
+  --shadow-md: 0 4px 14px rgba(180, 83, 9, 0.2);
+  --shadow-lg: 0 0 18px rgba(180, 83, 9, 0.2);
+
+  --status-success: #b45309;
+  --status-error: #b91c1c;
+  --status-warning: #f59e0b;
+  --status-info: #d97706;
 }
 
 // === UTILITY CLASSES ===

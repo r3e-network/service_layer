@@ -12,6 +12,9 @@ export interface TrendingApp {
   name: string;
   icon: string;
   category: string;
+  entry_url: string;
+  supportedChains?: string[];
+  source?: string;
   score: number;
   stats: {
     users_24h: number;
@@ -27,6 +30,9 @@ export interface SearchResult {
   description: string;
   category: string;
   icon: string;
+  entry_url: string;
+  supportedChains?: string[];
+  source?: string;
   score: number;
 }
 

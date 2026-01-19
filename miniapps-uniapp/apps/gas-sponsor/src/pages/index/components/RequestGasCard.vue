@@ -92,54 +92,50 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
 .not-eligible-msg {
   text-align: center;
   padding: 30px;
-  background: rgba(239, 68, 68, 0.05); // Red tint
+  background: var(--gas-card-danger-bg);
   border-radius: 20px;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  border: 1px solid var(--gas-card-danger-border);
   backdrop-filter: blur(10px);
 }
 
 .warning-icon {
   font-size: 40px;
   margin-bottom: 12px;
-  filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.4));
+  filter: drop-shadow(var(--gas-card-danger-shadow));
 }
 
 .warning-title {
   font-weight: 800;
   font-size: 18px;
   margin-bottom: 8px;
-  color: #F87171;
+  color: var(--gas-card-danger-text);
   display: block;
 }
 
 .warning-desc {
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--gas-text);
   margin-bottom: 4px;
   display: block;
 }
 
 .fuel-pump-display {
-  background: linear-gradient(180deg, rgba(20, 20, 22, 0.6) 0%, rgba(10, 10, 12, 0.8) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--gas-pump-bg);
+  border: 1px solid var(--gas-pump-border);
   border-radius: 24px;
   padding: 30px;
   margin-bottom: 24px;
-  box-shadow: 
-    0 10px 30px rgba(0, 0, 0, 0.5),
-    inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  box-shadow: var(--gas-pump-shadow);
 }
 
 .pump-screen {
-  background: #0d1117;
+  background: var(--gas-pump-screen-bg);
   border-radius: 12px;
-  border: 1px solid rgba(0, 229, 153, 0.2);
+  border: 1px solid var(--gas-pump-screen-border);
   padding: 24px;
   text-align: center;
-  box-shadow: 
-    inset 0 0 20px rgba(0, 229, 153, 0.05),
-    0 0 10px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--gas-pump-screen-shadow);
   position: relative;
   overflow: hidden;
   
@@ -150,7 +146,7 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(0, 229, 153, 0.5), transparent);
+    background: var(--gas-pump-screen-sheen);
   }
 }
 
@@ -158,7 +154,7 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  color: rgba(0, 229, 153, 0.6);
+  color: var(--gas-pump-label);
   letter-spacing: 0.2em;
   margin-bottom: 8px;
   display: block;
@@ -168,19 +164,17 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   font-size: 56px;
   font-weight: 800;
   font-family: monospace, ui-monospace, SFMono-Regular; 
-  color: #00E599;
+  color: var(--gas-pump-amount);
   display: block;
   line-height: 1;
-  text-shadow: 
-    0 0 20px rgba(0, 229, 153, 0.5),
-    0 0 40px rgba(0, 229, 153, 0.1);
+  text-shadow: var(--gas-pump-amount-shadow);
   letter-spacing: -2px;
 }
 
 .pump-unit {
   font-size: 14px;
   font-weight: 700;
-  color: var(--text-secondary);
+  color: var(--gas-text-secondary);
   margin-top: 8px;
   display: block;
   letter-spacing: 0.05em;
@@ -195,7 +189,7 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
 
 .limit-text {
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--gas-text-muted);
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -209,24 +203,24 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
 .quick-btn {
   flex: 1;
   padding: 14px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--gas-quick-btn-bg);
+  border: 1px solid var(--gas-quick-btn-border);
   border-radius: 14px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  color: var(--text-primary);
+  color: var(--gas-text);
   position: relative;
   overflow: hidden;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(0, 229, 153, 0.3);
+    background: var(--gas-quick-btn-hover-bg);
+    border-color: var(--gas-quick-btn-hover-border);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--gas-quick-btn-hover-shadow);
     
     text {
-      color: #00E599;
+      color: var(--gas-quick-btn-hover-text);
     }
   }
 

@@ -46,11 +46,14 @@ body {
   --bg-secondary: #0b0c16;
   --bg-card: rgba(12, 13, 22, 0.8);
   --bg-elevated: #121322;
+  --bg-body: var(--bg-primary);
   --text-primary: #f8f8ff;
   --text-secondary: rgba(231, 232, 246, 0.72);
   --text-muted: rgba(196, 197, 219, 0.6);
   --border-color: rgba(159, 157, 243, 0.18);
   --shadow-color: rgba(0, 0, 0, 0.35);
+  --button-on-warning: #0b0c16;
+  --button-on-accent: #ffffff;
 
   // E-Robo Wallet Style CSS Variables
   --erobo-purple: #9f9df3;
@@ -82,11 +85,14 @@ body {
   --bg-secondary: #f2f3fb;
   --bg-card: rgba(255, 255, 255, 0.92);
   --bg-elevated: #ffffff;
+  --bg-body: var(--bg-primary);
   --text-primary: #1b1b2f;
   --text-secondary: #4a4a63;
   --text-muted: #7a7a96;
   --border-color: rgba(159, 157, 243, 0.2);
   --shadow-color: rgba(27, 27, 47, 0.08);
+  --button-on-warning: #0b0c16;
+  --button-on-accent: #ffffff;
   --erobo-purple: #7c7ab8;
   --erobo-purple-dark: #5a58a3;
   --erobo-pink: #f1a1c1;

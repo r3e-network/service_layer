@@ -1,10 +1,10 @@
 <template>
-  <AppLayout title="刮刮乐" class="theme-chinese-lucky">
+  <AppLayout :title="t('scratchTitle')" class="theme-chinese-lucky">
     <view class="scratch-gallery">
       <!-- Header -->
       <view class="gallery-header">
-        <text class="title">选择彩票</text>
-        <text class="subtitle">即刮即中，最高100倍</text>
+        <text class="title">{{ t("scratchSelectTicket") }}</text>
+        <text class="subtitle">{{ t("scratchSubtitle") }}</text>
       </view>
 
       <!-- Lottery Grid -->
@@ -21,7 +21,7 @@
             <text class="lottery-price">{{ lottery.priceDisplay }}</text>
           </view>
           <view class="card-info">
-            <text class="max-prize">最高 {{ lottery.maxJackpotDisplay }}</text>
+            <text class="max-prize">{{ t("maxPrize") }} {{ lottery.maxJackpotDisplay }}</text>
             <text class="description">{{ lottery.description }}</text>
           </view>
         </view>
@@ -29,7 +29,7 @@
 
       <!-- My Tickets Section -->
       <view class="my-tickets" v-if="unrevealedTickets.length > 0">
-        <text class="section-title">待刮奖 ({{ unrevealedTickets.length }})</text>
+        <text class="section-title">{{ t("scratchMyTickets", { count: unrevealedTickets.length }) }}</text>
         <scroll-view scroll-x class="tickets-scroll">
           <view
             v-for="ticket in unrevealedTickets"
@@ -38,7 +38,7 @@
             @click="goToPlay(ticket.id)"
           >
             <text class="ticket-type">{{ getTypeName(ticket.type) }}</text>
-            <text class="ticket-action">刮奖 →</text>
+            <text class="ticket-action">{{ t("scratchPlayAction") }}</text>
           </view>
         </scroll-view>
       </view>
@@ -51,7 +51,9 @@ import { ref, onMounted } from 'vue'
 import { useLotteryTypes, LotteryType, type LotteryTypeInfo } from '../../shared/composables/useLotteryTypes'
 import { useScratchCard, type ScratchTicket } from '../../shared/composables/useScratchCard'
 import AppLayout from '../../shared/components/AppLayout.vue'
+import { useI18n } from '../../composables/useI18n'
 
+const { t } = useI18n()
 const { instantTypes, getLotteryType } = useLotteryTypes()
 const { loadPlayerTickets, unscratchedTickets, isLoading } = useScratchCard()
 
@@ -71,7 +73,7 @@ const goToPlay = (ticketId: string) => {
 
 const getTypeName = (type: number) => {
   const lottery = getLotteryType(type as LotteryType)
-  return lottery?.name || '未知'
+  return lottery?.name || t("unknown")
 }
 
 onMounted(async () => {
@@ -89,7 +91,7 @@ onMounted(async () => {
 .scratch-gallery {
   padding: 20rpx;
   min-height: 100vh;
-  background: $lucky-bg-primary;
+  background: var(--bg-primary);
 }
 
 .gallery-header {
@@ -99,11 +101,11 @@ onMounted(async () => {
     display: block;
     font-size: 48rpx;
     font-weight: bold;
-    color: $lucky-gold;
+    color: var(--lucky-gold-text);
   }
   .subtitle {
     font-size: 28rpx;
-    color: $lucky-text-muted;
+    color: var(--text-muted);
   }
 }
 
@@ -114,8 +116,8 @@ onMounted(async () => {
 }
 
 .lottery-card {
-  background: $lucky-bg-card;
-  border: 2rpx solid $lucky-gold;
+  background: var(--bg-card);
+  border: 2rpx solid var(--lucky-gold);
   border-radius: 16rpx;
   overflow: hidden;
 
@@ -127,11 +129,11 @@ onMounted(async () => {
       display: block;
       font-size: 32rpx;
       font-weight: bold;
-      color: white;
+      color: var(--lucky-banner-text);
     }
     .lottery-price {
       font-size: 24rpx;
-      color: rgba(255,255,255,0.8);
+      color: var(--lucky-banner-muted);
     }
   }
 
@@ -140,12 +142,12 @@ onMounted(async () => {
     .max-prize {
       display: block;
       font-size: 28rpx;
-      color: $lucky-gold;
+      color: var(--lucky-gold-text);
       font-weight: bold;
     }
     .description {
       font-size: 22rpx;
-      color: $lucky-text-muted;
+      color: var(--text-muted);
     }
   }
 }
@@ -154,7 +156,7 @@ onMounted(async () => {
   margin-top: 40rpx;
   .section-title {
     font-size: 32rpx;
-    color: $lucky-gold;
+    color: var(--lucky-gold-text);
     margin-bottom: 20rpx;
   }
 }
@@ -165,17 +167,17 @@ onMounted(async () => {
 
 .ticket-item {
   display: inline-block;
-  background: $lucky-bg-card;
-  border: 2rpx solid $lucky-red;
+  background: var(--bg-card);
+  border: 2rpx solid var(--lucky-red);
   border-radius: 12rpx;
   padding: 20rpx 30rpx;
   margin-right: 20rpx;
   .ticket-type {
     display: block;
-    color: $lucky-text-primary;
+    color: var(--text-primary);
   }
   .ticket-action {
-    color: $lucky-red;
+    color: var(--lucky-red-text);
     font-size: 24rpx;
   }
 }

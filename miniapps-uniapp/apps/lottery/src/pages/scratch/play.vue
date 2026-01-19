@@ -1,5 +1,5 @@
 <template>
-  <AppLayout title="刮奖" class="theme-chinese-lucky">
+  <AppLayout :title="t('scratchPlayTitle')" class="theme-chinese-lucky">
     <view class="scratch-play">
       <!-- Lottery Info -->
       <view class="lottery-info" v-if="currentLottery">
@@ -18,10 +18,10 @@
         />
         <view class="prize-layer" :class="{ revealed: isRevealed }">
           <text class="prize-amount" v-if="prize > 0">
-            恭喜中奖 {{ prize }} GAS
+            {{ t("scratchWinInline", { amount: formatPrize(prize) }) }}
           </text>
           <text class="no-prize" v-else>
-            谢谢参与
+            {{ t("scratchNoPrize") }}
           </text>
         </view>
       </view>
@@ -29,10 +29,10 @@
       <!-- Action Buttons -->
       <view class="actions">
         <button class="btn-buy" @click="buyTicket" :disabled="isLoading || hasTicket">
-          {{ isLoading ? '处理中...' : '购买彩票' }}
+          {{ isLoading ? t("processing") : t("buyTicket") }}
         </button>
         <button class="btn-reveal" @click="revealAll" v-if="hasTicket && !isRevealed" :disabled="isLoading">
-          一键刮开
+          {{ t("scratchRevealAll") }}
         </button>
       </view>
 
@@ -43,10 +43,10 @@
 
       <!-- Prize Tiers -->
       <view class="prize-tiers">
-        <text class="tiers-title">奖金等级</text>
+        <text class="tiers-title">{{ t("prizeTiers") }}</text>
         <view class="tier-list">
           <view v-for="tier in PRIZE_TIERS" :key="tier.tier" class="tier-item">
-            <text class="tier-label">{{ tier.label }}</text>
+            <text class="tier-label">{{ getPrizeTierLabel(tier.tier) }}</text>
             <text class="tier-odds">{{ tier.odds }}%</text>
             <text class="tier-prize">{{ tier.multiplier }}x</text>
           </view>
@@ -70,12 +70,14 @@ import { useLotteryTypes, LotteryType, PRIZE_TIERS } from '../../shared/composab
 import { useScratchCard } from '../../shared/composables/useScratchCard'
 import ChineseLuckyOverlay from './components/ChineseLuckyOverlay.vue'
 import AppLayout from '../../shared/components/AppLayout.vue'
+import { useI18n } from '../../composables/useI18n'
 
 const props = defineProps<{
   type?: string
   ticketId?: string
 }>()
 
+const { t } = useI18n()
 const { getLotteryType } = useLotteryTypes()
 const {
   isLoading,
@@ -102,25 +104,33 @@ const currentLottery = computed(() => {
   return getLotteryType(typeNum as LotteryType)
 })
 
+const getScratchCoating = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return '#c0c0c0'
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue('--lucky-scratch-coating')
+    .trim()
+  return value || '#c0c0c0'
+}
+
 const buyTicket = async () => {
   if (!currentLottery.value) return
 
-  statusMessage.value = '购买中...'
+  statusMessage.value = t("scratchBuying")
   try {
     const result = await sdkBuyTicket(currentLottery.value.type)
     currentTicketId.value = result.ticketId
     hasTicket.value = true
-    statusMessage.value = '购买成功！刮开看看吧'
+    statusMessage.value = t("scratchBought")
     initCanvas()
   } catch (e) {
-    statusMessage.value = `购买失败: ${(e as Error).message}`
+    statusMessage.value = t("scratchBuyFailed", { error: (e as Error).message })
   }
 }
 
 const revealAll = async () => {
   if (!currentTicketId.value) return
 
-  statusMessage.value = '开奖中...'
+  statusMessage.value = t("scratchRevealing")
   try {
     const result = await sdkRevealTicket(currentTicketId.value)
     isRevealed.value = true
@@ -128,20 +138,20 @@ const revealAll = async () => {
     prizeTier.value = result.tier || 0
 
     if (result.isWinner) {
-      statusMessage.value = `恭喜中奖 ${formatPrize(result.prize)}！`
+      statusMessage.value = t("scratchWinStatus", { amount: formatPrize(result.prize) })
       showWinOverlay.value = true
     } else {
-      statusMessage.value = '谢谢参与，再接再厉！'
+      statusMessage.value = t("scratchTryAgain")
     }
   } catch (e) {
-    statusMessage.value = `开奖失败: ${(e as Error).message}`
+    statusMessage.value = t("scratchRevealFailed", { error: (e as Error).message })
   }
 }
 
 let ctx: any = null
 const initCanvas = () => {
   ctx = uni.createCanvasContext('scratchCanvas')
-  ctx.setFillStyle('#C0C0C0')
+  ctx.setFillStyle(getScratchCoating())
   ctx.fillRect(0, 0, 300, 200)
   ctx.draw()
 }
@@ -182,7 +192,7 @@ onMounted(() => {
 .scratch-play {
   padding: 20rpx;
   min-height: 100vh;
-  background: $lucky-bg-primary;
+  background: var(--bg-primary);
 }
 
 .lottery-info {
@@ -191,11 +201,11 @@ onMounted(() => {
   .lottery-name {
     display: block;
     font-size: 40rpx;
-    color: $lucky-gold;
+    color: var(--lucky-gold-text);
     font-weight: bold;
   }
   .lottery-price {
-    color: $lucky-text-muted;
+    color: var(--text-muted);
   }
 }
 
@@ -204,7 +214,7 @@ onMounted(() => {
   width: 600rpx;
   height: 400rpx;
   margin: 40rpx auto;
-  border: 4rpx solid $lucky-gold;
+  border: 4rpx solid var(--lucky-gold);
   border-radius: 16rpx;
   overflow: hidden;
 }
@@ -222,16 +232,16 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: $lucky-gradient-red;
+  background: linear-gradient(135deg, var(--lucky-red), var(--lucky-crimson));
 
   .prize-amount {
     font-size: 48rpx;
-    color: $lucky-gold;
+    color: var(--lucky-gold-light);
     font-weight: bold;
   }
   .no-prize {
     font-size: 36rpx;
-    color: $lucky-text-muted;
+    color: var(--button-on-accent);
   }
 }
 
@@ -250,19 +260,19 @@ onMounted(() => {
 }
 
 .btn-buy {
-  background: $lucky-gradient-gold;
-  color: $lucky-bg-primary;
+  background: linear-gradient(135deg, var(--lucky-gold), var(--lucky-gold-light));
+  color: var(--button-on-warning);
 }
 
 .btn-reveal {
-  background: $lucky-gradient-red;
-  color: white;
+  background: linear-gradient(135deg, var(--lucky-red), var(--lucky-crimson));
+  color: var(--button-on-accent);
 }
 
 .status-message {
   text-align: center;
   padding: 20rpx;
-  color: $lucky-gold;
+  color: var(--lucky-gold-text);
   font-size: 28rpx;
 }
 
@@ -271,13 +281,13 @@ onMounted(() => {
   .tiers-title {
     display: block;
     font-size: 32rpx;
-    color: $lucky-gold;
+    color: var(--lucky-gold-text);
     margin-bottom: 20rpx;
   }
 }
 
 .tier-list {
-  background: $lucky-bg-card;
+  background: var(--bg-card);
   border-radius: 12rpx;
   padding: 20rpx;
 }
@@ -286,11 +296,11 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   padding: 16rpx 0;
-  border-bottom: 1rpx solid rgba($lucky-gold, 0.2);
+  border-bottom: 1rpx solid var(--lucky-gold-soft);
   &:last-child { border: none; }
 
-  .tier-label { color: $lucky-text-primary; }
-  .tier-odds { color: $lucky-text-muted; }
-  .tier-prize { color: $lucky-gold; font-weight: bold; }
+  .tier-label { color: var(--text-primary); }
+  .tier-odds { color: var(--text-muted); }
+  .tier-prize { color: var(--lucky-gold-text); font-weight: bold; }
 }
 </style>

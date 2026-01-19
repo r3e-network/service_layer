@@ -21,6 +21,11 @@ const DEFAULT_PERMISSIONS = {
   automation: false,
 };
 
+function preferPngPath(value) {
+  if (!value || typeof value !== "string") return value;
+  return value.replace(/\.svg($|\?)/i, ".png$1");
+}
+
 // Validate manifest has required fields
 function validateManifest(manifest, appDir) {
   const errors = [];
@@ -36,7 +41,7 @@ function validateManifest(manifest, appDir) {
 function discoverMiniApps() {
   const apps = [];
   const categories = {
-    games: [],
+    gaming: [],
     defi: [],
     social: [],
     nft: [],
@@ -87,16 +92,22 @@ function discoverMiniApps() {
         name_zh: neoManifest.name_zh || manifest.name,
         description: neoManifest.description || manifest.description || "",
         description_zh: neoManifest.description_zh || "",
-        icon: neoManifest.card?.info?.logo
-          ? `/miniapps/${appDir}${neoManifest.card.info.logo}`
-          : `/miniapps/${appDir}/static/logo.png`,
+        icon: (() => {
+          const explicit = neoManifest.card?.info?.logo;
+          if (explicit) return `/miniapps/${appDir}${preferPngPath(explicit)}`;
+
+          const srcStatic = path.join(APPS_DIR, appDir, 'src/static');
+          if (fs.existsSync(path.join(srcStatic, 'logo.png'))) return `/miniapps/${appDir}/static/logo.png`;
+          if (fs.existsSync(path.join(srcStatic, 'logo.svg'))) return `/miniapps/${appDir}/static/logo.png`;
+          return `/miniapps/${appDir}/static/logo.png`;
+        })(),
         banner: (() => {
           const explicit = neoManifest.card?.display?.banner;
-          if (explicit) return `/miniapps/${appDir}${explicit}`;
+          if (explicit) return `/miniapps/${appDir}${preferPngPath(explicit)}`;
 
-          const srcStatic = path.join(appsDir, appDir, 'src/static');
+          const srcStatic = path.join(APPS_DIR, appDir, 'src/static');
           if (fs.existsSync(path.join(srcStatic, 'banner.png'))) return `/miniapps/${appDir}/static/banner.png`;
-          if (fs.existsSync(path.join(srcStatic, 'banner.svg'))) return `/miniapps/${appDir}/static/banner.svg`;
+          if (fs.existsSync(path.join(srcStatic, 'banner.svg'))) return `/miniapps/${appDir}/static/banner.png`;
           return undefined;
         })(),
         entry_url: `/miniapps/${appDir}/index.html`,
@@ -110,10 +121,10 @@ function discoverMiniApps() {
 
       // Standardize categories
       const categoryMap = {
-        "games": "games",
-        "game": "games",
-        "gaming": "games",
-        "entertainment": "games",
+        "games": "gaming",
+        "game": "gaming",
+        "gaming": "gaming",
+        "entertainment": "gaming",
 
         "defi": "defi",
         "finance": "defi",

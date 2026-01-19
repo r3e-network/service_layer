@@ -49,6 +49,7 @@ export const messages = {
     sortPriceLow: { en: "Price Low", zh: "价格低" },
     sortPriceHigh: { en: "Price High", zh: "价格高" },
     recommended: { en: "Recommended", zh: "推荐" },
+    browseAll: { en: "Browse All", zh: "浏览全部" },
     topPlays: { en: "Top Plays", zh: "最热游玩" },
     topRevenue: { en: "Top Revenue", zh: "营收榜" },
     forSale: { en: "For Sale", zh: "出售中" },

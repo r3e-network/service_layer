@@ -1,0 +1,41 @@
+{
+  "app_id": "miniapp-heritage-trust",
+  "name": "Heritage Trust",
+  "name_zh": "遗产信托",
+  "description": "Heritage Trust - Neo MiniApp",
+  "description_zh": "创建智能继承计划，自动转移资产。",
+  "version": "1.0.0",
+  "entry_url": "mf://builtin?app=miniapp-heritage-trust",
+  "category": "nft",
+  "status": "active",
+  "tags": [],
+  "permissions": {
+    "payments": true,
+    "automation": true
+  },
+  "assets_allowed": [
+    "NEO",
+    "GAS"
+  ],
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
+  "contracts": {
+    "neo-n3-mainnet": {
+      "address": "0x6d910186e2eee3fc38fd027e5e77d50d6f8c429b"
+    },
+    "neo-n3-testnet": {
+      "address": "0x6d910186e2eee3fc38fd027e5e77d50d6f8c429b"
+    }
+  },
+  "card": {
+    "display": {
+      "type": "icon_title",
+      "banner": "/static/banner.png"
+    },
+    "info": {
+      "logo": "/static/logo.png"
+    }
+  }
+}

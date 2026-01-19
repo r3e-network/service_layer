@@ -1,0 +1,44 @@
+{
+  "app_id": "miniapp-council-governance",
+  "name": "Council Governance",
+  "name_zh": "理事会治理",
+  "description": "Participate in DAO governance and council voting",
+  "description_zh": "参与DAO治理和理事会投票",
+  "version": "1.0.0",
+  "entry_url": "mf://builtin?app=miniapp-council-governance",
+  "category": "governance",
+  "status": "active",
+  "tags": [
+    "dao",
+    "governance",
+    "voting"
+  ],
+  "permissions": [
+    "wallet"
+  ],
+  "assets_allowed": [
+    "NEO",
+    "GAS"
+  ],
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
+  "contracts": {
+    "neo-n3-mainnet": {
+      "address": null
+    },
+    "neo-n3-testnet": {
+      "address": "0xec2f6de766fcbca43e71d5d2f451d9349f351c79"
+    }
+  },
+  "card": {
+    "display": {
+      "type": "icon_title",
+      "banner": "/static/banner.png"
+    },
+    "info": {
+      "logo": "/static/logo.png"
+    }
+  }
+}

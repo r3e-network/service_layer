@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import { useI18n } from '../../composables/useI18n'
 
 // Lottery type enum matching contract
 export enum LotteryType {
@@ -15,12 +16,14 @@ export interface LotteryTypeInfo {
   key: string
   name: string
   nameEn: string
+  nameZh?: string
   price: number
   priceDisplay: string
   isInstant: boolean
   maxJackpot: number
   maxJackpotDisplay: string
   description: string
+  descriptionZh?: string
   banner: string
   color: string
 }
@@ -33,12 +36,14 @@ export const LOTTERY_TYPES: LotteryTypeInfo[] = [
     key: 'neo-bronze',
     name: 'Neo Bronze',
     nameEn: 'Neo Bronze',
+    nameZh: 'Neo 青铜',
     price: 1,
     priceDisplay: '1 GAS',
     isInstant: true,
     maxJackpot: 100,
     maxJackpotDisplay: '100 GAS',
     description: 'Entry level lucky draw. Win up to 100x!',
+    descriptionZh: '入门级幸运抽奖，最高赢取 100 倍！',
     banner: '/static/lottery/bronze.png',
     color: '#CD7F32' // Bronze
   },
@@ -47,12 +52,14 @@ export const LOTTERY_TYPES: LotteryTypeInfo[] = [
     key: 'neo-silver',
     name: 'Neo Silver',
     nameEn: 'Neo Silver',
+    nameZh: 'Neo 白银',
     price: 2,
     priceDisplay: '2 GAS',
     isInstant: true,
     maxJackpot: 500,
     maxJackpotDisplay: '500 GAS',
     description: 'Double the stakes, 5x the maximum payout.',
+    descriptionZh: '加倍下注，最高 5 倍奖金。',
     banner: '/static/lottery/silver.png',
     color: '#C0C0C0' // Silver
   },
@@ -61,12 +68,14 @@ export const LOTTERY_TYPES: LotteryTypeInfo[] = [
     key: 'neo-gold',
     name: 'Neo Gold',
     nameEn: 'Neo Gold',
+    nameZh: 'Neo 黄金',
     price: 3,
     priceDisplay: '3 GAS',
     isInstant: true,
     maxJackpot: 2000,
     maxJackpotDisplay: '2,000 GAS',
     description: 'Golden opportunity for massive rewards.',
+    descriptionZh: '黄金机会，大额奖励等你来。',
     banner: '/static/lottery/gold.png',
     color: '#FFD700' // Gold
   },
@@ -75,12 +84,14 @@ export const LOTTERY_TYPES: LotteryTypeInfo[] = [
     key: 'neo-platinum',
     name: 'Neo Platinum',
     nameEn: 'Neo Platinum',
+    nameZh: 'Neo 铂金',
     price: 4,
     priceDisplay: '4 GAS',
     isInstant: true,
     maxJackpot: 5000,
     maxJackpotDisplay: '5,000 GAS',
     description: 'Premium tier with elite winning potential.',
+    descriptionZh: '尊享等级，赢取更高大奖。',
     banner: '/static/lottery/platinum.png',
     color: '#E5E4E2' // Platinum
   },
@@ -89,12 +100,14 @@ export const LOTTERY_TYPES: LotteryTypeInfo[] = [
     key: 'neo-diamond',
     name: 'Neo Diamond',
     nameEn: 'Neo Diamond',
+    nameZh: 'Neo 钻石',
     price: 5,
     priceDisplay: '5 GAS',
     isInstant: true,
     maxJackpot: 10000,
     maxJackpotDisplay: '10,000 GAS',
     description: 'The ultimate jackpot experience.',
+    descriptionZh: '终极大奖体验，冲击巅峰。',
     banner: '/static/lottery/diamond.png',
     color: '#B9F2FF' // Diamond
   }
@@ -111,25 +124,38 @@ export const PRIZE_TIERS = [
 
 // Composable function
 export function useLotteryTypes() {
+  const { locale } = useI18n()
   const selectedType = ref<LotteryType>(LotteryType.ScratchWin)
+  const isZh = computed(() => locale.value === 'zh')
+
+  const localizeLottery = (lottery?: LotteryTypeInfo | null): LotteryTypeInfo | undefined => {
+    if (!lottery) return undefined
+    const name = isZh.value ? lottery.nameZh || lottery.name : lottery.nameEn || lottery.name
+    const description = isZh.value ? lottery.descriptionZh || lottery.description : lottery.description
+    return {
+      ...lottery,
+      name,
+      description
+    }
+  }
 
   const instantTypes = computed(() =>
-    LOTTERY_TYPES.filter(t => t.isInstant)
+    LOTTERY_TYPES.filter(t => t.isInstant).map((lottery) => localizeLottery(lottery) as LotteryTypeInfo)
   )
 
   const scheduledTypes = computed(() =>
-    LOTTERY_TYPES.filter(t => !t.isInstant)
+    LOTTERY_TYPES.filter(t => !t.isInstant).map((lottery) => localizeLottery(lottery) as LotteryTypeInfo)
   )
 
   const currentType = computed(() =>
-    LOTTERY_TYPES.find(t => t.type === selectedType.value)
+    localizeLottery(LOTTERY_TYPES.find(t => t.type === selectedType.value))
   )
 
   const getLotteryType = (type: LotteryType) =>
-    LOTTERY_TYPES.find(t => t.type === type)
+    localizeLottery(LOTTERY_TYPES.find(t => t.type === type))
 
   const getLotteryByKey = (key: string) =>
-    LOTTERY_TYPES.find(t => t.key === key)
+    localizeLottery(LOTTERY_TYPES.find(t => t.key === key))
 
   const calculatePrize = (type: LotteryType, tier: number) => {
     const lottery = getLotteryType(type)

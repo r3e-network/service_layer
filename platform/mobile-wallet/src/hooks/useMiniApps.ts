@@ -108,14 +108,18 @@ function mapTrendingToMiniApp(data: TrendingApp[]): MiniApp[] {
     description: "",
     icon: t.icon,
     category: (t.category?.toLowerCase() || "utility") as MiniAppCategory,
-    entry_url: `/miniapps/${t.app_id}/index.html`,
+    entry_url: t.entry_url || `/miniapps/${t.app_id}/index.html`,
+    source: t.source,
     stats: {
       users_24h: t.stats?.users_24h,
       txs_24h: t.stats?.txs_24h,
       volume_24h: t.stats?.volume_24h,
     },
     permissions: {},
-    supportedChains: ["neo-n3-mainnet", "neo-n3-testnet"],
+    supportedChains:
+      Array.isArray(t.supportedChains) && t.supportedChains.length
+        ? t.supportedChains
+        : ["neo-n3-mainnet", "neo-n3-testnet"],
   }));
 }
 
@@ -126,8 +130,12 @@ function mapSearchToMiniApp(data: SearchResult[]): MiniApp[] {
     description: s.description,
     icon: s.icon,
     category: (s.category?.toLowerCase() || "utility") as MiniAppCategory,
-    entry_url: `/miniapps/${s.app_id}/index.html`,
+    entry_url: s.entry_url || `/miniapps/${s.app_id}/index.html`,
+    source: s.source,
     permissions: {},
-    supportedChains: ["neo-n3-mainnet", "neo-n3-testnet"],
+    supportedChains:
+      Array.isArray(s.supportedChains) && s.supportedChains.length
+        ? s.supportedChains
+        : ["neo-n3-mainnet", "neo-n3-testnet"],
   }));
 }

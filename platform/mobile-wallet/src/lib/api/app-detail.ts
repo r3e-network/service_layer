@@ -4,18 +4,11 @@
  */
 
 import { API_BASE_URL } from "@/lib/config";
+import type { MiniAppInfo } from "@/types/miniapp";
 
 const API_BASE = API_BASE_URL;
 
-export interface AppDetail {
-  app_id: string;
-  name: string;
-  description: string;
-  icon: string;
-  category: string;
-  permissions: string[];
-  stats: AppStats;
-}
+export type AppDetail = MiniAppInfo & { stats: AppStats };
 
 export interface AppStats {
   users_24h: number;
@@ -31,26 +24,27 @@ export interface AppStats {
  */
 export async function fetchAppDetail(appId: string): Promise<AppDetail | null> {
   try {
+    const encodedId = encodeURIComponent(appId);
     const [infoRes, statsRes] = await Promise.all([
-      fetch(`${API_BASE}/miniapps/search?q=${appId}`),
-      fetch(`${API_BASE}/miniapps/${appId}/stats`),
+      fetch(`${API_BASE}/miniapps/${encodedId}/detail`),
+      fetch(`${API_BASE}/miniapps/${encodedId}/stats`),
     ]);
 
     if (!infoRes.ok) return null;
 
     const infoData = await infoRes.json();
-    const app = infoData.results?.[0];
+    const app = infoData.app as MiniAppInfo | undefined;
     if (!app) return null;
 
     const statsData = statsRes.ok ? await statsRes.json() : null;
 
+    const entryUrl = app.entry_url || `/miniapps/${app.app_id}/index.html`;
+
     return {
-      app_id: app.app_id,
-      name: app.name,
-      description: app.description,
-      icon: app.icon,
-      category: app.category,
-      permissions: ["payments", "rng"],
+      ...app,
+      entry_url: entryUrl,
+      permissions: app.permissions ?? {},
+      supportedChains: app.supportedChains ?? [],
       stats: statsData?.stats || getDefaultStats(),
     };
   } catch {

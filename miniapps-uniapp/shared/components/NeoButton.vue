@@ -164,7 +164,7 @@ defineEmits<{
 
   &--warning {
     background: linear-gradient(135deg, #fde047 0%, #eab308 100%);
-    color: #000;
+    color: var(--button-on-warning, #000);
     box-shadow: 0 4px 15px rgba(253, 224, 71, 0.4);
     border: none;
 

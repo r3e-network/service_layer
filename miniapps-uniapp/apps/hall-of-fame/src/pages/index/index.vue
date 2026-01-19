@@ -1,10 +1,10 @@
 <template>
-  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout class="theme-hall-of-fame" :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view v-if="chainType === 'evm'" class="mb-4">
       <NeoCard variant="danger">
         <view class="flex flex-col items-center gap-2 py-1">
-          <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
-          <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+          <text class="text-center font-bold">{{ t("wrongChain") }}</text>
+          <text class="text-xs text-center opacity-80">{{ t("wrongChainMessage") }}</text>
           <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{
             t("switchToNeo")
           }}</NeoButton>
@@ -285,15 +285,101 @@ onMounted(async () => {
 
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&display=swap');
 
-$museum-bg: #f9fafb;
-$museum-text: #1f2937;
-$museum-gold: #d4af37;
-$museum-frame: #4b5563;
-$museum-font: 'Cormorant Garamond', serif;
+:global(.theme-hall-of-fame) {
+  --hof-font: 'Cormorant Garamond', serif;
+  --hof-bg: #1b1612;
+  --hof-bg-secondary: #231d18;
+  --hof-card: #2b241e;
+  --hof-card-elevated: #322a24;
+  --hof-text: #f7f0e6;
+  --hof-text-muted: #c8b8a1;
+  --hof-text-subtle: #9f8f7b;
+  --hof-frame: #6f5a43;
+  --hof-accent: #d4af37;
+  --hof-accent-strong: #e6c767;
+  --hof-accent-border: #b18a2a;
+  --hof-divider: rgba(255, 255, 255, 0.12);
+  --hof-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
+  --hof-shadow-strong: 0 14px 24px rgba(0, 0, 0, 0.45);
+  --hof-shadow-inner: inset 0 0 10px rgba(0, 0, 0, 0.35);
+  --hof-spine-start: #2a1f16;
+  --hof-spine-mid: #4a3627;
+  --hof-avatar-bg: #2f261f;
+  --hof-avatar-border: rgba(255, 255, 255, 0.12);
+  --hof-progress-bg: #3b3128;
+  --hof-progress: #8e7c69;
+  --hof-progress-top: #d4af37;
+  --hof-glow: rgba(255, 255, 255, 0.2);
+  --hof-empty-border: rgba(255, 255, 255, 0.16);
+  --hof-danger-bg: rgba(127, 29, 29, 0.25);
+  --hof-danger-border: #ef4444;
+  --hof-danger-text: #fecaca;
+  --hof-success-bg: rgba(5, 150, 105, 0.18);
+  --hof-success-border: #10b981;
+  --hof-success-text: #6ee7b7;
+  --hof-texture-dot: rgba(255, 255, 255, 0.06);
+  --hof-button-text: #1f160d;
+  --hof-secondary-bg: transparent;
+  --hof-bronze: #d97706;
+
+  --bg-primary: var(--hof-bg);
+  --bg-secondary: var(--hof-bg-secondary);
+  --bg-card: var(--hof-card);
+  --bg-elevated: var(--hof-card-elevated);
+  --text-primary: var(--hof-text);
+  --text-secondary: var(--hof-text-muted);
+  --text-muted: var(--hof-text-subtle);
+}
+
+:global(.theme-light .theme-hall-of-fame),
+:global([data-theme="light"] .theme-hall-of-fame) {
+  --hof-bg: #f9fafb;
+  --hof-bg-secondary: #f3f4f6;
+  --hof-card: #ffffff;
+  --hof-card-elevated: #ffffff;
+  --hof-text: #1f2937;
+  --hof-text-muted: #6b7280;
+  --hof-text-subtle: #9ca3af;
+  --hof-frame: #4b5563;
+  --hof-accent: #d4af37;
+  --hof-accent-strong: #d4af37;
+  --hof-accent-border: #b4941f;
+  --hof-divider: #e5e7eb;
+  --hof-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  --hof-shadow-strong: 0 14px 24px rgba(0, 0, 0, 0.14);
+  --hof-shadow-inner: inset 0 0 10px rgba(0, 0, 0, 0.2);
+  --hof-spine-start: #3e2723;
+  --hof-spine-mid: #5c4033;
+  --hof-avatar-bg: #f3f4f6;
+  --hof-avatar-border: #e5e7eb;
+  --hof-progress-bg: #f3f4f6;
+  --hof-progress: #9ca3af;
+  --hof-progress-top: #d4af37;
+  --hof-glow: rgba(255, 255, 255, 0.4);
+  --hof-empty-border: #e5e7eb;
+  --hof-danger-bg: #ffebee;
+  --hof-danger-border: #ef4444;
+  --hof-danger-text: #b91c1c;
+  --hof-success-bg: #ecfdf3;
+  --hof-success-border: #10b981;
+  --hof-success-text: #047857;
+  --hof-texture-dot: rgba(0, 0, 0, 0.06);
+  --hof-button-text: #1f160d;
+  --hof-secondary-bg: #ffffff;
+  --hof-bronze: #d97706;
+
+  --bg-primary: var(--hof-bg);
+  --bg-secondary: var(--hof-bg-secondary);
+  --bg-card: var(--hof-card);
+  --bg-elevated: var(--hof-card-elevated);
+  --text-primary: var(--hof-text);
+  --text-secondary: var(--hof-text-muted);
+  --text-muted: var(--hof-text-subtle);
+}
 
 :global(page) {
-  background: $museum-bg;
-  font-family: $museum-font;
+  background: var(--bg-primary);
+  font-family: var(--hof-font);
 }
 
 .app-container {
@@ -302,19 +388,19 @@ $museum-font: 'Cormorant Garamond', serif;
   display: flex;
   flex-direction: column;
   gap: 32px;
-  background-color: $museum-bg;
-  /* Subtle Texture */
-  background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZjNmNGY2Ii8+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiNlNWU3ZWIiLz4KPC9zdmc+');
+  background-color: var(--bg-primary);
+  background-image: radial-gradient(circle at 1px 1px, var(--hof-texture-dot) 1px, transparent 0);
+  background-size: 6px 6px;
   min-height: 100vh;
 }
 
 /* Museum Component Overrides */
 :deep(.neo-card) {
-  background: white !important;
-  border: 4px solid $museum-gold !important;
+  background: var(--bg-card) !important;
+  border: 4px solid var(--hof-accent) !important;
   border-radius: 2px !important;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
-  color: $museum-text !important;
+  box-shadow: var(--hof-shadow) !important;
+  color: var(--text-primary) !important;
   position: relative;
   
   /* Frame Inner Shadow */
@@ -322,23 +408,40 @@ $museum-font: 'Cormorant Garamond', serif;
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+    box-shadow: var(--hof-shadow-inner);
     pointer-events: none;
+  }
+
+  &.variant-erobo-neo {
+    border-color: var(--hof-accent-strong) !important;
+    box-shadow: var(--hof-shadow-strong) !important;
+  }
+
+  &.variant-danger {
+    border-color: var(--hof-danger-border) !important;
+    background: var(--hof-danger-bg) !important;
+    color: var(--hof-danger-text) !important;
+  }
+
+  &.variant-success {
+    border-color: var(--hof-success-border) !important;
+    background: var(--hof-success-bg) !important;
+    color: var(--hof-success-text) !important;
   }
 }
 
 :deep(.neo-button) {
   border-radius: 4px !important;
-  font-family: $museum-font !important;
+  font-family: var(--hof-font) !important;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-weight: 700 !important;
   
   &.variant-primary {
-    background: $museum-gold !important;
-    color: white !important;
-    border: 1px solid #b4941f !important;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+    background: linear-gradient(135deg, var(--hof-accent), var(--hof-accent-strong)) !important;
+    color: var(--hof-button-text) !important;
+    border: 1px solid var(--hof-accent-border) !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
     
     &:active {
       transform: translateY(1px);
@@ -347,9 +450,9 @@ $museum-font: 'Cormorant Garamond', serif;
   }
   
   &.variant-secondary {
-    background: white !important;
-    border: 1px solid $museum-frame !important;
-    color: $museum-frame !important;
+    background: var(--hof-secondary-bg) !important;
+    border: 1px solid var(--hof-frame) !important;
+    color: var(--hof-frame) !important;
   }
 }
 
@@ -364,7 +467,7 @@ $museum-font: 'Cormorant Garamond', serif;
   gap: 16px;
   flex-wrap: wrap;
   justify-content: center;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--hof-divider);
   padding-bottom: 16px;
 }
 
@@ -375,13 +478,13 @@ $museum-font: 'Cormorant Garamond', serif;
   text-transform: uppercase;
   font-size: 14px;
   cursor: pointer;
-  color: #6b7280;
-  font-family: $museum-font;
+  color: var(--text-muted);
+  font-family: var(--hof-font);
   letter-spacing: 0.05em;
 
   &.active {
-    color: $museum-gold;
-    border-bottom: 2px solid $museum-gold;
+    color: var(--hof-accent);
+    border-bottom: 2px solid var(--hof-accent);
   }
 }
 
@@ -394,16 +497,16 @@ $museum-font: 'Cormorant Garamond', serif;
 
 .period-btn-glass {
   padding: 4px 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--hof-divider);
   border-radius: 12px;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--text-muted);
   cursor: pointer;
   
   &.active {
-    background: $museum-gold;
-    color: white;
-    border-color: $museum-gold;
+    background: var(--hof-accent);
+    color: var(--hof-button-text);
+    border-color: var(--hof-accent);
   }
 }
 
@@ -428,21 +531,21 @@ $museum-font: 'Cormorant Garamond', serif;
 .rank-glass {
   font-size: 24px;
   font-weight: 700;
-  font-family: $museum-font;
+  font-family: var(--hof-font);
   width: 40px;
   text-align: center;
-  color: #9ca3af;
+  color: var(--text-muted);
 
-  &.rank-1 { color: $museum-gold; font-size: 32px; }
-  &.rank-2 { color: #9ca3af; font-size: 28px; }
-  &.rank-3 { color: #d97706; font-size: 28px; }
+  &.rank-1 { color: var(--hof-accent); font-size: 32px; }
+  &.rank-2 { color: var(--text-muted); font-size: 28px; }
+  &.rank-3 { color: var(--hof-bronze); font-size: 28px; }
 }
 
 .avatar-glass {
   width: 60px;
   height: 60px;
-  background: #f3f4f6;
-  border: 2px solid #e5e7eb;
+  background: var(--hof-avatar-bg);
+  border: 2px solid var(--hof-avatar-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -452,8 +555,8 @@ $museum-font: 'Cormorant Garamond', serif;
 .avatar-text-glass {
   font-size: 24px;
   font-weight: 700;
-  color: $museum-frame;
-  font-family: $museum-font;
+  color: var(--hof-frame);
+  font-family: var(--hof-font);
 }
 
 .entrant-info {
@@ -465,8 +568,8 @@ $museum-font: 'Cormorant Garamond', serif;
   font-weight: 700;
   display: block;
   margin-bottom: 4px;
-  color: $museum-text;
-  font-family: $museum-font;
+  color: var(--text-primary);
+  font-family: var(--hof-font);
 }
 
 .score-row {
@@ -478,12 +581,12 @@ $museum-font: 'Cormorant Garamond', serif;
 .score-glass {
   font-size: 14px;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .progress-track-glass {
   height: 4px;
-  background: #f3f4f6;
+  background: var(--hof-progress-bg);
   border-radius: 2px;
   position: relative;
   overflow: hidden;
@@ -493,18 +596,18 @@ $museum-font: 'Cormorant Garamond', serif;
 .progress-bar-glass {
   position: absolute;
   left: 0; top: 0; bottom: 0;
-  background: #9ca3af;
+  background: var(--hof-progress);
   border-radius: 2px;
 
   &.gold {
-    background: $museum-gold;
+    background: var(--hof-progress-top);
   }
 }
 
 .progress-glow {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  background: linear-gradient(90deg, transparent, var(--hof-glow), transparent);
   animation: shimmer 2s infinite;
 }
 
@@ -515,7 +618,7 @@ $museum-font: 'Cormorant Garamond', serif;
 
 .empty-state-card {
   text-align: center;
-  border: 2px dashed #e5e7eb !important;
+  border: 2px dashed var(--hof-empty-border) !important;
   background: transparent !important;
   box-shadow: none !important;
 }
@@ -524,13 +627,13 @@ $museum-font: 'Cormorant Garamond', serif;
 }
 .empty-state-title {
   font-weight: 700;
-  color: #6b7280;
-  font-family: $museum-font;
+  color: var(--text-muted);
+  font-family: var(--hof-font);
   font-size: 18px;
 }
 .empty-state-subtitle {
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--text-secondary);
   margin-top: 8px;
   display: block;
 }

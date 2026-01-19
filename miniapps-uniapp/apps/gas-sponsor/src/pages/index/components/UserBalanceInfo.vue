@@ -25,7 +25,7 @@
 <script setup lang="ts">
 import { NeoCard } from "@/shared/components";
 
-defineProps<{
+const props = defineProps<{
   loading: boolean;
   userAddress: string;
   gasBalance: string;
@@ -33,7 +33,7 @@ defineProps<{
   t: (key: string) => string;
 }>();
 
-const shortenAddress = (addr: string) => (addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : "Not connected");
+const shortenAddress = (addr: string) => (addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : props.t("notConnected"));
 const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(4);
 </script>
 
@@ -46,7 +46,7 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--gas-divider);
   &:last-child {
     border-bottom: none;
   }
@@ -57,14 +57,14 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  color: var(--gas-text-secondary);
 }
 
 .info-value {
   font-size: 13px;
   font-weight: 600;
   font-family: $font-family;
-  color: var(--text-primary);
+  color: var(--gas-text);
 
   &.mono {
     font-family: $font-mono;
@@ -72,8 +72,8 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   }
 
   &.highlight {
-    color: #00E599;
-    text-shadow: 0 0 10px rgba(0, 229, 153, 0.2);
+    color: var(--gas-highlight);
+    text-shadow: var(--gas-highlight-shadow);
   }
 
   &.badge {
@@ -83,15 +83,15 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
     font-weight: 700;
 
     &.eligible {
-      background: rgba(0, 229, 153, 0.1);
-      color: #00E599;
-      border: 1px solid rgba(0, 229, 153, 0.2);
+      background: var(--gas-badge-eligible-bg);
+      color: var(--gas-badge-eligible-text);
+      border: 1px solid var(--gas-badge-eligible-border);
     }
 
     &.not-eligible {
-      background: rgba(239, 68, 68, 0.1);
-      color: #ef4444;
-      border: 1px solid rgba(239, 68, 68, 0.2);
+      background: var(--gas-badge-ineligible-bg);
+      color: var(--gas-badge-ineligible-text);
+      border: 1px solid var(--gas-badge-ineligible-border);
     }
   }
 }

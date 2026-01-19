@@ -68,6 +68,15 @@ function toString(value) {
   return String(value).trim();
 }
 
+function preferPng(value, fallback) {
+  const raw = toString(value);
+  if (!raw) return fallback;
+  return raw
+    .replace(/icon\.svg(\?.*)?$/i, "logo.png$1")
+    .replace(/banner\.svg(\?.*)?$/i, "banner.png$1")
+    .replace(/\.svg(\?.*)?$/i, ".png$1");
+}
+
 function readJsonSafe(filePath) {
   try {
     if (fs.existsSync(filePath)) {
@@ -128,7 +137,11 @@ function discoverMiniapp(appDir) {
   const descriptionZh =
     toString(neoManifest?.description_zh) || toString(neoManifest?.descriptionZh) || `${name} - Neo 小程序`;
 
-  const icon = toString(neoManifest?.icon) || `/miniapps/${appDir}/static/icon.svg`;
+  const icon = preferPng(neoManifest?.icon, `/miniapps/${appDir}/static/logo.png`);
+  const banner = preferPng(
+    neoManifest?.banner || neoManifest?.card?.display?.banner,
+    `/miniapps/${appDir}/static/banner.png`,
+  );
   const entryUrl = toString(neoManifest?.entry_url) || `/miniapps/${appDir}/index.html`;
   const supportedChainsRaw = Array.isArray(neoManifest?.supported_chains) ? neoManifest.supported_chains : [];
   const supportedChains = supportedChainsRaw.map((c) => toString(c).toLowerCase()).filter(Boolean);
@@ -167,6 +180,7 @@ function discoverMiniapp(appDir) {
     description,
     description_zh: descriptionZh,
     icon,
+    banner,
     entry_url: entryUrl,
     category,
     status: toString(neoManifest?.status) || "active",

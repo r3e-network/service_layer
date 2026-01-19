@@ -2,7 +2,7 @@
   "app_id": "miniapp-neo-gacha",
   "name": "Neo Gacha",
   "description": "Create, list, and trade on-chain blind boxes with escrowed prizes, transparent odds, and verifiable randomness.",
-  "icon": "/miniapps/neo-gacha/static/icon.svg",
+  "icon": "/miniapps/neo-gacha/static/logo.png",
   "category": "gaming",
   "entry_url": "/miniapps/neo-gacha/index.html",
   "developer_pubkey": "03f35d7ba09f0a14f0a0f8fdd2cd2db39647c80270f65a52d03d2cceb36b5250c5",

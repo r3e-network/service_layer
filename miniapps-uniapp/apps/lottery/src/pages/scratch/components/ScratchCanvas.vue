@@ -32,9 +32,17 @@ const threshold = props.revealThreshold || 50
 
 let ctx: any = null
 
+const getScratchCoating = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return '#c0c0c0'
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue('--lucky-scratch-coating')
+    .trim()
+  return value || '#c0c0c0'
+}
+
 const initCanvas = () => {
   ctx = uni.createCanvasContext('scratchCanvas')
-  ctx.setFillStyle('#C0C0C0')
+  ctx.setFillStyle(getScratchCoating())
   ctx.fillRect(0, 0, 300, 200)
   ctx.draw()
 }
@@ -86,7 +94,7 @@ defineExpose({ reset, isRevealed })
   position: relative;
   width: 600rpx;
   height: 400rpx;
-  border: 4rpx solid #F59E0B;
+  border: 4rpx solid var(--lucky-gold);
   border-radius: 16rpx;
   overflow: hidden;
 }
@@ -104,6 +112,6 @@ defineExpose({ reset, isRevealed })
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #DC2626, #BE123C);
+  background: linear-gradient(135deg, var(--lucky-red), var(--lucky-crimson));
 }
 </style>

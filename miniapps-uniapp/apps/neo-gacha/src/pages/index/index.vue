@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout class="theme-neo-gacha" :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view class="app-container">
       <view v-if="chainType === 'evm'" class="mb-4">
         <NeoCard variant="danger">
@@ -60,7 +60,7 @@
                 />
               </view>
               <NeoButton size="sm" variant="secondary" @click="activeTab = 'discover'">
-                Browse All
+                {{ t("browseAll") }}
               </NeoButton>
             </NeoCard>
 
@@ -200,8 +200,8 @@
               </view>
             </view>
 
-            <view v-if="machine.revenueRaw > 0" class="manage-actions" style="background: rgba(255, 235, 59, 0.2); border: 1px dashed #ffd700;">
-              <text style="flex: 1; font-weight: bold; color: #d4a017;">
+            <view v-if="machine.revenueRaw > 0" class="manage-actions manage-actions--revenue">
+              <text class="revenue-label">
                 {{ t("revenueLabel") }}: {{ formatGas(machine.revenueRaw) }} GAS
               </text>
               <NeoButton
@@ -1400,6 +1400,119 @@ onMounted(() => {
 <style lang="scss" scoped>
 @use "@/shared/styles/tokens.scss" as *;
 
+:global(.theme-neo-gacha) {
+  --gacha-bg: #0b0b12;
+  --gacha-surface: rgba(14, 16, 24, 0.9);
+  --gacha-surface-alt: rgba(255, 255, 255, 0.05);
+  --gacha-surface-strong: rgba(0, 0, 0, 0.25);
+  --gacha-panel-border: rgba(255, 255, 255, 0.08);
+  --gacha-divider: rgba(255, 255, 255, 0.08);
+  --gacha-chip-bg: rgba(255, 255, 255, 0.08);
+  --gacha-pattern-pink: rgba(244, 114, 182, 0.12);
+  --gacha-pattern-blue: rgba(34, 211, 238, 0.12);
+  --gacha-accent-pink: #f472b6;
+  --gacha-accent-blue: #22d3ee;
+  --gacha-accent-green: #00e599;
+  --gacha-accent-yellow: #fde047;
+  --gacha-accent-amber: #fbbf24;
+  --gacha-tag-bg: rgba(0, 229, 153, 0.15);
+  --gacha-tag-text: #00e599;
+  --gacha-badge-bg: rgba(255, 255, 255, 0.1);
+  --gacha-badge-text: rgba(231, 232, 246, 0.7);
+  --gacha-badge-active-bg: rgba(0, 229, 153, 0.2);
+  --gacha-badge-active-text: #00e599;
+  --gacha-badge-sale-bg: rgba(253, 224, 71, 0.2);
+  --gacha-badge-sale-text: #fde047;
+  --gacha-rank-pill-bg: rgba(34, 211, 238, 0.2);
+  --gacha-rank-pill-text: #22d3ee;
+  --gacha-danger-text: #f87171;
+  --gacha-hero-subtitle-bg: rgba(255, 255, 255, 0.08);
+  --gacha-manage-bg: rgba(255, 255, 255, 0.05);
+  --gacha-revenue-bg: rgba(253, 224, 71, 0.18);
+  --gacha-revenue-border: rgba(253, 224, 71, 0.6);
+  --gacha-revenue-text: #fcd34d;
+  --gacha-dome-sheen: rgba(255, 255, 255, 0.2);
+  --gacha-dome-tint: rgba(0, 229, 153, 0.05);
+  --gacha-dome-border: rgba(255, 255, 255, 0.2);
+  --gacha-dome-shadow: 0 0 20px rgba(0, 229, 153, 0.2);
+  --gacha-capsule-shadow: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.3));
+  --gacha-machine-body-bg: #111;
+  --gacha-machine-body-border: rgba(255, 255, 255, 0.1);
+  --gacha-slot-bg: #222;
+  --gacha-slot-border: #333;
+  --gacha-slot-text: #fde047;
+  --gacha-chute-bg: #000;
+  --gacha-play-shadow: 0 0 20px rgba(0, 229, 153, 0.3);
+  --gacha-row-bg: rgba(255, 255, 255, 0.05);
+  --gacha-glow-border: #fde047;
+  --gacha-glow-shadow: 0 0 10px rgba(253, 224, 71, 0.3);
+
+  --bg-primary: var(--gacha-bg);
+  --bg-card: var(--gacha-surface);
+  --text-primary: #f8f8ff;
+  --text-secondary: rgba(231, 232, 246, 0.72);
+  --text-muted: rgba(196, 197, 219, 0.6);
+  --border-color: var(--gacha-panel-border);
+  --shadow-color: rgba(0, 0, 0, 0.35);
+}
+
+:global(.theme-light .theme-neo-gacha),
+:global([data-theme="light"] .theme-neo-gacha) {
+  --gacha-bg: #f7f3ff;
+  --gacha-surface: rgba(255, 255, 255, 0.92);
+  --gacha-surface-alt: rgba(255, 255, 255, 0.7);
+  --gacha-surface-strong: rgba(245, 240, 255, 0.85);
+  --gacha-panel-border: rgba(88, 28, 135, 0.12);
+  --gacha-divider: rgba(88, 28, 135, 0.12);
+  --gacha-chip-bg: rgba(255, 255, 255, 0.85);
+  --gacha-pattern-pink: rgba(244, 114, 182, 0.16);
+  --gacha-pattern-blue: rgba(34, 211, 238, 0.16);
+  --gacha-accent-pink: #db2777;
+  --gacha-accent-blue: #0ea5e9;
+  --gacha-accent-green: #059669;
+  --gacha-accent-yellow: #b45309;
+  --gacha-accent-amber: #d97706;
+  --gacha-tag-bg: rgba(16, 185, 129, 0.15);
+  --gacha-tag-text: #047857;
+  --gacha-badge-bg: rgba(88, 28, 135, 0.08);
+  --gacha-badge-text: #6b7280;
+  --gacha-badge-active-bg: rgba(16, 185, 129, 0.18);
+  --gacha-badge-active-text: #047857;
+  --gacha-badge-sale-bg: rgba(245, 158, 11, 0.2);
+  --gacha-badge-sale-text: #b45309;
+  --gacha-rank-pill-bg: rgba(34, 211, 238, 0.18);
+  --gacha-rank-pill-text: #0e7490;
+  --gacha-danger-text: #b91c1c;
+  --gacha-hero-subtitle-bg: rgba(255, 255, 255, 0.85);
+  --gacha-manage-bg: rgba(255, 255, 255, 0.7);
+  --gacha-revenue-bg: rgba(245, 158, 11, 0.18);
+  --gacha-revenue-border: rgba(245, 158, 11, 0.5);
+  --gacha-revenue-text: #b45309;
+  --gacha-dome-sheen: rgba(255, 255, 255, 0.7);
+  --gacha-dome-tint: rgba(16, 185, 129, 0.08);
+  --gacha-dome-border: rgba(88, 28, 135, 0.12);
+  --gacha-dome-shadow: 0 10px 20px rgba(88, 28, 135, 0.12);
+  --gacha-capsule-shadow: drop-shadow(0 4px 4px rgba(88, 28, 135, 0.15));
+  --gacha-machine-body-bg: #f2eef8;
+  --gacha-machine-body-border: rgba(88, 28, 135, 0.15);
+  --gacha-slot-bg: #ffffff;
+  --gacha-slot-border: rgba(88, 28, 135, 0.2);
+  --gacha-slot-text: #b45309;
+  --gacha-chute-bg: #e7e1f2;
+  --gacha-play-shadow: 0 0 18px rgba(16, 185, 129, 0.25);
+  --gacha-row-bg: rgba(255, 255, 255, 0.7);
+  --gacha-glow-border: #b45309;
+  --gacha-glow-shadow: 0 0 8px rgba(180, 83, 9, 0.25);
+
+  --bg-primary: var(--gacha-bg);
+  --bg-card: var(--gacha-surface);
+  --text-primary: #2a0a3d;
+  --text-secondary: #5b3b7a;
+  --text-muted: #7b6a94;
+  --border-color: var(--gacha-panel-border);
+  --shadow-color: rgba(42, 10, 61, 0.12);
+}
+
 .app-container {
   padding: 16px;
   flex: 1;
@@ -1407,10 +1520,11 @@ onMounted(() => {
   flex-direction: column;
   gap: 20px;
   min-height: 100vh;
+  background-color: var(--gacha-bg);
   // Subtle pattern background for Gacha
   background-image: 
-    radial-gradient(rgba(244, 114, 182, 0.1) 15%, transparent 16%),
-    radial-gradient(rgba(34, 211, 238, 0.1) 15%, transparent 16%);
+    radial-gradient(var(--gacha-pattern-pink) 15%, transparent 16%),
+    radial-gradient(var(--gacha-pattern-blue) 15%, transparent 16%);
   background-size: 40px 40px;
   background-position: 0 0, 20px 20px;
 }
@@ -1435,7 +1549,7 @@ onMounted(() => {
 .section-title {
   font-size: 14px;
   font-weight: 800;
-  color: $brutal-pink;
+  color: var(--gacha-accent-pink);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: 4px;
@@ -1457,7 +1571,7 @@ onMounted(() => {
   .hero-title {
     font-size: 32px;
     font-weight: 900;
-    background: linear-gradient(135deg, $brutal-pink 0%, $brutal-blue 100%);
+    background: linear-gradient(135deg, var(--gacha-accent-pink) 0%, var(--gacha-accent-blue) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -1468,7 +1582,7 @@ onMounted(() => {
      font-size: 12px;
      font-weight: 700;
      color: var(--text-secondary);
-     background: rgba(255,255,255,0.05);
+     background: var(--gacha-hero-subtitle-bg);
      padding: 4px 8px;
      border-radius: 8px;
   }
@@ -1534,17 +1648,17 @@ onMounted(() => {
   font-weight: 700;
   padding: 4px 8px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-secondary);
+  background: var(--gacha-badge-bg);
+  color: var(--gacha-badge-text);
   text-transform: uppercase;
   
   &.active {
-    background: rgba(0, 229, 153, 0.2);
-    color: $neo-green;
+    background: var(--gacha-badge-active-bg);
+    color: var(--gacha-badge-active-text);
   }
   &.sale {
-    background: rgba(253, 224, 71, 0.2);
-    color: $brutal-yellow;
+    background: var(--gacha-badge-sale-bg);
+    color: var(--gacha-badge-sale-text);
   }
 }
 
@@ -1553,9 +1667,20 @@ onMounted(() => {
   gap: 8px;
   flex-wrap: wrap;
   align-items: center;
-  background: rgba(255,255,255,0.05);
+  background: var(--gacha-manage-bg);
   padding: 12px;
   border-radius: 12px;
+}
+
+.manage-actions--revenue {
+  background: var(--gacha-revenue-bg);
+  border: 1px dashed var(--gacha-revenue-border);
+}
+
+.revenue-label {
+  flex: 1;
+  font-weight: 700;
+  color: var(--gacha-revenue-text);
 }
 
 .inventory-grid {
@@ -1566,8 +1691,8 @@ onMounted(() => {
 }
 
 .inventory-item {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--gacha-surface-alt);
+  border: 1px solid var(--gacha-panel-border);
   padding: 12px;
   border-radius: 12px;
   display: flex;
@@ -1612,7 +1737,7 @@ onMounted(() => {
   justify-content: space-between;
   font-size: 14px;
   color: var(--text-secondary);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--gacha-divider);
   padding-bottom: 8px;
   align-items: center;
   
@@ -1628,8 +1753,8 @@ onMounted(() => {
 .rank-value {
   font-family: $font-mono;
   font-weight: 700;
-  background: rgba(34, 211, 238, 0.2);
-  color: $brutal-blue;
+  background: var(--gacha-rank-pill-bg);
+  color: var(--gacha-rank-pill-text);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 12px;
@@ -1651,7 +1776,7 @@ onMounted(() => {
   
   &__title {
     font-weight: 700;
-    color: #ef4444;
+    color: var(--gacha-danger-text);
   }
   &__desc {
     font-size: 12px;

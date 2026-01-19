@@ -1,0 +1,42 @@
+{
+  "app_id": "miniapp-lottery",
+  "name": "Neo Lottery",
+  "name_zh": "Neo 彩票",
+  "description": "Neo Lottery - Neo MiniApp",
+  "description_zh": "体验由 VRF 随机数驱动的公平彩票抽奖。使用 GAS 购买彩票，竞争巨额奖池，100% 链上透明验证。",
+  "version": "1.0.0",
+  "entry_url": "mf://builtin?app=miniapp-lottery",
+  "category": "gaming",
+  "status": "active",
+  "tags": [],
+  "permissions": {
+    "payments": true,
+    "automation": true,
+    "rng": true
+  },
+  "assets_allowed": [
+    "NEO",
+    "GAS"
+  ],
+  "supported_chains": [
+    "neo-n3-mainnet",
+    "neo-n3-testnet"
+  ],
+  "contracts": {
+    "neo-n3-mainnet": {
+      "address": "0x3e330b4c396b40aa08d49912c0179319831b3a6e"
+    },
+    "neo-n3-testnet": {
+      "address": "0x3e330b4c396b40aa08d49912c0179319831b3a6e"
+    }
+  },
+  "card": {
+    "display": {
+      "type": "icon_title",
+      "banner": "/static/banner.png"
+    },
+    "info": {
+      "logo": "/static/logo.png"
+    }
+  }
+}

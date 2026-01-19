@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout class="theme-gas-sponsor" :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view class="app-container">
       <NeoCard
         v-if="status"
@@ -12,8 +12,8 @@
       <view v-if="chainType === 'evm'" class="mb-4">
         <NeoCard variant="danger">
           <view class="flex flex-col items-center gap-2 py-1">
-            <text class="status-msg text-red-400">{{ t("wrongChain") }}</text>
-            <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+            <text class="status-title">{{ t("wrongChain") }}</text>
+            <text class="status-detail">{{ t("wrongChainMessage") }}</text>
             <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{
               t("switchToNeo")
             }}</NeoButton>
@@ -359,14 +359,205 @@ const docFeatures = computed(() => [
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
-$gas-bg: #1a0b2e;
-$gas-pink: #d946ef;
-$gas-cyan: #06b6d4;
-$gas-purple: #701a75;
-$gas-grid: rgba(217, 70, 239, 0.15);
+:global(.theme-gas-sponsor) {
+  --gas-font: 'Orbitron', 'Space Grotesk', sans-serif;
+  --gas-bg: #1a0b2e;
+  --gas-bg-secondary: #140822;
+  --gas-bg-elevated: #221035;
+  --gas-card-bg: rgba(26, 11, 46, 0.88);
+  --gas-card-border: #d946ef;
+  --gas-card-border-secondary: #06b6d4;
+  --gas-card-shadow: 0 0 15px rgba(217, 70, 239, 0.2), inset 0 0 20px rgba(6, 182, 212, 0.12);
+  --gas-card-danger-bg: rgba(40, 10, 10, 0.9);
+  --gas-card-danger-border: rgba(239, 68, 68, 0.7);
+  --gas-card-danger-text: #fecaca;
+  --gas-card-danger-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+  --gas-text: #f8f4ff;
+  --gas-text-secondary: rgba(233, 225, 255, 0.78);
+  --gas-text-muted: rgba(233, 225, 255, 0.55);
+  --gas-text-inverse: #0b0b12;
+  --gas-grid: rgba(217, 70, 239, 0.18);
+  --gas-inset-shadow: rgba(0, 0, 0, 0.7);
+  --gas-accent: #d946ef;
+  --gas-accent-strong: #701a75;
+  --gas-accent-secondary: #06b6d4;
+  --gas-accent-glow: rgba(217, 70, 239, 0.7);
+  --gas-highlight: #00e599;
+  --gas-highlight-shadow: 0 0 10px rgba(0, 229, 153, 0.25);
+  --gas-warning-text: #ffde59;
+  --gas-button-primary-bg: linear-gradient(90deg, #d946ef, #06b6d4);
+  --gas-button-primary-text: #ffffff;
+  --gas-button-primary-shadow: 0 0 20px rgba(217, 70, 239, 0.5);
+  --gas-button-secondary-bg: transparent;
+  --gas-button-secondary-border: rgba(6, 182, 212, 0.7);
+  --gas-button-secondary-text: #06b6d4;
+  --gas-button-secondary-shadow: 0 0 5px rgba(6, 182, 212, 0.3);
+  --gas-input-bg: rgba(0, 0, 0, 0.4);
+  --gas-input-border: rgba(217, 70, 239, 0.7);
+  --gas-input-text: #ffffff;
+  --gas-status-shadow: 0 0 5px rgba(6, 182, 212, 0.8);
+  --gas-divider: rgba(255, 255, 255, 0.08);
+  --gas-form-description: rgba(209, 213, 219, 0.9);
+  --gas-preset-bg: rgba(255, 255, 255, 0.05);
+  --gas-preset-border: rgba(112, 26, 117, 0.6);
+  --gas-preset-hover-bg: rgba(255, 255, 255, 0.1);
+  --gas-preset-hover-border: rgba(217, 70, 239, 0.5);
+  --gas-preset-active-bg: rgba(217, 70, 239, 0.2);
+  --gas-preset-active-shadow: 0 0 15px rgba(217, 70, 239, 0.5);
+  --gas-preset-active-text: #f8e9ff;
+  --gas-quota-fill: #7000ff;
+  --gas-quota-fill-shadow: 0 0 10px rgba(112, 0, 255, 0.4);
+  --gas-quota-bar-bg: rgba(255, 255, 255, 0.06);
+  --gas-pump-bg: linear-gradient(180deg, rgba(20, 20, 22, 0.6) 0%, rgba(10, 10, 12, 0.8) 100%);
+  --gas-pump-border: rgba(255, 255, 255, 0.1);
+  --gas-pump-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  --gas-pump-screen-bg: #0d1117;
+  --gas-pump-screen-border: rgba(0, 229, 153, 0.2);
+  --gas-pump-screen-shadow: inset 0 0 20px rgba(0, 229, 153, 0.05), 0 0 10px rgba(0, 0, 0, 0.5);
+  --gas-pump-screen-sheen: linear-gradient(90deg, transparent, rgba(0, 229, 153, 0.5), transparent);
+  --gas-pump-label: rgba(0, 229, 153, 0.6);
+  --gas-pump-amount: #00e599;
+  --gas-pump-amount-shadow: 0 0 20px rgba(0, 229, 153, 0.5), 0 0 40px rgba(0, 229, 153, 0.1);
+  --gas-quick-btn-bg: rgba(255, 255, 255, 0.03);
+  --gas-quick-btn-border: rgba(255, 255, 255, 0.1);
+  --gas-quick-btn-hover-bg: rgba(255, 255, 255, 0.08);
+  --gas-quick-btn-hover-border: rgba(0, 229, 153, 0.3);
+  --gas-quick-btn-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  --gas-quick-btn-hover-text: #00e599;
+  --gas-tank-bg: rgba(20, 20, 20, 0.6);
+  --gas-tank-border: rgba(255, 255, 255, 0.1);
+  --gas-tank-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5), 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --gas-tank-grid: rgba(255, 255, 255, 0.03);
+  --gas-tank-graduation: rgba(255, 255, 255, 0.3);
+  --gas-tank-highlight: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 100%);
+  --gas-fuel-start: rgba(0, 229, 153, 0.95);
+  --gas-fuel-end: rgba(0, 150, 100, 0.95);
+  --gas-fuel-shadow: 0 0 40px rgba(0, 229, 153, 0.4);
+  --gas-fuel-surface: rgba(255, 255, 255, 0.8);
+  --gas-fuel-surface-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+  --gas-bubble: rgba(255, 255, 255, 0.2);
+  --gas-status-pill-bg: rgba(0, 0, 0, 0.6);
+  --gas-status-pill-border: rgba(255, 255, 255, 0.1);
+  --gas-status-eligible-border: rgba(255, 222, 89, 0.6);
+  --gas-status-eligible-text: #ffde59;
+  --gas-status-eligible-shadow: 0 0 20px rgba(255, 222, 89, 0.2), inset 0 0 10px rgba(255, 222, 89, 0.1);
+  --gas-status-full-border: rgba(0, 229, 153, 0.6);
+  --gas-status-full-text: #00e599;
+  --gas-status-full-shadow: 0 0 20px rgba(0, 229, 153, 0.2), inset 0 0 10px rgba(0, 229, 153, 0.1);
+  --gas-badge-eligible-bg: rgba(0, 229, 153, 0.1);
+  --gas-badge-eligible-border: rgba(0, 229, 153, 0.2);
+  --gas-badge-eligible-text: #00e599;
+  --gas-badge-ineligible-bg: rgba(239, 68, 68, 0.1);
+  --gas-badge-ineligible-border: rgba(239, 68, 68, 0.2);
+  --gas-badge-ineligible-text: #ef4444;
+  --bg-primary: var(--gas-bg);
+  --bg-secondary: var(--gas-bg-secondary);
+  --bg-card: var(--gas-card-bg);
+  --bg-elevated: var(--gas-bg-elevated);
+  --text-primary: var(--gas-text);
+  --text-secondary: var(--gas-text-secondary);
+  --text-muted: var(--gas-text-muted);
+  --border-color: var(--gas-card-border);
+  --shadow-color: rgba(0, 0, 0, 0.35);
+}
+
+:global(.theme-light .theme-gas-sponsor),
+:global([data-theme="light"] .theme-gas-sponsor) {
+  --gas-bg: #f7f2ff;
+  --gas-bg-secondary: #efe8ff;
+  --gas-bg-elevated: #ffffff;
+  --gas-card-bg: rgba(255, 255, 255, 0.92);
+  --gas-card-border: #c026d3;
+  --gas-card-border-secondary: #0891b2;
+  --gas-card-shadow: 0 10px 20px rgba(88, 28, 135, 0.12), inset 0 0 10px rgba(6, 182, 212, 0.08);
+  --gas-card-danger-bg: #fee2e2;
+  --gas-card-danger-border: rgba(239, 68, 68, 0.5);
+  --gas-card-danger-text: #b91c1c;
+  --gas-card-danger-shadow: 0 8px 16px rgba(239, 68, 68, 0.15);
+  --gas-text: #2a0a3d;
+  --gas-text-secondary: #5b3b7a;
+  --gas-text-muted: #7b6a94;
+  --gas-text-inverse: #ffffff;
+  --gas-grid: rgba(217, 70, 239, 0.12);
+  --gas-inset-shadow: rgba(88, 28, 135, 0.12);
+  --gas-accent: #c026d3;
+  --gas-accent-strong: #86198f;
+  --gas-accent-secondary: #0891b2;
+  --gas-accent-glow: rgba(192, 38, 211, 0.35);
+  --gas-highlight: #059669;
+  --gas-highlight-shadow: 0 0 8px rgba(5, 150, 105, 0.25);
+  --gas-warning-text: #a16207;
+  --gas-button-primary-bg: linear-gradient(90deg, #c026d3, #22d3ee);
+  --gas-button-primary-text: #ffffff;
+  --gas-button-primary-shadow: 0 12px 22px rgba(88, 28, 135, 0.2);
+  --gas-button-secondary-bg: rgba(255, 255, 255, 0.6);
+  --gas-button-secondary-border: rgba(8, 145, 178, 0.4);
+  --gas-button-secondary-text: #0e7490;
+  --gas-button-secondary-shadow: 0 4px 12px rgba(88, 28, 135, 0.12);
+  --gas-input-bg: rgba(255, 255, 255, 0.85);
+  --gas-input-border: rgba(192, 38, 211, 0.35);
+  --gas-input-text: #2b1b3d;
+  --gas-status-shadow: 0 0 6px rgba(8, 145, 178, 0.25);
+  --gas-divider: rgba(88, 28, 135, 0.12);
+  --gas-form-description: rgba(91, 59, 122, 0.9);
+  --gas-preset-bg: rgba(255, 255, 255, 0.7);
+  --gas-preset-border: rgba(134, 25, 143, 0.3);
+  --gas-preset-hover-bg: rgba(255, 255, 255, 0.95);
+  --gas-preset-hover-border: rgba(192, 38, 211, 0.35);
+  --gas-preset-active-bg: rgba(217, 70, 239, 0.18);
+  --gas-preset-active-shadow: 0 0 12px rgba(217, 70, 239, 0.25);
+  --gas-preset-active-text: #a21caf;
+  --gas-quota-fill: #7c3aed;
+  --gas-quota-fill-shadow: 0 0 12px rgba(124, 58, 237, 0.25);
+  --gas-quota-bar-bg: rgba(88, 28, 135, 0.08);
+  --gas-pump-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(245, 240, 255, 0.95) 100%);
+  --gas-pump-border: rgba(134, 25, 143, 0.2);
+  --gas-pump-shadow: 0 10px 25px rgba(88, 28, 135, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --gas-pump-screen-bg: #f5f7fb;
+  --gas-pump-screen-border: rgba(5, 150, 105, 0.25);
+  --gas-pump-screen-shadow: inset 0 0 18px rgba(5, 150, 105, 0.12), 0 0 10px rgba(88, 28, 135, 0.1);
+  --gas-pump-screen-sheen: linear-gradient(90deg, transparent, rgba(5, 150, 105, 0.35), transparent);
+  --gas-pump-label: rgba(5, 150, 105, 0.7);
+  --gas-pump-amount: #059669;
+  --gas-pump-amount-shadow: 0 0 16px rgba(5, 150, 105, 0.2);
+  --gas-quick-btn-bg: rgba(255, 255, 255, 0.7);
+  --gas-quick-btn-border: rgba(88, 28, 135, 0.15);
+  --gas-quick-btn-hover-bg: rgba(255, 255, 255, 0.95);
+  --gas-quick-btn-hover-border: rgba(5, 150, 105, 0.3);
+  --gas-quick-btn-hover-shadow: 0 4px 12px rgba(88, 28, 135, 0.1);
+  --gas-quick-btn-hover-text: #059669;
+  --gas-tank-bg: rgba(255, 255, 255, 0.75);
+  --gas-tank-border: rgba(88, 28, 135, 0.15);
+  --gas-tank-shadow: inset 0 0 24px rgba(88, 28, 135, 0.08), 0 10px 20px rgba(88, 28, 135, 0.1), 0 0 0 1px rgba(88, 28, 135, 0.12);
+  --gas-tank-grid: rgba(88, 28, 135, 0.08);
+  --gas-tank-graduation: rgba(88, 28, 135, 0.3);
+  --gas-tank-highlight: linear-gradient(180deg, rgba(255, 255, 255, 0.65) 0%, transparent 100%);
+  --gas-fuel-start: rgba(16, 185, 129, 0.9);
+  --gas-fuel-end: rgba(5, 150, 105, 0.9);
+  --gas-fuel-shadow: 0 0 28px rgba(5, 150, 105, 0.25);
+  --gas-fuel-surface: rgba(255, 255, 255, 0.9);
+  --gas-fuel-surface-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+  --gas-bubble: rgba(255, 255, 255, 0.35);
+  --gas-status-pill-bg: rgba(255, 255, 255, 0.7);
+  --gas-status-pill-border: rgba(88, 28, 135, 0.2);
+  --gas-status-eligible-border: rgba(234, 179, 8, 0.6);
+  --gas-status-eligible-text: #a16207;
+  --gas-status-eligible-shadow: 0 0 16px rgba(234, 179, 8, 0.2), inset 0 0 8px rgba(234, 179, 8, 0.12);
+  --gas-status-full-border: rgba(5, 150, 105, 0.5);
+  --gas-status-full-text: #047857;
+  --gas-status-full-shadow: 0 0 16px rgba(5, 150, 105, 0.2), inset 0 0 8px rgba(5, 150, 105, 0.12);
+  --gas-badge-eligible-bg: rgba(16, 185, 129, 0.15);
+  --gas-badge-eligible-border: rgba(16, 185, 129, 0.35);
+  --gas-badge-eligible-text: #047857;
+  --gas-badge-ineligible-bg: rgba(239, 68, 68, 0.15);
+  --gas-badge-ineligible-border: rgba(239, 68, 68, 0.35);
+  --gas-badge-ineligible-text: #b91c1c;
+  --shadow-color: rgba(42, 10, 61, 0.12);
+}
 
 :global(page) {
-  background: $gas-bg;
+  background: var(--gas-bg, var(--bg-primary));
+  font-family: var(--gas-font, #{$font-family});
 }
 
 .app-container {
@@ -375,64 +566,65 @@ $gas-grid: rgba(217, 70, 239, 0.15);
   display: flex;
   flex-direction: column;
   gap: 24px;
-  background-color: $gas-bg;
+  background-color: var(--gas-bg);
   background-image: 
-    linear-gradient($gas-grid 1px, transparent 1px),
-    linear-gradient(90deg, $gas-grid 1px, transparent 1px);
+    linear-gradient(var(--gas-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--gas-grid) 1px, transparent 1px);
   background-size: 40px 40px;
   min-height: 100vh;
-  box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
+  box-shadow: inset 0 0 100px var(--gas-inset-shadow);
 }
 
 /* Gas Station Component Overrides */
 :deep(.neo-card) {
-  background: rgba(26, 11, 46, 0.9) !important;
-  border: 1px solid $gas-pink !important;
-  border-bottom: 2px solid $gas-cyan !important;
+  background: var(--gas-card-bg) !important;
+  border: 1px solid var(--gas-card-border) !important;
+  border-bottom: 2px solid var(--gas-card-border-secondary) !important;
   border-radius: 4px !important;
-  box-shadow: 0 0 15px rgba(217, 70, 239, 0.2), inset 0 0 20px rgba(6, 182, 212, 0.1) !important;
-  color: #fff !important;
+  box-shadow: var(--gas-card-shadow) !important;
+  color: var(--gas-text) !important;
   backdrop-filter: blur(10px);
   
   &.variant-danger {
-    border-color: #ef4444 !important;
-    background: rgba(40, 10, 10, 0.9) !important;
-    box-shadow: 0 0 15px rgba(239, 68, 68, 0.3) !important;
+    border-color: var(--gas-card-danger-border) !important;
+    background: var(--gas-card-danger-bg) !important;
+    color: var(--gas-card-danger-text) !important;
+    box-shadow: var(--gas-card-danger-shadow) !important;
   }
 }
 
 :deep(.neo-button) {
   border-radius: 99px !important; /* Pill shape */
-  font-family: 'Orbitron', sans-serif !important;
+  font-family: var(--gas-font, #{$font-family}) !important;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-weight: 800 !important;
   
   &.variant-primary {
-    background: linear-gradient(90deg, $gas-pink, $gas-cyan) !important;
-    color: #fff !important;
+    background: var(--gas-button-primary-bg) !important;
+    color: var(--gas-button-primary-text) !important;
     border: none !important;
-    box-shadow: 0 0 20px rgba(217, 70, 239, 0.5) !important;
+    box-shadow: var(--gas-button-primary-shadow) !important;
     
     &:active {
       transform: scale(0.95);
-      box-shadow: 0 0 10px rgba(217, 70, 239, 0.8) !important;
+      box-shadow: var(--gas-button-primary-shadow) !important;
     }
   }
   
   &.variant-secondary {
-    background: transparent !important;
-    border: 1px solid $gas-cyan !important;
-    color: $gas-cyan !important;
-    box-shadow: 0 0 5px rgba(6, 182, 212, 0.3) !important;
+    background: var(--gas-button-secondary-bg) !important;
+    border: 1px solid var(--gas-button-secondary-border) !important;
+    color: var(--gas-button-secondary-text) !important;
+    box-shadow: var(--gas-button-secondary-shadow) !important;
   }
 }
 
 :deep(.neo-input) {
-  background: rgba(0,0,0,0.4) !important;
-  border: 1px solid $gas-pink !important;
+  background: var(--gas-input-bg) !important;
+  border: 1px solid var(--gas-input-border) !important;
   border-radius: 4px !important;
-  color: #fff !important;
+  color: var(--gas-input-text) !important;
   font-family: 'Courier New', monospace !important;
 }
 
@@ -447,8 +639,23 @@ $gas-grid: rgba(217, 70, 239, 0.15);
   text-transform: uppercase;
   font-family: $font-mono;
   font-size: 12px;
-  color: $gas-cyan;
-  text-shadow: 0 0 5px rgba(6, 182, 212, 0.8);
+  color: var(--gas-accent-secondary);
+  text-shadow: var(--gas-status-shadow);
+}
+
+.status-title {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: var(--gas-card-danger-text);
+  letter-spacing: 0.08em;
+}
+
+.status-detail {
+  font-size: 12px;
+  text-align: center;
+  color: var(--gas-text-secondary);
+  opacity: 0.85;
 }
 
 .scrollable {
@@ -466,16 +673,16 @@ $gas-grid: rgba(217, 70, 239, 0.15);
 .form-subtitle {
   font-weight: 800;
   font-size: 14px;
-     color: $gas-pink;
+  color: var(--gas-accent);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: 4px;
-  text-shadow: 0 0 8px $gas-pink;
+  text-shadow: 0 0 8px var(--gas-accent-glow);
 }
 
 .form-description {
   font-size: 12px;
-  color: #d1d5db;
+  color: var(--gas-form-description);
   line-height: 1.5;
   margin-bottom: 8px;
 }
@@ -490,9 +697,9 @@ $gas-grid: rgba(217, 70, 239, 0.15);
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  color: $gas-cyan;
+  color: var(--gas-accent-secondary);
   letter-spacing: 0.05em;
-  text-shadow: 0 0 5px $gas-cyan;
+  text-shadow: var(--gas-status-shadow);
 }
 
 .preset-amounts {
@@ -504,8 +711,8 @@ $gas-grid: rgba(217, 70, 239, 0.15);
 
 .preset-btn {
   padding: 16px 8px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid $gas-purple;
+  background: var(--gas-preset-bg);
+  border: 1px solid var(--gas-preset-border);
   border-radius: 4px;
   text-align: center;
   cursor: pointer;
@@ -517,22 +724,23 @@ $gas-grid: rgba(217, 70, 239, 0.15);
   backdrop-filter: blur(5px);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--gas-preset-hover-bg);
+    border-color: var(--gas-preset-hover-border);
     transform: translateY(-2px);
   }
 
   &.active {
-    background: rgba(217, 70, 239, 0.2);
-    border-color: $gas-pink;
-    box-shadow: 0 0 15px rgba(217, 70, 239, 0.5);
-    .preset-value { color: $gas-pink; }
+    background: var(--gas-preset-active-bg);
+    border-color: var(--gas-accent);
+    box-shadow: var(--gas-preset-active-shadow);
+    .preset-value { color: var(--gas-preset-active-text); }
   }
 }
 
 .preset-value {
   font-weight: 800;
   font-size: 18px;
-  color: #fff;
+  color: var(--gas-text);
   font-family: $font-mono;
 }
 
@@ -541,7 +749,7 @@ $gas-grid: rgba(217, 70, 239, 0.15);
   font-weight: 700;
   text-transform: uppercase;
   opacity: 0.7;
-  color: $gas-cyan;
+  color: var(--gas-accent-secondary);
 }
 
 .glass-status {

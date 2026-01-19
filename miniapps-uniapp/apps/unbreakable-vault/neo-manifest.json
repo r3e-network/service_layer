@@ -34,7 +34,7 @@
       "banner": "/static/banner.png"
     },
     "info": {
-      "logo": "/static/icon.svg"
+      "logo": "/static/logo.png"
     }
   }
 }

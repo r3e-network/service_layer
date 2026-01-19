@@ -1,11 +1,11 @@
 <template>
-  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout class="theme-grant-share" :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <view class="app-container">
       <view v-if="chainType === 'evm'" class="mb-4">
         <NeoCard variant="danger">
           <view class="flex flex-col items-center gap-2 py-1">
-            <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
-            <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+            <text class="status-title">{{ t("wrongChain") }}</text>
+            <text class="status-detail">{{ t("wrongChainMessage") }}</text>
             <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{
               t("switchToNeo")
             }}</NeoButton>
@@ -288,14 +288,124 @@ onMounted(() => {
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
-$eco-bg: #ecf3ed;
-$eco-green: #34d399;
-$eco-dark: #064e3b;
-$eco-light: #d1fae5;
-$eco-accent: #10b981;
+:global(.theme-grant-share) {
+  --eco-bg: #0f1c15;
+  --eco-bg-pattern: rgba(52, 211, 153, 0.14);
+  --eco-card-bg: rgba(17, 32, 25, 0.9);
+  --eco-card-border: rgba(52, 211, 153, 0.18);
+  --eco-card-accent-border: rgba(52, 211, 153, 0.35);
+  --eco-card-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+  --eco-text: #e5f8ee;
+  --eco-text-muted: #9cc7b3;
+  --eco-text-subtle: #b9d6c7;
+  --eco-accent: #34d399;
+  --eco-accent-strong: #10b981;
+  --eco-accent-soft: rgba(52, 211, 153, 0.18);
+  --eco-divider: rgba(52, 211, 153, 0.2);
+  --eco-button-primary-bg: #34d399;
+  --eco-button-primary-text: #06231a;
+  --eco-button-primary-shadow: 0 4px 10px rgba(52, 211, 153, 0.3);
+  --eco-button-secondary-bg: rgba(255, 255, 255, 0.08);
+  --eco-button-secondary-text: #c5e7d6;
+  --eco-button-secondary-border: rgba(255, 255, 255, 0.16);
+  --eco-pool-stat-bg: rgba(16, 185, 129, 0.12);
+  --eco-pool-stat-border: rgba(16, 185, 129, 0.3);
+  --eco-empty-bg: rgba(255, 255, 255, 0.06);
+  --eco-empty-border: rgba(255, 255, 255, 0.15);
+  --eco-meta-bg: rgba(255, 255, 255, 0.08);
+  --eco-meta-text: #c1ddcf;
+  --eco-chip-accept-bg: rgba(16, 185, 129, 0.2);
+  --eco-chip-accept-text: #34d399;
+  --eco-chip-accept-border: rgba(16, 185, 129, 0.4);
+  --eco-chip-reject-bg: rgba(239, 68, 68, 0.2);
+  --eco-chip-reject-text: #f87171;
+  --eco-chip-reject-border: rgba(239, 68, 68, 0.4);
+  --eco-chip-neutral-bg: rgba(148, 163, 184, 0.2);
+  --eco-chip-neutral-text: #d1d5db;
+  --eco-chip-neutral-border: rgba(148, 163, 184, 0.3);
+  --eco-badge-active-bg: rgba(245, 158, 11, 0.2);
+  --eco-badge-active-text: #fbbf24;
+  --eco-badge-review-bg: rgba(59, 130, 246, 0.2);
+  --eco-badge-review-text: #60a5fa;
+  --eco-badge-executed-bg: rgba(16, 185, 129, 0.2);
+  --eco-badge-executed-text: #34d399;
+  --eco-badge-cancel-bg: rgba(239, 68, 68, 0.2);
+  --eco-badge-cancel-text: #f87171;
+  --eco-danger-bg: rgba(127, 29, 29, 0.3);
+  --eco-danger-border: rgba(239, 68, 68, 0.6);
+  --eco-danger-text: #fecaca;
+  --eco-success-bg: rgba(16, 185, 129, 0.2);
+  --eco-success-border: rgba(16, 185, 129, 0.5);
+  --eco-success-text: #6ee7b7;
+  --eco-status-title: #fca5a5;
+  --eco-status-detail: #fcd7d7;
+  --bg-primary: var(--eco-bg);
+  --bg-secondary: #13281d;
+  --bg-card: var(--eco-card-bg);
+  --text-primary: var(--eco-text);
+  --text-secondary: var(--eco-text-muted);
+  --text-muted: var(--eco-text-muted);
+  --border-color: var(--eco-card-border);
+  --shadow-color: rgba(0, 0, 0, 0.35);
+}
+
+:global(.theme-light .theme-grant-share),
+:global([data-theme="light"] .theme-grant-share) {
+  --eco-bg: #ecf3ed;
+  --eco-bg-pattern: rgba(52, 211, 153, 0.2);
+  --eco-card-bg: #ffffff;
+  --eco-card-border: #e5e7eb;
+  --eco-card-accent-border: #d1fae5;
+  --eco-card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --eco-text: #1f2937;
+  --eco-text-muted: #6b7280;
+  --eco-text-subtle: #4b5563;
+  --eco-accent: #34d399;
+  --eco-accent-strong: #10b981;
+  --eco-accent-soft: #d1fae5;
+  --eco-divider: rgba(52, 211, 153, 0.2);
+  --eco-button-primary-bg: #34d399;
+  --eco-button-primary-text: #ffffff;
+  --eco-button-primary-shadow: 0 4px 10px rgba(52, 211, 153, 0.3);
+  --eco-button-secondary-bg: #f3f4f6;
+  --eco-button-secondary-text: #4b5563;
+  --eco-button-secondary-border: #e5e7eb;
+  --eco-pool-stat-bg: #f0fdf4;
+  --eco-pool-stat-border: #bbf7d0;
+  --eco-empty-bg: rgba(255, 255, 255, 0.5);
+  --eco-empty-border: #d1d5db;
+  --eco-meta-bg: #f3f4f6;
+  --eco-meta-text: #6b7280;
+  --eco-chip-accept-bg: #ecfdf5;
+  --eco-chip-accept-text: #059669;
+  --eco-chip-accept-border: #a7f3d0;
+  --eco-chip-reject-bg: #fef2f2;
+  --eco-chip-reject-text: #dc2626;
+  --eco-chip-reject-border: #fecaca;
+  --eco-chip-neutral-bg: #f3f4f6;
+  --eco-chip-neutral-text: #4b5563;
+  --eco-chip-neutral-border: #e5e7eb;
+  --eco-badge-active-bg: #fef3c7;
+  --eco-badge-active-text: #d97706;
+  --eco-badge-review-bg: #dbeafe;
+  --eco-badge-review-text: #2563eb;
+  --eco-badge-executed-bg: #d1fae5;
+  --eco-badge-executed-text: #059669;
+  --eco-badge-cancel-bg: #fee2e2;
+  --eco-badge-cancel-text: #dc2626;
+  --eco-danger-bg: #fee2e2;
+  --eco-danger-border: #fca5a5;
+  --eco-danger-text: #b91c1c;
+  --eco-success-bg: #ecfdf3;
+  --eco-success-border: #a7f3d0;
+  --eco-success-text: #047857;
+  --eco-status-title: #ef4444;
+  --eco-status-detail: #6b7280;
+  --shadow-color: rgba(31, 41, 55, 0.08);
+}
 
 :global(page) {
-  background: $eco-bg;
+  background: var(--eco-bg);
 }
 
 .app-container {
@@ -304,24 +414,36 @@ $eco-accent: #10b981;
   display: flex;
   flex-direction: column;
   gap: 24px;
-  background-color: $eco-bg;
+  background-color: var(--eco-bg);
   background-image: 
-    radial-gradient(circle at 10% 10%, rgba(52, 211, 153, 0.2) 0%, transparent 40%),
-    radial-gradient(circle at 90% 90%, rgba(52, 211, 153, 0.2) 0%, transparent 40%);
+    radial-gradient(circle at 10% 10%, var(--eco-bg-pattern) 0%, transparent 40%),
+    radial-gradient(circle at 90% 90%, var(--eco-bg-pattern) 0%, transparent 40%);
   min-height: 100vh;
 }
 
 /* Eco Component Overrides */
 :deep(.neo-card) {
-  background: #ffffff !important;
-  border: 1px solid #e5e7eb !important;
+  background: var(--eco-card-bg) !important;
+  border: 1px solid var(--eco-card-border) !important;
   border-radius: 12px !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
-  color: #1f2937 !important;
+  box-shadow: var(--eco-card-shadow) !important;
+  color: var(--eco-text) !important;
   
   &.variant-erobo-neo {
-    background: #ffffff !important;
-    border-color: #d1fae5 !important;
+    background: var(--eco-card-bg) !important;
+    border-color: var(--eco-card-accent-border) !important;
+  }
+
+  &.variant-danger {
+    background: var(--eco-danger-bg) !important;
+    border-color: var(--eco-danger-border) !important;
+    color: var(--eco-danger-text) !important;
+  }
+
+  &.variant-success {
+    background: var(--eco-success-bg) !important;
+    border-color: var(--eco-success-border) !important;
+    color: var(--eco-success-text) !important;
   }
 }
 
@@ -330,10 +452,10 @@ $eco-accent: #10b981;
   font-weight: 700 !important;
   
   &.variant-primary {
-    background: $eco-green !important;
-    color: #fff !important;
+    background: var(--eco-button-primary-bg) !important;
+    color: var(--eco-button-primary-text) !important;
     border: none !important;
-    box-shadow: 0 4px 10px rgba(52, 211, 153, 0.3) !important;
+    box-shadow: var(--eco-button-primary-shadow) !important;
     
     &:active {
       transform: translateY(1px);
@@ -342,9 +464,9 @@ $eco-accent: #10b981;
   }
   
   &.variant-secondary {
-    background: #f3f4f6 !important;
-    color: #4b5563 !important;
-    border: 1px solid #e5e7eb !important;
+    background: var(--eco-button-secondary-bg) !important;
+    color: var(--eco-button-secondary-text) !important;
+    border: 1px solid var(--eco-button-secondary-border) !important;
   }
 }
 
@@ -354,27 +476,42 @@ $eco-accent: #10b981;
   gap: 16px;
 }
 
+.status-title {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: var(--eco-status-title);
+  letter-spacing: 0.08em;
+}
+
+.status-detail {
+  font-size: 12px;
+  text-align: center;
+  color: var(--eco-status-detail);
+  opacity: 0.85;
+}
+
 .pool-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: $space-6;
-  border-bottom: 2px dashed rgba(52, 211, 153, 0.2);
+  border-bottom: 2px dashed var(--eco-divider);
   padding-bottom: $space-3;
 }
 .pool-title {
   font-weight: 800;
   font-size: 20px;
-  color: $eco-dark;
+  color: var(--eco-text);
 }
 .pool-round-glass {
   font-size: 10px;
   font-weight: bold;
-  border: 1px solid $eco-green;
+  border: 1px solid var(--eco-accent);
   padding: 4px 12px;
-  background: $eco-light;
+  background: var(--eco-accent-soft);
   border-radius: 20px;
-  color: $eco-dark;
+  color: var(--eco-text);
 }
 
 .pool-stats {
@@ -384,8 +521,8 @@ $eco-accent: #10b981;
 }
 .pool-stat-glass {
   padding: $space-4;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
+  background: var(--eco-pool-stat-bg);
+  border: 1px solid var(--eco-pool-stat-border);
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -396,15 +533,15 @@ $eco-accent: #10b981;
   font-size: 10px;
   font-weight: $font-weight-bold;
   text-transform: uppercase;
-  color: #6b7280;
+  color: var(--eco-text-muted);
   margin-bottom: 4px;
 }
 .stat-value-glass {
   font-weight: 700;
   font-size: 18px;
-  color: $eco-dark;
+  color: var(--eco-text);
   &.highlight {
-    color: $eco-accent;
+    color: var(--eco-accent-strong);
   }
 }
 
@@ -413,8 +550,8 @@ $eco-accent: #10b981;
   text-transform: uppercase;
   font-size: 12px;
   margin-bottom: $space-4;
-  color: #6b7280;
-  border-left: 3px solid $eco-green;
+  color: var(--eco-text-muted);
+  border-left: 3px solid var(--eco-accent);
   padding-left: 8px;
   display: block;
 }
@@ -422,12 +559,12 @@ $eco-accent: #10b981;
 .empty-state {
   padding: 32px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--eco-empty-bg);
   border-radius: 12px;
-  border: 1px dashed #d1d5db;
+  border: 1px dashed var(--eco-empty-border);
 }
 .empty-text {
-  color: #6b7280;
+  color: var(--eco-text-muted);
   font-size: 14px;
 }
 
@@ -443,14 +580,14 @@ $eco-accent: #10b981;
 .grant-title-glass {
   font-weight: 700;
   font-size: 16px;
-  color: $eco-dark;
+  color: var(--eco-text);
   display: block;
   margin-bottom: 4px;
 }
 .grant-creator-glass {
   font-size: 10px;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--eco-text-muted);
 }
 
 .grant-badge-glass {
@@ -461,16 +598,16 @@ $eco-accent: #10b981;
   border-radius: 20px;
   
   &.active {
-    background: #fef3c7; color: #d97706;
+    background: var(--eco-badge-active-bg); color: var(--eco-badge-active-text);
   }
   &.review, &.voting, &.discussion {
-    background: #dbeafe; color: #2563eb;
+    background: var(--eco-badge-review-bg); color: var(--eco-badge-review-text);
   }
   &.executed {
-    background: #d1fae5; color: #059669;
+    background: var(--eco-badge-executed-bg); color: var(--eco-badge-executed-text);
   }
   &.cancelled, &.rejected, &.expired {
-    background: #fee2e2; color: #dc2626;
+    background: var(--eco-badge-cancel-bg); color: var(--eco-badge-cancel-text);
   }
 }
 
@@ -488,10 +625,10 @@ $eco-accent: #10b981;
 .meta-item {
   font-size: 10px;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--eco-meta-text);
   padding: 2px 8px;
   border-radius: 4px;
-  background: #f3f4f6;
+  background: var(--eco-meta-bg);
 }
 
 .proposal-stats {
@@ -507,13 +644,13 @@ $eco-accent: #10b981;
   border-radius: 6px;
 }
 .stat-chip.accept {
-  background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0;
+  background: var(--eco-chip-accept-bg); color: var(--eco-chip-accept-text); border: 1px solid var(--eco-chip-accept-border);
 }
 .stat-chip.reject {
-  background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;
+  background: var(--eco-chip-reject-bg); color: var(--eco-chip-reject-text); border: 1px solid var(--eco-chip-reject-border);
 }
 .stat-chip.comments {
-  background: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb;
+  background: var(--eco-chip-neutral-bg); color: var(--eco-chip-neutral-text); border: 1px solid var(--eco-chip-neutral-border);
 }
 
 .proposal-actions {

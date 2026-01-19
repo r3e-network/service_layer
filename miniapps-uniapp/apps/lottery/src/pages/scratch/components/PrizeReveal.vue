@@ -4,7 +4,7 @@
       <text v-if="isWinner" class="prize-amount">
         {{ formatPrize(prize) }}
       </text>
-      <text v-else class="no-prize">谢谢参与</text>
+      <text v-else class="no-prize">{{ t("scratchNoPrize") }}</text>
     </view>
     <text v-if="tierLabel" class="tier-label">{{ tierLabel }}</text>
   </view>
@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { PRIZE_TIERS } from '../../../shared/composables/useLotteryTypes'
+import { useI18n } from '../../../composables/useI18n'
 
 const props = defineProps<{
   prize: number
@@ -20,11 +20,19 @@ const props = defineProps<{
 }>()
 
 const isWinner = computed(() => props.prize > 0)
+const { t } = useI18n()
 
 const tierLabel = computed(() => {
   if (!props.tier) return ''
-  const t = PRIZE_TIERS.find(p => p.tier === props.tier)
-  return t?.label || ''
+  const tierKeyMap: Record<number, string> = {
+    1: "tierBreakEven",
+    2: "tierDoubleUp",
+    3: "tierLuckyStrike",
+    4: "tierFortune",
+    5: "tierJackpot"
+  }
+  const key = tierKeyMap[props.tier]
+  return key ? t(key as any) : ''
 })
 
 const formatPrize = (amount: number) => {
@@ -42,11 +50,11 @@ const formatPrize = (amount: number) => {
   .prize-amount {
     font-size: 56rpx;
     font-weight: bold;
-    color: #FCD34D;
+    color: var(--lucky-gold-light);
   }
   .no-prize {
     font-size: 36rpx;
-    color: #999;
+    color: var(--text-muted);
   }
 }
 
@@ -54,6 +62,6 @@ const formatPrize = (amount: number) => {
   display: block;
   margin-top: 16rpx;
   font-size: 28rpx;
-  color: #DC2626;
+  color: var(--lucky-red-text);
 }
 </style>

@@ -81,11 +81,11 @@ defineEmits(['select']);
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--gacha-surface-alt);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--gacha-panel-border);
 }
 
 .machine-icon {
@@ -105,7 +105,7 @@ defineEmits(['select']);
 }
 
 .machine-category {
-  color: #00e599;
+  color: var(--gacha-accent-green);
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -123,7 +123,7 @@ defineEmits(['select']);
   gap: $space-2;
   margin-bottom: $space-3;
   padding: $space-2;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--gacha-surface-strong);
   border-radius: 8px;
 }
 
@@ -147,14 +147,14 @@ defineEmits(['select']);
 }
 
 .highlight {
-  color: #00E599;
+  color: var(--gacha-accent-green);
 }
 
 .card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--gacha-divider);
   padding-top: $space-3;
 }
 
@@ -167,7 +167,7 @@ defineEmits(['select']);
 .price-amount {
   font-size: 16px;
   font-weight: 800;
-  color: #FDE047;
+  color: var(--gacha-accent-yellow);
 }
 
 .price-unit {
@@ -187,6 +187,6 @@ defineEmits(['select']);
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #fbbf24;
+  color: var(--gacha-accent-amber);
 }
 </style>

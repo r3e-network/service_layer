@@ -239,7 +239,7 @@ const publish = () => {
 
 .studio-header {
   margin-bottom: $space-4;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--gacha-divider);
   padding-bottom: $space-3;
 }
 
@@ -283,17 +283,17 @@ const publish = () => {
 .empty-inventory {
   padding: 20px;
   text-align: center;
-  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border: 1px dashed var(--gacha-panel-border);
   border-radius: 8px;
   font-size: 12px;
   color: var(--text-secondary);
 }
 
 .inventory-item {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--gacha-surface-strong);
   padding: 10px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--gacha-panel-border);
 }
 
 .item-header {
@@ -308,7 +308,7 @@ const publish = () => {
 }
 
 .remove-btn {
-  color: #ef4444;
+  color: var(--gacha-danger-text);
   font-weight: bold;
 }
 
@@ -344,7 +344,7 @@ const publish = () => {
 .rarity-badge {
   font-size: 9px;
   padding: 4px 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--gacha-badge-bg);
   border-radius: 4px;
   font-weight: 700;
   min-width: 60px;
@@ -356,10 +356,10 @@ const publish = () => {
   text-align: right;
   font-size: 12px;
   font-weight: 700;
-  color: #ef4444;
+  color: var(--gacha-danger-text);
   
   &.valid {
-    color: #00E599;
+    color: var(--gacha-accent-green);
   }
 }
 

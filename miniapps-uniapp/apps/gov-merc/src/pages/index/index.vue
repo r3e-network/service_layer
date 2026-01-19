@@ -1,12 +1,12 @@
 <template>
-  <AppLayout  :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
+  <AppLayout class="theme-gov-merc" :tabs="navTabs" :active-tab="activeTab" @tab-change="activeTab = $event">
     <!-- Rent Tab -->
     <view v-if="activeTab === 'rent'" class="tab-content">
       <view v-if="chainType === 'evm'" class="mb-4">
         <NeoCard variant="danger">
           <view class="flex flex-col items-center gap-2 py-1">
-            <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
-            <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+            <text class="status-title">{{ t("wrongChain") }}</text>
+            <text class="status-detail">{{ t("wrongChainMessage") }}</text>
             <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{ t("switchToNeo") }}</NeoButton>
           </view>
         </NeoCard>
@@ -46,8 +46,8 @@
       <view v-if="chainType === 'evm'" class="mb-4">
         <NeoCard variant="danger">
           <view class="flex flex-col items-center gap-2 py-1">
-            <text class="text-center font-bold text-red-400">{{ t("wrongChain") }}</text>
-            <text class="text-xs text-center opacity-80 text-white">{{ t("wrongChainMessage") }}</text>
+            <text class="status-title">{{ t("wrongChain") }}</text>
+            <text class="status-detail">{{ t("wrongChainMessage") }}</text>
             <NeoButton size="sm" variant="secondary" class="mt-2" @click="() => switchChain('neo-n3-mainnet')">{{ t("switchToNeo") }}</NeoButton>
           </view>
         </NeoCard>
@@ -330,14 +330,91 @@ watch(address, () => fetchData());
 @use "@/shared/styles/tokens.scss" as *;
 @use "@/shared/styles/variables.scss";
 
-$bar-bg: #100010;
-$bar-neon-pink: #ff007f;
-$bar-neon-blue: #00f3ff;
-$bar-dark: #1a1a2e;
-$bar-grid: rgba(255, 0, 127, 0.1);
+:global(.theme-gov-merc) {
+  --merc-bg: #100010;
+  --merc-bg-secondary: #16001a;
+  --merc-card-bg: rgba(10, 5, 20, 0.9);
+  --merc-card-border: #00f3ff;
+  --merc-card-border-accent: #ff007f;
+  --merc-card-shadow: 0 0 15px rgba(255, 0, 127, 0.2), inset 0 0 30px rgba(0, 243, 255, 0.05);
+  --merc-card-danger-bg: rgba(30, 0, 0, 0.9);
+  --merc-card-danger-border: rgba(255, 51, 51, 0.9);
+  --merc-card-danger-text: #fecaca;
+  --merc-text: #f8eaff;
+  --merc-text-muted: rgba(248, 234, 255, 0.7);
+  --merc-text-subtle: rgba(248, 234, 255, 0.55);
+  --merc-grid-strong: rgba(255, 0, 127, 0.2);
+  --merc-grid: rgba(255, 0, 127, 0.1);
+  --merc-button-primary-bg: linear-gradient(90deg, #ff007f, #9900ff);
+  --merc-button-primary-text: #ffffff;
+  --merc-button-primary-shadow: 5px 5px 0 rgba(0, 243, 255, 0.5);
+  --merc-button-primary-shadow-pressed: 3px 3px 0 rgba(0, 243, 255, 0.5);
+  --merc-button-secondary-border: #00f3ff;
+  --merc-button-secondary-text: #00f3ff;
+  --merc-button-secondary-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+  --merc-input-bg: rgba(0, 0, 0, 0.5);
+  --merc-input-border: #ff007f;
+  --merc-input-text: #00f3ff;
+  --merc-empty-text: #00f3ff;
+  --merc-empty-shadow: 0 0 5px rgba(0, 243, 255, 0.6);
+  --merc-bid-divider: rgba(255, 0, 127, 0.3);
+  --merc-bid-address: #c6c1d4;
+  --merc-bid-amount: #ff007f;
+  --merc-bid-amount-shadow: 0 0 5px rgba(255, 0, 127, 0.6);
+  --merc-status-text: #00f3ff;
+  --merc-status-title: #ff9abf;
+  --merc-status-detail: rgba(248, 234, 255, 0.8);
+
+  --bg-primary: var(--merc-bg);
+  --bg-secondary: var(--merc-bg-secondary);
+  --bg-card: var(--merc-card-bg);
+  --text-primary: var(--merc-text);
+  --text-secondary: var(--merc-text-muted);
+  --text-muted: var(--merc-text-subtle);
+  --border-color: var(--merc-card-border);
+  --shadow-color: rgba(0, 0, 0, 0.35);
+}
+
+:global(.theme-light .theme-gov-merc),
+:global([data-theme="light"] .theme-gov-merc) {
+  --merc-bg: #f7efff;
+  --merc-bg-secondary: #f2e5ff;
+  --merc-card-bg: rgba(255, 255, 255, 0.92);
+  --merc-card-border: #22d3ee;
+  --merc-card-border-accent: #f472b6;
+  --merc-card-shadow: 0 10px 20px rgba(88, 28, 135, 0.12);
+  --merc-card-danger-bg: #fee2e2;
+  --merc-card-danger-border: rgba(239, 68, 68, 0.6);
+  --merc-card-danger-text: #b91c1c;
+  --merc-text: #2a0a3d;
+  --merc-text-muted: #5b3b7a;
+  --merc-text-subtle: #7b6a94;
+  --merc-grid-strong: rgba(244, 114, 182, 0.25);
+  --merc-grid: rgba(244, 114, 182, 0.15);
+  --merc-button-primary-bg: linear-gradient(90deg, #f472b6, #a855f7);
+  --merc-button-primary-text: #ffffff;
+  --merc-button-primary-shadow: 5px 5px 0 rgba(34, 211, 238, 0.3);
+  --merc-button-primary-shadow-pressed: 3px 3px 0 rgba(34, 211, 238, 0.3);
+  --merc-button-secondary-border: rgba(34, 211, 238, 0.6);
+  --merc-button-secondary-text: #0891b2;
+  --merc-button-secondary-shadow: 0 0 10px rgba(34, 211, 238, 0.2);
+  --merc-input-bg: rgba(255, 255, 255, 0.85);
+  --merc-input-border: rgba(244, 114, 182, 0.6);
+  --merc-input-text: #0e7490;
+  --merc-empty-text: #0e7490;
+  --merc-empty-shadow: 0 0 4px rgba(34, 211, 238, 0.2);
+  --merc-bid-divider: rgba(244, 114, 182, 0.35);
+  --merc-bid-address: #6b7280;
+  --merc-bid-amount: #a855f7;
+  --merc-bid-amount-shadow: 0 0 5px rgba(168, 85, 247, 0.25);
+  --merc-status-text: #0e7490;
+  --merc-status-title: #dc2626;
+  --merc-status-detail: #6b7280;
+  --shadow-color: rgba(42, 10, 61, 0.12);
+}
 
 :global(page) {
-  background: $bar-bg;
+  background: var(--merc-bg);
 }
 
 .tab-content {
@@ -346,29 +423,30 @@ $bar-grid: rgba(255, 0, 127, 0.1);
   display: flex;
   flex-direction: column;
   gap: 24px;
-  background-color: $bar-bg;
+  background-color: var(--merc-bg);
   /* Cyberpunk Grid Floor + Fog */
   background-image: 
-    linear-gradient(to bottom, transparent 80%, rgba(255,0,127,0.2) 100%),
-    linear-gradient(rgba(255,0,127,0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,0,127,0.1) 1px, transparent 1px);
+    linear-gradient(to bottom, transparent 80%, var(--merc-grid-strong) 100%),
+    linear-gradient(var(--merc-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--merc-grid) 1px, transparent 1px);
   background-size: 100% 100%, 40px 40px, 40px 40px;
   min-height: 100vh;
 }
 
 /* Merc Component Overrides */
 :deep(.neo-card) {
-  background: rgba(10, 5, 20, 0.9) !important;
-  border: 1px solid $bar-neon-blue !important;
-  border-left: 4px solid $bar-neon-pink !important;
+  background: var(--merc-card-bg) !important;
+  border: 1px solid var(--merc-card-border) !important;
+  border-left: 4px solid var(--merc-card-border-accent) !important;
   border-radius: 4px !important;
-  box-shadow: 0 0 15px rgba(255, 0, 127, 0.2), inset 0 0 30px rgba(0, 243, 255, 0.05) !important;
-  color: #fff !important;
+  box-shadow: var(--merc-card-shadow) !important;
+  color: var(--merc-text) !important;
   transform: skewX(-2deg);
   
   &.variant-danger {
-    border-color: #ff3333 !important;
-    background: rgba(30,0,0,0.9) !important;
+    border-color: var(--merc-card-danger-border) !important;
+    background: var(--merc-card-danger-bg) !important;
+    color: var(--merc-card-danger-text) !important;
   }
 }
 
@@ -380,22 +458,22 @@ $bar-grid: rgba(255, 0, 127, 0.1);
   font-style: italic;
   
   &.variant-primary {
-    background: linear-gradient(90deg, $bar-neon-pink, #9900ff) !important;
-    color: #fff !important;
+    background: var(--merc-button-primary-bg) !important;
+    color: var(--merc-button-primary-text) !important;
     border: none !important;
-    box-shadow: 5px 5px 0 rgba(0, 243, 255, 0.5) !important;
+    box-shadow: var(--merc-button-primary-shadow) !important;
     
     &:active {
       transform: skewX(-10deg) translate(2px, 2px);
-      box-shadow: 3px 3px 0 rgba(0, 243, 255, 0.5) !important;
+      box-shadow: var(--merc-button-primary-shadow-pressed) !important;
     }
   }
   
   &.variant-secondary {
     background: transparent !important;
-    border: 2px solid $bar-neon-blue !important;
-    color: $bar-neon-blue !important;
-    box-shadow: 0 0 10px rgba(0, 243, 255, 0.3) !important;
+    border: 2px solid var(--merc-button-secondary-border) !important;
+    color: var(--merc-button-secondary-text) !important;
+    box-shadow: var(--merc-button-secondary-shadow) !important;
   }
   
   /* Un-skew text */
@@ -406,11 +484,11 @@ $bar-grid: rgba(255, 0, 127, 0.1);
 }
 
 :deep(.neo-input) {
-  background: rgba(0,0,0,0.5) !important;
-  border: 1px solid $bar-neon-pink !important;
+  background: var(--merc-input-bg) !important;
+  border: 1px solid var(--merc-input-border) !important;
   border-radius: 0 !important;
   font-family: 'Courier New', monospace !important;
-  color: $bar-neon-blue !important;
+  color: var(--merc-input-text) !important;
 }
 
 .form-group-neo {
@@ -424,9 +502,9 @@ $bar-grid: rgba(255, 0, 127, 0.1);
   font-size: 14px;
   font-weight: 600;
   text-transform: uppercase;
-  color: $bar-neon-blue;
+  color: var(--merc-empty-text);
   text-align: center;
-  text-shadow: 0 0 5px $bar-neon-blue;
+  text-shadow: var(--merc-empty-shadow);
   padding: 32px;
 }
 
@@ -435,18 +513,18 @@ $bar-grid: rgba(255, 0, 127, 0.1);
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px dotted rgba(255, 0, 127, 0.3);
+  border-bottom: 1px dotted var(--merc-bid-divider);
 }
 .bid-address {
   font-family: 'Courier New', monospace;
   font-size: 10px;
-  color: #ccc;
+  color: var(--merc-bid-address);
 }
 .bid-amount {
   font-family: 'Courier New', monospace;
   font-weight: 700;
-  color: $bar-neon-pink;
-  text-shadow: 0 0 5px $bar-neon-pink;
+  color: var(--merc-bid-amount);
+  text-shadow: var(--merc-bid-amount-shadow);
 }
 
 .status-text {
@@ -454,7 +532,22 @@ $bar-grid: rgba(255, 0, 127, 0.1);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.05em;
-  color: $bar-neon-blue;
+  color: var(--merc-status-text);
+}
+
+.status-title {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: var(--merc-status-title);
+  letter-spacing: 0.08em;
+}
+
+.status-detail {
+  font-size: 12px;
+  text-align: center;
+  color: var(--merc-status-detail);
+  opacity: 0.85;
 }
 
 .scrollable {

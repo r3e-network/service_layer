@@ -27,11 +27,14 @@
   --bg-secondary: #{$bg-secondary};
   --bg-card: #{$bg-card};
   --bg-elevated: #{$bg-elevated};
+  --bg-body: var(--bg-primary);
 
   // Text
   --text-primary: #{$text-primary};
   --text-secondary: #{$text-secondary};
   --text-muted: #{$text-muted};
+  --button-on-warning: #0b0c16;
+  --button-on-accent: #ffffff;
 
   // Borders
   --border-color: #{$neo-white};
@@ -62,6 +65,8 @@
   --text-primary: #{$text-primary-light};
   --text-secondary: #{$text-secondary-light};
   --text-muted: #888888;
+  --button-on-warning: #0b0c16;
+  --button-on-accent: #ffffff;
 
   --border-color: #{$neo-black};
   --shadow-color: #{$neo-black};
@@ -79,6 +84,8 @@
     --text-primary: #{$text-primary-light};
     --text-secondary: #{$text-secondary-light};
     --text-muted: #888888;
+    --button-on-warning: #0b0c16;
+    --button-on-accent: #ffffff;
 
     --border-color: #{$neo-black};
   }

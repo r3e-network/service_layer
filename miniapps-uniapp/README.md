@@ -13,7 +13,7 @@ miniapps-uniapp/
 │   │   ├── neo-manifest.json  # MiniApp config (auto-registration + permissions)
 │   │   └── src/
 │   │       ├── pages/         # Vue components
-│   │       ├── static/        # Assets (icon.svg, banner.svg)
+│   │       ├── static/        # Assets (logo.png, banner.png)
 │   │       ├── shared/        # Shared styles/utils
 │   │       ├── App.vue
 │   │       ├── main.ts

@@ -62,15 +62,12 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   position: relative;
   width: 140px;
   height: 180px;
-  background: var(--bg-card, rgba(20, 20, 20, 0.6));
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--gas-tank-bg);
+  border: 1px solid var(--gas-tank-border);
   border-radius: 24px;
   overflow: hidden;
   backdrop-filter: blur(12px);
-  box-shadow:
-    inset 0 0 30px rgba(0, 0, 0, 0.5),
-    0 10px 40px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.05); /* Outer ring */
+  box-shadow: var(--gas-tank-shadow);
 }
 
 /* Technical Grid Overlay */
@@ -78,8 +75,8 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   position: absolute;
   inset: 0;
   background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(var(--gas-tank-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--gas-tank-grid) 1px, transparent 1px);
   background-size: 20px 20px;
   pointer-events: none;
   z-index: 1;
@@ -99,14 +96,14 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   right: 0;
   width: 8px;
   height: 1px;
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--gas-tank-graduation);
   &::before {
     content: '';
     position: absolute;
     right: 18px;
     top: -3px;
     font-size: 8px;
-    color: var(--text-muted);
+    color: var(--gas-text-muted);
   }
 }
 
@@ -116,7 +113,7 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   left: 10px;
   width: 40px;
   height: 120px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+  background: var(--gas-tank-highlight);
   border-radius: 12px;
   pointer-events: none;
   z-index: 5;
@@ -127,9 +124,9 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(180deg, rgba(0, 229, 153, 0.95) 0%, rgba(0, 150, 100, 0.95) 100%);
+  background: linear-gradient(180deg, var(--gas-fuel-start) 0%, var(--gas-fuel-end) 100%);
   transition: height 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 0 40px rgba(0, 229, 153, 0.4);
+  box-shadow: var(--gas-fuel-shadow);
   z-index: 2;
   overflow: hidden;
 }
@@ -140,14 +137,14 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   left: 0;
   right: 0;
   height: 2px;
-  background: rgba(255, 255, 255, 0.8);
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+  background: var(--gas-fuel-surface);
+  box-shadow: var(--gas-fuel-surface-shadow);
 }
 
 /* Bubbles Animation */
 .fuel-bubble {
   position: absolute;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--gas-bubble);
   border-radius: 50%;
   animation: bubble-rise 4s infinite ease-in;
   bottom: -10px;
@@ -179,18 +176,18 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  color: var(--gas-text-secondary);
   letter-spacing: 0.1em;
   margin-bottom: 4px;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  text-shadow: 0 1px 3px var(--gas-inset-shadow);
 }
 
 .gauge-value {
   font-size: 28px;
   font-weight: 800;
   font-family: $font-family;
-  color: var(--text-primary);
-  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  color: var(--gas-text);
+  text-shadow: 0 2px 10px var(--gas-inset-shadow);
 }
 
 .status-indicator {
@@ -198,22 +195,22 @@ const formatBalance = (val: string | number) => parseFloat(String(val)).toFixed(
   align-items: center;
   gap: 8px;
   padding: 8px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--gas-status-pill-border);
   border-radius: 99px;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--gas-status-pill-bg);
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
 
   &.eligible {
-    border-color: rgba(255, 222, 89, 0.6);
-    color: #ffde59;
-    box-shadow: 0 0 20px rgba(255, 222, 89, 0.2), inset 0 0 10px rgba(255, 222, 89, 0.1);
+    border-color: var(--gas-status-eligible-border);
+    color: var(--gas-status-eligible-text);
+    box-shadow: var(--gas-status-eligible-shadow);
   }
 
   &.full {
-    border-color: rgba(0, 229, 153, 0.6);
-    color: #00E599;
-    box-shadow: 0 0 20px rgba(0, 229, 153, 0.2), inset 0 0 10px rgba(0, 229, 153, 0.1);
+    border-color: var(--gas-status-full-border);
+    color: var(--gas-status-full-text);
+    box-shadow: var(--gas-status-full-shadow);
   }
 }
 

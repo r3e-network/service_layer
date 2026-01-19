@@ -129,7 +129,7 @@ const handleClose = () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background: var(--modal-overlay, rgba(0, 0, 0, 0.85));
   backdrop-filter: blur(8px);
   z-index: 999;
   display: flex;
@@ -141,10 +141,10 @@ const handleClose = () => {
 .scratch-modal-container {
   width: 100%;
   max-width: 360px;
-  background: linear-gradient(145deg, rgba(30, 30, 35, 0.9), rgba(10, 10, 15, 0.95));
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(145deg, var(--bg-elevated), var(--bg-primary));
+  border: 1px solid var(--border-color);
   border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 40px var(--shadow-color);
   overflow: hidden;
   animation: modal-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -159,17 +159,17 @@ const handleClose = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border-color);
 
   .modal-title {
     font-size: 18px;
     font-weight: bold;
-    color: white;
+    color: var(--text-primary);
   }
   
   .close-btn {
     font-size: 24px;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--text-muted);
     padding: 0 8px;
   }
 }
@@ -180,8 +180,8 @@ const handleClose = () => {
   margin: 20px;
   border-radius: 12px;
   overflow: hidden;
-  background: #111;
-  border: 2px dashed #333;
+  background: var(--bg-secondary);
+  border: 2px dashed var(--border-color);
 }
 
 .result-layer {
@@ -194,7 +194,7 @@ const handleClose = () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at center, #2a2a2a 0%, #000000 100%);
+  background: radial-gradient(circle at center, var(--bg-elevated) 0%, var(--bg-primary) 100%);
   z-index: 1;
 }
 
@@ -209,21 +209,21 @@ const handleClose = () => {
   .win-amount {
     font-size: 32px;
     font-weight: 800;
-    color: #4ade80; // Success green
+    color: var(--status-success, #4ade80);
     text-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
   }
   
   .win-label {
     font-size: 14px;
     letter-spacing: 2px;
-    color: white;
+    color: var(--text-primary);
     margin-top: 8px;
     font-weight: bold;
   }
   
   .lose-label {
     font-size: 14px;
-    color: #9ca3af;
+    color: var(--text-muted);
   }
 }
 
@@ -233,11 +233,21 @@ const handleClose = () => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #d4d4d4 0%, #ececec 50%, #d4d4d4 100%);
+  background: linear-gradient(
+    135deg,
+    var(--scratch-cover-start, #d4d4d4) 0%,
+    var(--scratch-cover-mid, #ececec) 50%,
+    var(--scratch-cover-start, #d4d4d4) 100%
+  );
   // Hexagonal/Tech pattern for E-Robo feel
   background-image: 
-    linear-gradient(135deg, #d4d4d4 0%, #ececec 50%, #d4d4d4 100%),
-    radial-gradient(circle at 1px 1px, rgba(0,0,0,0.05) 1px, transparent 0);
+    linear-gradient(
+      135deg,
+      var(--scratch-cover-start, #d4d4d4) 0%,
+      var(--scratch-cover-mid, #ececec) 50%,
+      var(--scratch-cover-start, #d4d4d4) 100%
+    ),
+    radial-gradient(circle at 1px 1px, var(--scratch-cover-dot, rgba(0, 0, 0, 0.05)) 1px, transparent 0);
   background-size: 100% 100%, 10px 10px;
   
   display: flex;
@@ -257,17 +267,17 @@ const handleClose = () => {
   .scratch-hint {
     font-size: 14px;
     font-weight: bold;
-    color: #666;
+    color: var(--scratch-cover-text, #666);
     letter-spacing: 2px;
     margin-bottom: 8px;
-    text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+    text-shadow: 0 1px 0 var(--scratch-cover-shadow, rgba(255, 255, 255, 0.5));
   }
   
   .scratch-price {
     font-size: 24px;
     font-weight: 800;
-    color: #444;
-    text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+    color: var(--scratch-cover-strong, #444);
+    text-shadow: 0 1px 0 var(--scratch-cover-shadow, rgba(255, 255, 255, 0.5));
   }
 }
 
@@ -277,10 +287,10 @@ const handleClose = () => {
   align-items: center;
 }
 
-.text-gold { color: #fbbf24; }
+.text-gold { color: var(--erobo-peach, #f8d7c2); }
 
 .modal-footer {
   padding: 16px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--bg-secondary);
 }
 </style>
