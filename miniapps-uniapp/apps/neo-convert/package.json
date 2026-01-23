@@ -27,7 +27,7 @@
         "fflate": "^0.8.2",
         "html2canvas": "^1.4.1",
         "jspdf": "^2.5.1",
-        "lodash": "^4.17.21",
+        "lodash": "^4.17.23",
         "loglevel": "^1.9.2",
         "loglevel-plugin-prefix": "^0.8.4",
         "qrcode": "^1.5.3",
