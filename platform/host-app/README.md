@@ -96,14 +96,15 @@ Then open:
 
 ### iframe Runs (Legacy/Static Fallback)
 
-Static MiniApps are built from uni-app source:
+Static MiniApps are built from the external miniapps repo:
 
-- `miniapps-uniapp/apps/*`
+- `https://github.com/r3e-network/miniapps` (`apps/*`)
 
 Build and export with:
 
 ```bash
-cd miniapps-uniapp && pnpm build
+git clone git@github.com:r3e-network/miniapps.git
+cd miniapps && pnpm build
 ```
 
 Then open (only if you are testing the static iframe build):

@@ -103,8 +103,8 @@ neo-miniapp-platform/
 │   ├── edge/                   # [Deno] Supabase Edge Functions
 │   └── rls/                    # [SQL] RLS Policies & Migrations
 │
-├── miniapps/                   # [React/Vue] Mini-apps
-│   ├── builtin/                # Trusted apps (Coin Flip, Dice, Lottery, etc.)
+├── miniapps (external repo)    # [React/Vue] MiniApps
+│   ├── apps/                   # MiniApps (Coin Flip, Dice, Lottery, etc.)
 │   └── templates/              # Starter kits for users
 │
 └── infra/                      # Infrastructure Config

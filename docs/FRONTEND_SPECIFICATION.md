@@ -70,8 +70,7 @@ platform/host-app/
 ├── styles/
 │   └── globals.css
 └── public/
-    ├── images/
-    └── miniapps/
+    └── images/
 ```
 
 ---

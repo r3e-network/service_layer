@@ -117,7 +117,7 @@ neo-miniapp-platform/
 │   ├── edge/                   # Supabase Edge functions
 │   └── rls/                    # RLS SQL (schema lives in migrations/)
 │
-├── miniapps/                   # Mini-apps + starter kits
+├── miniapps (external repo)    # MiniApps + starter kits
 ├── docker/                     # Local dev compose (Supabase, MarbleRun, services)
 ├── deploy/                     # neo-express config + deployment scripts
 └── .github/                    # CI workflows (GitHub Actions)

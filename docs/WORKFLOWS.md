@@ -308,7 +308,8 @@ workflow on Neo N3 testnet.
     - Optional overrides:
         ```bash
         # use a local manifest file instead of Supabase
-        export MINIAPP_MANIFEST_PATH=miniapps/templates/react-starter/manifest.json
+        export MINIAPPS_REPO=/path/to/r3e-miniapps
+        export MINIAPP_MANIFEST_PATH=$MINIAPPS_REPO/templates/react-starter/manifest.json
         # override developer pubkey if needed
         export MINIAPP_DEVELOPER_PUBKEY=03...
         # use a separate admin key (optional)

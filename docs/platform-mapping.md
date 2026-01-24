@@ -9,7 +9,7 @@ The target structure is:
 - `contracts/`: platform contracts (GAS-only payments, bNEO-only governance, feeds, randomness logs, app registry, automation anchor, service gateway)
 - `services/`: attested SGX services + non-TEE platform engine (indexer/aggregator)
 - `platform/`: Next.js host + SDK + Supabase Edge + RLS policies
-- `miniapps/`: builtin miniapps + developer templates
+- `miniapps` repo (external): builtin miniapps + developer templates
 - `deploy/`: neo-express config + deployment scripts
 - `docker/`: local dev compose bundles
 - `k8s/`: Kubernetes manifests/helm values
@@ -51,7 +51,7 @@ These remain as shared building blocks used by the platform services.
 - `platform/sdk`: JS SDK (`window.MiniAppSDK`)
 - `platform/edge`: Supabase Edge functions (auth/limits/routing)
 - `platform/rls`: Supabase RLS SQL policies (schema lives in `migrations/`)
-- `miniapps/`: built-in manifests + developer starter kits (static previews exported for iframe use)
+- `miniapps` repo (external): built-in manifests + developer starter kits (static previews exported for iframe use)
 
 ## Notes
 
