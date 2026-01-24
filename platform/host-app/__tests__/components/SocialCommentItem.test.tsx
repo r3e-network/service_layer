@@ -9,6 +9,55 @@ import "@testing-library/jest-dom";
 import CommentItem from "../../components/SocialCommentItem";
 import type { SocialComment } from "../../components/types";
 
+jest.mock("@/lib/i18n/react", () => {
+  const catalog = {
+    host: {
+      reviews: {
+        reply: "Reply",
+        replyPlaceholder: "Write your reply...",
+        repliesCount: "{count} replies",
+        developerReply: "Core Dev",
+      },
+    },
+    common: {
+      actions: {
+        cancel: "Cancel",
+        loading: "Loading...",
+      },
+    },
+  };
+
+  const resolveKey = (ns: string, key: string) => {
+    const segments = key.split(".");
+    let current: unknown = catalog[ns as keyof typeof catalog] ?? {};
+    for (const segment of segments) {
+      if (current && typeof current === "object" && segment in (current as Record<string, unknown>)) {
+        current = (current as Record<string, unknown>)[segment];
+      } else {
+        return key;
+      }
+    }
+    return typeof current === "string" ? current : key;
+  };
+
+  const interpolate = (value: string, options?: Record<string, string | number>) => {
+    if (!options) return value;
+    return Object.entries(options).reduce(
+      (result, [optionKey, optionValue]) =>
+        result.replace(new RegExp(`\\{${optionKey}\\}`, "g"), String(optionValue)),
+      value,
+    );
+  };
+
+  return {
+    useTranslation: (ns = "common") => ({
+      t: (key: string, options?: Record<string, string | number>) =>
+        interpolate(resolveKey(ns, key), options),
+      locale: "en",
+    }),
+  };
+});
+
 const mockComment: SocialComment = {
   id: "comment-1",
   app_id: "test-app",

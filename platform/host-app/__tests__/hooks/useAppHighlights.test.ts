@@ -9,7 +9,7 @@ import { useAppHighlights } from "@/hooks/useAppHighlights";
 global.fetch = jest.fn();
 
 jest.mock("@/lib/app-highlights", () => ({
-  getAppHighlights: jest.fn(() => [{ label: "Static", value: "100", icon: "📊" }]),
+  updateHighlightsCache: jest.fn(),
 }));
 
 describe("useAppHighlights", () => {
@@ -17,31 +17,45 @@ describe("useAppHighlights", () => {
     jest.clearAllMocks();
   });
 
-  it("should return static highlights initially", () => {
+  it("should start loading without highlights", async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({ highlights: [] }),
+      json: () => Promise.resolve({ highlights: {} }),
     });
 
     const { result } = renderHook(() => useAppHighlights("miniapp-lottery"));
-    expect(result.current.highlights).toBeDefined();
-    expect(result.current.highlights?.[0].label).toBe("Static");
+    expect(result.current.loading).toBe(true);
+    expect(result.current.highlights).toBeUndefined();
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.highlights).toBeUndefined();
   });
 
   it("should fetch dynamic highlights", async () => {
+    const highlights = [{ label: "Dynamic", value: "200", icon: "🚀" }];
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
       json: () =>
         Promise.resolve({
-          highlights: [{ label: "Dynamic", value: "200", icon: "🚀" }],
+          highlights: {
+            "miniapp-neoburger": highlights,
+          },
         }),
     });
 
     const { result } = renderHook(() => useAppHighlights("miniapp-neoburger"));
 
     await waitFor(() => {
-      expect(result.current.highlights?.[0].label).toBe("Dynamic");
+      expect(result.current.highlights).toEqual(highlights);
     });
+
+    const { updateHighlightsCache } = jest.requireMock("@/lib/app-highlights") as {
+      updateHighlightsCache: jest.Mock;
+    };
+    expect(updateHighlightsCache).toHaveBeenCalledWith("miniapp-neoburger", highlights);
   });
 
   it("should handle fetch error gracefully", async () => {
@@ -53,7 +67,7 @@ describe("useAppHighlights", () => {
       expect(result.current.error).toBe("Network error");
     });
 
-    // Should keep static fallback
-    expect(result.current.highlights).toBeDefined();
+    expect(result.current.highlights).toBeUndefined();
+    expect(result.current.loading).toBe(false);
   });
 });

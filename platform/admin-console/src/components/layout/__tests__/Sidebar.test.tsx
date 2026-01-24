@@ -6,6 +6,45 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { Sidebar } from "../Sidebar";
 
+vi.mock("../../../../../shared/i18n/react", () => {
+  const catalog = {
+    common: {
+      navigation: {
+        dashboard: "Dashboard",
+        services: "Services",
+        miniapps: "MiniApps",
+        users: "Users",
+        analytics: "Analytics",
+        contracts: "Contracts",
+      },
+    },
+    admin: {
+      dashboard: {
+        title: "Admin Dashboard",
+      },
+    },
+  };
+
+  const resolveKey = (ns: string, key: string) => {
+    const segments = key.split(".");
+    let current: unknown = catalog[ns as keyof typeof catalog] ?? {};
+    for (const segment of segments) {
+      if (current && typeof current === "object" && segment in (current as Record<string, unknown>)) {
+        current = (current as Record<string, unknown>)[segment];
+      } else {
+        return key;
+      }
+    }
+    return typeof current === "string" ? current : key;
+  };
+
+  return {
+    useTranslation: (ns = "common") => ({
+      t: (key: string) => resolveKey(ns, key),
+    }),
+  };
+});
+
 // Mock next/navigation
 vi.mock("next/navigation", () => ({
   usePathname: vi.fn(() => "/"),
@@ -23,7 +62,7 @@ vi.mock("next/link", () => ({
 describe("Sidebar Component", () => {
   it("should render sidebar", () => {
     render(<Sidebar />);
-    expect(screen.getByText("Admin Console")).toBeInTheDocument();
+    expect(screen.getByText("Admin Dashboard")).toBeInTheDocument();
   });
 
   it("should render all navigation items", () => {
