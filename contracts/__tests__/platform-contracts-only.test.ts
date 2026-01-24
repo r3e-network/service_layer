@@ -10,7 +10,6 @@ const keep = new Set([
   "PriceFeed",
   "RandomnessLog",
   "ServiceLayerGateway",
-  "UniversalMiniApp",
 ]);
 
 const ignore = new Set(["__tests__", "build", "build_single", "cmd"]);
