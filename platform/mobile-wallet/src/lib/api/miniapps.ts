@@ -4,6 +4,7 @@
  */
 
 import { API_BASE_URL } from "@/lib/config";
+import type { MiniAppInfo } from "@/types/miniapp";
 
 const API_BASE = API_BASE_URL;
 
@@ -48,6 +49,10 @@ export interface SearchResponse {
   suggestions?: string[];
 }
 
+export interface MiniAppDetailResponse {
+  app: MiniAppInfo;
+}
+
 /** Fetch trending MiniApps */
 export async function fetchTrending(category?: string, limit = 20): Promise<TrendingApp[]> {
   const params = new URLSearchParams({ limit: String(limit) });
@@ -76,4 +81,17 @@ export async function searchMiniApps(query: string, category?: string): Promise<
 
   const data: SearchResponse = await res.json();
   return data.results;
+}
+
+/** Fetch full MiniApp details by appId */
+export async function fetchMiniAppDetail(appId: string): Promise<MiniAppInfo | null> {
+  const normalized = String(appId || "").trim();
+  if (!normalized) return null;
+
+  const res = await fetch(`${API_BASE}/miniapps/${encodeURIComponent(normalized)}/detail`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error("Failed to fetch MiniApp detail");
+
+  const data: MiniAppDetailResponse = await res.json();
+  return data?.app ?? null;
 }

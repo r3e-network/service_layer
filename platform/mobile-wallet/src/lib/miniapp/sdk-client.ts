@@ -141,10 +141,10 @@ export function createMiniAppSDK(config: MiniAppSDKConfig): MiniAppSDK {
         if (chainType === "evm") {
           throw new Error("governance voting is only supported on neo-n3 chains");
         }
-        return post("/vote-bneo", {
+        return post("/vote-neo", {
           app_id: appId,
           proposal_id: proposalId,
-          bneo_amount: neoAmount,
+          neo_amount: neoAmount,
           support,
           chain_id: chainId || undefined,
         });

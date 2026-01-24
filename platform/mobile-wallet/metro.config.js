@@ -1,17 +1,34 @@
 const { getDefaultConfig } = require("expo/metro-config");
 const path = require("path");
 
-const config = getDefaultConfig(__dirname);
+const projectRoot = __dirname;
+const monorepoRoot = path.resolve(projectRoot, "../..");
 
-// Add shared package + host-app data to watch folders
+const config = getDefaultConfig(projectRoot);
+
+// Watch folders for monorepo packages (required for symlinks/pnpm)
 config.watchFolders = [
-  path.resolve(__dirname, "../shared"),
-  path.resolve(__dirname, "../host-app/data"),
+  path.resolve(monorepoRoot, "platform/shared"),
+  path.resolve(monorepoRoot, "platform/host-app/data"),
+  path.resolve(monorepoRoot, "config"), // Root config directory
+  path.resolve(monorepoRoot, "node_modules"), // Root node_modules for hoisted deps
 ];
 
-// Configure resolver for @neo/shared alias
+// Node modules resolution for pnpm symlinks
+config.resolver.nodeModulesPaths = [
+  path.resolve(projectRoot, "node_modules"),
+  path.resolve(monorepoRoot, "node_modules"),
+];
+
+// Extra module aliases for workspace packages
 config.resolver.extraNodeModules = {
-  "@neo/shared": path.resolve(__dirname, "../shared"),
+  "@neo/shared": path.resolve(monorepoRoot, "platform/shared"),
 };
+
+// Disable hierarchical lookup to avoid duplicates with pnpm
+config.resolver.disableHierarchicalLookup = false;
+
+// Enable symlinks (critical for pnpm workspaces)
+config.resolver.unstable_enableSymlinks = true;
 
 module.exports = config;

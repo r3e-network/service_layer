@@ -73,12 +73,14 @@ export default function AppDetailScreen() {
         {/* Permissions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Permissions</Text>
-          {app.permissions.map((perm) => (
-            <View key={perm} style={styles.permItem}>
-              <Ionicons name="checkmark-circle" size={20} color="#00d4aa" />
-              <Text style={styles.permText}>{perm}</Text>
-            </View>
-          ))}
+          {Object.entries(app.permissions)
+            .filter(([, enabled]) => enabled)
+            .map(([perm]) => (
+              <View key={perm} style={styles.permItem}>
+                <Ionicons name="checkmark-circle" size={20} color="#00d4aa" />
+                <Text style={styles.permText}>{perm}</Text>
+              </View>
+            ))}
         </View>
 
         {/* Launch Button */}

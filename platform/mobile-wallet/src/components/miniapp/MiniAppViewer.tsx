@@ -229,11 +229,7 @@ export function MiniAppViewer({
   // Build entry URL with params
   const entryUrl = useMemo(() => {
     const supportedLocale = getMiniappLocale(locale);
-    // Convert relative paths to absolute URLs
-    let baseUrl = getEntryUrlForChain(app, effectiveChainId);
-    if (baseUrl.startsWith("/")) {
-      baseUrl = `${MINIAPP_BASE_URL}${baseUrl}`;
-    }
+    const baseUrl = resolveEntryUrl(app, getEntryUrlForChain(app, effectiveChainId));
     return buildMiniAppEntryUrl(baseUrl, {
       lang: supportedLocale,
       theme,
@@ -362,6 +358,38 @@ export function MiniAppViewer({
       />
     </View>
   );
+}
+
+function resolveEntryUrl(app: MiniAppInfo, rawUrl: string): string {
+  const trimmed = String(rawUrl || app.entry_url || "").trim();
+  if (!trimmed) return "";
+
+  let resolved = trimmed;
+  if (resolved.startsWith("mf://")) {
+    const fallback = resolveStaticFallbackUrl(app);
+    if (fallback) {
+      resolved = fallback;
+    }
+  }
+
+  if (resolved.startsWith("/")) {
+    return `${MINIAPP_BASE_URL}${resolved}`;
+  }
+  return resolved;
+}
+
+function resolveStaticFallbackUrl(app: MiniAppInfo): string | null {
+  const candidates = [app.icon, app.banner, app.entry_url].filter(Boolean) as string[];
+  for (const candidate of candidates) {
+    if (!candidate.startsWith("/miniapps/")) continue;
+    const parts = candidate.split("/").filter(Boolean);
+    if (parts.length >= 2 && parts[0] === "miniapps" && parts[1]) {
+      return `/miniapps/${parts[1]}/index.html`;
+    }
+  }
+
+  const fallbackId = app.app_id?.replace(/^miniapp-/, "");
+  return fallbackId ? `/miniapps/${fallbackId}/index.html` : null;
 }
 
 const styles = StyleSheet.create({

@@ -55,7 +55,7 @@ export type VoteBNEOResponse = {
   request_id: string;
   user_id: string;
   intent: "governance";
-  constraints: { governance: "BNEO_ONLY" };
+  constraints: { governance: "NEO_ONLY" | "BNEO_ONLY" };
   chain_id: ChainId;
   chain_type: ChainType;
   invocation: InvocationIntent;

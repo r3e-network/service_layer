@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { fetchTrending, searchMiniApps, TrendingApp, SearchResult } from "@/lib/api/miniapps";
-import type { MiniAppInfo, MiniAppCategory } from "@/types/miniapp";
+import type { MiniAppInfo, MiniAppCategory, MiniAppSource } from "@/types/miniapp";
 import { BUILTIN_APPS, getAppsByCategory } from "@/lib/miniapp";
 
 // Re-export MiniAppInfo as MiniApp for backward compatibility
@@ -109,7 +109,7 @@ function mapTrendingToMiniApp(data: TrendingApp[]): MiniApp[] {
     icon: t.icon,
     category: (t.category?.toLowerCase() || "utility") as MiniAppCategory,
     entry_url: t.entry_url || `/miniapps/${t.app_id}/index.html`,
-    source: t.source,
+    source: (t.source as MiniAppSource) || undefined,
     stats: {
       users_24h: t.stats?.users_24h,
       txs_24h: t.stats?.txs_24h,
@@ -119,7 +119,7 @@ function mapTrendingToMiniApp(data: TrendingApp[]): MiniApp[] {
     supportedChains:
       Array.isArray(t.supportedChains) && t.supportedChains.length
         ? t.supportedChains
-        : ["neo-n3-mainnet", "neo-n3-testnet"],
+        : [],
   }));
 }
 
@@ -131,11 +131,11 @@ function mapSearchToMiniApp(data: SearchResult[]): MiniApp[] {
     icon: s.icon,
     category: (s.category?.toLowerCase() || "utility") as MiniAppCategory,
     entry_url: s.entry_url || `/miniapps/${s.app_id}/index.html`,
-    source: s.source,
+    source: (s.source as MiniAppSource) || undefined,
     permissions: {},
     supportedChains:
       Array.isArray(s.supportedChains) && s.supportedChains.length
         ? s.supportedChains
-        : ["neo-n3-mainnet", "neo-n3-testnet"],
+        : [],
   }));
 }

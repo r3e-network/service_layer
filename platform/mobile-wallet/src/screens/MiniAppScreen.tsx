@@ -3,11 +3,12 @@
  * Handles navigation and wallet integration
  */
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { View, StyleSheet, TouchableOpacity, Text, SafeAreaView, Alert } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import type { ChainId } from "@/types/miniapp";
-import { getBuiltinApp } from "@/lib/miniapp";
+import type { ChainId, MiniAppInfo } from "@/types/miniapp";
+import { fetchMiniAppDetail } from "@/lib/api/miniapps";
+import { coerceMiniAppInfo, getBuiltinApp } from "@/lib/miniapp";
 import { MiniAppViewer } from "@/components/miniapp";
 import { useWalletStore } from "@/stores/wallet";
 import { SignMessageModal } from "@/components/SignMessageModal";
@@ -29,14 +30,62 @@ export default function MiniAppScreen() {
   // Get wallet state
   const { address, isLocked, requireAuthForTransaction, switchChain, chainId } = useWalletStore();
 
+  const [app, setApp] = useState<MiniAppInfo | null>(null);
+  const [isAppLoading, setIsAppLoading] = useState(true);
+  const [appError, setAppError] = useState<string | null>(null);
   const [signRequest, setSignRequest] = useState<SignRequest | null>(null);
   const pendingSignRef = useRef<{
     resolve: (value: unknown) => void;
     reject: (error: Error) => void;
   } | null>(null);
 
-  // Get app from builtin registry
-  const app = id ? getBuiltinApp(id) : null;
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadApp = async () => {
+      const appId = String(id || "").trim();
+      setAppError(null);
+
+      if (!appId) {
+        setApp(null);
+        setIsAppLoading(false);
+        return;
+      }
+
+      const builtin = getBuiltinApp(appId);
+      if (builtin) {
+        setApp(builtin);
+        setIsAppLoading(false);
+        return;
+      }
+
+      setIsAppLoading(true);
+      try {
+        const detail = await fetchMiniAppDetail(appId);
+        const normalized = detail ? coerceMiniAppInfo(detail, detail) : null;
+        if (cancelled) return;
+        setApp(normalized);
+        if (!normalized) {
+          setAppError("MiniApp not found");
+        }
+      } catch (err) {
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : "Failed to load MiniApp";
+        setAppError(message);
+        setApp(null);
+      } finally {
+        if (!cancelled) {
+          setIsAppLoading(false);
+        }
+      }
+    };
+
+    loadApp();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   // Wallet integration: get address
   const getAddress = useCallback(async (): Promise<string> => {
@@ -234,11 +283,21 @@ export default function MiniAppScreen() {
     setSignRequest(null);
   }, []);
 
+  if (isAppLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Loading MiniApp...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   if (!app) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>MiniApp not found</Text>
+          <Text style={styles.errorText}>{appError || "MiniApp not found"}</Text>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
             <Text style={styles.backButtonText}>Go Back</Text>
           </TouchableOpacity>
