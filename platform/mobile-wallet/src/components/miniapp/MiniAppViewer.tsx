@@ -11,7 +11,7 @@ import { MiniAppLoader } from "./MiniAppLoader";
 import {
   createMiniAppSDK,
   dispatchBridgeCall,
-  buildMiniAppEntryUrl,
+  buildMiniAppEntryUrlForWallet,
   resolveChainIdForApp,
   getEntryUrlForChain,
   getContractForChain,
@@ -189,6 +189,7 @@ export function MiniAppViewer({
       contractAddress: contractAddress ?? null,
       supportedChains: app.supportedChains || [],
       chainContracts: app.chainContracts || {},
+      layout: "mobile",
       debug: false,
     }),
     [app.app_id, app.chainContracts, app.supportedChains, chainType, contractAddress, effectiveChainId],
@@ -207,6 +208,7 @@ export function MiniAppViewer({
         contractAddress,
         supportedChains: app.supportedChains,
         chainContracts: app.chainContracts,
+        layout: "mobile",
       }),
     [app.app_id, app.chainContracts, app.supportedChains, chainType, contractAddress, effectiveChainId],
   );
@@ -230,7 +232,7 @@ export function MiniAppViewer({
   const entryUrl = useMemo(() => {
     const supportedLocale = getMiniappLocale(locale);
     const baseUrl = resolveEntryUrl(app, getEntryUrlForChain(app, effectiveChainId));
-    return buildMiniAppEntryUrl(baseUrl, {
+    return buildMiniAppEntryUrlForWallet(baseUrl, {
       lang: supportedLocale,
       theme,
       embedded: "1",

@@ -14,6 +14,7 @@ export type MiniAppSDKConfig = {
   contractAddress?: string | null;
   supportedChains?: ChainId[];
   chainContracts?: MiniAppChainContracts;
+  layout?: "web" | "mobile";
   getAuthToken?: () => Promise<string | undefined>;
   getAPIKey?: () => Promise<string | undefined>;
 };
