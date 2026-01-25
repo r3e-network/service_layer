@@ -144,6 +144,7 @@ export function coerceMiniAppInfo(raw: unknown, fallback?: MiniAppInfo): MiniApp
   const name = toString(obj.name ?? fallback?.name ?? appId).trim() || appId;
   const description = toString(obj.description ?? fallback?.description ?? "").trim();
   const icon = toString(obj.icon ?? fallback?.icon ?? "🧩").trim() || "🧩";
+  const banner = toString(obj.banner ?? obj.banner_url ?? fallback?.banner ?? "").trim() || undefined;
   const category = normalizeCategory(obj.category ?? fallback?.category);
   const supportedChains =
     normalizeSupportedChains(obj.supportedChains ?? obj.supported_chains ?? fallback?.supportedChains) ?? [];
@@ -163,6 +164,7 @@ export function coerceMiniAppInfo(raw: unknown, fallback?: MiniAppInfo): MiniApp
     description,
     description_zh: descriptionZh,
     icon,
+    banner,
     category,
     entry_url: entryUrl,
     supportedChains,
