@@ -55,6 +55,7 @@ export type MiniAppInfo = {
   name_zh?: string;
   description_zh?: string;
   icon: string;
+  banner?: string;
   category: MiniAppCategory;
   entry_url: string;
   supportedChains: ChainId[];
