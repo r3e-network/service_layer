@@ -16,6 +16,7 @@ export function createMiniAppSDK(config: MiniAppSDKConfig): MiniAppSDK {
   const contractAddress = config.contractAddress ?? null;
   const supportedChains = config.supportedChains;
   const chainContracts = config.chainContracts;
+  const layout = config.layout;
 
   async function fetchWithAuth(endpoint: string, options: RequestInit = {}): Promise<Response> {
     const headers: Record<string, string> = {
@@ -97,6 +98,7 @@ export function createMiniAppSDK(config: MiniAppSDKConfig): MiniAppSDK {
       contractAddress,
       supportedChains,
       chainContracts,
+      layout,
       debug: false,
     }),
     invokeRead: async (params) => {

@@ -21,6 +21,8 @@ export {
   getEntryUrlForChain,
 } from "./normalize";
 
+export { buildMiniAppEntryUrlForWallet } from "./entry-url";
+
 // Builtin apps registry
 export {
   BUILTIN_APPS,
