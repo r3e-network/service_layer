@@ -11,7 +11,7 @@ AWS_ACCESS_KEY_ID = "cc77eee149d8f679bc0f751ca346a236"
 AWS_SECRET_ACCESS_KEY = (
     "474c781a44136f6e6915dcd0b081956bf982e11dc61dba684b30c56c98b82b09"
 )
-APPS_DIR = Path("/home/neo/git/miniapps-repo/apps")
+APPS_DIR = Path("/home/neo/git/miniapps/apps")
 
 
 def sync_app(app_name: str):
