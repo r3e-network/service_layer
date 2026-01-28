@@ -8,6 +8,7 @@ import { buildTransferScript, signTransaction } from "@/lib/neo/transaction";
 import { sendRawTransaction } from "@/lib/neo/rpc";
 import { isValidNeoAddress } from "@/lib/qrcode";
 import { useTranslation } from "@/hooks/useTranslation";
+import { requireAuth, getAuthErrorMessage } from "@/lib/biometrics";
 
 export default function SendScreen() {
   const router = useRouter();
@@ -41,8 +42,35 @@ export default function SendScreen() {
       return;
     }
 
+    // Validate sufficient balance
+    const balance = parseFloat(selectedAsset?.balance || "0");
+    const sendAmount = parseFloat(amount);
+    if (isNaN(sendAmount) || sendAmount <= 0) {
+      Alert.alert(t("wallet.error"), t("wallet.invalid_amount"));
+      return;
+    }
+    if (sendAmount > balance) {
+      Alert.alert(t("wallet.error"), t("wallet.insufficient_balance"));
+      return;
+    }
+    // NEO must be whole numbers
+    if (asset === "NEO" && !Number.isInteger(sendAmount)) {
+      Alert.alert(t("wallet.error"), t("wallet.neo_whole_number"));
+      return;
+    }
+
     setLoading(true);
     try {
+      // Require biometric authentication before sending
+      const authResult = await requireAuth(t("wallet.confirm_transaction"));
+      if (!authResult.success) {
+        if (authResult.error) {
+          Alert.alert(t("wallet.error"), getAuthErrorMessage(authResult.error, t));
+        }
+        setLoading(false);
+        return;
+      }
+
       const script = buildTransferScript({
         from: address,
         to: recipient,
