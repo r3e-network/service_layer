@@ -17,7 +17,6 @@ import { generateWallet } from "@/lib/neo/wallet";
 import { useWalletStore } from "@/stores/wallet";
 
 export default function AccountsScreen() {
-  const router = useRouter();
   const { refreshBalances } = useWalletStore();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);

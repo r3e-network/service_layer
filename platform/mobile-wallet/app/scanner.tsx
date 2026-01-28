@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, useRouter } from "expo-router";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { parseQRCode } from "@/lib/qrcode";
@@ -24,13 +24,14 @@ export default function ScannerScreen() {
 
     switch (parsed.type) {
       case "address":
-      case "payment":
+      case "payment": {
         const paymentData = parsed.data as { address: string; amount?: string };
         router.push({
           pathname: "/send",
           params: { to: paymentData.address, amount: paymentData.amount || "" },
         });
         break;
+      }
 
       case "walletconnect":
         if (!address) {

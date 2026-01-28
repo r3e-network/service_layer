@@ -5,7 +5,23 @@ export default [
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ["node_modules/", ".expo/", "dist/", "babel.config.js"],
+    ignores: ["node_modules/", ".expo/", "dist/", "babel.config.js", "metro.config.js", "jest.setup.js", "jest.config.js"],
+  },
+  {
+    files: ["**/__tests__/**", "**/*.test.ts", "**/*.test.tsx", "jest.setup.js"],
+    languageOptions: {
+      globals: {
+        jest: "readonly",
+        describe: "readonly",
+        it: "readonly",
+        expect: "readonly",
+        beforeEach: "readonly",
+        afterEach: "readonly",
+        beforeAll: "readonly",
+        afterAll: "readonly",
+        module: "readonly",
+      },
+    },
   },
   {
     rules: {

@@ -10,6 +10,7 @@ import { sha256 } from "@noble/hashes/sha2";
 import { ripemd160 } from "@noble/hashes/legacy";
 import { bytesToHex } from "@noble/hashes/utils";
 import { Buffer } from "buffer";
+import { encrypt, decrypt, validatePassword } from "./crypto";
 
 const BACKUP_KEY = "wallet_backup";
 const BACKUP_META_KEY = "backup_metadata";
@@ -113,27 +114,21 @@ export async function verifyMnemonicMatch(input: string, stored: string): Promis
 }
 
 /**
- * Encrypt mnemonic with password
+ * Encrypt mnemonic with password using secure AES-GCM
  */
 export async function encryptMnemonic(mnemonic: string, password: string): Promise<string> {
-  const combined = `${password}:${mnemonic}`;
-  const hash = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, combined);
-  return Buffer.from(mnemonic).toString("base64") + "." + hash.slice(0, 8);
+  const validation = validatePassword(password);
+  if (!validation.valid) {
+    throw new Error(validation.errors.join(", "));
+  }
+  return encrypt(mnemonic, password);
 }
 
 /**
  * Decrypt mnemonic with password
  */
 export async function decryptMnemonic(encrypted: string, password: string): Promise<string | null> {
-  const [encoded, hash] = encrypted.split(".");
-  if (!encoded || !hash) return null;
-
-  const mnemonic = Buffer.from(encoded, "base64").toString("utf-8");
-  const combined = `${password}:${mnemonic}`;
-  const computed = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, combined);
-
-  if (computed.slice(0, 8) !== hash) return null;
-  return mnemonic;
+  return decrypt(encrypted, password);
 }
 
 /**

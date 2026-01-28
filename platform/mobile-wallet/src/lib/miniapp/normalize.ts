@@ -148,7 +148,7 @@ export function coerceMiniAppInfo(raw: unknown, fallback?: MiniAppInfo): MiniApp
   const category = normalizeCategory(obj.category ?? fallback?.category);
   const supportedChains =
     normalizeSupportedChains(obj.supportedChains ?? obj.supported_chains ?? fallback?.supportedChains) ?? [];
-  let chainContracts = normalizeChainContracts(obj.chainContracts ?? obj.contracts ?? fallback?.chainContracts);
+  const chainContracts = normalizeChainContracts(obj.chainContracts ?? obj.contracts ?? fallback?.chainContracts);
   const permissions = normalizePermissions(obj.permissions ?? fallback?.permissions, fallback?.permissions);
   const limits = normalizeLimits(obj.limits ?? fallback?.limits, fallback?.limits);
   const status = normalizeStatus(obj.status, fallback?.status);
