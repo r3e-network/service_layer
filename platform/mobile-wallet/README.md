@@ -197,3 +197,31 @@ Coverage:    90%+ statements
 ## License
 
 MIT
+
+## Documentation
+
+- [API Reference](./docs/API.md) - Core module APIs and usage examples
+- [Project Structure](#project-structure) - Code organization
+
+## Contributing
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing`)
+5. Open a Pull Request
+
+## Environment Variables
+
+Create `.env` for local development:
+
+```bash
+# Network (mainnet/testnet)
+EXPO_PUBLIC_DEFAULT_NETWORK=testnet
+
+# CoinGecko API (optional, for price data)
+EXPO_PUBLIC_COINGECKO_API_KEY=your_key
+
+# WalletConnect Project ID
+EXPO_PUBLIC_WC_PROJECT_ID=your_project_id
+```

@@ -1,6 +1,22 @@
 /**
- * WalletConnect v2 Integration
- * Handles DApp connections via WalletConnect protocol
+ * WalletConnect v2 Integration Module
+ * 
+ * Handles DApp connections via WalletConnect protocol for Neo N3.
+ * Supports session management, request signing, and response handling.
+ * 
+ * @module walletconnect
+ * @see https://docs.walletconnect.com/2.0/
+ * 
+ * @example
+ * ```typescript
+ * import { parseWCUri, saveSession, signWCRequest } from '@/lib/walletconnect';
+ * 
+ * // Parse a WalletConnect URI from QR code
+ * const parsed = parseWCUri(uri);
+ * 
+ * // Sign a request from DApp
+ * const signature = await signWCRequest(request);
+ * ```
  */
 
 import * as SecureStore from "expo-secure-store";
@@ -8,23 +24,44 @@ import { p256 } from "@noble/curves/nist";
 import { sha256 } from "@noble/hashes/sha2";
 import { hexToBytes } from "@noble/hashes/utils";
 
+/** Storage key for WalletConnect sessions */
 const SESSIONS_KEY = "walletconnect_sessions";
+/** Neo N3 MainNet chain identifier */
 const NEO_CHAIN_ID = "neo3:mainnet";
+/** Neo N3 TestNet chain identifier */
 const NEO_TESTNET_CHAIN_ID = "neo3:testnet";
 
+/**
+ * WalletConnect session representing a DApp connection
+ * @interface WCSession
+ */
 export interface WCSession {
+  /** Unique session topic identifier */
   topic: string;
+  /** Connected DApp metadata */
   peerMeta: PeerMeta;
+  /** Chain ID (neo3:mainnet or neo3:testnet) */
   chainId: string;
+  /** Connected wallet address */
   address: string;
+  /** Unix timestamp when session was established */
   connectedAt: number;
+  /** Unix timestamp when session expires */
   expiresAt: number;
 }
 
+/**
+ * DApp metadata from WalletConnect pairing
+ * @interface PeerMeta
+ */
 export interface PeerMeta {
+  /** DApp name */
   name: string;
+  /** DApp description */
   description: string;
+  /** DApp website URL */
   url: string;
+  /** Array of DApp icon URLs */
   icons: string[];
 }
 
@@ -48,7 +85,16 @@ export interface SignMessageParams {
 export type WCRequestType = "sign_transaction" | "sign_message" | "unknown";
 
 /**
- * Parse WalletConnect URI
+ * Parse WalletConnect URI from QR code or deep link
+ * 
+ * @param {string} uri - WalletConnect URI (wc:topic@version?params)
+ * @returns {Object|null} Parsed URI components or null if invalid
+ * 
+ * @example
+ * ```typescript
+ * const parsed = parseWCUri('wc:abc123@2?relay-protocol=irn');
+ * // { topic: 'abc123', version: 2, relay: 'irn' }
+ * ```
  */
 export function parseWCUri(uri: string): { topic: string; version: number; relay: string } | null {
   if (!uri.startsWith("wc:")) return null;
@@ -68,6 +114,8 @@ export function parseWCUri(uri: string): { topic: string; version: number; relay
 
 /**
  * Validate WalletConnect URI format
+ * @param {string} uri - URI to validate
+ * @returns {boolean} True if valid WalletConnect URI
  */
 export function isValidWCUri(uri: string): boolean {
   return parseWCUri(uri) !== null;
@@ -95,7 +143,8 @@ export function getRequestType(method: string): WCRequestType {
 }
 
 /**
- * Load saved sessions from storage
+ * Load saved sessions from secure storage (filters expired)
+ * @returns {Promise<WCSession[]>} Array of active sessions
  */
 export async function loadSessions(): Promise<WCSession[]> {
   const data = await SecureStore.getItemAsync(SESSIONS_KEY);

@@ -1,6 +1,23 @@
 /**
  * Neo N3 Wallet Core Library
+ * 
  * Handles key generation, address derivation, and cryptographic operations
+ * using secp256r1 (NIST P-256) curve as required by Neo N3.
+ * 
+ * @module neo/wallet
+ * @see https://docs.neo.org/docs/n3/foundation/Cryptography
+ * 
+ * @example
+ * ```typescript
+ * import { generateWallet, loadWallet, exportWIF } from '@/lib/neo/wallet';
+ * 
+ * // Create new wallet
+ * const wallet = await generateWallet();
+ * console.log(wallet.address); // NXV7ZhHiyM1aHXwpVsRZC6BwNFP2jghXAq
+ * 
+ * // Export as WIF for backup
+ * const wif = await exportWIF();
+ * ```
  */
 
 import * as SecureStore from "expo-secure-store";
