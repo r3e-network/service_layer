@@ -90,10 +90,14 @@ export async function loadBackupHistory(): Promise<BackupMetadata[]> {
 }
 
 /**
- * Generate backup ID
+ * Generate cryptographically secure backup ID
  */
-export function generateBackupId(): string {
-  return `backup_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+export async function generateBackupId(): Promise<string> {
+  const bytes = await Crypto.getRandomBytesAsync(8);
+  const hex = Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return `backup_${Date.now()}_${hex}`;
 }
 
 /**

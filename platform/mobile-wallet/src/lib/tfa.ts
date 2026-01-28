@@ -4,6 +4,7 @@
  */
 
 import * as SecureStore from "expo-secure-store";
+import * as Crypto from "expo-crypto";
 
 const TFA_KEY = "tfa_config";
 
@@ -39,12 +40,18 @@ export async function saveTFAConfig(config: TFAConfig): Promise<void> {
 }
 
 /**
- * Generate backup codes
+ * Generate cryptographically secure backup codes
  */
-export function generateBackupCodes(count: number = 8): string[] {
+export async function generateBackupCodes(count: number = 8): Promise<string[]> {
   const codes: string[] = [];
+  const CHARSET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Exclude ambiguous chars
   for (let i = 0; i < count; i++) {
-    codes.push(Math.random().toString(36).slice(2, 10).toUpperCase());
+    const bytes = await Crypto.getRandomBytesAsync(8);
+    let code = "";
+    for (const byte of bytes) {
+      code += CHARSET[byte % CHARSET.length];
+    }
+    codes.push(code);
   }
   return codes;
 }

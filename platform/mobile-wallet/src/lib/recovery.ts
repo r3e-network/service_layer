@@ -4,6 +4,7 @@
  */
 
 import * as SecureStore from "expo-secure-store";
+import * as Crypto from "expo-crypto";
 
 const GUARDIANS_KEY = "social_guardians";
 const RECOVERY_KEY = "recovery_config";
@@ -46,9 +47,10 @@ export async function addGuardian(
   guardian: Omit<Guardian, "id" | "confirmed" | "addedAt">
 ): Promise<void> {
   const list = await loadGuardians();
+  const id = await generateGuardianId();
   list.push({
     ...guardian,
-    id: generateGuardianId(),
+    id,
     confirmed: false,
     addedAt: Date.now(),
   });
@@ -89,10 +91,14 @@ export async function saveRecoveryConfig(config: RecoveryConfig): Promise<void> 
 }
 
 /**
- * Generate guardian ID
+ * Generate cryptographically secure guardian ID
  */
-export function generateGuardianId(): string {
-  return `guard_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+export async function generateGuardianId(): Promise<string> {
+  const bytes = await Crypto.getRandomBytesAsync(8);
+  const hex = Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return `guard_${Date.now()}_${hex}`;
 }
 
 /**

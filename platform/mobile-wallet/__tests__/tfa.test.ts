@@ -37,13 +37,13 @@ describe("tfa", () => {
   });
 
   describe("generateBackupCodes", () => {
-    it("should generate correct count", () => {
-      const codes = generateBackupCodes(8);
+    it("should generate correct count", async () => {
+      const codes = await generateBackupCodes(8);
       expect(codes).toHaveLength(8);
     });
 
-    it("should generate unique codes", () => {
-      const codes = generateBackupCodes(8);
+    it("should generate unique codes", async () => {
+      const codes = await generateBackupCodes(8);
       const unique = new Set(codes);
       expect(unique.size).toBe(8);
     });

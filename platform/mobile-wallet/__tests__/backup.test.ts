@@ -87,14 +87,15 @@ describe("backup", () => {
   });
 
   describe("generateBackupId", () => {
-    it("should generate unique IDs", () => {
-      const id1 = generateBackupId();
-      const id2 = generateBackupId();
+    it("should generate unique IDs", async () => {
+      const id1 = await generateBackupId();
+      const id2 = await generateBackupId();
       expect(id1).not.toBe(id2);
     });
 
-    it("should start with backup_ prefix", () => {
-      expect(generateBackupId().startsWith("backup_")).toBe(true);
+    it("should start with backup_ prefix", async () => {
+      const id = await generateBackupId();
+      expect(id.startsWith("backup_")).toBe(true);
     });
   });
 

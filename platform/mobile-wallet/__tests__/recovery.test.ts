@@ -89,9 +89,9 @@ describe("recovery", () => {
   });
 
   describe("generateGuardianId", () => {
-    it("should generate unique IDs", () => {
-      const id1 = generateGuardianId();
-      const id2 = generateGuardianId();
+    it("should generate unique IDs", async () => {
+      const id1 = await generateGuardianId();
+      const id2 = await generateGuardianId();
       expect(id1).not.toBe(id2);
       expect(id1).toMatch(/^guard_/);
     });
