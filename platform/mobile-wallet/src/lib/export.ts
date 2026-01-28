@@ -28,12 +28,26 @@ export interface TxExportData {
 }
 
 /**
- * Generate CSV content
+ * Escape CSV field value to handle special characters
+ */
+function escapeCSVField(value: string): string {
+  if (value.includes(",") || value.includes('"') || value.includes("\n")) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+}
+
+/**
+ * Generate CSV content with proper escaping
  */
 export function generateCSV(data: TxExportData[]): string {
   const headers = "Hash,Date,Type,Amount,Asset,Fee,Status\n";
   const rows = data
-    .map((d) => `${d.hash},${d.date},${d.type},${d.amount},${d.asset},${d.fee},${d.status}`)
+    .map((d) =>
+      [d.hash, d.date, d.type, d.amount, d.asset, d.fee, d.status]
+        .map(escapeCSVField)
+        .join(",")
+    )
     .join("\n");
   return headers + rows;
 }
