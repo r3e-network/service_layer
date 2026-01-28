@@ -163,6 +163,16 @@ export default {
       failed: "失敗",
     },
   },
+  scanner: {
+    title: "QRコードをスキャン",
+    requestingPermission: "カメラの許可を要求中...",
+    permissionRequired: "QRコードをスキャンするにはカメラへのアクセスが必要です",
+    grantPermission: "許可を与える",
+    hint: "QRコードにカメラを向けてください",
+    tapToRescan: "タップして再スキャン",
+    unknownQr: "不明なQR",
+    unsupportedFormat: "このQRコード形式はサポートされていません",
+  },
   walletconnect: {
     title: "WalletConnect",
     disconnectTitle: "切断",

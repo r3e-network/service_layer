@@ -162,6 +162,16 @@ export default {
       failed: "실패",
     },
   },
+  scanner: {
+    title: "QR 코드 스캔",
+    requestingPermission: "카메라 권한 요청 중...",
+    permissionRequired: "QR 코드를 스캔하려면 카메라 접근이 필요합니다",
+    grantPermission: "권한 부여",
+    hint: "QR 코드에 카메라를 맞추세요",
+    tapToRescan: "탭하여 다시 스캔",
+    unknownQr: "알 수 없는 QR",
+    unsupportedFormat: "이 QR 코드 형식은 지원되지 않습니다",
+  },
   walletconnect: {
     title: "WalletConnect",
     disconnectTitle: "연결 해제",

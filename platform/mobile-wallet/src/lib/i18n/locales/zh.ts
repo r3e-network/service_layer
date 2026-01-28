@@ -162,6 +162,16 @@ export default {
       failed: "失败",
     },
   },
+  scanner: {
+    title: "扫描二维码",
+    requestingPermission: "正在请求相机权限...",
+    permissionRequired: "需要相机权限才能扫描二维码",
+    grantPermission: "授予权限",
+    hint: "将相机对准二维码",
+    tapToRescan: "点击重新扫描",
+    unknownQr: "未知二维码",
+    unsupportedFormat: "不支持此二维码格式",
+  },
   walletconnect: {
     title: "WalletConnect",
     disconnectTitle: "断开连接",

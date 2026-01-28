@@ -162,6 +162,16 @@ export default {
       failed: "Failed",
     },
   },
+  scanner: {
+    title: "Scan QR Code",
+    requestingPermission: "Requesting camera permission...",
+    permissionRequired: "Camera access is required to scan QR codes",
+    grantPermission: "Grant Permission",
+    hint: "Point camera at a QR code",
+    tapToRescan: "Tap to Scan Again",
+    unknownQr: "Unknown QR",
+    unsupportedFormat: "This QR code format is not supported",
+  },
   walletconnect: {
     title: "WalletConnect",
     disconnectTitle: "Disconnect",

@@ -8,9 +8,11 @@ import { parseQRCode } from "@/lib/qrcode";
 import { isValidWCUri } from "@/lib/walletconnect";
 import { useWCStore } from "@/stores/walletconnect";
 import { useWalletStore } from "@/stores/wallet";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ScannerScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [scanned, setScanned] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const { connect } = useWCStore();
@@ -35,7 +37,7 @@ export default function ScannerScreen() {
 
       case "walletconnect":
         if (!address) {
-          Alert.alert("Error", "Please create a wallet first");
+          Alert.alert(t("common.error"), t("walletconnect.noWalletMessage"));
           setScanned(false);
           return;
         }
@@ -48,7 +50,7 @@ export default function ScannerScreen() {
         break;
 
       default:
-        Alert.alert("Unknown QR", "This QR code format is not supported");
+        Alert.alert(t("scanner.unknownQr"), t("scanner.unsupportedFormat"));
         setScanned(false);
     }
   };
@@ -59,18 +61,18 @@ export default function ScannerScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: "Scan QR Code" }} />
+      <Stack.Screen options={{ title: t("scanner.title") }} />
       <View style={styles.content}>
         {!permission ? (
           <View style={styles.permissionBox}>
-            <Text style={styles.permissionText}>Requesting camera permission...</Text>
+            <Text style={styles.permissionText}>{t("scanner.requestingPermission")}</Text>
           </View>
         ) : !permission.granted ? (
           <View style={styles.permissionBox}>
             <Ionicons name="camera-outline" size={48} color="#888" />
-            <Text style={styles.permissionText}>Camera access is required to scan QR codes</Text>
+            <Text style={styles.permissionText}>{t("scanner.permissionRequired")}</Text>
             <TouchableOpacity style={styles.permissionBtn} onPress={requestPermission}>
-              <Text style={styles.permissionBtnText}>Grant Permission</Text>
+              <Text style={styles.permissionBtnText}>{t("scanner.grantPermission")}</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -85,10 +87,10 @@ export default function ScannerScreen() {
                 <View style={styles.scanFrame} />
               </View>
             </View>
-            <Text style={styles.hint}>Point camera at a QR code</Text>
+            <Text style={styles.hint}>{t("scanner.hint")}</Text>
             {scanned && (
               <TouchableOpacity style={styles.rescanBtn} onPress={() => setScanned(false)}>
-                <Text style={styles.rescanText}>Tap to Scan Again</Text>
+                <Text style={styles.rescanText}>{t("scanner.tapToRescan")}</Text>
               </TouchableOpacity>
             )}
           </>
