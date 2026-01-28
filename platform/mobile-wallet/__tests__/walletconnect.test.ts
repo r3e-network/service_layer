@@ -14,10 +14,19 @@ import {
   removeSession,
   getSession,
   createSession,
+  signWCRequest,
+  sendWCResponse,
   WCSession,
 } from "../src/lib/walletconnect";
 
 jest.mock("expo-secure-store");
+jest.mock("@noble/curves/nist", () => ({
+  p256: {
+    sign: jest.fn(() => ({
+      toCompactHex: () => "mocksignature123",
+    })),
+  },
+}));
 
 const mockSecureStore = SecureStore as jest.Mocked<typeof SecureStore>;
 
@@ -216,6 +225,53 @@ describe("walletconnect", () => {
       expect(session.chainId).toBe("neo3:testnet");
       expect(session.address).toBe("NXV7ZhHiyM1aHXwpVsRZC6BEaDQhNn2sfF");
       expect(session.expiresAt).toBeGreaterThan(session.connectedAt);
+    });
+  });
+
+  describe("signWCRequest", () => {
+    it("should throw error when no private key", async () => {
+      mockSecureStore.getItemAsync.mockResolvedValue(null);
+      await expect(
+        signWCRequest({ id: 1, method: "neo3_signMessage", params: [{ message: "test" }] })
+      ).rejects.toThrow("No private key found");
+    });
+
+    it("should sign message request", async () => {
+      mockSecureStore.getItemAsync.mockResolvedValue("a".repeat(64));
+      const signature = await signWCRequest({
+        id: 1,
+        method: "neo3_signMessage",
+        params: [{ message: "Hello Neo" }],
+      });
+      expect(signature).toBeDefined();
+      expect(typeof signature).toBe("string");
+    });
+
+    it("should sign transaction request", async () => {
+      mockSecureStore.getItemAsync.mockResolvedValue("b".repeat(64));
+      const signature = await signWCRequest({
+        id: 2,
+        method: "neo3_signTransaction",
+        params: [{ transaction: "abcd1234" }],
+      });
+      expect(signature).toBeDefined();
+    });
+
+    it("should throw error for unsupported request type", async () => {
+      mockSecureStore.getItemAsync.mockResolvedValue("c".repeat(64));
+      await expect(
+        signWCRequest({ id: 3, method: "unknown_method", params: [] })
+      ).rejects.toThrow("Unsupported request type");
+    });
+  });
+
+  describe("sendWCResponse", () => {
+    it("should save response to storage", async () => {
+      await sendWCResponse(123, "signature_result");
+      expect(mockSecureStore.setItemAsync).toHaveBeenCalledWith(
+        "wc_response_123",
+        expect.stringContaining("signature_result")
+      );
     });
   });
 });

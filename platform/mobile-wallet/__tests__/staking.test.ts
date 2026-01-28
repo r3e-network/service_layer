@@ -11,10 +11,16 @@ import {
   saveRewardRecord,
   generateRecordId,
   formatGasAmount,
+  getUnclaimedGas,
+  claimGas,
   RewardRecord,
 } from "../src/lib/staking";
 
 jest.mock("expo-secure-store");
+
+// Mock fetch
+const mockFetch = jest.fn();
+global.fetch = mockFetch;
 
 const mockSecureStore = SecureStore as jest.Mocked<typeof SecureStore>;
 
@@ -178,6 +184,81 @@ describe("staking", () => {
 
     it("should truncate extra decimals", () => {
       expect(formatGasAmount(1.123456789)).toBe("1.12345679");
+    });
+  });
+
+  describe("getUnclaimedGas", () => {
+    beforeEach(() => {
+      mockFetch.mockClear();
+    });
+
+    it("should return unclaimed GAS amount", async () => {
+      mockFetch.mockResolvedValue({
+        json: () => Promise.resolve({
+          result: { unclaimed: "500000000" } // 5 GAS in satoshis
+        }),
+      });
+
+      const gas = await getUnclaimedGas("NXV7ZhHiyM1aHXwpVsRZC6BEaDQhNn2sfF");
+      expect(gas).toBe(5);
+    });
+
+    it("should return 0 when no unclaimed GAS", async () => {
+      mockFetch.mockResolvedValue({
+        json: () => Promise.resolve({ result: {} }),
+      });
+
+      const gas = await getUnclaimedGas("NXV7ZhHiyM1aHXwpVsRZC6BEaDQhNn2sfF");
+      expect(gas).toBe(0);
+    });
+
+    it("should return 0 on fetch error", async () => {
+      mockFetch.mockRejectedValue(new Error("Network error"));
+
+      const gas = await getUnclaimedGas("NXV7ZhHiyM1aHXwpVsRZC6BEaDQhNn2sfF");
+      expect(gas).toBe(0);
+    });
+  });
+
+  describe("claimGas", () => {
+    beforeEach(() => {
+      mockFetch.mockClear();
+    });
+
+    it("should throw error when no private key", async () => {
+      mockSecureStore.getItemAsync.mockResolvedValue(null);
+      await expect(claimGas("NXV7ZhHiyM1aHXwpVsRZC6BEaDQhNn2sfF"))
+        .rejects.toThrow("No private key found");
+    });
+
+    it("should claim GAS successfully", async () => {
+      mockSecureStore.getItemAsync.mockResolvedValue("a".repeat(64));
+      mockFetch.mockResolvedValue({
+        json: () => Promise.resolve({ result: { hash: "0xclaimhash" } }),
+      });
+
+      const hash = await claimGas("NXV7ZhHiyM1aHXwpVsRZC6BEaDQhNn2sfF");
+      expect(hash).toBe("0xclaimhash");
+    });
+
+    it("should throw error on RPC failure", async () => {
+      mockSecureStore.getItemAsync.mockResolvedValue("b".repeat(64));
+      mockFetch.mockResolvedValue({
+        json: () => Promise.resolve({ error: { message: "Claim failed" } }),
+      });
+
+      await expect(claimGas("NXV7ZhHiyM1aHXwpVsRZC6BEaDQhNn2sfF"))
+        .rejects.toThrow("Claim failed");
+    });
+
+    it("should return generated hash when no hash in response", async () => {
+      mockSecureStore.getItemAsync.mockResolvedValue("c".repeat(64));
+      mockFetch.mockResolvedValue({
+        json: () => Promise.resolve({ result: {} }),
+      });
+
+      const hash = await claimGas("NXV7ZhHiyM1aHXwpVsRZC6BEaDQhNn2sfF");
+      expect(hash.startsWith("claim_")).toBe(true);
     });
   });
 });

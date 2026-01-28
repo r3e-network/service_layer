@@ -18,6 +18,7 @@ import {
   decryptMnemonic,
   formatBackupDate,
   getBackupTypeLabel,
+  restoreWalletFromMnemonic,
 } from "../src/lib/backup";
 
 jest.mock("expo-secure-store");
@@ -158,6 +159,58 @@ describe("backup", () => {
     it("should return correct labels", () => {
       expect(getBackupTypeLabel("cloud")).toBe("Cloud Backup");
       expect(getBackupTypeLabel("local")).toBe("Local Backup");
+    });
+
+    it("should use translation function when provided", () => {
+      const mockT = jest.fn((key: string) => `translated_${key}`);
+      expect(getBackupTypeLabel("cloud", mockT)).toBe("translated_backup.type.cloud");
+      expect(getBackupTypeLabel("local", mockT)).toBe("translated_backup.type.local");
+    });
+  });
+
+  describe("formatBackupDate", () => {
+    it("should format timestamp", () => {
+      const date = formatBackupDate(1704067200000);
+      expect(date).toBeDefined();
+    });
+
+    it("should format with different locale", () => {
+      const dateEn = formatBackupDate(1704067200000, "en");
+      const dateZh = formatBackupDate(1704067200000, "zh");
+      expect(dateEn).toBeDefined();
+      expect(dateZh).toBeDefined();
+    });
+  });
+
+  describe("restoreWalletFromMnemonic", () => {
+    it("should restore wallet from 12 word mnemonic", async () => {
+      const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+      const result = await restoreWalletFromMnemonic(mnemonic, "StrongPass123");
+      
+      expect(result.address).toBeDefined();
+      expect(result.publicKey).toBeDefined();
+      expect(result.address.startsWith("N")).toBe(true);
+      expect(mockSecureStore.setItemAsync).toHaveBeenCalledTimes(4);
+    });
+
+    it("should restore wallet from 24 word mnemonic", async () => {
+      const mnemonic = "abandon ".repeat(23) + "art";
+      const result = await restoreWalletFromMnemonic(mnemonic.trim(), "StrongPass123");
+      
+      expect(result.address).toBeDefined();
+      expect(result.publicKey).toBeDefined();
+    });
+
+    it("should throw error for invalid mnemonic length", async () => {
+      await expect(
+        restoreWalletFromMnemonic("one two three", "StrongPass123")
+      ).rejects.toThrow("Invalid mnemonic length");
+    });
+
+    it("should normalize mnemonic case", async () => {
+      const mnemonic = "ABANDON ABANDON ABANDON ABANDON ABANDON ABANDON ABANDON ABANDON ABANDON ABANDON ABANDON ABOUT";
+      const result = await restoreWalletFromMnemonic(mnemonic, "StrongPass123");
+      expect(result.address).toBeDefined();
     });
   });
 });

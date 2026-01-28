@@ -11,9 +11,14 @@ import {
   generateExportId,
   formatExportDate,
   getFormatLabel,
+  getTransactionHistory,
 } from "../src/lib/export";
 
 jest.mock("expo-secure-store");
+
+// Mock fetch
+const mockFetch = jest.fn();
+global.fetch = mockFetch;
 
 const mockSecureStore = SecureStore as jest.Mocked<typeof SecureStore>;
 
@@ -66,6 +71,42 @@ describe("export", () => {
     it("should return uppercase", () => {
       expect(getFormatLabel("csv")).toBe("CSV");
       expect(getFormatLabel("pdf")).toBe("PDF");
+    });
+  });
+
+  describe("getTransactionHistory", () => {
+    beforeEach(() => {
+      mockFetch.mockClear();
+    });
+
+    it("should return transaction history", async () => {
+      mockFetch.mockResolvedValue({
+        json: () => Promise.resolve({
+          result: {
+            sent: [{ txhash: "0x1", timestamp: 1704067200, amount: "100", assethash: "0xgas" }],
+            received: [{ txhash: "0x2", timestamp: 1704067300, amount: "50", assethash: "0xneo" }],
+          },
+        }),
+      });
+
+      const txs = await getTransactionHistory("NXV7ZhHiyM1aHXwpVsRZC6BEaDQhNn2sfF");
+      expect(txs).toHaveLength(2);
+      expect(txs[0].hash).toBe("0x1");
+      expect(txs[1].hash).toBe("0x2");
+    });
+
+    it("should return empty array on error", async () => {
+      mockFetch.mockRejectedValue(new Error("Network error"));
+      const txs = await getTransactionHistory("NXV7ZhHiyM1aHXwpVsRZC6BEaDQhNn2sfF");
+      expect(txs).toEqual([]);
+    });
+
+    it("should handle empty result", async () => {
+      mockFetch.mockResolvedValue({
+        json: () => Promise.resolve({ result: {} }),
+      });
+      const txs = await getTransactionHistory("NXV7ZhHiyM1aHXwpVsRZC6BEaDQhNn2sfF");
+      expect(txs).toEqual([]);
     });
   });
 });
