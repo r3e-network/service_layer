@@ -21,8 +21,9 @@ export default function VerifyMnemonicScreen() {
 
     setVerifying(true);
     try {
+      const backupId = await generateBackupId();
       await saveBackupMetadata({
-        id: generateBackupId(),
+        id: backupId,
         type: type || "local",
         timestamp: Date.now(),
         walletCount: 1,

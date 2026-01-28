@@ -232,7 +232,7 @@ describe("walletconnect", () => {
     it("should throw error when no private key", async () => {
       mockSecureStore.getItemAsync.mockResolvedValue(null);
       await expect(
-        signWCRequest({ id: 1, method: "neo3_signMessage", params: [{ message: "test" }] })
+        signWCRequest({ id: 1, topic: "test-topic", method: "neo3_signMessage", params: [{ message: "test" }] })
       ).rejects.toThrow("No private key found");
     });
 
@@ -240,6 +240,7 @@ describe("walletconnect", () => {
       mockSecureStore.getItemAsync.mockResolvedValue("a".repeat(64));
       const signature = await signWCRequest({
         id: 1,
+        topic: "test-topic",
         method: "neo3_signMessage",
         params: [{ message: "Hello Neo" }],
       });
@@ -251,6 +252,7 @@ describe("walletconnect", () => {
       mockSecureStore.getItemAsync.mockResolvedValue("b".repeat(64));
       const signature = await signWCRequest({
         id: 2,
+        topic: "test-topic",
         method: "neo3_signTransaction",
         params: [{ transaction: "abcd1234" }],
       });
@@ -260,7 +262,7 @@ describe("walletconnect", () => {
     it("should throw error for unsupported request type", async () => {
       mockSecureStore.getItemAsync.mockResolvedValue("c".repeat(64));
       await expect(
-        signWCRequest({ id: 3, method: "unknown_method", params: [] })
+        signWCRequest({ id: 3, topic: "test-topic", method: "unknown_method", params: [] })
       ).rejects.toThrow("Unsupported request type");
     });
   });
