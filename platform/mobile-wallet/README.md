@@ -174,7 +174,7 @@ mobile-wallet/
 
 ## Tech Stack
 
-- **Expo SDK 51** - Cross-platform framework
+- **Expo SDK 54** - Cross-platform framework
 - **Expo Router** - File-based routing
 - **Expo Camera** - QR code scanning
 - **Zustand** - Lightweight state management
@@ -189,8 +189,8 @@ mobile-wallet/
 ## Test Coverage
 
 ```
-Test Suites: 25+ passed
-Tests:       300+ passed
+Test Suites: 40 passed
+Tests:       403 passed
 Coverage:    90%+ statements
 ```
 

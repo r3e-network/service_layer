@@ -74,6 +74,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Resolved type errors in WCRequest and generateBackupId
 - Final CHANGELOG creation
 
+### Round 10 - Production Hardening (2025-01-29)
+- Fixed AuthResult type handling in wallet store
+- Added biometric authentication for send transactions
+- Added balance validation and NEO whole number check
+- Added RPC timeout (30s) and retry mechanism (3 attempts)
+- Fixed CSV export field escaping for special characters
+- Added crypto and biometrics module tests
+- Added i18n translations for security settings and scanner
+- Updated test coverage to 40 suites, 403 tests
+- Updated README with accurate SDK version and test counts
+
 ### Round 8 - Security Hardening
 - Cryptographically secure random for IDs and backup codes
 - Updated test constants for tiered confirmations
