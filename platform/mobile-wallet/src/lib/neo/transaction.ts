@@ -42,7 +42,10 @@ interface Witness {
  */
 export function buildTransferScript(params: TransferParams): string {
   const contractAddress = CONTRACTS[params.asset].slice(2);
-  const amount = params.asset === "GAS" ? BigInt(Math.floor(parseFloat(params.amount) * 1e8)) : BigInt(params.amount);
+  const amount =
+    params.asset === "GAS"
+      ? BigInt(Math.floor(parseFloat(params.amount) * 1e8))
+      : BigInt(params.amount);
 
   const script: number[] = [];
 

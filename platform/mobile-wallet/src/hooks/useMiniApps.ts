@@ -11,7 +11,15 @@ import { BUILTIN_APPS, getAppsByCategory } from "@/lib/miniapp";
 // Re-export MiniAppInfo as MiniApp for backward compatibility
 export type MiniApp = MiniAppInfo;
 
-const CATEGORIES: Array<"All" | MiniAppCategory> = ["All", "gaming", "defi", "governance", "utility", "social", "nft"];
+const CATEGORIES: Array<"All" | MiniAppCategory> = [
+  "All",
+  "gaming",
+  "defi",
+  "governance",
+  "utility",
+  "social",
+  "nft",
+];
 
 const CATEGORY_DISPLAY: Record<string, string> = {
   All: "All",
@@ -117,9 +125,7 @@ function mapTrendingToMiniApp(data: TrendingApp[]): MiniApp[] {
     },
     permissions: {},
     supportedChains:
-      Array.isArray(t.supportedChains) && t.supportedChains.length
-        ? t.supportedChains
-        : [],
+      Array.isArray(t.supportedChains) && t.supportedChains.length ? t.supportedChains : [],
   }));
 }
 
@@ -134,8 +140,6 @@ function mapSearchToMiniApp(data: SearchResult[]): MiniApp[] {
     source: (s.source as MiniAppSource) || undefined,
     permissions: {},
     supportedChains:
-      Array.isArray(s.supportedChains) && s.supportedChains.length
-        ? s.supportedChains
-        : [],
+      Array.isArray(s.supportedChains) && s.supportedChains.length ? s.supportedChains : [],
   }));
 }

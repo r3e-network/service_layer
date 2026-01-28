@@ -55,7 +55,8 @@ export default {
     error: "エラー",
     sign_message: "メッセージ署名",
     message_to_sign: "署名するメッセージ",
-    sign_warning: "信頼できるアプリのメッセージのみ署名してください。これはあなたの本人確認に使用されます。",
+    sign_warning:
+      "信頼できるアプリのメッセージのみ署名してください。これはあなたの本人確認に使用されます。",
     sign: "署名",
   },
   transactions: {

@@ -85,8 +85,21 @@ function resolveScopedAppId(requested: unknown, appId: string): string {
 /**
  * Dispatch bridge call to appropriate SDK method
  */
-export async function dispatchBridgeCall(config: BridgeConfig, method: string, params: unknown[]): Promise<unknown> {
-  const { sdk, permissions, appId, getAddress, invokeIntent, invokeFunction, switchChain, signMessage } = config;
+export async function dispatchBridgeCall(
+  config: BridgeConfig,
+  method: string,
+  params: unknown[]
+): Promise<unknown> {
+  const {
+    sdk,
+    permissions,
+    appId,
+    getAddress,
+    invokeIntent,
+    invokeFunction,
+    switchChain,
+    signMessage,
+  } = config;
 
   if (!hasPermission(method, permissions)) {
     throw new Error(`permission denied: ${method}`);
@@ -176,7 +189,12 @@ export async function dispatchBridgeCall(config: BridgeConfig, method: string, p
       const [requestedAppId, proposalId, neoAmount, support] = params;
       const scopedAppId = resolveScopedAppId(requestedAppId, appId);
       const supportValue = typeof support === "boolean" ? support : undefined;
-      const intent = await sdk.governance.vote(scopedAppId, String(proposalId ?? ""), String(neoAmount ?? ""), supportValue);
+      const intent = await sdk.governance.vote(
+        scopedAppId,
+        String(proposalId ?? ""),
+        String(neoAmount ?? ""),
+        supportValue
+      );
       if (intent?.request_id && intent?.invocation) {
         storeIntent(intent.request_id, intent.invocation);
       }
@@ -188,13 +206,19 @@ export async function dispatchBridgeCall(config: BridgeConfig, method: string, p
       const scopedAppId = resolveScopedAppId(requestedAppId, appId);
       const supportValue = typeof support === "boolean" ? support : undefined;
       if (!sdk.governance?.vote) throw new Error("governance.vote not available");
-      const intent = await sdk.governance.vote(scopedAppId, String(proposalId ?? ""), String(neoAmount ?? ""), supportValue);
+      const intent = await sdk.governance.vote(
+        scopedAppId,
+        String(proposalId ?? ""),
+        String(neoAmount ?? ""),
+        supportValue
+      );
       if (intent?.request_id && intent?.invocation) {
         storeIntent(intent.request_id, intent.invocation);
       }
       if (!intent?.request_id) return intent;
       const tx = await invokeIntent(String(intent.request_id));
-      const txid = (tx as { tx_hash?: string; txid?: string; txHash?: string })?.tx_hash ||
+      const txid =
+        (tx as { tx_hash?: string; txid?: string; txHash?: string })?.tx_hash ||
         (tx as { tx_hash?: string; txid?: string; txHash?: string })?.txid ||
         (tx as { tx_hash?: string; txid?: string; txHash?: string })?.txHash ||
         null;
@@ -231,7 +255,8 @@ export async function dispatchBridgeCall(config: BridgeConfig, method: string, p
     }
 
     case "datafeed.getRecentTransactions": {
-      if (!sdk.datafeed?.getRecentTransactions) throw new Error("datafeed.getRecentTransactions not supported");
+      if (!sdk.datafeed?.getRecentTransactions)
+        throw new Error("datafeed.getRecentTransactions not supported");
       const [limit] = params;
       const limitValue = typeof limit === "number" ? limit : undefined;
       return sdk.datafeed.getRecentTransactions(limitValue);
@@ -247,14 +272,20 @@ export async function dispatchBridgeCall(config: BridgeConfig, method: string, p
 
     case "events.list": {
       const [rawParams] = params;
-      const p = rawParams && typeof rawParams === "object" ? { ...(rawParams as Record<string, unknown>) } : {};
+      const p =
+        rawParams && typeof rawParams === "object"
+          ? { ...(rawParams as Record<string, unknown>) }
+          : {};
       if (!sdk.events?.list) throw new Error("events.list not supported");
       return sdk.events.list({ ...p, app_id: resolveScopedAppId(p.app_id, appId) });
     }
 
     case "transactions.list": {
       const [rawParams] = params;
-      const p = rawParams && typeof rawParams === "object" ? { ...(rawParams as Record<string, unknown>) } : {};
+      const p =
+        rawParams && typeof rawParams === "object"
+          ? { ...(rawParams as Record<string, unknown>) }
+          : {};
       if (!sdk.transactions?.list) throw new Error("transactions.list not supported");
       return sdk.transactions.list({ ...p, app_id: resolveScopedAppId(p.app_id, appId) });
     }
@@ -262,13 +293,15 @@ export async function dispatchBridgeCall(config: BridgeConfig, method: string, p
     case "invokeRead": {
       const [rawParams] = params;
       if (!sdk.invokeRead) throw new Error("invokeRead not supported");
-      if (!rawParams || typeof rawParams !== "object") throw new Error("invokeRead params required");
+      if (!rawParams || typeof rawParams !== "object")
+        throw new Error("invokeRead params required");
       return sdk.invokeRead(rawParams as Record<string, unknown>);
     }
 
     case "invokeFunction": {
       const [rawParams] = params;
-      if (!rawParams || typeof rawParams !== "object") throw new Error("invokeFunction params required");
+      if (!rawParams || typeof rawParams !== "object")
+        throw new Error("invokeFunction params required");
       if (invokeFunction) return invokeFunction(rawParams as Record<string, unknown>);
       if (!sdk.invokeFunction) throw new Error("invokeFunction not supported");
       return sdk.invokeFunction(rawParams as Record<string, unknown>);

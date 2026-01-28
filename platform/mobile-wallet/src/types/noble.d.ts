@@ -4,11 +4,15 @@ declare module "@noble/curves/nist" {
     getPublicKey: (privateKey: Uint8Array, compressed?: boolean) => Uint8Array;
     sign: (
       msgHash: Uint8Array,
-      privateKey: Uint8Array,
+      privateKey: Uint8Array
     ) => {
       toCompactHex: () => string;
     };
-    verify: (signature: { toCompactHex: () => string } | string, msgHash: Uint8Array, publicKey: Uint8Array) => boolean;
+    verify: (
+      signature: { toCompactHex: () => string } | string,
+      msgHash: Uint8Array,
+      publicKey: Uint8Array
+    ) => boolean;
     Signature: {
       fromCompact: (hex: string) => { toCompactHex: () => string };
     };

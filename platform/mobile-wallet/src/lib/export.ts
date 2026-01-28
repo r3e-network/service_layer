@@ -32,7 +32,9 @@ export interface TxExportData {
  */
 export function generateCSV(data: TxExportData[]): string {
   const headers = "Hash,Date,Type,Amount,Asset,Fee,Status\n";
-  const rows = data.map((d) => `${d.hash},${d.date},${d.type},${d.amount},${d.asset},${d.fee},${d.status}`).join("\n");
+  const rows = data
+    .map((d) => `${d.hash},${d.date},${d.type},${d.amount},${d.asset},${d.fee},${d.status}`)
+    .join("\n");
   return headers + rows;
 }
 
@@ -103,14 +105,16 @@ export async function getTransactionHistory(address: string): Promise<Transactio
     });
     const data = await response.json();
     const transfers = [...(data.result?.sent || []), ...(data.result?.received || [])];
-    return transfers.map((tx: { txhash: string; timestamp: number; amount: string; assethash: string }) => ({
-      hash: tx.txhash,
-      timestamp: tx.timestamp * 1000,
-      type: "transfer",
-      amount: tx.amount,
-      asset: tx.assethash,
-      status: "confirmed",
-    }));
+    return transfers.map(
+      (tx: { txhash: string; timestamp: number; amount: string; assethash: string }) => ({
+        hash: tx.txhash,
+        timestamp: tx.timestamp * 1000,
+        type: "transfer",
+        amount: tx.amount,
+        asset: tx.assethash,
+        status: "confirmed",
+      })
+    );
   } catch {
     return [];
   }

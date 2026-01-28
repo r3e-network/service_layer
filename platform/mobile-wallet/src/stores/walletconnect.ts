@@ -23,7 +23,12 @@ interface WCState {
 
   // Actions
   initialize: () => Promise<void>;
-  connect: (topic: string, peerMeta: PeerMeta, address: string, network: "mainnet" | "testnet") => Promise<void>;
+  connect: (
+    topic: string,
+    peerMeta: PeerMeta,
+    address: string,
+    network: "mainnet" | "testnet"
+  ) => Promise<void>;
   disconnect: (topic: string) => Promise<void>;
   setPendingRequest: (request: WCRequest | null, meta: PeerMeta | null) => void;
   clearError: () => void;

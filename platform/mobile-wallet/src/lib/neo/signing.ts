@@ -29,9 +29,10 @@ export async function signMessage(message: string): Promise<SignedMessage | null
 
   const trimmed = String(message ?? "").trim();
   if (!trimmed) return null;
-  const messageHex = isHex(trimmed) && trimmed.length % 2 === 0
-    ? trimmed
-    : Buffer.from(trimmed, "utf8").toString("hex");
+  const messageHex =
+    isHex(trimmed) && trimmed.length % 2 === 0
+      ? trimmed
+      : Buffer.from(trimmed, "utf8").toString("hex");
 
   const signature = wallet.sign(messageHex, privateKey);
   const account = new wallet.Account(privateKey);

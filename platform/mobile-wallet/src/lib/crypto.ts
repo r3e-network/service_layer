@@ -19,7 +19,7 @@ async function deriveKey(password: string, salt: Uint8Array): Promise<Uint8Array
   // Use SHA-256 based key derivation
   const encoder = new TextEncoder();
   const passwordBytes = encoder.encode(password);
-  
+
   // Iterative hashing to simulate PBKDF2
   let key: Uint8Array = new Uint8Array([...passwordBytes, ...salt]);
   for (let i = 0; i < PBKDF2_ITERATIONS; i += 1000) {
@@ -30,7 +30,7 @@ async function deriveKey(password: string, salt: Uint8Array): Promise<Uint8Array
     );
     key = new Uint8Array(hexToBytes(hash));
   }
-  
+
   return key.slice(0, KEY_LENGTH);
 }
 
@@ -62,29 +62,22 @@ export async function encrypt(plaintext: string, password: string): Promise<stri
   const salt = await getRandomBytes(SALT_LENGTH);
   const iv = await getRandomBytes(IV_LENGTH);
   const key = await deriveKey(password, salt);
-  
+
   const encoder = new TextEncoder();
   const data = encoder.encode(plaintext);
-  
+
   // Encrypt with derived key
   const ciphertext = xorEncrypt(data, new Uint8Array([...key, ...iv]));
-  
+
   // Generate authentication tag
   const tagInput = Buffer.from([...salt, ...iv, ...ciphertext]).toString("hex");
-  const tag = await Crypto.digestStringAsync(
-    Crypto.CryptoDigestAlgorithm.SHA256,
-    tagInput,
-    { encoding: Crypto.CryptoEncoding.HEX }
-  );
-  
+  const tag = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, tagInput, {
+    encoding: Crypto.CryptoEncoding.HEX,
+  });
+
   // Combine: salt + iv + ciphertext + tag
-  const combined = new Uint8Array([
-    ...salt,
-    ...iv,
-    ...ciphertext,
-    ...hexToBytes(tag.slice(0, 32))
-  ]);
-  
+  const combined = new Uint8Array([...salt, ...iv, ...ciphertext, ...hexToBytes(tag.slice(0, 32))]);
+
   return Buffer.from(combined).toString("base64");
 }
 
@@ -153,7 +146,7 @@ function hexToBytes(hex: string): Uint8Array {
  */
 export function validatePassword(password: string): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
-  
+
   if (password.length < 8) {
     errors.push("Password must be at least 8 characters");
   }
@@ -166,6 +159,6 @@ export function validatePassword(password: string): { valid: boolean; errors: st
   if (!/[0-9]/.test(password)) {
     errors.push("Password must contain a number");
   }
-  
+
   return { valid: errors.length === 0, errors };
 }

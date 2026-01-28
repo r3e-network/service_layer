@@ -38,7 +38,9 @@ export async function loadChatHistory(): Promise<ChatMessage[]> {
 /**
  * Save chat message
  */
-export async function saveChatMessage(msg: Omit<ChatMessage, "id" | "timestamp">): Promise<ChatMessage> {
+export async function saveChatMessage(
+  msg: Omit<ChatMessage, "id" | "timestamp">
+): Promise<ChatMessage> {
   const history = await loadChatHistory();
   const message: ChatMessage = {
     ...msg,

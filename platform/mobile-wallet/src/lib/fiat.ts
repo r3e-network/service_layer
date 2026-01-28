@@ -75,6 +75,10 @@ export function getCurrencySymbol(currency: FiatCurrency): string {
  * Get payment icon
  */
 export function getPaymentIcon(method: PaymentMethod): string {
-  const icons: Record<PaymentMethod, string> = { card: "card", bank: "business", apple_pay: "logo-apple" };
+  const icons: Record<PaymentMethod, string> = {
+    card: "card",
+    bank: "business",
+    apple_pay: "logo-apple",
+  };
   return icons[method];
 }

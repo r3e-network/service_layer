@@ -157,7 +157,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
             usdChange: 0,
             icon: "🪙",
           };
-        }),
+        })
       );
 
       const total = (parseFloat(neoUsd) + parseFloat(gasUsd)).toFixed(2);

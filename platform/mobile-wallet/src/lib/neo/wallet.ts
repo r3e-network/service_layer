@@ -104,7 +104,16 @@ function publicKeyToAddress(publicKey: string): string {
   const pubKeyBytes = hexToBytes(publicKey);
 
   // Build verification script: PUSHDATA1 + len + pubkey + SYSCALL + CheckSig
-  const script = new Uint8Array([0x0c, pubKeyBytes.length, ...pubKeyBytes, 0x41, 0x56, 0xe7, 0xb3, 0x27]);
+  const script = new Uint8Array([
+    0x0c,
+    pubKeyBytes.length,
+    ...pubKeyBytes,
+    0x41,
+    0x56,
+    0xe7,
+    0xb3,
+    0x27,
+  ]);
 
   // Script hash = RIPEMD160(SHA256(script))
   const scriptHash = ripemd160(sha256(script));

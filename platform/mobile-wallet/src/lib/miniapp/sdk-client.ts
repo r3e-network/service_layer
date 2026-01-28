@@ -63,9 +63,10 @@ export function createMiniAppSDK(config: MiniAppSDKConfig): MiniAppSDK {
     method: string,
     params: unknown[],
     targetChainId?: string | null,
-    targetChainType?: ChainType,
+    targetChainType?: ChainType
   ) {
-    const resolvedChainType = targetChainType || chainType || resolveChainType(targetChainId ?? null);
+    const resolvedChainType =
+      targetChainType || chainType || resolveChainType(targetChainId ?? null);
     const rpcUrl = getRpcUrl(targetChainId ?? null, resolvedChainType);
     if (!rpcUrl) {
       throw new Error("RPC endpoint unavailable");
@@ -102,10 +103,12 @@ export function createMiniAppSDK(config: MiniAppSDKConfig): MiniAppSDK {
       debug: false,
     }),
     invokeRead: async (params) => {
-      const contract = params.contract || (params as { contractHash?: string }).contractHash || contractAddress;
+      const contract =
+        params.contract || (params as { contractHash?: string }).contractHash || contractAddress;
       const method = params.method || (params as { operation?: string }).operation;
       const targetChainId = params.chainId || chainId;
-      const targetChainType = params.chainType || chainType || resolveChainType(targetChainId ?? null);
+      const targetChainType =
+        params.chainType || chainType || resolveChainType(targetChainId ?? null);
 
       if (targetChainType === "evm") {
         const to = params.to || contract;
@@ -118,7 +121,12 @@ export function createMiniAppSDK(config: MiniAppSDKConfig): MiniAppSDK {
 
       if (!contract) throw new Error("contract address required");
       if (!method) throw new Error("method required");
-      return rpcCall("invokefunction", [contract, method, params.args || []], targetChainId, targetChainType);
+      return rpcCall(
+        "invokefunction",
+        [contract, method, params.args || []],
+        targetChainId,
+        targetChainType
+      );
     },
     invokeFunction: async () => {
       throw new Error("invokeFunction is not supported in the mobile wallet host");
@@ -135,7 +143,12 @@ export function createMiniAppSDK(config: MiniAppSDKConfig): MiniAppSDK {
     },
     payments: {
       payGAS: async (appId, amount, memo) => {
-        return post("/pay-gas", { app_id: appId, amount_gas: amount, memo, chain_id: chainId || undefined });
+        return post("/pay-gas", {
+          app_id: appId,
+          amount_gas: amount,
+          memo,
+          chain_id: chainId || undefined,
+        });
       },
     },
     governance: {
@@ -192,7 +205,9 @@ export function createMiniAppSDK(config: MiniAppSDKConfig): MiniAppSDK {
       },
       getNetworkStats: async () => {
         if (chainType === "evm") {
-          const blockHex = await rpcCall("eth_blockNumber", [], chainId, chainType).catch(() => "0x0");
+          const blockHex = await rpcCall("eth_blockNumber", [], chainId, chainType).catch(
+            () => "0x0"
+          );
           const blockHeight = parseInt(String(blockHex || "0x0"), 16);
           return {
             blockHeight: Number.isFinite(blockHeight) ? blockHeight : 0,
@@ -217,7 +232,9 @@ export function createMiniAppSDK(config: MiniAppSDKConfig): MiniAppSDK {
       },
       getRecentTransactions: async (limit = 10) => {
         if (chainType === "evm") {
-          const blockHex = await rpcCall("eth_blockNumber", [], chainId, chainType).catch(() => "0x0");
+          const blockHex = await rpcCall("eth_blockNumber", [], chainId, chainType).catch(
+            () => "0x0"
+          );
           const blockHeight = parseInt(String(blockHex || "0x0"), 16);
           return { transactions: [], blockHeight: Number.isFinite(blockHeight) ? blockHeight : 0 };
         }

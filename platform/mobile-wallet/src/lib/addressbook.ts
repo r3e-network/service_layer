@@ -21,7 +21,9 @@ export async function loadContacts(): Promise<Contact[]> {
   return data ? JSON.parse(data) : [];
 }
 
-export async function saveContact(contact: Omit<Contact, "id" | "createdAt" | "updatedAt">): Promise<Contact> {
+export async function saveContact(
+  contact: Omit<Contact, "id" | "createdAt" | "updatedAt">
+): Promise<Contact> {
   const contacts = await loadContacts();
   const now = Date.now();
   const newContact: Contact = {
@@ -35,7 +37,10 @@ export async function saveContact(contact: Omit<Contact, "id" | "createdAt" | "u
   return newContact;
 }
 
-export async function updateContact(id: string, updates: Partial<Omit<Contact, "id" | "createdAt">>): Promise<void> {
+export async function updateContact(
+  id: string,
+  updates: Partial<Omit<Contact, "id" | "createdAt">>
+): Promise<void> {
   const contacts = await loadContacts();
   const index = contacts.findIndex((c) => c.id === id);
   if (index !== -1) {
@@ -63,7 +68,7 @@ export async function searchContacts(query: string): Promise<Contact[]> {
   const contacts = await loadContacts();
   const lowerQuery = query.toLowerCase();
   return contacts.filter(
-    (c) => c.name.toLowerCase().includes(lowerQuery) || c.address.toLowerCase().includes(lowerQuery),
+    (c) => c.name.toLowerCase().includes(lowerQuery) || c.address.toLowerCase().includes(lowerQuery)
   );
 }
 

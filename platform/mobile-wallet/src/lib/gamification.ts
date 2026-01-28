@@ -60,7 +60,14 @@ const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     xp: 150,
     unlocked: false,
   },
-  { id: "week_streak", name: "Dedicated", description: "7-day login streak", type: "social", xp: 200, unlocked: false },
+  {
+    id: "week_streak",
+    name: "Dedicated",
+    description: "7-day login streak",
+    type: "social",
+    xp: 200,
+    unlocked: false,
+  },
 ];
 
 const DEFAULT_DATA: GamificationData = {

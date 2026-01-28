@@ -142,7 +142,7 @@ export function createSession(
   topic: string,
   peerMeta: PeerMeta,
   address: string,
-  network: "mainnet" | "testnet",
+  network: "mainnet" | "testnet"
 ): WCSession {
   const now = Date.now();
   return {
@@ -189,5 +189,8 @@ export async function signWCRequest(request: WCRequest): Promise<string> {
  */
 export async function sendWCResponse(requestId: number, result: string): Promise<void> {
   const responseKey = `wc_response_${requestId}`;
-  await SecureStore.setItemAsync(responseKey, JSON.stringify({ id: requestId, result, timestamp: Date.now() }));
+  await SecureStore.setItemAsync(
+    responseKey,
+    JSON.stringify({ id: requestId, result, timestamp: Date.now() })
+  );
 }

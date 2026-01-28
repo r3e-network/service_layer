@@ -4,6 +4,9 @@
 
 import { buildMiniAppEntryUrl } from "./normalize";
 
-export function buildMiniAppEntryUrlForWallet(entryUrl: string, params: Record<string, string>): string {
+export function buildMiniAppEntryUrlForWallet(
+  entryUrl: string,
+  params: Record<string, string>
+): string {
   return buildMiniAppEntryUrl(entryUrl, { ...params, layout: "mobile" });
 }

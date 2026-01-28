@@ -27,18 +27,18 @@ export interface Theme {
 // Neo Modern Dark Theme (Matches tokens.scss)
 const DARK_COLORS: ThemeColors = {
   background: "#05060d", // $neo-black / $bg-primary
-  surface: "#121322",    // $bg-elevated
-  text: "#f8f8ff",       // $text-primary
+  surface: "#121322", // $bg-elevated
+  text: "#f8f8ff", // $text-primary
   textSecondary: "rgba(231, 232, 246, 0.72)", // $text-secondary
-  primary: "#00e599",    // $neo-green
+  primary: "#00e599", // $neo-green
   border: "rgba(159, 157, 243, 0.15)", // $border-color
-  error: "#ef4444",      // $status-error
+  error: "#ef4444", // $status-error
 };
 
 const LIGHT_COLORS: ThemeColors = {
   background: "#f8f8ff", // $bg-primary-light
-  surface: "#ffffff",    // $bg-elevated-light
-  text: "#1b1b2f",       // $text-primary-light
+  surface: "#ffffff", // $bg-elevated-light
+  text: "#1b1b2f", // $text-primary-light
   textSecondary: "#4a4a63",
   primary: "#00e599",
   border: "rgba(159, 157, 243, 0.2)",

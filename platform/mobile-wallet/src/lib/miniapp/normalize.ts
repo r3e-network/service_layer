@@ -69,7 +69,10 @@ export function normalizeCategory(value: unknown): MiniAppCategory {
   return "utility";
 }
 
-export function normalizePermissions(value: unknown, fallback?: MiniAppPermissions): MiniAppPermissions {
+export function normalizePermissions(
+  value: unknown,
+  fallback?: MiniAppPermissions
+): MiniAppPermissions {
   if (Array.isArray(value)) {
     const set = new Set(value.map((entry) => String(entry).toLowerCase()));
     return {
@@ -101,7 +104,10 @@ export function normalizePermissions(value: unknown, fallback?: MiniAppPermissio
   };
 }
 
-export function normalizeLimits(value: unknown, fallback?: MiniAppLimits | null): MiniAppLimits | null {
+export function normalizeLimits(
+  value: unknown,
+  fallback?: MiniAppLimits | null
+): MiniAppLimits | null {
   const raw = asObject(value);
   const out: MiniAppLimits = {};
 
@@ -121,7 +127,10 @@ export function normalizeLimits(value: unknown, fallback?: MiniAppLimits | null)
   return out;
 }
 
-export function normalizeStatus(value: unknown, fallback?: MiniAppInfo["status"]): MiniAppInfo["status"] {
+export function normalizeStatus(
+  value: unknown,
+  fallback?: MiniAppInfo["status"]
+): MiniAppInfo["status"] {
   const raw = toString(value).trim().toLowerCase();
   if (raw === "active" || raw === "disabled" || raw === "pending") {
     return raw;
@@ -144,18 +153,27 @@ export function coerceMiniAppInfo(raw: unknown, fallback?: MiniAppInfo): MiniApp
   const name = toString(obj.name ?? fallback?.name ?? appId).trim() || appId;
   const description = toString(obj.description ?? fallback?.description ?? "").trim();
   const icon = toString(obj.icon ?? fallback?.icon ?? "🧩").trim() || "🧩";
-  const banner = toString(obj.banner ?? obj.banner_url ?? fallback?.banner ?? "").trim() || undefined;
+  const banner =
+    toString(obj.banner ?? obj.banner_url ?? fallback?.banner ?? "").trim() || undefined;
   const category = normalizeCategory(obj.category ?? fallback?.category);
   const supportedChains =
-    normalizeSupportedChains(obj.supportedChains ?? obj.supported_chains ?? fallback?.supportedChains) ?? [];
-  const chainContracts = normalizeChainContracts(obj.chainContracts ?? obj.contracts ?? fallback?.chainContracts);
-  const permissions = normalizePermissions(obj.permissions ?? fallback?.permissions, fallback?.permissions);
+    normalizeSupportedChains(
+      obj.supportedChains ?? obj.supported_chains ?? fallback?.supportedChains
+    ) ?? [];
+  const chainContracts = normalizeChainContracts(
+    obj.chainContracts ?? obj.contracts ?? fallback?.chainContracts
+  );
+  const permissions = normalizePermissions(
+    obj.permissions ?? fallback?.permissions,
+    fallback?.permissions
+  );
   const limits = normalizeLimits(obj.limits ?? fallback?.limits, fallback?.limits);
   const status = normalizeStatus(obj.status, fallback?.status);
 
   // Self-contained i18n fields
   const nameZh = toString(obj.name_zh ?? fallback?.name_zh ?? "").trim() || undefined;
-  const descriptionZh = toString(obj.description_zh ?? fallback?.description_zh ?? "").trim() || undefined;
+  const descriptionZh =
+    toString(obj.description_zh ?? fallback?.description_zh ?? "").trim() || undefined;
 
   return {
     app_id: appId,

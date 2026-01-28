@@ -26,7 +26,11 @@ export interface TransactionResponse {
 /**
  * Fetch transaction history for an address
  */
-export async function fetchTransactions(address: string, page = 1, limit = 20): Promise<TransactionResponse> {
+export async function fetchTransactions(
+  address: string,
+  page = 1,
+  limit = 20
+): Promise<TransactionResponse> {
   try {
     const res = await fetch(`${DORA_API}/address/${address}/transfers?page=${page}&limit=${limit}`);
     if (!res.ok) throw new Error("Failed to fetch");
@@ -42,7 +46,10 @@ export async function fetchTransactions(address: string, page = 1, limit = 20): 
   }
 }
 
-function mapTransactions(items: Array<Record<string, unknown>>, userAddress: string): Transaction[] {
+function mapTransactions(
+  items: Array<Record<string, unknown>>,
+  userAddress: string
+): Transaction[] {
   return items.map((item) => ({
     hash: String(item.txid || item.hash),
     time: Number(item.time) * 1000,

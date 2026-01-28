@@ -143,7 +143,11 @@ export async function getTransaction(txHash: string): Promise<unknown> {
 /**
  * Get NEP-17 token balance
  */
-export async function getTokenBalance(address: string, contractAddress: string, decimals: number): Promise<Balance> {
+export async function getTokenBalance(
+  address: string,
+  contractAddress: string,
+  decimals: number
+): Promise<Balance> {
   const result = await rpcCall<{ stack: Array<{ value: string }> }>("invokefunction", [
     contractAddress,
     "balanceOf",

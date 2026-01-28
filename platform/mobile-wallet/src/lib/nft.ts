@@ -95,7 +95,11 @@ export function isValidTokenId(tokenId: string): boolean {
 /**
  * Transfer NFT to another address (NEP-11)
  */
-export async function transferNFT(contractAddress: string, tokenId: string, to: string): Promise<string> {
+export async function transferNFT(
+  contractAddress: string,
+  tokenId: string,
+  to: string
+): Promise<string> {
   const privateKey = await SecureStore.getItemAsync("neo_private_key");
   if (!privateKey) throw new Error("No private key found");
 

@@ -19,10 +19,38 @@ export interface CustomTheme {
 
 const PRESET_THEMES: CustomTheme[] = [
   // Updated to match Neo Branding
-  { id: "neo", name: "Neo Green", primary: "#00e599", background: "#05060d", surface: "#121322", text: "#f8f8ff" },
-  { id: "ocean", name: "Ocean Blue", primary: "#22d3ee", background: "#0b0c16", surface: "#151828", text: "#f8f8ff" },
-  { id: "sunset", name: "Sunset", primary: "#fb923c", background: "#1a0a0a", surface: "#2a1a1a", text: "#f8f8ff" },
-  { id: "erobo", name: "E-Robo Purple", primary: "#9f9df3", background: "#05060d", surface: "#121322", text: "#f8f8ff" },
+  {
+    id: "neo",
+    name: "Neo Green",
+    primary: "#00e599",
+    background: "#05060d",
+    surface: "#121322",
+    text: "#f8f8ff",
+  },
+  {
+    id: "ocean",
+    name: "Ocean Blue",
+    primary: "#22d3ee",
+    background: "#0b0c16",
+    surface: "#151828",
+    text: "#f8f8ff",
+  },
+  {
+    id: "sunset",
+    name: "Sunset",
+    primary: "#fb923c",
+    background: "#1a0a0a",
+    surface: "#2a1a1a",
+    text: "#f8f8ff",
+  },
+  {
+    id: "erobo",
+    name: "E-Robo Purple",
+    primary: "#9f9df3",
+    background: "#05060d",
+    surface: "#121322",
+    text: "#f8f8ff",
+  },
 ];
 
 /**

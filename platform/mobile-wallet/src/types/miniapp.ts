@@ -90,4 +90,11 @@ export const CATEGORY_ICONS: Record<MiniAppCategory, string> = {
   nft: "images",
 };
 
-export const ALL_CATEGORIES: MiniAppCategory[] = ["gaming", "defi", "governance", "utility", "social", "nft"];
+export const ALL_CATEGORIES: MiniAppCategory[] = [
+  "gaming",
+  "defi",
+  "governance",
+  "utility",
+  "social",
+  "nft",
+];

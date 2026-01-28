@@ -79,7 +79,11 @@ export function verifySignature(hash: string, signature: string, publicKey: stri
 /**
  * Create multisig wallet
  */
-export async function createMultisig(name: string, threshold: number, publicKeys: string[]): Promise<MultisigWallet> {
+export async function createMultisig(
+  name: string,
+  threshold: number,
+  publicKeys: string[]
+): Promise<MultisigWallet> {
   if (threshold < 1 || threshold > publicKeys.length) {
     throw new Error("Invalid threshold");
   }
@@ -145,7 +149,7 @@ export async function isHardwareConnected(): Promise<boolean> {
  */
 export function getMethodLabel(
   method: SigningMethod,
-  t?: (key: string, options?: Record<string, string | number>) => string,
+  t?: (key: string, options?: Record<string, string | number>) => string
 ): string {
   if (t) {
     const keyMap: Record<SigningMethod, string> = {

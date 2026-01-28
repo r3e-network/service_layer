@@ -59,7 +59,9 @@ export async function loadNotifications(): Promise<Notification[]> {
 /**
  * Add notification
  */
-export async function addNotification(notif: Omit<Notification, "id" | "read" | "timestamp">): Promise<void> {
+export async function addNotification(
+  notif: Omit<Notification, "id" | "read" | "timestamp">
+): Promise<void> {
   const list = await loadNotifications();
   list.unshift({ ...notif, id: `notif_${Date.now()}`, read: false, timestamp: Date.now() });
   await SecureStore.setItemAsync(NOTIF_HISTORY_KEY, JSON.stringify(list.slice(0, 50)));

@@ -42,7 +42,9 @@ export async function loadGuardians(): Promise<Guardian[]> {
 /**
  * Add guardian
  */
-export async function addGuardian(guardian: Omit<Guardian, "id" | "confirmed" | "addedAt">): Promise<void> {
+export async function addGuardian(
+  guardian: Omit<Guardian, "id" | "confirmed" | "addedAt">
+): Promise<void> {
   const list = await loadGuardians();
   list.push({
     ...guardian,

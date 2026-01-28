@@ -46,7 +46,9 @@ const normalizeParamJson = (param: unknown, senderAddress: string): unknown => {
 const toContractParam = (param: unknown, senderAddress: string): sc.ContractParam => {
   if (param instanceof sc.ContractParam) return param;
   if (param && typeof param === "object" && "type" in param) {
-    return sc.ContractParam.fromJson(normalizeParamJson(param, senderAddress) as sc.ContractParamLike);
+    return sc.ContractParam.fromJson(
+      normalizeParamJson(param, senderAddress) as sc.ContractParamLike
+    );
   }
   if (typeof param === "number") return sc.ContractParam.integer(param);
   if (typeof param === "boolean") return sc.ContractParam.boolean(param);
@@ -60,7 +62,9 @@ const resolveArgs = (raw: unknown[] | undefined, senderAddress: string): sc.Cont
 const resolveNetworkMagic = (chainId: ChainId): number => {
   const magic = getNetworkMagic(chainId);
   if (typeof magic === "number") return magic;
-  return String(chainId).includes("testnet") ? DEFAULT_NETWORK_MAGIC.testnet : DEFAULT_NETWORK_MAGIC.mainnet;
+  return String(chainId).includes("testnet")
+    ? DEFAULT_NETWORK_MAGIC.testnet
+    : DEFAULT_NETWORK_MAGIC.mainnet;
 };
 
 const getRpcClient = (chainId: ChainId): rpc.RPCClient => {
@@ -184,10 +188,10 @@ const extractReceiptIdFromLog = (log: Record<string, unknown>): string | null =>
     const eventName = notification?.eventname || notification?.eventName || notification?.name;
     if (eventName !== "PaymentReceived") continue;
     const state = notification?.state as Record<string, unknown> | unknown[];
-    const values = Array.isArray(state) 
-      ? state 
-      : (state && typeof state === "object" && "value" in state && Array.isArray(state.value))
-        ? state.value as unknown[]
+    const values = Array.isArray(state)
+      ? state
+      : state && typeof state === "object" && "value" in state && Array.isArray(state.value)
+        ? (state.value as unknown[])
         : [];
     const first = values[0] as Record<string, unknown> | undefined;
     if (first?.type === "Integer" && first?.value !== undefined) {
@@ -204,7 +208,7 @@ export async function waitForReceipt(
   txid: string,
   chainId: ChainId,
   attempts = 10,
-  delayMs = 1200,
+  delayMs = 1200
 ): Promise<string | null> {
   if (!txid) return null;
   const client = getRpcClient(chainId);

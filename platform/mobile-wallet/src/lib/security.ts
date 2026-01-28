@@ -74,7 +74,7 @@ export async function addSecurityLog(event: string, details?: string): Promise<v
  */
 export function getLockMethodLabel(
   method: LockMethod,
-  t?: (key: string, options?: Record<string, string | number>) => string,
+  t?: (key: string, options?: Record<string, string | number>) => string
 ): string {
   if (t) {
     const keyMap: Record<LockMethod, string> = {

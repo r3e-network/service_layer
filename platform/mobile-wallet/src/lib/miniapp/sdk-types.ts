@@ -245,12 +245,17 @@ export interface MiniAppSDK {
     payGASAndInvoke?: (appId: string, amount: string, memo?: string) => Promise<PayGASResponse>;
   };
   governance: {
-    vote: (appId: string, proposalId: string, neoAmount: string, support?: boolean) => Promise<VoteBNEOResponse>;
+    vote: (
+      appId: string,
+      proposalId: string,
+      neoAmount: string,
+      support?: boolean
+    ) => Promise<VoteBNEOResponse>;
     voteAndInvoke?: (
       appId: string,
       proposalId: string,
       neoAmount: string,
-      support?: boolean,
+      support?: boolean
     ) => Promise<VoteBNEOResponse>;
     getCandidates: () => Promise<CandidatesResponse>;
   };

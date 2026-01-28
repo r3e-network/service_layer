@@ -38,7 +38,10 @@ export interface WalletBackup {
 /**
  * Create encrypted backup of wallets
  */
-export async function createBackup(wallets: WalletBackup[], _password: string): Promise<BackupData> {
+export async function createBackup(
+  wallets: WalletBackup[],
+  _password: string
+): Promise<BackupData> {
   const timestamp = Date.now();
   const data: Omit<BackupData, "checksum"> = {
     version: 1,
@@ -140,7 +143,7 @@ export function formatBackupDate(timestamp: number, locale = "en"): string {
  */
 export function getBackupTypeLabel(
   type: BackupType,
-  t?: (key: string, options?: Record<string, string | number>) => string,
+  t?: (key: string, options?: Record<string, string | number>) => string
 ): string {
   if (t) {
     return type === "cloud" ? t("backup.type.cloud") : t("backup.type.local");
@@ -153,7 +156,7 @@ export function getBackupTypeLabel(
  */
 export async function restoreWalletFromMnemonic(
   mnemonic: string,
-  password: string,
+  password: string
 ): Promise<{ address: string; publicKey: string }> {
   const words = mnemonic.trim().toLowerCase().split(/\s+/);
   if (words.length !== 12 && words.length !== 24) {
@@ -189,7 +192,16 @@ export async function restoreWalletFromMnemonic(
  */
 function publicKeyToAddress(pubKeyBytes: Uint8Array): string {
   // Build verification script
-  const script = new Uint8Array([0x0c, pubKeyBytes.length, ...pubKeyBytes, 0x41, 0x56, 0xe7, 0xb3, 0x27]);
+  const script = new Uint8Array([
+    0x0c,
+    pubKeyBytes.length,
+    ...pubKeyBytes,
+    0x41,
+    0x56,
+    0xe7,
+    0xb3,
+    0x27,
+  ]);
   const scriptHash = ripemd160(sha256(script));
 
   // Add version byte (0x35 for Neo N3) and compute checksum

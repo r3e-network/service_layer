@@ -14,7 +14,7 @@ const data = miniappsData as RawMiniAppData;
 // Add category to each app
 const addCategory = (
   apps: Omit<MiniAppInfo, "category">[] | undefined,
-  category: MiniAppCategory,
+  category: MiniAppCategory
 ): MiniAppInfo[] =>
   (apps ?? [])
     .map((app) => {
@@ -44,7 +44,7 @@ export const BUILTIN_APPS: MiniAppInfo[] = [
 
 // Lookup map by app_id
 export const BUILTIN_APPS_MAP: Record<string, MiniAppInfo> = Object.fromEntries(
-  BUILTIN_APPS.map((app) => [app.app_id, app]),
+  BUILTIN_APPS.map((app) => [app.app_id, app])
 );
 
 // Additional lookup map by short ID (without "miniapp-" prefix)
@@ -56,7 +56,7 @@ const BUILTIN_APPS_SHORT_MAP: Record<string, MiniAppInfo> = Object.fromEntries(
       if (match) shortId = match[1];
     }
     return [shortId, app];
-  }),
+  })
 );
 
 /**
