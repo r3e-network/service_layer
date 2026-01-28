@@ -1,12 +1,24 @@
-import { View, Text, StyleSheet, TouchableOpacity, Switch } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useWalletStore } from "@/stores/wallet";
+import { useState, useEffect } from "react";
+import { loadThemeMode, saveThemeMode, getThemeModeLabel, getThemeIcon, ThemeMode } from "@/lib/theme";
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { biometricsEnabled, biometricsAvailable, toggleBiometrics, lock, network, switchNetwork } = useWalletStore();
+  const [themeMode, setThemeMode] = useState<ThemeMode>("dark");
+
+  useEffect(() => {
+    loadThemeMode().then(setThemeMode);
+  }, []);
+
+  const handleThemeChange = async (mode: ThemeMode) => {
+    await saveThemeMode(mode);
+    setThemeMode(mode);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -126,6 +138,24 @@ export default function SettingsScreen() {
           </View>
           <Ionicons name="chevron-forward" size={20} color="#666" />
         </TouchableOpacity>
+      </View>
+
+      {/* Theme Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Appearance</Text>
+        {(["dark", "light", "system"] as ThemeMode[]).map((mode) => (
+          <TouchableOpacity
+            key={mode}
+            style={[styles.item, themeMode === mode && styles.itemActive]}
+            onPress={() => handleThemeChange(mode)}
+          >
+            <View style={styles.itemLeft}>
+              <Ionicons name={getThemeIcon(mode) as keyof typeof Ionicons.glyphMap} size={24} color="#00d4aa" />
+              <Text style={styles.itemText}>{getThemeModeLabel(mode)}</Text>
+            </View>
+            {themeMode === mode && <Ionicons name="checkmark-circle" size={24} color="#00d4aa" />}
+          </TouchableOpacity>
+        ))}
       </View>
 
       {/* Language Section */}
