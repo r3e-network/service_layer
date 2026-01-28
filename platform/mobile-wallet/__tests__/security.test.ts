@@ -11,6 +11,11 @@ import {
   addSecurityLog,
   getLockMethodLabel,
   formatLogTime,
+  loadFailedAttempts,
+  recordFailedAttempt,
+  clearFailedAttempts,
+  checkLockout,
+  SecurityEventType,
 } from "../src/lib/security";
 
 jest.mock("expo-secure-store");
@@ -79,6 +84,76 @@ describe("security", () => {
     it("should format timestamp", () => {
       const result = formatLogTime(1704067200000);
       expect(result).toBeDefined();
+    });
+  });
+
+  describe("loadFailedAttempts", () => {
+    it("should return defaults when no data", async () => {
+      mockSecureStore.getItemAsync.mockResolvedValue(null);
+      const attempts = await loadFailedAttempts();
+      expect(attempts.count).toBe(0);
+      expect(attempts.lockoutUntil).toBeNull();
+    });
+
+    it("should return stored attempts", async () => {
+      const stored = { count: 3, lastAttempt: Date.now(), lockoutUntil: null };
+      mockSecureStore.getItemAsync.mockResolvedValue(JSON.stringify(stored));
+      const attempts = await loadFailedAttempts();
+      expect(attempts.count).toBe(3);
+    });
+  });
+
+  describe("recordFailedAttempt", () => {
+    it("should increment count", async () => {
+      mockSecureStore.getItemAsync.mockResolvedValue(null);
+      const result = await recordFailedAttempt();
+      expect(result.attempts.count).toBe(1);
+      expect(result.lockedOut).toBe(false);
+    });
+
+    it("should trigger lockout after max attempts", async () => {
+      const stored = { count: 4, lastAttempt: Date.now(), lockoutUntil: null };
+      // Mock different responses for different keys
+      mockSecureStore.getItemAsync.mockImplementation((key: string) => {
+        if (key === "failed_auth_attempts") {
+          return Promise.resolve(JSON.stringify(stored));
+        }
+        return Promise.resolve("[]"); // Return empty array for security logs
+      });
+      const result = await recordFailedAttempt();
+      expect(result.lockedOut).toBe(true);
+    });
+  });
+
+  describe("clearFailedAttempts", () => {
+    it("should reset attempts", async () => {
+      await clearFailedAttempts();
+      expect(mockSecureStore.setItemAsync).toHaveBeenCalled();
+    });
+  });
+
+  describe("checkLockout", () => {
+    it("should return not locked when no lockout", async () => {
+      mockSecureStore.getItemAsync.mockResolvedValue(null);
+      const result = await checkLockout();
+      expect(result.isLocked).toBe(false);
+    });
+
+    it("should return locked when lockout active", async () => {
+      const future = Date.now() + 300000;
+      const stored = { count: 5, lastAttempt: Date.now(), lockoutUntil: future };
+      mockSecureStore.getItemAsync.mockResolvedValue(JSON.stringify(stored));
+      const result = await checkLockout();
+      expect(result.isLocked).toBe(true);
+      expect(result.remainingSeconds).toBeGreaterThan(0);
+    });
+  });
+
+  describe("SecurityEventType", () => {
+    it("should have correct event types", () => {
+      expect(SecurityEventType.AUTH_SUCCESS).toBe("auth_success");
+      expect(SecurityEventType.AUTH_FAILURE).toBe("auth_failure");
+      expect(SecurityEventType.LOCKOUT_TRIGGERED).toBe("lockout_triggered");
     });
   });
 });
