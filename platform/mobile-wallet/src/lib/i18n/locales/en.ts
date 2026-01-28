@@ -57,6 +57,10 @@ export default {
     message_to_sign: "Message to Sign",
     sign_warning: "Only sign messages from apps you trust. This proves your identity.",
     sign: "Sign",
+    confirm_transaction: "Confirm Transaction",
+    invalid_amount: "Please enter a valid amount",
+    insufficient_balance: "Insufficient balance",
+    neo_whole_number: "NEO must be sent as whole numbers",
   },
   transactions: {
     detailsTitle: "Transaction Details",

@@ -57,6 +57,10 @@ export default {
     message_to_sign: "서명할 메시지",
     sign_warning: "신뢰하는 앱의 메시지만 서명하세요. 이는 신원 확인에 사용됩니다.",
     sign: "서명",
+    confirm_transaction: "거래 확인",
+    invalid_amount: "유효한 금액을 입력하세요",
+    insufficient_balance: "잔액 부족",
+    neo_whole_number: "NEO는 정수로 전송해야 합니다",
   },
   transactions: {
     detailsTitle: "거래 상세",

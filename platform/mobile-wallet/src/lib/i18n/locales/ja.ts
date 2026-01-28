@@ -58,6 +58,10 @@ export default {
     sign_warning:
       "信頼できるアプリのメッセージのみ署名してください。これはあなたの本人確認に使用されます。",
     sign: "署名",
+    confirm_transaction: "取引を確認",
+    invalid_amount: "有効な金額を入力してください",
+    insufficient_balance: "残高不足",
+    neo_whole_number: "NEOは整数で送信する必要があります",
   },
   transactions: {
     detailsTitle: "取引詳細",

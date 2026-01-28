@@ -57,6 +57,10 @@ export default {
     message_to_sign: "待签名消息",
     sign_warning: "仅签署您信任的应用消息。这用于证明您的身份。",
     sign: "签名",
+    confirm_transaction: "确认交易",
+    invalid_amount: "请输入有效金额",
+    insufficient_balance: "余额不足",
+    neo_whole_number: "NEO 必须以整数发送",
   },
   transactions: {
     detailsTitle: "交易详情",
