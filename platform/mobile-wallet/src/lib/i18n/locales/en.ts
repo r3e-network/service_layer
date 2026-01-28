@@ -11,6 +11,7 @@ export default {
     ok: "OK",
     reject: "Reject",
     approve: "Approve",
+    minutes: "min",
   },
   wallet: {
     title: "Neo Wallet",
@@ -136,11 +137,15 @@ export default {
     logsTitle: "Security Logs",
     logsEmpty: "No security logs",
     lockMethod: {
+      title: "Lock Method",
       pin: "PIN Code",
       biometric: "Biometric",
       both: "PIN + Biometric",
       none: "None",
     },
+    autoLock: "Auto-Lock",
+    hideBalance: "Hide Balance",
+    confirmTransactions: "Confirm Transactions",
   },
   signing: {
     title: "Signing History",

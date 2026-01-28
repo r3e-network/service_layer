@@ -11,6 +11,7 @@ export default {
     ok: "确定",
     reject: "拒绝",
     approve: "批准",
+    minutes: "分钟",
   },
   wallet: {
     title: "Neo 钱包",
@@ -136,11 +137,15 @@ export default {
     logsTitle: "安全日志",
     logsEmpty: "暂无安全日志",
     lockMethod: {
+      title: "锁定方式",
       pin: "PIN 码",
       biometric: "生物识别",
       both: "PIN + 生物识别",
       none: "无",
     },
+    autoLock: "自动锁定",
+    hideBalance: "隐藏余额",
+    confirmTransactions: "确认交易",
   },
   signing: {
     title: "签名历史",

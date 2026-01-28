@@ -11,6 +11,7 @@ export default {
     ok: "OK",
     reject: "拒否",
     approve: "承認",
+    minutes: "分",
   },
   wallet: {
     title: "Neo ウォレット",
@@ -137,11 +138,15 @@ export default {
     logsTitle: "セキュリティログ",
     logsEmpty: "セキュリティログがありません",
     lockMethod: {
+      title: "ロック方法",
       pin: "PINコード",
       biometric: "生体認証",
       both: "PIN + 生体認証",
       none: "なし",
     },
+    autoLock: "自動ロック",
+    hideBalance: "残高を非表示",
+    confirmTransactions: "取引を確認",
   },
   signing: {
     title: "署名履歴",

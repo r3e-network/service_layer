@@ -3,10 +3,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, useRouter } from "expo-router";
 import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { loadSecuritySettings, saveSecuritySettings, SecuritySettings } from "@/lib/security";
+import { loadSecuritySettings, saveSecuritySettings, SecuritySettings, getLockMethodLabel } from "@/lib/security";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function SecuritySettingsScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [settings, setSettings] = useState<SecuritySettings | null>(null);
 
   useEffect(() => {
@@ -24,33 +26,33 @@ export default function SecuritySettingsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: "Security" }} />
+      <Stack.Screen options={{ title: t("settings.security") }} />
       <ScrollView>
         <SettingRow
           icon="lock-closed"
-          label="Lock Method"
-          value={settings.lockMethod}
+          label={t("security.lockMethod.title")}
+          value={getLockMethodLabel(settings.lockMethod, t)}
           onPress={() => router.push("/security/lock-method" as never)}
         />
         <SettingRow
           icon="time"
-          label="Auto-Lock"
-          value={`${settings.autoLockTimeout} min`}
+          label={t("security.autoLock")}
+          value={`${settings.autoLockTimeout} ${t("common.minutes")}`}
           onPress={() => router.push("/security/auto-lock" as never)}
         />
         <ToggleRow
           icon="eye-off"
-          label="Hide Balance"
+          label={t("security.hideBalance")}
           value={settings.hideBalance}
           onToggle={(v) => updateSetting("hideBalance", v)}
         />
         <ToggleRow
           icon="checkmark-circle"
-          label="Confirm Transactions"
+          label={t("security.confirmTransactions")}
           value={settings.transactionConfirm}
           onToggle={(v) => updateSetting("transactionConfirm", v)}
         />
-        <SettingRow icon="list" label="Security Logs" onPress={() => router.push("/security/logs")} />
+        <SettingRow icon="list" label={t("security.logsTitle")} onPress={() => router.push("/security/logs")} />
       </ScrollView>
     </SafeAreaView>
   );

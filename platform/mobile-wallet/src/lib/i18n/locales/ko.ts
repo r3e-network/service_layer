@@ -11,6 +11,7 @@ export default {
     ok: "확인",
     reject: "거절",
     approve: "승인",
+    minutes: "분",
   },
   wallet: {
     title: "Neo 지갑",
@@ -136,11 +137,15 @@ export default {
     logsTitle: "보안 로그",
     logsEmpty: "보안 로그가 없습니다",
     lockMethod: {
+      title: "잠금 방법",
       pin: "PIN 코드",
       biometric: "생체 인증",
       both: "PIN + 생체 인증",
       none: "없음",
     },
+    autoLock: "자동 잠금",
+    hideBalance: "잔액 숨기기",
+    confirmTransactions: "거래 확인",
   },
   signing: {
     title: "서명 기록",
