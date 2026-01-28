@@ -73,16 +73,70 @@ function getCurrentRpcUrl(): string {
   return NEO_RPC_ENDPOINTS[currentNetwork];
 }
 
+/** RPC request timeout in milliseconds */
+const RPC_TIMEOUT_MS = 30000;
+/** Maximum retry attempts for failed requests */
+const MAX_RETRIES = 3;
+/** Delay between retries in milliseconds */
+const RETRY_DELAY_MS = 1000;
+
+/**
+ * Fetch with timeout support
+ */
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeoutMs: number
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+/**
+ * Sleep for specified milliseconds
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function rpcCall<T>(method: string, params: unknown[]): Promise<T> {
   const rpcUrl = getCurrentRpcUrl();
-  const response = await fetch(rpcUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-  });
-  const data: RpcResponse<T> = await response.json();
-  if (data.error) throw new Error(data.error.message);
-  return data.result as T;
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    try {
+      const response = await fetchWithTimeout(
+        rpcUrl,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+        },
+        RPC_TIMEOUT_MS
+      );
+      const data: RpcResponse<T> = await response.json();
+      if (data.error) throw new Error(data.error.message);
+      return data.result as T;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      // Don't retry on RPC errors (only network errors)
+      if (lastError.message && !lastError.name?.includes("Abort")) {
+        if (attempt < MAX_RETRIES - 1) {
+          await sleep(RETRY_DELAY_MS * (attempt + 1));
+          continue;
+        }
+      }
+      throw lastError;
+    }
+  }
+
+  throw lastError || new Error("RPC call failed");
 }
 
 export async function getNeoBalance(address: string): Promise<Balance> {
