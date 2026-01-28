@@ -99,8 +99,8 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   unlock: async () => {
     const { biometricsEnabled } = get();
     if (biometricsEnabled) {
-      const success = await authenticate("Unlock your wallet");
-      if (!success) return;
+      const result = await authenticate("Unlock your wallet");
+      if (!result.success) return;
     }
     const wallet = await loadWallet();
     if (wallet) {
@@ -180,7 +180,8 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   requireAuthForTransaction: async () => {
     const { biometricsEnabled } = get();
     if (!biometricsEnabled) return true;
-    return authenticate("Confirm transaction");
+    const result = await authenticate("Confirm transaction");
+    return result.success;
   },
 
   switchNetwork: async (network: Network) => {

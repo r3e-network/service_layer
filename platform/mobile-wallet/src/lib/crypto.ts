@@ -1,6 +1,19 @@
 /**
  * Cryptographic Utilities
  * Secure encryption/decryption using AES-GCM with PBKDF2 key derivation
+ *
+ * @module crypto
+ * @security This module uses a simplified XOR-based encryption as a placeholder.
+ * For production deployment, replace with react-native-aes-crypto or
+ * expo-crypto's native AES implementation when available.
+ *
+ * @example
+ * ```typescript
+ * import { encrypt, decrypt, validatePassword } from '@/lib/crypto';
+ *
+ * const encrypted = await encrypt('sensitive data', 'StrongP@ss1');
+ * const decrypted = await decrypt(encrypted, 'StrongP@ss1');
+ * ```
  */
 
 import * as Crypto from "expo-crypto";
@@ -11,6 +24,17 @@ const PBKDF2_ITERATIONS = 100000;
 const SALT_LENGTH = 16;
 const IV_LENGTH = 12;
 const KEY_LENGTH = 32; // 256 bits
+
+/**
+ * Minimum password requirements for wallet encryption
+ */
+export const PASSWORD_REQUIREMENTS = {
+  minLength: 8,
+  requireUppercase: true,
+  requireLowercase: true,
+  requireNumber: true,
+  requireSpecial: false, // Optional but recommended
+} as const;
 
 /**
  * Derive encryption key from password using PBKDF2
@@ -44,7 +68,10 @@ async function getRandomBytes(length: number): Promise<Uint8Array> {
 
 /**
  * XOR-based encryption (simplified AES substitute for React Native)
- * In production, use react-native-aes-crypto or similar
+ *
+ * @warning SECURITY: This is a placeholder implementation.
+ * For production, use react-native-aes-crypto or similar native AES library.
+ * XOR encryption alone is NOT cryptographically secure.
  */
 function xorEncrypt(data: Uint8Array, key: Uint8Array): Uint8Array {
   const result = new Uint8Array(data.length);
