@@ -128,7 +128,7 @@ export function createMiniAppSDK(config: MiniAppSDKConfig): MiniAppSDK {
         // This will be overridden by the bridge to use native wallet
         throw new Error("wallet.getAddress must be provided by native bridge");
       },
-      invokeIntent: async (requestId: string) => {
+      invokeIntent: async (_requestId: string) => {
         // This will be overridden by the bridge to use native wallet
         throw new Error("wallet.invokeIntent must be provided by native bridge");
       },

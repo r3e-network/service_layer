@@ -4,7 +4,7 @@
  */
 
 import * as SecureStore from "expo-secure-store";
-import { loadPositions, savePosition, calcTotalDeFiValue, getProtocolIcon } from "../src/lib/defi";
+import { loadPositions, savePosition, calcTotalDeFiValue, getProtocolIcon, DeFiPosition } from "../src/lib/defi";
 
 jest.mock("expo-secure-store");
 
@@ -41,7 +41,7 @@ describe("defi", () => {
 
   describe("calcTotalDeFiValue", () => {
     it("should sum values", () => {
-      const positions = [{ value: 100 }, { value: 200 }] as any;
+      const positions = [{ value: 100 }, { value: 200 }] as unknown as DeFiPosition[];
       expect(calcTotalDeFiValue(positions)).toBe(300);
     });
   });

@@ -5,7 +5,6 @@
 
 import * as SecureStore from "expo-secure-store";
 import { p256 } from "@noble/curves/nist";
-import { sha256 } from "@noble/hashes/sha2";
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 
 // Neo N3 native contract addresses

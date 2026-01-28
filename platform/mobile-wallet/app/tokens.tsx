@@ -3,7 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, useRouter } from "expo-router";
 import { useState, useEffect, useMemo } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { loadTokens, removeToken, Token } from "@/lib/tokens";
+import { loadTokens, Token } from "@/lib/tokens";
 import { useWalletStore } from "@/stores/wallet";
 import { useTranslation } from "@/hooks/useTranslation";
 

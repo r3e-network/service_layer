@@ -11,6 +11,7 @@ import {
   calc24hChange,
   formatCurrency,
   formatPercent,
+  PortfolioAsset,
 } from "../src/lib/portfolio";
 
 jest.mock("expo-secure-store");
@@ -40,7 +41,7 @@ describe("portfolio", () => {
 
   describe("calcTotalValue", () => {
     it("should sum asset values", () => {
-      const assets = [{ value: 100 }, { value: 200 }] as any;
+      const assets = [{ value: 100 }, { value: 200 }] as unknown as PortfolioAsset[];
       expect(calcTotalValue(assets)).toBe(300);
     });
   });
@@ -50,7 +51,7 @@ describe("portfolio", () => {
       const assets = [
         { value: 100, change24h: 10 },
         { value: 100, change24h: -10 },
-      ] as any;
+      ] as unknown as PortfolioAsset[];
       expect(calc24hChange(assets)).toBe(0);
     });
 

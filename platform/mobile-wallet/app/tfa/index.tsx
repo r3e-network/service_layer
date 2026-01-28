@@ -47,7 +47,7 @@ export default function TFAScreen() {
           style={[styles.method, config.method === m && styles.selected]}
           onPress={() => selectMethod(m)}
         >
-          <Ionicons name={getTFAMethodIcon(m) as any} size={24} color={config.method === m ? "#00d4aa" : "#888"} />
+          <Ionicons name={getTFAMethodIcon(m) as keyof typeof Ionicons.glyphMap} size={24} color={config.method === m ? "#00d4aa" : "#888"} />
           <Text style={styles.methodLabel}>{getTFAMethodLabel(m)}</Text>
         </TouchableOpacity>
       ))}

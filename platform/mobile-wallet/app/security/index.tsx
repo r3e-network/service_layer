@@ -3,7 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, useRouter } from "expo-router";
 import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { loadSecuritySettings, saveSecuritySettings, SecuritySettings, LockMethod } from "@/lib/security";
+import { loadSecuritySettings, saveSecuritySettings, SecuritySettings } from "@/lib/security";
 
 export default function SecuritySettingsScreen() {
   const router = useRouter();
@@ -30,13 +30,13 @@ export default function SecuritySettingsScreen() {
           icon="lock-closed"
           label="Lock Method"
           value={settings.lockMethod}
-          onPress={() => router.push("/security/lock-method" as any)}
+          onPress={() => router.push("/security/lock-method" as never)}
         />
         <SettingRow
           icon="time"
           label="Auto-Lock"
           value={`${settings.autoLockTimeout} min`}
-          onPress={() => router.push("/security/auto-lock" as any)}
+          onPress={() => router.push("/security/auto-lock" as never)}
         />
         <ToggleRow
           icon="eye-off"
@@ -69,7 +69,7 @@ function SettingRow({
 }) {
   return (
     <TouchableOpacity style={styles.row} onPress={onPress}>
-      <Ionicons name={icon as any} size={22} color="#00d4aa" />
+      <Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={22} color="#00d4aa" />
       <Text style={styles.label}>{label}</Text>
       {value && <Text style={styles.value}>{value}</Text>}
       <Ionicons name="chevron-forward" size={18} color="#666" />
@@ -90,7 +90,7 @@ function ToggleRow({
 }) {
   return (
     <View style={styles.row}>
-      <Ionicons name={icon as any} size={22} color="#00d4aa" />
+      <Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={22} color="#00d4aa" />
       <Text style={styles.label}>{label}</Text>
       <Switch value={value} onValueChange={onToggle} trackColor={{ true: "#00d4aa" }} />
     </View>

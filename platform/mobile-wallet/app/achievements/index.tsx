@@ -28,7 +28,7 @@ export default function GamificationScreen() {
 
   const renderAchievement = ({ item }: { item: Achievement }) => (
     <View style={[styles.achievement, !item.unlocked && styles.locked]}>
-      <Ionicons name={getAchievementIcon(item.type) as any} size={24} color={item.unlocked ? "#00d4aa" : "#444"} />
+      <Ionicons name={getAchievementIcon(item.type) as keyof typeof Ionicons.glyphMap} size={24} color={item.unlocked ? "#00d4aa" : "#444"} />
       <View style={styles.info}>
         <Text style={styles.name}>{item.name}</Text>
         <Text style={styles.desc}>{item.description}</Text>

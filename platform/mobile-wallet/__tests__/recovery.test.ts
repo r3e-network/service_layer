@@ -14,6 +14,7 @@ import {
   generateGuardianId,
   getRecoveryStatus,
   formatThreshold,
+  Guardian,
 } from "../src/lib/recovery";
 
 jest.mock("expo-secure-store");
@@ -104,7 +105,7 @@ describe("recovery", () => {
 
     it("should return Incomplete when below threshold", () => {
       const config = { enabled: true, threshold: 2, totalGuardians: 3, lastUpdated: 0 };
-      const guardians = [{ id: "g1", confirmed: true }] as any;
+      const guardians = [{ id: "g1", confirmed: true }] as unknown as Guardian[];
       expect(getRecoveryStatus(config, guardians)).toBe("Incomplete");
     });
 
@@ -113,7 +114,7 @@ describe("recovery", () => {
       const guardians = [
         { id: "g1", confirmed: true },
         { id: "g2", confirmed: true },
-      ] as any;
+      ] as unknown as Guardian[];
       expect(getRecoveryStatus(config, guardians)).toBe("Active");
     });
   });

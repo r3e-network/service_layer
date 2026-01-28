@@ -29,7 +29,7 @@ interface WCState {
   clearError: () => void;
 }
 
-export const useWCStore = create<WCState>((set, get) => ({
+export const useWCStore = create<WCState>((set, _get) => ({
   sessions: [],
   pendingRequest: null,
   pendingMeta: null,
@@ -48,7 +48,7 @@ export const useWCStore = create<WCState>((set, get) => ({
       await saveSession(session);
       const sessions = await loadSessions();
       set({ sessions, isConnecting: false });
-    } catch (e) {
+    } catch {
       set({ error: "Failed to connect", isConnecting: false });
     }
   },

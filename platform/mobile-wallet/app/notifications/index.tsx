@@ -26,7 +26,7 @@ export default function NotificationsScreen() {
 
   const renderItem = ({ item }: { item: Notification }) => (
     <TouchableOpacity style={[styles.item, !item.read && styles.unread]} onPress={() => handlePress(item)}>
-      <Ionicons name={getNotifIcon(item.type) as any} size={24} color="#00d4aa" />
+      <Ionicons name={getNotifIcon(item.type) as keyof typeof Ionicons.glyphMap} size={24} color="#00d4aa" />
       <View style={styles.content}>
         <Text style={styles.title}>{item.title}</Text>
         <Text style={styles.body}>{item.body}</Text>

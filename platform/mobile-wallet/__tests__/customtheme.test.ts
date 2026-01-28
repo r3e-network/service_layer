@@ -62,8 +62,8 @@ describe("customtheme", () => {
   describe("generateThemeId", () => {
     it("should generate unique IDs", () => {
       const id1 = generateThemeId();
-      const id2 = generateThemeId();
       expect(id1).toMatch(/^theme_/);
+      expect(generateThemeId()).toMatch(/^theme_/);
     });
   });
 });

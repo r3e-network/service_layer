@@ -34,7 +34,7 @@ export default function GasEstimationScreen() {
                 style={[styles.typeBtn, selectedType === t.type && styles.typeBtnActive]}
                 onPress={() => setSelectedType(t.type)}
               >
-                <Ionicons name={t.icon as any} size={20} color={selectedType === t.type ? "#00d4aa" : "#888"} />
+                <Ionicons name={t.icon as keyof typeof Ionicons.glyphMap} size={20} color={selectedType === t.type ? "#00d4aa" : "#888"} />
                 <Text style={[styles.typeText, selectedType === t.type && styles.typeTextActive]}>{t.label}</Text>
               </TouchableOpacity>
             ))}
@@ -96,7 +96,7 @@ function TierCard({
 
   return (
     <TouchableOpacity style={[styles.tierCard, selected && styles.tierCardActive]} onPress={onSelect}>
-      <Ionicons name={tierIcons[estimate.tier] as any} size={24} color={selected ? "#00d4aa" : "#666"} />
+      <Ionicons name={tierIcons[estimate.tier] as keyof typeof Ionicons.glyphMap} size={24} color={selected ? "#00d4aa" : "#666"} />
       <View style={styles.tierInfo}>
         <Text style={[styles.tierName, selected && styles.tierNameActive]}>
           {estimate.tier.charAt(0).toUpperCase() + estimate.tier.slice(1)}

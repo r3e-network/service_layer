@@ -23,7 +23,6 @@ export interface RewardRecord {
 
 // GAS generation rate: ~1.4 GAS per NEO per year
 const GAS_PER_NEO_PER_YEAR = 1.4;
-const SECONDS_PER_YEAR = 365 * 24 * 60 * 60;
 
 /**
  * Calculate estimated GAS rewards
@@ -101,7 +100,7 @@ export async function getUnclaimedGas(address: string): Promise<number> {
 /**
  * Claim GAS rewards
  */
-export async function claimGas(address: string): Promise<string> {
+export async function claimGas(_address: string): Promise<string> {
   const privateKey = await SecureStore.getItemAsync("neo_private_key");
   if (!privateKey) throw new Error("No private key found");
 

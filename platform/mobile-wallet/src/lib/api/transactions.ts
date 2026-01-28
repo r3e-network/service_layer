@@ -42,14 +42,14 @@ export async function fetchTransactions(address: string, page = 1, limit = 20): 
   }
 }
 
-function mapTransactions(items: any[], userAddress: string): Transaction[] {
+function mapTransactions(items: Array<Record<string, unknown>>, userAddress: string): Transaction[] {
   return items.map((item) => ({
-    hash: item.txid || item.hash,
-    time: item.time * 1000,
-    block: item.block,
-    from: item.from,
-    to: item.to,
-    amount: formatAmount(item.amount, item.symbol),
+    hash: String(item.txid || item.hash),
+    time: Number(item.time) * 1000,
+    block: Number(item.block),
+    from: String(item.from),
+    to: String(item.to),
+    amount: formatAmount(String(item.amount), String(item.symbol)),
     asset: item.symbol === "NEO" ? "NEO" : "GAS",
     type: item.to === userAddress ? "receive" : "send",
     status: "confirmed",

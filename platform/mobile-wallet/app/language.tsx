@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, useRouter } from "expo-router";
-import { useState, useEffect } from "react";
+import React from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { LOCALES, Locale } from "@/lib/i18n";
 import { useWalletStore } from "@/stores/wallet";

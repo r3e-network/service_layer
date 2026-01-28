@@ -34,8 +34,8 @@ export default function HardwareScreen() {
   };
 
   const renderDevice = ({ item }: { item: HardwareDevice }) => (
-    <TouchableOpacity style={styles.device} onPress={() => router.push(`/hardware/${item.id}` as any)}>
-      <Ionicons name={getDeviceIcon(item.type) as any} size={28} color="#00d4aa" />
+    <TouchableOpacity style={styles.device} onPress={() => router.push(`/hardware/${item.id}` as never)}>
+      <Ionicons name={getDeviceIcon(item.type) as keyof typeof Ionicons.glyphMap} size={28} color="#00d4aa" />
       <View style={styles.deviceInfo}>
         <Text style={styles.deviceName}>{item.name}</Text>
         <Text style={styles.deviceMeta}>
@@ -50,7 +50,7 @@ export default function HardwareScreen() {
     <SafeAreaView style={styles.container}>
       <Stack.Screen options={{ title: "Hardware Wallets" }} />
 
-      <TouchableOpacity style={styles.addBtn} onPress={() => router.push("/hardware/pair" as any)}>
+      <TouchableOpacity style={styles.addBtn} onPress={() => router.push("/hardware/pair" as never)}>
         <Ionicons name="add-circle" size={24} color="#00d4aa" />
         <Text style={styles.addText}>Pair New Device</Text>
       </TouchableOpacity>

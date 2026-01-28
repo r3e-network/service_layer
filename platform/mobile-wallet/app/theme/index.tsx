@@ -32,7 +32,7 @@ export default function ThemeScreen() {
             style={[styles.item, mode === m && styles.selected]}
             onPress={() => handleSelect(m)}
           >
-            <Ionicons name={getThemeIcon(m) as any} size={24} color={mode === m ? "#00d4aa" : "#888"} />
+            <Ionicons name={getThemeIcon(m) as keyof typeof Ionicons.glyphMap} size={24} color={mode === m ? "#00d4aa" : "#888"} />
             <Text style={[styles.label, mode === m && styles.selectedLabel]}>{getThemeModeLabel(m)}</Text>
             {mode === m && <Ionicons name="checkmark" size={20} color="#00d4aa" />}
           </TouchableOpacity>

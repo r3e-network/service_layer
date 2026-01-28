@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack } from "expo-router";
 import { useState, useCallback } from "react";
@@ -23,7 +23,7 @@ export default function LabelsScreen() {
       <View style={styles.item}>
         {cat && (
           <View style={[styles.catBadge, { backgroundColor: cat.color }]}>
-            <Ionicons name={cat.icon as any} size={14} color="#fff" />
+            <Ionicons name={cat.icon as keyof typeof Ionicons.glyphMap} size={14} color="#fff" />
           </View>
         )}
         <View style={styles.info}>

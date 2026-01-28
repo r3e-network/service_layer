@@ -22,7 +22,7 @@ export default function WidgetsScreen() {
 
   const renderWidget = ({ item }: { item: WidgetConfig }) => (
     <View style={styles.item}>
-      <Ionicons name={getWidgetIcon(item.type) as any} size={24} color="#00d4aa" />
+      <Ionicons name={getWidgetIcon(item.type) as keyof typeof Ionicons.glyphMap} size={24} color="#00d4aa" />
       <View style={styles.info}>
         <Text style={styles.name}>{getWidgetTypeLabel(item.type)}</Text>
         <Text style={styles.size}>{item.size}</Text>

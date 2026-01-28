@@ -83,7 +83,7 @@ function getCategoryColor(category: string): string {
   }
 }
 
-function getCategoryIcon(category: string): any {
+function getCategoryIcon(category: string): keyof typeof Ionicons.glyphMap {
   switch (category) {
     case 'gaming': return 'game-controller';
     case 'defi': return 'trending-up';

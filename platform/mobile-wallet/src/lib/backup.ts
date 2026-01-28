@@ -9,10 +9,7 @@ import { p256 } from "@noble/curves/nist";
 import { sha256 } from "@noble/hashes/sha2";
 import { ripemd160 } from "@noble/hashes/legacy";
 import { bytesToHex } from "@noble/hashes/utils";
-import { Buffer } from "buffer";
 import { encrypt, decrypt, validatePassword } from "./crypto";
-
-const BACKUP_KEY = "wallet_backup";
 const BACKUP_META_KEY = "backup_metadata";
 
 export type BackupType = "cloud" | "local";
@@ -41,7 +38,7 @@ export interface WalletBackup {
 /**
  * Create encrypted backup of wallets
  */
-export async function createBackup(wallets: WalletBackup[], password: string): Promise<BackupData> {
+export async function createBackup(wallets: WalletBackup[], _password: string): Promise<BackupData> {
   const timestamp = Date.now();
   const data: Omit<BackupData, "checksum"> = {
     version: 1,

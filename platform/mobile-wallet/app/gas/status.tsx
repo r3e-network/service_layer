@@ -56,7 +56,7 @@ export default function NetworkStatusScreen() {
 function StatCard({ icon, label, value }: { icon: string; label: string; value: string }) {
   return (
     <View style={styles.statCard}>
-      <Ionicons name={icon as any} size={24} color="#00d4aa" />
+      <Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={24} color="#00d4aa" />
       <Text style={styles.statLabel}>{label}</Text>
       <Text style={styles.statValue}>{value}</Text>
     </View>

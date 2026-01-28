@@ -129,7 +129,7 @@ function DetailRow({
   return (
     <View style={styles.detailRow}>
       <View style={styles.detailLeft}>
-        <Ionicons name={icon as any} size={18} color={iconColor} />
+        <Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={18} color={iconColor} />
         <Text style={styles.detailLabel}>{label}</Text>
       </View>
       <Text style={styles.detailValue}>{value}</Text>

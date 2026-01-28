@@ -31,8 +31,8 @@ export default function MultisigScreen() {
       setShowCreate(false);
       setName("");
       setKeys("");
-    } catch (e: any) {
-      Alert.alert("Error", e.message);
+    } catch (e: unknown) {
+      Alert.alert("Error", e instanceof Error ? e.message : "Unknown error");
     }
   };
 

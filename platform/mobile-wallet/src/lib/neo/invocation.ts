@@ -19,10 +19,11 @@ const parseFixed8 = (value: string) => {
   return BigInt(normalized || "0").toString();
 };
 
-const normalizeParamJson = (param: any, senderAddress: string): any => {
+const normalizeParamJson = (param: unknown, senderAddress: string): unknown => {
   if (!param || typeof param !== "object" || !("type" in param)) return param;
-  const type = String(param.type ?? "");
-  let value = param.value;
+  const p = param as Record<string, unknown>;
+  const type = String(p.type ?? "");
+  let value = p.value;
 
   if (type === "Hash160" && value === "SENDER") {
     value = senderAddress;
@@ -45,7 +46,7 @@ const normalizeParamJson = (param: any, senderAddress: string): any => {
 const toContractParam = (param: unknown, senderAddress: string): sc.ContractParam => {
   if (param instanceof sc.ContractParam) return param;
   if (param && typeof param === "object" && "type" in param) {
-    return sc.ContractParam.fromJson(normalizeParamJson(param, senderAddress));
+    return sc.ContractParam.fromJson(normalizeParamJson(param, senderAddress) as sc.ContractParamLike);
   }
   if (typeof param === "number") return sc.ContractParam.integer(param);
   if (typeof param === "boolean") return sc.ContractParam.boolean(param);
@@ -176,19 +177,19 @@ export async function invokeIntentInvocation(intent: InvocationIntent): Promise<
   });
 }
 
-const extractReceiptIdFromLog = (log: any): string | null => {
-  const execution = log?.executions?.[0];
-  const notifications = execution?.notifications || [];
+const extractReceiptIdFromLog = (log: Record<string, unknown>): string | null => {
+  const execution = (log?.executions as Array<Record<string, unknown>>)?.[0];
+  const notifications = (execution?.notifications || []) as Array<Record<string, unknown>>;
   for (const notification of notifications) {
     const eventName = notification?.eventname || notification?.eventName || notification?.name;
     if (eventName !== "PaymentReceived") continue;
-    const state = notification?.state;
-    const values = Array.isArray(state?.value)
-      ? state.value
-      : Array.isArray(state)
-        ? state
+    const state = notification?.state as Record<string, unknown> | unknown[];
+    const values = Array.isArray(state) 
+      ? state 
+      : (state && typeof state === "object" && "value" in state && Array.isArray(state.value))
+        ? state.value as unknown[]
         : [];
-    const first = values[0];
+    const first = values[0] as Record<string, unknown> | undefined;
     if (first?.type === "Integer" && first?.value !== undefined) {
       return String(first.value);
     }
@@ -210,7 +211,7 @@ export async function waitForReceipt(
   for (let i = 0; i < attempts; i += 1) {
     try {
       const log = await client.getApplicationLog(txid);
-      const receiptId = extractReceiptIdFromLog(log);
+      const receiptId = extractReceiptIdFromLog(log as unknown as Record<string, unknown>);
       if (receiptId) return receiptId;
     } catch (err) {
       if (i === attempts - 1) throw err;

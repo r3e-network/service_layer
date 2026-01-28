@@ -107,7 +107,7 @@ function MethodCard({
       onPress={onPress}
       disabled={!onPress && !active}
     >
-      <Ionicons name={icon as any} size={24} color={active ? "#00d4aa" : "#666"} />
+      <Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={24} color={active ? "#00d4aa" : "#666"} />
       <Text style={[styles.methodLabel, active && styles.methodLabelActive]}>{label}</Text>
     </TouchableOpacity>
   );

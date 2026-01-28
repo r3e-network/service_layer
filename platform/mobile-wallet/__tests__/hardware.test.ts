@@ -15,6 +15,7 @@ import {
   getConnectionLabel,
   getDeviceIcon,
   formatLastUsed,
+  HardwareDevice,
 } from "../src/lib/hardware";
 
 jest.mock("expo-secure-store");
@@ -61,7 +62,7 @@ describe("hardware", () => {
     it("should update existing device", async () => {
       const existing = [{ id: "hw1", name: "Old", type: "ledger" }];
       mockSecureStore.getItemAsync.mockResolvedValue(JSON.stringify(existing));
-      await saveDevice({ ...existing[0], name: "New" } as any);
+      await saveDevice({ ...existing[0], name: "New" } as HardwareDevice);
       expect(mockSecureStore.setItemAsync).toHaveBeenCalled();
     });
   });
