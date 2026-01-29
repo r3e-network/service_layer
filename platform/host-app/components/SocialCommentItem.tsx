@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, memo } from "react";
 import { useTranslation } from "@/lib/i18n/react";
 import type { SocialComment, VoteType } from "./types";
 
@@ -10,7 +10,7 @@ interface CommentItemProps {
   depth?: number;
 }
 
-const CommentItem: React.FC<CommentItemProps> = ({ comment, onVote, onReply, onLoadReplies, depth = 0 }) => {
+const CommentItem: React.FC<CommentItemProps> = memo(({ comment, onVote, onReply, onLoadReplies, depth = 0 }) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [replyContent, setReplyContent] = useState("");
   const [replies, setReplies] = useState<SocialComment[]>([]);
@@ -18,21 +18,21 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, onVote, onReply, onL
   const { t, locale } = useTranslation("host");
   const { t: tCommon } = useTranslation("common");
 
-  const handleLoadReplies = async () => {
+  const handleLoadReplies = useCallback(async () => {
     if (!onLoadReplies || loadingReplies) return;
     setLoadingReplies(true);
     const data = await onLoadReplies(comment.id);
     setReplies(data);
     setLoadingReplies(false);
-  };
+  }, [onLoadReplies, loadingReplies, comment.id]);
 
-  const handleSubmitReply = async () => {
+  const handleSubmitReply = useCallback(async () => {
     if (!replyContent.trim()) return;
     await onReply(comment.id, replyContent);
     setReplyContent("");
     setShowReplyForm(false);
     if (onLoadReplies) handleLoadReplies();
-  };
+  }, [replyContent, onReply, comment.id, onLoadReplies, handleLoadReplies]);
 
   const maxDepth = 3;
 
@@ -137,6 +137,6 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, onVote, onReply, onL
       </div>
     </div>
   );
-};
+});
 
 export default CommentItem;

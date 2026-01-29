@@ -1,11 +1,11 @@
-import React from "react";
+import React, { memo } from "react";
 import { MiniAppNotification } from "./types";
 
 type Props = {
   notification: MiniAppNotification;
 };
 
-export function NotificationCard({ notification }: Props) {
+export const NotificationCard = memo(function NotificationCard({ notification }: Props) {
   const type = formatType(notification.notification_type);
   const timeAgo = getTimeAgo(notification.created_at);
 
@@ -23,7 +23,7 @@ export function NotificationCard({ notification }: Props) {
       </p>
     </div>
   );
-}
+});
 
 function formatType(raw: string): { label: string; icon: string } {
   const label = String(raw ?? "").trim() || "News";
