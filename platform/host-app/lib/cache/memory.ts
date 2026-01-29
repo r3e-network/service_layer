@@ -11,9 +11,27 @@ interface CacheEntry<T> {
 class MemoryCache {
   private cache = new Map<string, CacheEntry<unknown>>();
   private maxSize: number;
+  private cleanupInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(maxSize = 1000) {
     this.maxSize = maxSize;
+    // Cleanup expired entries every 60 seconds
+    this.startCleanup();
+  }
+
+  private startCleanup(): void {
+    if (typeof setInterval !== "undefined") {
+      this.cleanupInterval = setInterval(() => this.cleanup(), 60 * 1000);
+    }
+  }
+
+  private cleanup(): void {
+    const now = Date.now();
+    for (const [key, entry] of this.cache) {
+      if (now > entry.expiresAt) {
+        this.cache.delete(key);
+      }
+    }
   }
 
   get<T>(key: string): T | null {
@@ -39,6 +57,14 @@ class MemoryCache {
   }
 
   clear(): void {
+    this.cache.clear();
+  }
+
+  destroy(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
     this.cache.clear();
   }
 }
