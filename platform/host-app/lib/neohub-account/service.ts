@@ -14,6 +14,9 @@ import type {
   CreateAccountParams,
   LinkIdentityParams,
   LinkNeoAccountParams,
+  IdentityRow,
+  NeoAccountRow,
+  ChainAccountRow,
 } from "./types";
 
 const PASSWORD_ITERATIONS = 100000;
@@ -107,8 +110,8 @@ export async function getFullNeoHubAccount(accountId: string): Promise<NeoHubAcc
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapIdentity(row: any): LinkedIdentity {
+ 
+function mapIdentity(row: IdentityRow): LinkedIdentity {
   return {
     id: row.id,
     neohubAccountId: row.neohub_account_id,
@@ -123,8 +126,8 @@ function mapIdentity(row: any): LinkedIdentity {
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapNeoAccount(row: any): LinkedNeoAccount {
+ 
+function mapNeoAccount(row: NeoAccountRow): LinkedNeoAccount {
   return {
     id: row.id,
     neohubAccountId: row.neohub_account_id,
@@ -135,8 +138,8 @@ function mapNeoAccount(row: any): LinkedNeoAccount {
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapChainAccount(row: any): LinkedChainAccount {
+ 
+function mapChainAccount(row: ChainAccountRow): LinkedChainAccount {
   return {
     id: row.id,
     neohubAccountId: row.neohub_account_id,

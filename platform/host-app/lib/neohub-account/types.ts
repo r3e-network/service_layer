@@ -104,3 +104,41 @@ export interface LinkNeoAccountParams {
   tag: string;
   iterations: number;
 }
+
+// ============================================================================
+// Database Row Types (for Supabase queries)
+// ============================================================================
+
+export interface IdentityRow {
+  id: string;
+  neohub_account_id: string;
+  provider: string;
+  provider_user_id: string;
+  auth0_sub: string;
+  email?: string;
+  name?: string;
+  avatar?: string;
+  linked_at: string;
+  last_used_at?: string;
+}
+
+export interface NeoAccountRow {
+  id: string;
+  neohub_account_id: string;
+  address: string;
+  public_key: string;
+  is_primary: boolean;
+  linked_at: string;
+}
+
+export interface ChainAccountRow {
+  id: string;
+  neohub_account_id: string;
+  address: string;
+  public_key: string;
+  chain_id: string;
+  chain_type: string;
+  is_primary: boolean;
+  linked_at: string;
+  label?: string;
+}
