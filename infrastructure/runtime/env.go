@@ -83,3 +83,25 @@ func ParseEnvDuration(key string) (time.Duration, bool) {
 	}
 	return parsed, true
 }
+
+// ParseEnvBool parses a boolean from the environment variable with the given key.
+// Accepts "1", "true", "yes", "y", "on" (case-insensitive) as true values.
+// Returns false for empty strings or unrecognized values.
+func ParseEnvBool(key string) bool {
+	return ParseBoolValue(os.Getenv(key))
+}
+
+// ParseBoolValue parses a boolean from a raw string value.
+// Accepts "1", "true", "yes", "y", "on" (case-insensitive) as true values.
+func ParseBoolValue(raw string) bool {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return false
+	}
+	switch strings.ToLower(raw) {
+	case "1", "true", "yes", "y", "on":
+		return true
+	default:
+		return false
+	}
+}
