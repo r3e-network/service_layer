@@ -512,8 +512,36 @@ func isDisallowedSourceIP(ip net.IP) bool {
 	return false
 }
 
-// pow10 returns 10^n.
+// pow10Table provides precomputed powers of 10 for common decimal precisions.
+// This avoids repeated multiplication in hot paths.
+var pow10Table = [...]int64{
+	1,                    // 10^0
+	10,                   // 10^1
+	100,                  // 10^2
+	1000,                 // 10^3
+	10000,                // 10^4
+	100000,               // 10^5
+	1000000,              // 10^6
+	10000000,             // 10^7
+	100000000,            // 10^8
+	1000000000,           // 10^9
+	10000000000,          // 10^10
+	100000000000,         // 10^11
+	1000000000000,        // 10^12
+	10000000000000,       // 10^13
+	100000000000000,      // 10^14
+	1000000000000000,     // 10^15
+	10000000000000000,    // 10^16
+	100000000000000000,   // 10^17
+	1000000000000000000,  // 10^18
+}
+
+// pow10 returns 10^n using a lookup table for common values.
 func pow10(n int) int64 {
+	if n >= 0 && n < len(pow10Table) {
+		return pow10Table[n]
+	}
+	// Fallback for large exponents (unlikely in price feeds)
 	result := int64(1)
 	for i := 0; i < n; i++ {
 		result *= 10
