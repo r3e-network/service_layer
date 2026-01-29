@@ -8,6 +8,13 @@ interface WaterBackgroundProps {
   secondaryColor?: string;
 }
 
+// Pre-defined intensity configurations to avoid recreation on each render
+const INTENSITY_CONFIG = {
+  low: { waves: 2, speed: 15 },
+  medium: { waves: 3, speed: 12 },
+  high: { waves: 4, speed: 8 },
+} as const;
+
 /**
  * WaterBackground - E-Robo style animated water wave background
  * Efficient CSS-based animation with optional canvas enhancement
@@ -18,13 +25,7 @@ export function WaterBackground({
   primaryColor = "rgba(159, 157, 243, 0.08)",
   secondaryColor = "rgba(0, 229, 153, 0.05)",
 }: WaterBackgroundProps) {
-  const intensityConfig = {
-    low: { waves: 2, speed: 15 },
-    medium: { waves: 3, speed: 12 },
-    high: { waves: 4, speed: 8 },
-  };
-
-  const config = intensityConfig[intensity];
+  const config = INTENSITY_CONFIG[intensity];
 
   return (
     <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}>
