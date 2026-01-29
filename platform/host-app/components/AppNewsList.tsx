@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { MiniAppNotification } from "./types";
 
 type Props = {
@@ -19,7 +19,7 @@ export function AppNewsList({ notifications, loading }: Props) {
   );
 }
 
-function NotificationItem({ notification }: { notification: MiniAppNotification }) {
+const NotificationItem = memo(function NotificationItem({ notification }: { notification: MiniAppNotification }) {
   const getTypeIcon = (type: string) => {
     const icons: Record<string, string> = {
       achievement: "🏆", update: "🔔", warning: "⚠️", info: "ℹ️",
@@ -61,4 +61,4 @@ function NotificationItem({ notification }: { notification: MiniAppNotification 
       </div>
     </div>
   );
-}
+});
