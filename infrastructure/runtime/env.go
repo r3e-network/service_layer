@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -33,18 +34,28 @@ func ParseEnvironment(raw string) (env Environment, ok bool) {
 	}
 }
 
+// envOnce caches the environment value at startup to avoid repeated env var reads.
+var (
+	envOnce  sync.Once
+	envValue Environment
+)
+
 // Env returns the current environment derived from MARBLE_ENV (preferred) or
 // ENVIRONMENT (legacy fallback). Unknown values default to Development.
 func Env() Environment {
-	raw := strings.ToLower(strings.TrimSpace(os.Getenv("MARBLE_ENV")))
-	if raw == "" {
-		raw = strings.ToLower(strings.TrimSpace(os.Getenv("ENVIRONMENT")))
-	}
+	envOnce.Do(func() {
+		raw := strings.ToLower(strings.TrimSpace(os.Getenv("MARBLE_ENV")))
+		if raw == "" {
+			raw = strings.ToLower(strings.TrimSpace(os.Getenv("ENVIRONMENT")))
+		}
 
-	if env, ok := ParseEnvironment(raw); ok {
-		return env
-	}
-	return Development
+		if env, ok := ParseEnvironment(raw); ok {
+			envValue = env
+		} else {
+			envValue = Development
+		}
+	})
+	return envValue
 }
 
 func IsDevelopment() bool { return Env() == Development }
