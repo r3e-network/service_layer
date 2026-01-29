@@ -90,3 +90,59 @@ describe("Validation Utils", () => {
     });
   });
 });
+
+describe("isValidUUID", () => {
+  const { isValidUUID } = require("@/lib/security/validation");
+  
+  it("accepts valid UUIDs", () => {
+    expect(isValidUUID("550e8400-e29b-41d4-a716-446655440000")).toBe(true);
+    expect(isValidUUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")).toBe(true);
+  });
+
+  it("rejects invalid UUIDs", () => {
+    expect(isValidUUID("")).toBe(false);
+    expect(isValidUUID("invalid")).toBe(false);
+    expect(isValidUUID("550e8400-e29b-41d4-a716")).toBe(false);
+  });
+});
+
+describe("isValidUrl", () => {
+  const { isValidUrl } = require("@/lib/security/validation");
+  
+  it("accepts valid URLs", () => {
+    expect(isValidUrl("https://example.com")).toBe(true);
+    expect(isValidUrl("http://localhost:3000/path")).toBe(true);
+  });
+
+  it("rejects invalid URLs", () => {
+    expect(isValidUrl("")).toBe(false);
+    expect(isValidUrl("not-a-url")).toBe(false);
+    expect(isValidUrl("ftp://example.com")).toBe(false);
+  });
+});
+
+describe("isValidAmount", () => {
+  const { isValidAmount } = require("@/lib/security/validation");
+  
+  it("accepts valid amounts", () => {
+    expect(isValidAmount("100")).toBe(true);
+    expect(isValidAmount("0.001")).toBe(true);
+    expect(isValidAmount("0")).toBe(true);
+  });
+
+  it("rejects invalid amounts", () => {
+    expect(isValidAmount("")).toBe(false);
+    expect(isValidAmount("-100")).toBe(false);
+    expect(isValidAmount("abc")).toBe(false);
+  });
+});
+
+describe("sanitizeHtml", () => {
+  const { sanitizeHtml } = require("@/lib/security/validation");
+  
+  it("escapes HTML entities", () => {
+    expect(sanitizeHtml("<script>")).toBe("&lt;script&gt;");
+    expect(sanitizeHtml("a & b")).toBe("a &amp; b");
+    expect(sanitizeHtml('"test"')).toBe("&quot;test&quot;");
+  });
+});
