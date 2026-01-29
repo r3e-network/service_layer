@@ -55,7 +55,8 @@ export function detectAddressChainType(address: string): ChainType | null {
 }
 
 /**
- * Normalize EVM address to checksum format
+ * Normalize EVM address to lowercase format
+ * Note: This does not implement EIP-55 checksum encoding
  */
 export function normalizeEVMAddress(address: string): string {
   if (!isValidEVMAddress(address)) return address;
