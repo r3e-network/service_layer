@@ -4,6 +4,9 @@ import { env } from "./env";
 const DEFAULT_FETCH_TIMEOUT_MS = 5000; // 5 seconds for SSR
 const EDGE_RPC_ALLOWLIST = String(env.EDGE_RPC_ALLOWLIST || "").trim();
 
+// Cached allowlist to avoid repeated parsing
+let cachedAllowlist: { allowAll: boolean; entries: Set<string> } | null = null;
+
 function parseAllowlist(raw: string): { allowAll: boolean; entries: Set<string> } {
   if (!raw) return { allowAll: false, entries: new Set() };
   const tokens = raw
@@ -12,6 +15,13 @@ function parseAllowlist(raw: string): { allowAll: boolean; entries: Set<string> 
     .filter(Boolean);
   const allowAll = tokens.includes("*");
   return { allowAll, entries: new Set(tokens) };
+}
+
+function getAllowlist(): { allowAll: boolean; entries: Set<string> } {
+  if (!cachedAllowlist) {
+    cachedAllowlist = parseAllowlist(EDGE_RPC_ALLOWLIST);
+  }
+  return cachedAllowlist;
 }
 
 export function getEdgeFunctionsBaseUrl(): string {
@@ -74,7 +84,7 @@ export function forwardEdgeRpcHeaders(req: NextApiRequest): Headers {
 }
 
 export function isEdgeRpcAllowed(fn: string): boolean {
-  const { allowAll, entries } = parseAllowlist(EDGE_RPC_ALLOWLIST);
+  const { allowAll, entries } = getAllowlist();
   if (allowAll) return true;
   if (entries.size === 0) {
     return env.NODE_ENV !== "production";
