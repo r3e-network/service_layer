@@ -4,7 +4,8 @@
  */
 
 import { wallet } from "@cityofzion/neon-js";
-import { encryptPrivateKeyBrowser, BrowserEncryptionResult } from "../wallet/crypto-browser";
+import type { BrowserEncryptionResult } from "../wallet/crypto-browser";
+import { encryptPrivateKeyBrowser } from "../wallet/crypto-browser";
 import type { ChainId, ChainType } from "../chains/types";
 
 // ============================================================================

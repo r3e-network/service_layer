@@ -45,7 +45,7 @@ export async function signTransaction(
 /**
  * Sign with connected wallet
  */
-async function signWithWallet(transaction: NeoTransaction): Promise<SigningResult> {
+async function signWithWallet(_transaction: NeoTransaction): Promise<SigningResult> {
   const adapter = getWalletAdapter();
   if (!adapter) {
     throw new Error("No wallet connected");
