@@ -68,11 +68,11 @@ export class Auth0Adapter implements WalletAdapter {
     }
   }
 
-  async signMessage(message: string): Promise<SignedMessage> {
+  async signMessage(_message: string): Promise<SignedMessage> {
     throw new Error("Password required for social account signing");
   }
 
-  async invoke(params: InvokeParams): Promise<TransactionResult> {
+  async invoke(_params: InvokeParams): Promise<TransactionResult> {
     throw new Error("Password required for social account transactions");
   }
 

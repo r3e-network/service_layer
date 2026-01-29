@@ -22,6 +22,6 @@ export type CardType =
 
 export type CardData = CountdownData | MultiplierData | StatsData | VotingData;
 
-export async function getCardData(appId: string, cardType: CardType, chainId: ChainId): Promise<CardData | null> {
+export async function getCardData(_appId: string, _cardType: CardType, _chainId: ChainId): Promise<CardData | null> {
   return null;
 }

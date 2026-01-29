@@ -4,9 +4,9 @@
  * Supports Neo N3 and EVM chains
  */
 
-import type { MiniAppStats, MiniAppLiveStatus, ContractEvent } from "./types";
+import type { MiniAppStats, ContractEvent } from "./types";
 import type { ChainId } from "../chains/types";
-import { getChainRpcUrl, isNeoN3ChainId, isEVMChainId } from "../chain/rpc-client";
+import { getChainRpcUrl, isEVMChainId } from "../chain/rpc-client";
 
 // Cache for stats (refreshed periodically)
 const statsCache = new Map<string, { stats: MiniAppStats; timestamp: number }>();

@@ -21,7 +21,7 @@ interface NotificationActions {
 
 type NotificationStore = NotificationState & NotificationActions;
 
-export const useNotificationStore = create<NotificationStore>((set, get) => ({
+export const useNotificationStore = create<NotificationStore>((set, _get) => ({
   notifications: [],
   unreadCount: 0,
   loading: false,
