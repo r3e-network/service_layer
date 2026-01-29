@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { MiniAppInfo, MiniAppStats, MiniAppNotification } from "../../types";
 import { ReviewsTab } from "../reviews";
 import { ForumTab } from "../forum";
@@ -50,12 +50,12 @@ export function AppInfoPanel({
   const statusLabel = t(`detail.status.${statusKey}`);
   const hasBanner = isImageUrl(app.banner);
 
-  const tabs: { id: TabType; label: string; icon?: string }[] = [
-    { id: "overview", label: t("detail.overview") || "Overview" },
-    { id: "reviews", label: t("detail.reviews") || "Reviews", icon: "⭐" },
-    { id: "forum", label: t("detail.forum") || "Forum", icon: "💬" },
-    { id: "news", label: `${t("detail.news") || "News"} (${notifications.length})` },
-  ];
+  const tabs = useMemo(() => [
+    { id: "overview" as TabType, label: t("detail.overview") || "Overview" },
+    { id: "reviews" as TabType, label: t("detail.reviews") || "Reviews", icon: "⭐" },
+    { id: "forum" as TabType, label: t("detail.forum") || "Forum", icon: "💬" },
+    { id: "news" as TabType, label: `${t("detail.news") || "News"} (${notifications.length})` },
+  ], [t, notifications.length]);
 
   return (
     <div className="flex flex-col h-full text-foreground">
