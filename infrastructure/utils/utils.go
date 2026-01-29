@@ -517,12 +517,14 @@ func BuildURL(base string, path string, params map[string]string) string {
 	return u
 }
 
+// Pre-compiled regex for JoinPath to avoid repeated compilation
+var multiSlashRegex = regexp.MustCompile("/{2,}")
+
 // JoinPath joins path components with proper separators
 func JoinPath(parts ...string) string {
 	path := strings.Join(parts, "/")
 	// Replace multiple consecutive slashes with single slash
-	re := regexp.MustCompile("/{2,}")
-	return strings.Trim(re.ReplaceAllString(path, "/"), "/")
+	return strings.Trim(multiSlashRegex.ReplaceAllString(path, "/"), "/")
 }
 
 // ============================================================================
