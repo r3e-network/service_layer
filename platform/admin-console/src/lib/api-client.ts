@@ -2,7 +2,6 @@
 // API Client - Base HTTP client with error handling
 // =============================================================================
 
-import { z } from "zod";
 import type { APIError } from "@/types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_EDGE_URL || "https://edge.localhost";
