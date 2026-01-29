@@ -28,8 +28,17 @@ export function validateCsrfToken(req: NextApiRequest): boolean {
     return false;
   }
 
+  // Ensure both tokens have the same length before timing-safe comparison
+  // timingSafeEqual throws if lengths differ
+  const headerBuffer = Buffer.from(tokenFromHeader);
+  const cookieBuffer = Buffer.from(tokenFromCookie);
+  
+  if (headerBuffer.length !== cookieBuffer.length) {
+    return false;
+  }
+
   // Use timing-safe comparison to prevent timing attacks
-  return crypto.timingSafeEqual(Buffer.from(tokenFromHeader), Buffer.from(tokenFromCookie));
+  return crypto.timingSafeEqual(headerBuffer, cookieBuffer);
 }
 
 /**
