@@ -1,7 +1,8 @@
 "use client";
 
 import { createI18n } from "../../../shared/i18n/react";
-import { Locale, defaultLocale, getStoredLocale, localeNames, locales, setStoredLocale } from "./index";
+import type { Locale} from "./index";
+import { defaultLocale, getStoredLocale, localeNames, locales, setStoredLocale } from "./index";
 
 // Import translations
 import enCommon from "./locales/en/common.json";

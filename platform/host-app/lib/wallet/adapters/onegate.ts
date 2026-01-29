@@ -5,13 +5,14 @@ import type { ChainId } from "../../chains/types";
  * https://onegate.space/
  */
 
-import {
+import type {
   WalletAdapter,
   WalletAccount,
   WalletBalance,
   TransactionResult,
   SignedMessage,
-  InvokeParams,
+  InvokeParams} from "./base";
+import {
   WalletNotInstalledError,
   WalletConnectionError,
 } from "./base";

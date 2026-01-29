@@ -10,10 +10,11 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import type {
+  EncryptedMultiChainAccount} from "../../auth0/multichain-account-browser";
 import {
   generateEncryptedMultiChainAccount,
-  generateMultipleChainAccounts,
-  EncryptedMultiChainAccount,
+  generateMultipleChainAccounts
 } from "../../auth0/multichain-account-browser";
 import type { ChainId, ChainType } from "../../chains/types";
 

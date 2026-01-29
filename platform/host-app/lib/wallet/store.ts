@@ -1,19 +1,20 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import {
+import type {
   WalletAdapter,
+  WalletBalance,
+  SignedMessage,
+  NeoInvokeParams,
+  EVMTransactionParams,
+  TransactionResult,
+  EVMWalletAdapter} from "./adapters";
+import {
   NeoLineAdapter,
   O3Adapter,
   OneGateAdapter,
   Auth0Adapter,
   MetaMaskAdapter,
-  WalletBalance,
-  WalletNotInstalledError,
-  SignedMessage,
-  NeoInvokeParams,
-  EVMTransactionParams,
-  TransactionResult,
-  EVMWalletAdapter,
+  WalletNotInstalledError
 } from "./adapters";
 import { PasswordCache } from "./password-cache";
 import type { ChainId, ChainType } from "../chains/types";

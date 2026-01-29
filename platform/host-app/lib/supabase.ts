@@ -5,7 +5,8 @@
  * Uses anonymous key for public read access and realtime subscriptions.
  */
 
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 import { env } from "./env";
 
 const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL;

@@ -3,13 +3,14 @@
  * https://o3.network/
  */
 
-import {
+import type {
   WalletAdapter,
   WalletAccount,
   WalletBalance,
   TransactionResult,
   SignedMessage,
-  InvokeParams,
+  InvokeParams} from "./base";
+import {
   WalletNotInstalledError,
   WalletConnectionError,
 } from "./base";

@@ -6,7 +6,7 @@
  * Supports multi-chain: Neo N3, NeoX, Ethereum, and other EVM chains.
  */
 
-import {
+import type {
   IWalletService,
   UnifiedWalletAccount,
   WalletProviderType,
@@ -15,7 +15,8 @@ import {
   WalletEventType,
   WalletEventListener,
   WalletEvent,
-  PasswordRequestCallback,
+  PasswordRequestCallback} from "./wallet-service";
+import {
   WalletNotConnectedError,
   WalletPasswordRequiredError,
   WalletUserCancelledError,

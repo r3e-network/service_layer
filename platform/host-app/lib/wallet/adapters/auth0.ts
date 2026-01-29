@@ -1,4 +1,4 @@
-import { WalletAdapter, WalletAccount, WalletBalance, SignedMessage, InvokeParams, TransactionResult } from "./base";
+import type { WalletAdapter, WalletAccount, WalletBalance, SignedMessage, InvokeParams, TransactionResult } from "./base";
 import { rpcCall, getChainRpcUrl } from "../../chain/rpc-client";
 import type { ChainId } from "../../chains/types";
 import { isNeoN3Chain } from "../../chains/types";
