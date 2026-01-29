@@ -75,6 +75,7 @@ export function sanitizeString(input: string, maxLength = 500): string {
 }
 
 export function isValidEmail(email: string): boolean {
-  if (!email || typeof email !== "string") return false;
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if (!email || typeof email !== "string" || email.length > 254) return false;
+  // RFC 5322 compliant email regex (simplified but strict)
+  return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(email);
 }
