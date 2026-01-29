@@ -168,6 +168,11 @@ function hexToBytes(hex: string): Uint8Array {
   return bytes;
 }
 
+// Pre-compiled regex patterns for password validation
+const UPPERCASE_REGEX = /[A-Z]/;
+const LOWERCASE_REGEX = /[a-z]/;
+const NUMBER_REGEX = /[0-9]/;
+
 /**
  * Validate password strength
  */
@@ -177,13 +182,13 @@ export function validatePassword(password: string): { valid: boolean; errors: st
   if (password.length < 8) {
     errors.push("Password must be at least 8 characters");
   }
-  if (!/[A-Z]/.test(password)) {
+  if (!UPPERCASE_REGEX.test(password)) {
     errors.push("Password must contain uppercase letter");
   }
-  if (!/[a-z]/.test(password)) {
+  if (!LOWERCASE_REGEX.test(password)) {
     errors.push("Password must contain lowercase letter");
   }
-  if (!/[0-9]/.test(password)) {
+  if (!NUMBER_REGEX.test(password)) {
     errors.push("Password must contain a number");
   }
 
