@@ -6,11 +6,24 @@ import type {
   EmitEventPayload,
   CustomPayload,
 } from "@/lib/db/types";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { getChainRpcUrl } from "@/lib/chain/rpc-client";
 import type { ChainId } from "@/lib/chains/types";
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+// Lazy initialization to avoid errors when env vars are not set
+let _supabase: SupabaseClient | null = null;
+
+function getSupabase(): SupabaseClient {
+  if (!_supabase) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) {
+      throw new Error("Supabase configuration missing for automation handlers");
+    }
+    _supabase = createClient(url, key);
+  }
+  return _supabase;
+}
 
 // Generic action handlers
 async function handleCallApi(payload: CallApiPayload, task: AutomationTask): Promise<Record<string, unknown>> {
@@ -58,7 +71,7 @@ async function handleInvokeContract(
 
 async function handleEmitEvent(payload: EmitEventPayload, task: AutomationTask): Promise<Record<string, unknown>> {
   // Insert event into Supabase for subscribers
-  const { error } = await supabase.from("automation_events").insert({
+  const { error } = await getSupabase().from("automation_events").insert({
     app_id: task.app_id,
     task_id: task.id,
     event_name: payload.eventName,
