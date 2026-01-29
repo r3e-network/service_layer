@@ -12,18 +12,21 @@ export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
+// Cached Intl formatters to avoid creating new instances on every call
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
 /**
  * Format date to human-readable string
  */
 export function formatDate(date: string | Date): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  return new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(d);
+  return dateFormatter.format(d);
 }
 
 /**
@@ -45,11 +48,14 @@ export function formatRelativeTime(date: string | Date): string {
   return formatDate(d);
 }
 
+// Cached number formatter
+const numberFormatter = new Intl.NumberFormat("en-US");
+
 /**
  * Format number with commas
  */
 export function formatNumber(num: number): string {
-  return new Intl.NumberFormat("en-US").format(num);
+  return numberFormatter.format(num);
 }
 
 /**
