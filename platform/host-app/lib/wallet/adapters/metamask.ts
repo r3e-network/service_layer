@@ -197,7 +197,7 @@ export class MetaMaskAdapter implements EVMWalletAdapter {
     this.listeners.get(event)!.add(callback);
   }
 
-  off(event: string, callback: any): void {
+  off(event: string, callback: (...args: unknown[]) => void): void {
     this.listeners.get(event)?.delete(callback);
   }
 
@@ -205,7 +205,7 @@ export class MetaMaskAdapter implements EVMWalletAdapter {
     return this.account;
   }
 
-  private emit(event: string, ...args: any[]): void {
+  private emit(event: string, ...args: unknown[]): void {
     this.listeners.get(event)?.forEach((cb) => cb(...args));
   }
 }
