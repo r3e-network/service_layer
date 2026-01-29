@@ -89,6 +89,9 @@ export function SkeletonList({ count = 3, className }: { count?: number; classNa
   );
 }
 
+// Pre-computed heights for chart skeleton bars to avoid re-render inconsistency
+const CHART_BAR_HEIGHTS = [65, 45, 80, 55, 90, 40, 70];
+
 export function SkeletonChart({ className }: { className?: string }) {
   return (
     <div className={cn("rounded-2xl border border-white/60 dark:border-white/10 p-6", className)}>
@@ -97,12 +100,12 @@ export function SkeletonChart({ className }: { className?: string }) {
         <Skeleton variant="rounded" className="h-8 w-24" />
       </div>
       <div className="flex items-end gap-2 h-48">
-        {Array.from({ length: 7 }).map((_, i) => (
+        {CHART_BAR_HEIGHTS.map((height, i) => (
           <Skeleton
             key={i}
             variant="rounded"
             className="flex-1"
-            style={{ height: `${30 + Math.random() * 70}%` }}
+            style={{ height: `${height}%` }}
           />
         ))}
       </div>
