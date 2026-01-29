@@ -18,7 +18,7 @@ export class MetaMaskAdapter implements EVMWalletAdapter {
   readonly supportedChainTypes = ["evm"] as const;
 
   private account: (WalletAccount & { balance?: { native: string } }) | null = null;
-  private listeners: Map<string, Set<any>> = new Map();
+  private listeners: Map<string, Set<(...args: unknown[]) => void>> = new Map();
 
   // Implementation of IWalletAdapter compatibility if needed, but primarily EVMWalletAdapter
 
@@ -190,7 +190,7 @@ export class MetaMaskAdapter implements EVMWalletAdapter {
   }
 
   // Event handling (simplified)
-  on(event: string, callback: any): void {
+  on(event: string, callback: (...args: unknown[]) => void): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
