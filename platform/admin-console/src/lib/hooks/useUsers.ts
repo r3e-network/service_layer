@@ -2,7 +2,7 @@
 // React Query Hooks - Users
 // =============================================================================
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabaseClient } from "@/lib/api-client";
 import type { User } from "@/types";
 
