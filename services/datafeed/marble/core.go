@@ -443,9 +443,18 @@ func (s *Service) releaseSourceSlot() {
 	<-s.sourceSem
 }
 
+// allowPrivateSourceTargetsOnce caches the environment variable read at startup.
+var (
+	allowPrivateSourceTargetsOnce  sync.Once
+	allowPrivateSourceTargetsValue bool
+)
+
 func allowPrivateSourceTargets() bool {
-	raw := strings.ToLower(strings.TrimSpace(os.Getenv("NEOFEEDS_ALLOW_PRIVATE_NETWORKS")))
-	return raw == "1" || raw == "true" || raw == "yes"
+	allowPrivateSourceTargetsOnce.Do(func() {
+		raw := strings.ToLower(strings.TrimSpace(os.Getenv("NEOFEEDS_ALLOW_PRIVATE_NETWORKS")))
+		allowPrivateSourceTargetsValue = raw == "1" || raw == "true" || raw == "yes"
+	})
+	return allowPrivateSourceTargetsValue
 }
 
 func validateSourceURL(ctx context.Context, rawURL string) error {
