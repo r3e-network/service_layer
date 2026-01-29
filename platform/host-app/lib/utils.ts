@@ -36,21 +36,23 @@ export function isValidEmail(email: string): boolean {
 }
 
 /**
+ * HTML escape character map - defined once to avoid repeated object creation
+ */
+const HTML_ESCAPE_MAP: Record<string, string> = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#x27;",
+  "/": "&#x2F;",
+};
+
+/**
  * Escapes HTML special characters to prevent XSS
  */
 export function escapeHtml(text: string): string {
   if (typeof text !== "string") return "";
-
-  const map: Record<string, string> = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#x27;",
-    "/": "&#x2F;",
-  };
-
-  return text.replace(/[&<>"'/]/g, (char) => map[char] || char);
+  return text.replace(/[&<>"'/]/g, (char) => HTML_ESCAPE_MAP[char] || char);
 }
 
 /**
