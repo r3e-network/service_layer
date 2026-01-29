@@ -1,5 +1,5 @@
 /**
- * Simple in-memory rate limiter
+ * Simple in-memory rate limiter with automatic cleanup
  */
 
 interface RateLimitEntry {
@@ -11,10 +11,29 @@ class RateLimiter {
   private limits = new Map<string, RateLimitEntry>();
   private maxRequests: number;
   private windowMs: number;
+  private cleanupInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(maxRequests = 100, windowMs = 60000) {
     this.maxRequests = maxRequests;
     this.windowMs = windowMs;
+    // Cleanup expired entries every 5 minutes to prevent memory leaks
+    this.startCleanup();
+  }
+
+  private startCleanup(): void {
+    // Only start cleanup in browser/Node environment
+    if (typeof setInterval !== "undefined") {
+      this.cleanupInterval = setInterval(() => this.cleanup(), 5 * 60 * 1000);
+    }
+  }
+
+  private cleanup(): void {
+    const now = Date.now();
+    for (const [key, entry] of this.limits) {
+      if (now > entry.resetAt) {
+        this.limits.delete(key);
+      }
+    }
   }
 
   check(key: string): { allowed: boolean; remaining: number } {
@@ -32,6 +51,15 @@ class RateLimiter {
 
     entry.count++;
     return { allowed: true, remaining: this.maxRequests - entry.count };
+  }
+
+  // For testing or graceful shutdown
+  destroy(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
+    this.limits.clear();
   }
 }
 
