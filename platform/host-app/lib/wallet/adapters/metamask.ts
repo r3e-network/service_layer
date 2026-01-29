@@ -95,9 +95,10 @@ export class MetaMaskAdapter implements EVMWalletAdapter {
         method: "wallet_switchEthereumChain",
         params: [{ chainId: hexChainId }],
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Chain not added, try to add it
-      if (error.code === 4902) {
+      const ethError = error as { code?: number };
+      if (ethError.code === 4902) {
         await window.ethereum!.request({
           method: "wallet_addEthereumChain",
           params: [
