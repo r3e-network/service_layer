@@ -126,8 +126,8 @@ async function fetchTokenPrices(): Promise<{ neo: number; gas: number }> {
   if (!res.ok) throw new Error("Flamingo API error");
   const data = await res.json();
 
-  const neo = data.find((t: any) => t.symbol === "NEO")?.usd_price || 0;
-  const gas = data.find((t: any) => t.symbol === "GAS")?.usd_price || 0;
+  const neo = data.find((t: { symbol: string; usd_price: number }) => t.symbol === "NEO")?.usd_price || 0;
+  const gas = data.find((t: { symbol: string; usd_price: number }) => t.symbol === "GAS")?.usd_price || 0;
 
   if (!neo || !gas) throw new Error("Price data missing");
 
