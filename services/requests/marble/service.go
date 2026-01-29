@@ -182,7 +182,7 @@ func New(cfg Config) (*Service, error) { //nolint:gocritic // cfg is read once a
 
 	maxResult := cfg.MaxResultBytes
 	if maxResult <= 0 {
-		if parsed, ok := parseEnvInt("NEOREQUESTS_MAX_RESULT_BYTES"); ok && parsed > 0 {
+		if parsed, ok := runtime.ParseEnvInt("NEOREQUESTS_MAX_RESULT_BYTES"); ok && parsed > 0 {
 			maxResult = parsed
 		} else {
 			maxResult = defaultMaxResultBytes
@@ -191,7 +191,7 @@ func New(cfg Config) (*Service, error) { //nolint:gocritic // cfg is read once a
 
 	maxErrorLen := cfg.MaxErrorLen
 	if maxErrorLen <= 0 {
-		if parsed, ok := parseEnvInt("NEOREQUESTS_MAX_ERROR_LEN"); ok && parsed > 0 {
+		if parsed, ok := runtime.ParseEnvInt("NEOREQUESTS_MAX_ERROR_LEN"); ok && parsed > 0 {
 			maxErrorLen = parsed
 		} else {
 			maxErrorLen = defaultMaxErrorLen
@@ -241,7 +241,7 @@ func New(cfg Config) (*Service, error) { //nolint:gocritic // cfg is read once a
 
 	statsRollupInterval := cfg.StatsRollupInterval
 	if statsRollupInterval <= 0 {
-		if parsed, ok := parseEnvDuration("NEOREQUESTS_STATS_ROLLUP_INTERVAL"); ok {
+		if parsed, ok := runtime.ParseEnvDuration("NEOREQUESTS_STATS_ROLLUP_INTERVAL"); ok {
 			statsRollupInterval = parsed
 		} else {
 			statsRollupInterval = 30 * time.Minute
@@ -250,18 +250,18 @@ func New(cfg Config) (*Service, error) { //nolint:gocritic // cfg is read once a
 
 	onchainUsage := cfg.OnchainUsage
 	if raw := strings.TrimSpace(os.Getenv("NEOREQUESTS_ONCHAIN_USAGE")); raw != "" {
-		onchainUsage = parseEnvBool(raw)
+		onchainUsage = runtime.ParseBoolValue(raw)
 	}
 	onchainTxUsage := cfg.OnchainTxUsage
 	if raw := strings.TrimSpace(os.Getenv("NEOREQUESTS_TX_USAGE")); raw != "" {
-		onchainTxUsage = parseEnvBool(raw)
+		onchainTxUsage = runtime.ParseBoolValue(raw)
 	} else if !onchainTxUsage {
 		onchainTxUsage = true
 	}
 
 	enforceAppRegistry := cfg.EnforceAppRegistry
 	if raw := strings.TrimSpace(os.Getenv("NEOREQUESTS_ENFORCE_APPREGISTRY")); raw != "" {
-		enforceAppRegistry = parseEnvBool(raw)
+		enforceAppRegistry = runtime.ParseBoolValue(raw)
 	}
 	if !enforceAppRegistry && appRegistryAddress != "" && cfg.ChainClient != nil {
 		enforceAppRegistry = true
@@ -269,14 +269,14 @@ func New(cfg Config) (*Service, error) { //nolint:gocritic // cfg is read once a
 
 	requireManifestContract := cfg.RequireManifestContract
 	if raw := strings.TrimSpace(os.Getenv("NEOREQUESTS_REQUIRE_MANIFEST_CONTRACT")); raw != "" {
-		requireManifestContract = parseEnvBool(raw)
+		requireManifestContract = runtime.ParseBoolValue(raw)
 	} else if !requireManifestContract {
 		requireManifestContract = true
 	}
 
 	requestIndexTTL := cfg.RequestIndexTTL
 	if requestIndexTTL <= 0 {
-		if parsed, ok := parseEnvDuration("NEOREQUESTS_REQUEST_INDEX_TTL"); ok {
+		if parsed, ok := runtime.ParseEnvDuration("NEOREQUESTS_REQUEST_INDEX_TTL"); ok {
 			requestIndexTTL = parsed
 		}
 	}
@@ -286,7 +286,7 @@ func New(cfg Config) (*Service, error) { //nolint:gocritic // cfg is read once a
 
 	cacheSeconds := cfg.AppRegistryCacheSeconds
 	if cacheSeconds <= 0 {
-		if parsed, ok := parseEnvInt("NEOREQUESTS_APPREGISTRY_CACHE_SECONDS"); ok && parsed >= 0 {
+		if parsed, ok := runtime.ParseEnvInt("NEOREQUESTS_APPREGISTRY_CACHE_SECONDS"); ok && parsed >= 0 {
 			cacheSeconds = parsed
 		}
 	}
@@ -432,43 +432,6 @@ func (s *Service) runEventListener(ctx context.Context) {
 
 	if err := s.eventListener.Start(ctx); err != nil {
 		s.Logger().WithContext(ctx).WithError(err).Warn("failed to start event listener")
-	}
-}
-
-func parseEnvInt(key string) (int, bool) {
-	raw := strings.TrimSpace(os.Getenv(key))
-	if raw == "" {
-		return 0, false
-	}
-	value, err := strconv.Atoi(raw)
-	if err != nil {
-		return 0, false
-	}
-	return value, true
-}
-
-func parseEnvDuration(key string) (time.Duration, bool) {
-	raw := strings.TrimSpace(os.Getenv(key))
-	if raw == "" {
-		return 0, false
-	}
-	parsed, err := time.ParseDuration(raw)
-	if err != nil {
-		return 0, false
-	}
-	return parsed, true
-}
-
-func parseEnvBool(raw string) bool {
-	raw = strings.TrimSpace(raw)
-	if raw == "" {
-		return false
-	}
-	switch strings.ToLower(raw) {
-	case "1", "true", "yes", "y", "on":
-		return true
-	default:
-		return false
 	}
 }
 
