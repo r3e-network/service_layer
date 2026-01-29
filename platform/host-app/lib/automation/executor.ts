@@ -1,4 +1,5 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 import type { AutomationTask, AutomationSchedule } from "@/lib/db/types";
 
 // Lazy initialization to avoid errors when env vars are not set
@@ -88,7 +89,7 @@ async function logExecution(
   });
 }
 
-async function updateSchedule(schedule: AutomationSchedule, success: boolean) {
+async function updateSchedule(schedule: AutomationSchedule, _success: boolean) {
   const updates: Partial<AutomationSchedule> = {
     last_run_at: new Date().toISOString(),
     run_count: schedule.run_count + 1,

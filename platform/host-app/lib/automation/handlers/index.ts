@@ -6,7 +6,8 @@ import type {
   EmitEventPayload,
   CustomPayload,
 } from "@/lib/db/types";
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 import { getChainRpcUrl } from "@/lib/chain/rpc-client";
 import type { ChainId } from "@/lib/chains/types";
 
