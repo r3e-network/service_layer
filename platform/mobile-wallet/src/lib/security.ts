@@ -116,6 +116,21 @@ export async function addSecurityLog(event: string, details?: string): Promise<v
   await SecureStore.setItemAsync(SECURITY_LOGS_KEY, JSON.stringify(trimmed));
 }
 
+// Pre-defined label maps to avoid object creation on each call
+const LOCK_METHOD_I18N_KEYS: Record<LockMethod, string> = {
+  pin: "security.lockMethod.pin",
+  biometric: "security.lockMethod.biometric",
+  both: "security.lockMethod.both",
+  none: "security.lockMethod.none",
+};
+
+const LOCK_METHOD_LABELS: Record<LockMethod, string> = {
+  pin: "PIN Code",
+  biometric: "Biometric",
+  both: "PIN + Biometric",
+  none: "None",
+};
+
 /**
  * Get lock method label
  */
@@ -124,21 +139,9 @@ export function getLockMethodLabel(
   t?: (key: string, options?: Record<string, string | number>) => string
 ): string {
   if (t) {
-    const keyMap: Record<LockMethod, string> = {
-      pin: "security.lockMethod.pin",
-      biometric: "security.lockMethod.biometric",
-      both: "security.lockMethod.both",
-      none: "security.lockMethod.none",
-    };
-    return t(keyMap[method]);
+    return t(LOCK_METHOD_I18N_KEYS[method]);
   }
-  const labels: Record<LockMethod, string> = {
-    pin: "PIN Code",
-    biometric: "Biometric",
-    both: "PIN + Biometric",
-    none: "None",
-  };
-  return labels[method];
+  return LOCK_METHOD_LABELS[method];
 }
 
 /**
