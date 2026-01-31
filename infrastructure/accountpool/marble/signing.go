@@ -252,7 +252,7 @@ func isSupportedGASToken(tokenHash string) bool {
 	if strings.EqualFold(trimmed, TokenTypeGAS) {
 		return true
 	}
-	normalized := strings.ToLower(strings.TrimPrefix(trimmed, "0x"))
+	normalized := strings.TrimPrefix(strings.ToLower(trimmed), "0x")
 	gasHash := strings.ToLower(strings.TrimPrefix(supabase.GASScriptHash, "0x"))
 	return normalized == gasHash
 }

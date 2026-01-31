@@ -198,6 +198,25 @@ func TestTransferAcceptsGASTokenHash(t *testing.T) {
 	}
 }
 
+func TestTransferAcceptsUppercaseGASTokenHashPrefix(t *testing.T) {
+	svc, _ := newTestServiceWithMock(t)
+
+	gasHash := strings.TrimPrefix(neoaccountssupabase.GASScriptHash, "0x")
+	upperHash := "0X" + strings.ToUpper(gasHash)
+
+	_, err := svc.Transfer(
+		context.Background(),
+		"service-1",
+		"account-1",
+		"NepwUjd9GhqgNkrfXaxj9mmsFhFzGoFuWM",
+		1,
+		upperHash,
+	)
+	if err == nil || !strings.Contains(err.Error(), "chain client not configured") {
+		t.Fatalf("expected chain client error after GAS validation, got %v", err)
+	}
+}
+
 func TestTransferRejectsUnsupportedTokenHash(t *testing.T) {
 	svc, _ := newTestServiceWithMock(t)
 
