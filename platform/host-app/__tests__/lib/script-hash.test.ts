@@ -12,4 +12,9 @@ describe("scriptHashToAddress", () => {
       "NiHURyS83nX2mpxtA7xq84cGxVbHojj5Wc",
     );
   });
+
+  it("returns input for invalid hex", () => {
+    const badHash = `0x${"g".repeat(40)}`;
+    expect(scriptHashToAddress(badHash)).toBe(badHash);
+  });
 });

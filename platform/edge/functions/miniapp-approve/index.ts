@@ -116,12 +116,6 @@ export async function handler(req: Request): Promise<Response> {
           review_notes: sanitizedNotes,
         };
 
-        // Optionally trigger build immediately
-        if (body.trigger_build) {
-          updateData.status = "building";
-          updateData.build_started_at = now;
-        }
-
         const { error: updateError } = await supabase
           .from("miniapp_submissions")
           .update(updateData)

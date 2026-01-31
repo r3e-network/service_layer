@@ -182,7 +182,23 @@ func TestCreateAccount_ReturnsErrorWhenRepoCreateFails(t *testing.T) {
 	}
 }
 
-func TestTransferRejectsTokenHash(t *testing.T) {
+func TestTransferAcceptsGASTokenHash(t *testing.T) {
+	svc, _ := newTestServiceWithMock(t)
+
+	_, err := svc.Transfer(
+		context.Background(),
+		"service-1",
+		"account-1",
+		"NepwUjd9GhqgNkrfXaxj9mmsFhFzGoFuWM",
+		1,
+		neoaccountssupabase.GASScriptHash,
+	)
+	if err == nil || !strings.Contains(err.Error(), "chain client not configured") {
+		t.Fatalf("expected chain client error after GAS validation, got %v", err)
+	}
+}
+
+func TestTransferRejectsUnsupportedTokenHash(t *testing.T) {
 	svc, _ := newTestServiceWithMock(t)
 
 	_, err := svc.Transfer(
@@ -193,7 +209,7 @@ func TestTransferRejectsTokenHash(t *testing.T) {
 		1,
 		"0x01",
 	)
-	if err == nil || !strings.Contains(err.Error(), "token") {
+	if err == nil || !strings.Contains(err.Error(), "token_address") {
 		t.Fatalf("expected token hash rejection, got %v", err)
 	}
 }

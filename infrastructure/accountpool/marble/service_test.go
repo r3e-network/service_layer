@@ -1561,6 +1561,28 @@ func TestHandleReleaseAccountsAll(t *testing.T) {
 	}
 }
 
+func TestHandleTransferRejectsUnsupportedToken(t *testing.T) {
+	m, _ := marble.New(marble.Config{MarbleType: "neoaccounts"})
+	m.SetTestSecret("POOL_MASTER_KEY", []byte("test-master-key-32-bytes-long!!!"))
+
+	mockRepo := newMockNeoAccountsRepo()
+	mockRepo.accounts["acc-1"] = &neoaccountssupabase.Account{ID: "acc-1", LockedBy: "neocompute", Address: "NAddr1"}
+
+	svc, _ := New(Config{Marble: m, NeoAccountsRepo: mockRepo})
+
+	body := `{"service_id": "neocompute", "account_id": "acc-1", "to_address": "NAddr1", "amount": 1, "token_address": "0xdeadbeef"}`
+	req := httptest.NewRequest("POST", "/transfer", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	addServiceAuth(req)
+	rr := httptest.NewRecorder()
+
+	svc.Router().ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusBadRequest {
+		t.Errorf("status = %d, want %d, body: %s", rr.Code, http.StatusBadRequest, rr.Body.String())
+	}
+}
+
 func TestHandleSignTransactionEndpoint(t *testing.T) {
 	m, _ := marble.New(marble.Config{MarbleType: "neoaccounts"})
 	m.SetTestSecret("POOL_MASTER_KEY", []byte("test-master-key-32-bytes-long!!!"))

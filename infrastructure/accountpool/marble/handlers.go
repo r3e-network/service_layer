@@ -227,6 +227,10 @@ func (s *Service) handleTransfer(w http.ResponseWriter, r *http.Request) {
 		httputil.BadRequest(w, "account_id, to_address, and positive amount required")
 		return
 	}
+	if !isSupportedGASToken(input.TokenAddress) {
+		httputil.BadRequest(w, "token_address is not supported; only GAS transfers are allowed")
+		return
+	}
 
 	txHash, err := s.Transfer(r.Context(), input.ServiceID, input.AccountID, input.ToAddress, input.Amount, input.TokenAddress)
 	if err != nil {

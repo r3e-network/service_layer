@@ -166,8 +166,8 @@ func (s *Service) Transfer(ctx context.Context, serviceID, accountID, toAddress 
 	if s.repo == nil {
 		return "", fmt.Errorf("repository not configured")
 	}
-	if strings.TrimSpace(tokenHash) != "" {
-		return "", fmt.Errorf("token_hash is not supported; only GAS transfers are allowed")
+	if !isSupportedGASToken(tokenHash) {
+		return "", fmt.Errorf("token_address is not supported; only GAS transfers are allowed")
 	}
 	if s.chainClient == nil {
 		return "", fmt.Errorf("chain client not configured")
@@ -242,6 +242,19 @@ func (s *Service) Transfer(ctx context.Context, serviceID, accountID, toAddress 
 	}).Info("transfer completed")
 
 	return txHashString, nil
+}
+
+func isSupportedGASToken(tokenHash string) bool {
+	trimmed := strings.TrimSpace(tokenHash)
+	if trimmed == "" {
+		return true
+	}
+	if strings.EqualFold(trimmed, TokenTypeGAS) {
+		return true
+	}
+	normalized := strings.ToLower(strings.TrimPrefix(trimmed, "0x"))
+	gasHash := strings.ToLower(strings.TrimPrefix(supabase.GASScriptHash, "0x"))
+	return normalized == gasHash
 }
 
 // TransferWithData transfers GAS from a pool account to a target address with optional data.

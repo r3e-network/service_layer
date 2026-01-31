@@ -69,6 +69,7 @@ function base58Encode(bytes: Uint8Array): string {
 export function scriptHashToAddress(scriptHash: string): string {
   const normalized = scriptHash.trim().toLowerCase().replace(/^0x/, "");
   if (normalized.length !== 40) return scriptHash;
+  if (!/^[0-9a-f]{40}$/.test(normalized)) return scriptHash;
 
   const bytes = hexToBytes(normalized);
   const reversed = Uint8Array.from(bytes);

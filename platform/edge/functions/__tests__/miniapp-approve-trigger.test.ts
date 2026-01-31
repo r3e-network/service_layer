@@ -87,3 +87,82 @@ Deno.test({
     globalThis.fetch = originalFetch;
   }
 });
+
+Deno.test({
+  name: "miniapp-approve keeps status approved before triggering build",
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async () => {
+  setRequiredEnv();
+
+  let updatePayload: Record<string, unknown> | null = null;
+  let buildCalled = false;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = input instanceof URL ? input.toString() : typeof input === "string" ? input : input.url;
+    const method = (init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
+
+    if (url.includes("/auth/v1/user")) {
+      return new Response(JSON.stringify({ user: { id: "admin-user", email: "admin@example.com" } }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (url.includes("/rpc/rate_limit_bump")) {
+      return new Response(JSON.stringify({ window_start: new Date().toISOString(), request_count: 1 }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (url.includes("/rest/v1/admin_emails")) {
+      return new Response(JSON.stringify({ id: "admin-row" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (url.includes("/rest/v1/miniapp_submissions") && method === "GET") {
+      return new Response(JSON.stringify({ id: "sub", app_id: "app", status: "pending" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (url.includes("/rest/v1/miniapp_submissions") && method === "PATCH") {
+      updatePayload = init?.body ? JSON.parse(String(init.body)) : null;
+      return new Response(JSON.stringify({}), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+
+    if (url.includes("/rest/v1/miniapp_approval_audit")) {
+      return new Response(JSON.stringify({}), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+
+    if (url.includes("/functions/v1/miniapp-build")) {
+      buildCalled = true;
+      return new Response("{}", { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+
+    return new Response("{}", { status: 200, headers: { "Content-Type": "application/json" } });
+  };
+
+  try {
+    const { handler } = await import("../miniapp-approve/index.ts");
+    const req = new Request("http://localhost", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer test",
+      },
+      body: JSON.stringify({ submission_id: "sub", action: "approve", trigger_build: true }),
+    });
+
+    await handler(req);
+    assertEquals(buildCalled, true);
+    const status = updatePayload ? updatePayload["status"] : undefined;
+    assertEquals(status, "approved");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
