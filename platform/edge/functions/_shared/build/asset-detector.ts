@@ -17,8 +17,10 @@ export interface AssetMetadata {
   type: string;
 }
 
+type AssetListKey = "icon" | "banner" | "screenshot";
+
 // Default asset search patterns
-const ASSET_PATTERNS = {
+const ASSET_PATTERNS: Record<AssetListKey, string[]> = {
   icon: [
     "icon.png",
     "logo.png",
@@ -50,12 +52,12 @@ const MANIFEST_PATTERNS = [
  */
 export async function detectAssets(
   projectDir: string,
-  customPatterns?: Record<string, string[]>
+  customPatterns?: Partial<Record<AssetListKey, string[]>>
 ): Promise<DetectedAssets> {
   const patterns = { ...ASSET_PATTERNS, ...customPatterns };
   const result: DetectedAssets = {};
 
-  for (const [assetType, filePatterns] of Object.entries(patterns)) {
+  for (const [assetType, filePatterns] of Object.entries(patterns) as [AssetListKey, string[]][]) {
     const found: string[] = [];
 
     for (const pattern of filePatterns) {
@@ -71,7 +73,7 @@ export async function detectAssets(
     }
 
     if (found.length > 0) {
-      result[assetType as keyof DetectedAssets] = found;
+      result[assetType] = found;
     }
   }
 
@@ -114,7 +116,8 @@ export async function extractAssetMetadata(filePath: string): Promise<AssetMetad
     // For now, return basic info
     return metadata;
   } catch (error) {
-    throw new Error(`Failed to extract metadata from ${filePath}: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to extract metadata from ${filePath}: ${message}`);
   }
 }
 
@@ -137,7 +140,8 @@ export async function readManifest(projectDir: string): Promise<object> {
     const content = await Deno.readTextFile(manifestPath);
     return JSON.parse(content);
   } catch (error) {
-    throw new Error(`Failed to read manifest: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to read manifest: ${message}`);
   }
 }
 

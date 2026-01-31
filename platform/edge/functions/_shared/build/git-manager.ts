@@ -1,6 +1,8 @@
 // Git Manager for cloning and validating Git repositories
 // Used for miniapp submission validation and building
 
+import { join } from "https://deno.land/std@0.224.0/path/mod.ts";
+
 /**
  * Clone a Git repository to a temporary directory
  * @param url - Git repository URL
@@ -9,7 +11,7 @@
  * @returns Path to cloned repository
  */
 export async function cloneRepo(url: string, branch: string = "main", shallow: boolean = true): Promise<string> {
-  const tempDir = Deno.makeTempDir({ prefix: "miniapp-clone-" });
+  const tempDir = await Deno.makeTempDir({ prefix: "miniapp-clone-" });
 
   const args = ["clone", ...(shallow ? ["--depth", "1"] : []), "--single-branch", "--branch", branch, url, tempDir];
 
@@ -51,7 +53,7 @@ export async function getCommitSha(repoPath: string): Promise<string> {
     throw new Error(`Failed to get commit SHA`);
   }
 
-  return stdout.trim();
+  return new TextDecoder().decode(stdout).trim();
 }
 
 /**
@@ -80,7 +82,7 @@ export async function getCommitInfo(repoPath: string): Promise<{
     throw new Error(`Failed to get commit info`);
   }
 
-  return JSON.parse(stdout.trim());
+  return JSON.parse(new TextDecoder().decode(stdout).trim());
 }
 
 /**
@@ -104,10 +106,11 @@ export async function getChangedFiles(repoPath: string, oldSha: string, newSha: 
     throw new Error(`Failed to get changed files`);
   }
 
-  return stdout
+  return new TextDecoder()
+    .decode(stdout)
     .trim()
     .split("\n")
-    .filter((f) => f.length > 0);
+    .filter((f: string) => f.length > 0);
 }
 
 /**
@@ -154,7 +157,8 @@ export async function cleanup(dirPath: string): Promise<void> {
     await Deno.remove(dirPath, { recursive: true });
   } catch (error) {
     // SECURITY: Don't log full temp path to avoid leaking internal paths
-    console.warn(`Failed to cleanup temporary directory: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`Failed to cleanup temporary directory: ${message}`);
   }
 }
 

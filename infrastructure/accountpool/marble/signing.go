@@ -905,6 +905,9 @@ func convertToChainParam(p ContractParam) chain.ContractParam {
 // Unlike Transfer(), this uses the master wallet directly, not a pool account.
 // After successful transfer, updates the database balance for the target account.
 func (s *Service) FundAccount(ctx context.Context, toAddress string, amount int64, tokenAddress string) (*FundAccountResponse, error) {
+	if !isSupportedGASToken(tokenAddress) {
+		return nil, fmt.Errorf("token_address is not supported; only GAS transfers are allowed")
+	}
 	if s.chainClient == nil {
 		return nil, fmt.Errorf("chain client not configured")
 	}

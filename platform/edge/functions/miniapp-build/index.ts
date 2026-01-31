@@ -223,7 +223,10 @@ export async function handler(req: Request): Promise<Response> {
     auth = authResult;
   }
 
-  const rl = await requireRateLimit(req, "miniapp-build", auth ?? undefined);
+  const rateLimitAuth = serviceRole
+    ? ({ userId: "service_role", authType: "api_key", apiKeyId: "service_role" } as AuthContext)
+    : auth ?? undefined;
+  const rl = await requireRateLimit(req, "miniapp-build", rateLimitAuth);
   if (rl) return rl;
 
   // Check if user is admin

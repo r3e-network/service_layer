@@ -34,7 +34,11 @@ Deno.test({
     }
 
     if (url.includes("/rpc/rate_limit_bump")) {
-      return new Response(JSON.stringify({ window_start: new Date().toISOString(), request_count: 1 }), {
+      const payload = init?.body ? JSON.parse(String(init.body)) : {};
+      return new Response(JSON.stringify({
+        window_start: new Date().toISOString(),
+        request_count: payload.p_identifier?.includes("service_role") ? 2 : 1,
+      }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
       });
@@ -162,6 +166,70 @@ Deno.test({
     assertEquals(buildCalled, true);
     const status = updatePayload ? updatePayload["status"] : undefined;
     assertEquals(status, "approved");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test({
+  name: "miniapp-build rate limit uses service role identifier",
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async () => {
+  setRequiredEnv();
+
+  let sawServiceRoleIdentifier = false;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = input instanceof URL ? input.toString() : typeof input === "string" ? input : input.url;
+    const method = (init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
+
+    if (url.includes("/rpc/rate_limit_bump")) {
+      const payload = init?.body ? JSON.parse(String(init.body)) : {};
+      if (typeof payload.p_identifier === "string" && payload.p_identifier.includes("service_role")) {
+        sawServiceRoleIdentifier = true;
+      }
+      return new Response(JSON.stringify({ window_start: new Date().toISOString(), request_count: 1 }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (url.includes("/rest/v1/miniapp_submissions") && method === "GET") {
+      return new Response(JSON.stringify({
+        id: "sub",
+        app_id: "app",
+        status: "approved",
+        build_mode: "manual",
+        git_url: "https://github.com/example/repo.git",
+        branch: "main",
+        git_commit_sha: "sha",
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (url.includes("/rest/v1/miniapp_submissions") && method === "PATCH") {
+      return new Response(JSON.stringify({}), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+
+    return new Response("{}", { status: 200, headers: { "Content-Type": "application/json" } });
+  };
+
+  try {
+    const { handler } = await import("../miniapp-build/index.ts");
+    const req = new Request("http://localhost", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer service-role-key",
+      },
+      body: JSON.stringify({ submission_id: "sub" }),
+    });
+
+    await handler(req);
+    assertEquals(sawServiceRoleIdentifier, true);
   } finally {
     globalThis.fetch = originalFetch;
   }

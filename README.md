@@ -1,7 +1,7 @@
 <div align="center">
   <a name="readme-top"></a>
 
-  [![NeoHub Banner](assets/neohub-banner.png)](https://github.com/R3E-Network)
+  [![NeoHub Banner](assets/neohub-banner-slim.png)](https://github.com/R3E-Network)
   
   [![Separator](assets/neohub-separator.png)](https://github.com/R3E-Network)
 
