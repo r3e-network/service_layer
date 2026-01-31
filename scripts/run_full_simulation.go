@@ -640,15 +640,15 @@ func (s *Simulation) PrintStats() {
 // storeTx stores a transaction record in Supabase
 func (s *Simulation) storeTx(txHash, txType, appID, account, contract, method string, amount int64, status string) {
 	payload := map[string]interface{}{
-		"tx_hash":         txHash,
-		"tx_type":         txType,
-		"app_id":          appID,
-		"account_address": account,
+		"tx_hash":          txHash,
+		"tx_type":          txType,
+		"app_id":           appID,
+		"account_address":  account,
 		"contract_address": contract,
-		"chain_id":        s.chainID,
-		"method_name":     method,
-		"amount":          amount,
-		"status":          status,
+		"chain_id":         s.chainID,
+		"method_name":      method,
+		"amount":           amount,
+		"status":           status,
 	}
 	go s.postToSupabase("simulation_txs", payload)
 }

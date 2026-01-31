@@ -2,6 +2,49 @@
  * Neo MiniApp SDK Types for uni-app
  */
 
+// Window interface extensions for type safety
+declare global {
+  interface Window {
+    MiniAppSDK?: import("./types").MiniAppSDK;
+    __MINIAPP_PARENT_ORIGIN__?: string;
+    __MINIAPP_CONFIG__?: import("./types").MiniAppSDKConfig;
+    ReactNativeWebView?: boolean;
+  }
+}
+
+// Generic types for API
+export interface ApiResponse<T = unknown> {
+  data?: T;
+  statusCode?: number;
+  headers?: Record<string, string>;
+}
+
+export interface ApiError {
+  errMsg?: string;
+  code?: string;
+  message?: string;
+}
+
+// Event types
+export interface LanguageChangeEvent extends Event {
+  detail?: {
+    language?: string;
+  };
+}
+
+// Contract invocation parameters
+export interface ContractParams {
+  contractAddress?: string;
+  scriptHash?: string;
+  contractHash?: string;
+  method?: string;
+  operation?: string;
+  args?: unknown[];
+  chainId?: ChainId;
+  chainType?: ChainType;
+  [key: string]: unknown;
+}
+
 export type ChainType = "neo-n3" | "evm";
 export type ChainId = string;
 

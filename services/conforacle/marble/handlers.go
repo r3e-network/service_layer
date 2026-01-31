@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/R3E-Network/service_layer/infrastructure/httputil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/httputil"
 )
 
 // =============================================================================

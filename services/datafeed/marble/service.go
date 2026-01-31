@@ -17,14 +17,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
-	"github.com/R3E-Network/service_layer/infrastructure/database"
-	gasbankclient "github.com/R3E-Network/service_layer/infrastructure/gasbank/client"
-	"github.com/R3E-Network/service_layer/infrastructure/httputil"
-	"github.com/R3E-Network/service_layer/infrastructure/marble"
-	"github.com/R3E-Network/service_layer/infrastructure/runtime"
-	commonservice "github.com/R3E-Network/service_layer/infrastructure/service"
-	txproxytypes "github.com/R3E-Network/service_layer/infrastructure/txproxy/types"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
+	gasbankclient "github.com/R3E-Network/neo-miniapps-platform/infrastructure/gasbank/client"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/httputil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/marble"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/middleware"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/resilience"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
+	commonservice "github.com/R3E-Network/neo-miniapps-platform/infrastructure/service"
+	txproxytypes "github.com/R3E-Network/neo-miniapps-platform/infrastructure/txproxy/types"
 )
 
 const (
@@ -50,19 +52,26 @@ type Service struct {
 	sourceSem chan struct{}
 
 	// Chain interaction for push pattern
-	chainClient     *chain.Client
+	chainClient      *chain.Client
 	priceFeedAddress string
-	priceFeed       *chain.PriceFeedContract
-	txProxy         txproxytypes.Invoker
-	attestationHash []byte
-	publishPolicy   PublishPolicyConfig
-	publishMu       sync.Mutex
-	publishState    map[string]*pricePublishState
-	updateInterval  time.Duration
-	enableChainPush bool
+	priceFeed        *chain.PriceFeedContract
+	txProxy          txproxytypes.Invoker
+	attestationHash  []byte
+	publishPolicy    PublishPolicyConfig
+	publishMu        sync.Mutex
+	publishState     map[string]*pricePublishState
+	updateInterval   time.Duration
+	enableChainPush  bool
 
 	// Service fee deduction
 	gasbank *gasbankclient.Client
+
+	// Resilience patterns
+	httpCircuitBreaker *resilience.CircuitBreaker
+
+	// Rate limiting and timeouts
+	rateLimiter    *middleware.RateLimiter
+	requestTimeout time.Duration
 }
 
 // Config holds NeoFeeds service configuration.
@@ -74,16 +83,24 @@ type Config struct {
 	ArbitrumRPC string          // Arbitrum RPC URL for Chainlink feeds
 
 	// Chain configuration for push pattern
-	ChainClient     *chain.Client
+	ChainClient      *chain.Client
 	PriceFeedAddress string // Contract address for platform PriceFeed (preferred)
-	TxProxy         txproxytypes.Invoker
-	UpdateInterval  time.Duration // How often to push prices on-chain (default: from config)
-	EnableChainPush bool          // Enable automatic on-chain price updates
+	TxProxy          txproxytypes.Invoker
+	UpdateInterval   time.Duration // How often to push prices on-chain (default: from config)
+	EnableChainPush  bool          // Enable automatic on-chain price updates
 
 	// GasBank client for service fee deduction (optional)
 	GasBank *gasbankclient.Client
 
 	SourceConcurrency int
+
+	// Rate limiting configuration (optional)
+	RateLimitPerSecond int
+	RateLimitBurst     int
+	RateLimitWindow    time.Duration
+
+	// Request timeout configuration (optional)
+	RequestTimeout time.Duration
 }
 
 // New creates a new NeoFeeds service.
@@ -156,22 +173,49 @@ func New(cfg Config) (*Service, error) {
 	}
 
 	s := &Service{
-		BaseService:     base,
-		httpClient:      httpClient,
-		strictMode:      strict,
-		config:          feedsConfig,
-		sources:         make(map[string]*SourceConfig),
-		chainClient:     cfg.ChainClient,
+		BaseService:      base,
+		httpClient:       httpClient,
+		strictMode:       strict,
+		config:           feedsConfig,
+		sources:          make(map[string]*SourceConfig),
+		chainClient:      cfg.ChainClient,
 		priceFeedAddress: cfg.PriceFeedAddress,
-		txProxy:         cfg.TxProxy,
-		publishPolicy:   feedsConfig.PublishPolicy,
-		publishState:    make(map[string]*pricePublishState),
-		updateInterval:  updateInterval,
-		enableChainPush: cfg.EnableChainPush,
-		gasbank:         cfg.GasBank,
+		txProxy:          cfg.TxProxy,
+		publishPolicy:    feedsConfig.PublishPolicy,
+		publishState:     make(map[string]*pricePublishState),
+		updateInterval:   updateInterval,
+		enableChainPush:  cfg.EnableChainPush,
+		gasbank:          cfg.GasBank,
 	}
 
 	s.attestationHash = marble.ComputeAttestationHash(cfg.Marble, ServiceID)
+
+	// Initialize circuit breaker for HTTP calls
+	cbConfig := resilience.DefaultConfig()
+	cbConfig.OnStateChange = func(from, to resilience.State) {
+		s.Logger().WithFields(map[string]interface{}{
+			"from_state": from.String(),
+			"to_state":   to.String(),
+		}).Warn("circuit breaker state changed")
+	}
+	s.httpCircuitBreaker = resilience.New(cbConfig)
+
+	// Initialize rate limiter (defaults: 100 req/s, burst 200)
+	rateLimitPerSecond := cfg.RateLimitPerSecond
+	if rateLimitPerSecond <= 0 {
+		rateLimitPerSecond = 100
+	}
+	rateLimitBurst := cfg.RateLimitBurst
+	if rateLimitBurst <= 0 {
+		rateLimitBurst = 200
+	}
+	s.rateLimiter = middleware.NewRateLimiter(rateLimitPerSecond, rateLimitBurst, base.Logger())
+
+	// Initialize request timeout (default: 30 seconds)
+	s.requestTimeout = cfg.RequestTimeout
+	if s.requestTimeout <= 0 {
+		s.requestTimeout = 30 * time.Second
+	}
 
 	if s.chainClient != nil && s.priceFeedAddress != "" {
 		s.priceFeed = chain.NewPriceFeedContract(s.chainClient, s.priceFeedAddress)

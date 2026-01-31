@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/database"
-	"github.com/R3E-Network/service_layer/infrastructure/testutil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/testutil"
 )
 
 // =============================================================================

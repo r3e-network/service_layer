@@ -270,7 +270,7 @@ export const mockSDK: MiniAppSDK = {
 
 export function installMockSDK(): void {
   if (typeof window !== "undefined") {
-    (window as any).MiniAppSDK = mockSDK;
+    window.MiniAppSDK = mockSDK;
     console.log("[MockSDK] Installed on window.MiniAppSDK");
     window.dispatchEvent(new Event("miniapp-sdk-ready"));
   }

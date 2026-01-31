@@ -13,8 +13,15 @@ import (
 )
 
 func main() {
-	// PostgreSQL connection string from .env
-	connStr := "host=db.dmonstzalbldzzdbbcdj.supabase.co port=5432 user=postgres password=xaNT3apRNOrRgZd5 dbname=postgres sslmode=require"
+	// Get password from environment variable
+	password := os.Getenv("POSTGRES_PASSWORD")
+	if password == "" {
+		fmt.Fprintf(os.Stderr, "POSTGRES_PASSWORD environment variable is not set\n")
+		os.Exit(1)
+	}
+
+	// PostgreSQL connection string
+	connStr := fmt.Sprintf("host=db.dmonstzalbldzzdbbcdj.supabase.co port=5432 user=postgres password=%s dbname=postgres sslmode=require", password)
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {

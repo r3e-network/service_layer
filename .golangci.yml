@@ -38,7 +38,7 @@ linters-settings:
     simplify: true
 
   goimports:
-    local-prefixes: github.com/R3E-Network/service_layer
+    local-prefixes: github.com/R3E-Network/neo-miniapps-platform
 
   misspell:
     locale: US

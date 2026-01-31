@@ -30,17 +30,17 @@ import (
 //	    return c.InvokeInteger(ctx, "getValue", chain.NewStringParam(key))
 //	}
 type BaseContract struct {
-	client       *Client
+	client          *Client
 	contractAddress string
-	wallet       *Wallet
+	wallet          *Wallet
 }
 
 // NewBaseContract creates a new base contract wrapper.
 func NewBaseContract(client *Client, contractAddress string, wallet *Wallet) *BaseContract {
 	return &BaseContract{
-		client:       client,
+		client:          client,
 		contractAddress: contractAddress,
-		wallet:       wallet,
+		wallet:          wallet,
 	}
 }
 

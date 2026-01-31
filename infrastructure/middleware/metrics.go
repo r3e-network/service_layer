@@ -8,7 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/R3E-Network/service_layer/infrastructure/metrics"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/metrics"
 )
 
 // MetricsMiddleware records HTTP metrics for each request

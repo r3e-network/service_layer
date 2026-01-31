@@ -13,7 +13,7 @@ import (
 	"github.com/dop251/goja"
 	"github.com/google/uuid"
 
-	"github.com/R3E-Network/service_layer/infrastructure/crypto"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/crypto"
 )
 
 // =============================================================================

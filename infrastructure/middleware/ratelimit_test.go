@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/time/rate"
 
-	"github.com/R3E-Network/service_layer/infrastructure/logging"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/logging"
 )
 
 func TestNewRateLimiter(t *testing.T) {

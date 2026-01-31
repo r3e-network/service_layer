@@ -10,7 +10,7 @@ import (
 
 	"github.com/nspcc-dev/neo-go/pkg/core/transaction"
 
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
 )
 
 func main() {
@@ -103,13 +103,15 @@ func main() {
 
 	appLog, err := client.WaitForApplicationLog(waitCtx, txHashString, 2*time.Second)
 	if err != nil {
-		log.Fatalf("Failed to get application log: %v", err)
+		log.Printf("Failed to get application log: %v", err)
+		return
 	}
 
 	if appLog != nil && len(appLog.Executions) > 0 {
 		exec := appLog.Executions[0]
 		if exec.VMState != "HALT" {
-			log.Fatalf("Update failed with state: %s, exception: %s", exec.VMState, exec.Exception)
+			log.Printf("Update failed with state: %s, exception: %s", exec.VMState, exec.Exception)
+			return
 		}
 	}
 

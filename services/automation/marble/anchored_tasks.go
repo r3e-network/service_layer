@@ -13,8 +13,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
-	txproxytypes "github.com/R3E-Network/service_layer/infrastructure/txproxy/types"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
+	txproxytypes "github.com/R3E-Network/neo-miniapps-platform/infrastructure/txproxy/types"
 )
 
 type anchoredTaskTriggerSpec struct {
@@ -386,6 +386,13 @@ func (s *Service) spawnAnchoredTask(ctx context.Context, task *anchoredTaskState
 	}
 	go func() {
 		defer s.releaseAnchoredTaskSlot()
+		// PANIC RECOVERY [R-03]: Prevent goroutine crashes from killing the service
+		defer func() {
+			if r := recover(); r != nil {
+				s.Logger().WithContext(ctx).WithField("task_id", anchoredTaskKey(task.task.TaskID)).
+					WithField("panic", r).Error("panic recovered in anchored task goroutine")
+			}
+		}()
 		s.executeAnchoredTask(ctx, task, executionData)
 	}()
 }
@@ -404,7 +411,7 @@ func (s *Service) executeAnchoredTask(ctx context.Context, task *anchoredTaskSta
 	taskKey := anchoredTaskKey(task.task.TaskID)
 
 	// For interval-based triggers, check balance and use ExecutePeriodicTask
-	if strings.ToLower(task.trigger.Type) == "interval" {
+	if strings.EqualFold(task.trigger.Type, "interval") {
 		// Try to parse TaskID as BigInteger for periodic tasks
 		taskIDInt := new(big.Int).SetBytes(task.task.TaskID)
 

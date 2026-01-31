@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/httputil"
-	"github.com/R3E-Network/service_layer/infrastructure/runtime"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/httputil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
 )
 
 // Client wraps the Supabase REST API client.

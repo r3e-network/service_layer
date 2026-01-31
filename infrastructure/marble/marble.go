@@ -17,9 +17,9 @@ import (
 	"github.com/edgelesssys/ego/attestation"
 	"github.com/edgelesssys/ego/enclave"
 
-	slhttputil "github.com/R3E-Network/service_layer/infrastructure/httputil"
-	slhex "github.com/R3E-Network/service_layer/infrastructure/hex"
-	"github.com/R3E-Network/service_layer/infrastructure/logging"
+	slhex "github.com/R3E-Network/neo-miniapps-platform/infrastructure/hex"
+	slhttputil "github.com/R3E-Network/neo-miniapps-platform/infrastructure/httputil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/logging"
 )
 
 // Marble represents a MarbleRun Marble instance.
@@ -39,6 +39,9 @@ type Marble struct {
 	httpClient         *http.Client
 	externalHTTPClient *http.Client
 
+	// Configurable timeouts
+	timeoutConfig TimeoutConfig
+
 	// Secrets injected by Coordinator
 	secrets map[string][]byte
 
@@ -51,15 +54,43 @@ type Marble struct {
 
 // Config holds Marble configuration.
 type Config struct {
-	MarbleType string
-	DNSNames   []string
+	MarbleType    string
+	DNSNames      []string
+	TimeoutConfig TimeoutConfig
+}
+
+// TimeoutConfig holds configurable timeouts for different operations.
+type TimeoutConfig struct {
+	HTTPClient     time.Duration
+	HTTPClientMTLS time.Duration
+	ExternalHTTP   time.Duration
+}
+
+// DefaultTimeoutConfig returns sensible timeout defaults.
+func DefaultTimeoutConfig() TimeoutConfig {
+	return TimeoutConfig{
+		HTTPClient:     30 * time.Second,
+		HTTPClientMTLS: 30 * time.Second,
+		ExternalHTTP:   30 * time.Second,
+	}
 }
 
 // New creates a new Marble instance.
 func New(cfg Config) (*Marble, error) {
 	m := &Marble{
-		marbleType: cfg.MarbleType,
-		secrets:    make(map[string][]byte),
+		marbleType:    cfg.MarbleType,
+		secrets:       make(map[string][]byte),
+		timeoutConfig: cfg.TimeoutConfig,
+	}
+
+	if m.timeoutConfig.HTTPClient == 0 {
+		m.timeoutConfig.HTTPClient = 30 * time.Second
+	}
+	if m.timeoutConfig.HTTPClientMTLS == 0 {
+		m.timeoutConfig.HTTPClientMTLS = 30 * time.Second
+	}
+	if m.timeoutConfig.ExternalHTTP == 0 {
+		m.timeoutConfig.ExternalHTTP = 30 * time.Second
 	}
 
 	// Get enclave self-report for attestation
@@ -195,7 +226,7 @@ func (m *Marble) HTTPClient() *http.Client {
 		m.httpClientUsesMTLS = false
 		m.httpClient = &http.Client{
 			Transport: &traceHeaderRoundTripper{base: http.DefaultTransport},
-			Timeout:   30 * time.Second,
+			Timeout:   m.timeoutConfig.HTTPClient,
 		}
 		return m.httpClient
 	}
@@ -219,7 +250,7 @@ func (m *Marble) HTTPClient() *http.Client {
 	m.httpClientUsesMTLS = true
 	m.httpClient = &http.Client{
 		Transport: &traceHeaderRoundTripper{base: transport},
-		Timeout:   30 * time.Second,
+		Timeout:   m.timeoutConfig.HTTPClientMTLS,
 	}
 	return m.httpClient
 }
@@ -248,7 +279,7 @@ func (m *Marble) ExternalHTTPClient() *http.Client {
 
 	m.externalHTTPClient = &http.Client{
 		Transport: &traceHeaderRoundTripper{base: transport},
-		Timeout:   30 * time.Second,
+		Timeout:   m.timeoutConfig.ExternalHTTP,
 	}
 	return m.externalHTTPClient
 }

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	secretssupabase "github.com/R3E-Network/service_layer/infrastructure/secrets/supabase"
+	secretssupabase "github.com/R3E-Network/neo-miniapps-platform/infrastructure/secrets/supabase"
 )
 
 type fakeRepo struct {

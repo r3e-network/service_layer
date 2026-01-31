@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	neoaccountsclient "github.com/R3E-Network/service_layer/infrastructure/accountpool/client"
+	neoaccountsclient "github.com/R3E-Network/neo-miniapps-platform/infrastructure/accountpool/client"
 )
 
 // SimulateGovBooster simulates bNEO governance optimization.
@@ -248,4 +248,3 @@ func (s *MiniAppSimulator) SimulateNeoburger(ctx context.Context) error {
 	atomic.AddInt64(&s.neoburgerStakes, 1)
 	return nil
 }
-

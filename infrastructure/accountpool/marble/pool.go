@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/uuid"
 
-	neoaccountssupabase "github.com/R3E-Network/service_layer/infrastructure/accountpool/supabase"
+	neoaccountssupabase "github.com/R3E-Network/neo-miniapps-platform/infrastructure/accountpool/supabase"
 )
 
 // RequestAccounts locks and returns accounts for a service.

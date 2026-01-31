@@ -13,7 +13,7 @@ import (
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract/manifest"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract/nef"
 
-	"github.com/R3E-Network/service_layer/deploy/testnet"
+	"github.com/R3E-Network/neo-miniapps-platform/deploy/testnet"
 )
 
 var newMiniApps = []string{

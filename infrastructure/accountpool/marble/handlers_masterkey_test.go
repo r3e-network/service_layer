@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/R3E-Network/service_layer/infrastructure/httputil"
-	"github.com/R3E-Network/service_layer/infrastructure/serviceauth"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/httputil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/serviceauth"
 )
 
 func TestMasterKeyEndpoint_ReturnsAttestation(t *testing.T) {

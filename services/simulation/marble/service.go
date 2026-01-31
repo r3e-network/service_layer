@@ -17,12 +17,12 @@ import (
 	"sync"
 	"time"
 
-	neoaccountsclient "github.com/R3E-Network/service_layer/infrastructure/accountpool/client"
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
-	"github.com/R3E-Network/service_layer/infrastructure/database"
-	"github.com/R3E-Network/service_layer/infrastructure/marble"
-	"github.com/R3E-Network/service_layer/infrastructure/runtime"
-	commonservice "github.com/R3E-Network/service_layer/infrastructure/service"
+	neoaccountsclient "github.com/R3E-Network/neo-miniapps-platform/infrastructure/accountpool/client"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/marble"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
+	commonservice "github.com/R3E-Network/neo-miniapps-platform/infrastructure/service"
 )
 
 // Service implements the simulation service.
@@ -181,7 +181,11 @@ func New(cfg Config) (*Service, error) {
 
 	var chainClient *chain.Client
 	if cfg.ChainClient != nil {
-		chainClient = cfg.ChainClient.(*chain.Client)
+		var ok bool
+		chainClient, ok = cfg.ChainClient.(*chain.Client)
+		if !ok {
+			return nil, fmt.Errorf("chainClient: invalid type")
+		}
 	}
 
 	// Initialize contract invoker for smart contract calls using pool accounts
@@ -275,6 +279,12 @@ func New(cfg Config) (*Service, error) {
 	// Auto-start if configured
 	if cfg.AutoStart || strings.ToLower(os.Getenv("SIMULATION_ENABLED")) == "true" {
 		go func() {
+			// PANIC RECOVERY [R-03]: Prevent goroutine crashes from killing the service
+			defer func() {
+				if r := recover(); r != nil {
+					s.Logger().WithField("panic", r).Error("panic recovered in simulation auto-start goroutine")
+				}
+			}()
 			time.Sleep(2 * time.Second) // Wait for service to fully initialize
 			if err := s.Start(context.Background()); err != nil {
 				s.Logger().WithError(err).Warn("failed to auto-start simulation")
@@ -340,17 +350,6 @@ func (s *Service) Start(ctx context.Context) error {
 	s.stopCh = make(chan struct{})
 	now := time.Now()
 	s.startedAt = &now
-
-	// NOTE: Simple GAS transfer workers disabled - using MiniApp workflow simulators instead
-	// These workers just send GAS to random addresses, not following the correct MiniApp workflow
-	// The correct workflow is: User → PayToApp → Platform → MiniApp Contract → Payout
-	/*
-		for _, appID := range s.miniApps {
-			for workerID := 0; workerID < s.workersPerApp; workerID++ {
-				go s.simulateApp(appID, workerID)
-			}
-		}
-	*/
 
 	// Start contract invocation workers if contract invoker is available
 	if s.contractInvoker != nil {
@@ -567,6 +566,13 @@ func (s *Service) simulateApp(appID string, workerID int) {
 
 		// Release the account back to the pool (do this in background to not delay next tx)
 		go func(accountID string) {
+			// PANIC RECOVERY [R-03]: Prevent goroutine crashes from killing the service
+			defer func() {
+				if r := recover(); r != nil {
+					logger.WithField("panic", r).WithField("account_id", accountID).
+						Error("panic recovered in account release goroutine")
+				}
+			}()
 			_, err := s.poolClient.ReleaseAccounts(ctx, []string{accountID})
 			if err != nil {
 				logger.WithError(err).Warn("failed to release account")
@@ -804,7 +810,7 @@ func (s *Service) startMiniAppWorkflows(ctx context.Context) int {
 	workflowByAppID := map[string]func(context.Context) error{
 		// Gaming MiniApps
 		"miniapp-lottery":        s.miniAppSimulator.SimulateLottery,
-		"miniapp-coinflip":      s.miniAppSimulator.SimulateCoinFlip,
+		"miniapp-coinflip":       s.miniAppSimulator.SimulateCoinFlip,
 		"miniapp-dice-game":      s.miniAppSimulator.SimulateDiceGame,
 		"miniapp-scratch-card":   s.miniAppSimulator.SimulateScratchCard,
 		"miniapp-mega-millions":  s.miniAppSimulator.SimulateMegaMillions,
@@ -814,13 +820,13 @@ func (s *Service) startMiniAppWorkflows(ctx context.Context) int {
 		"miniapp-doomsday-clock": s.miniAppSimulator.SimulateDoomsdayClock,
 		"miniapp-puzzle-mining":  s.miniAppSimulator.SimulatePuzzleMining,
 		"miniapp-fog-puzzle":     s.miniAppSimulator.SimulateFogPuzzle,
-		"miniapp-cryptoriddle":  s.miniAppSimulator.SimulateCryptoRiddle,
+		"miniapp-cryptoriddle":   s.miniAppSimulator.SimulateCryptoRiddle,
 
 		// DeFi MiniApps
-		"miniapp-flashloan":         s.miniAppSimulator.SimulateFlashLoan,
-		"miniapp-heritage-trust":    s.miniAppSimulator.SimulateHeritageTrust,
-		"miniapp-compound-capsule":  s.miniAppSimulator.SimulateCompoundCapsule,
-		"miniapp-self-loan":         s.miniAppSimulator.SimulateSelfLoan,
+		"miniapp-flashloan":        s.miniAppSimulator.SimulateFlashLoan,
+		"miniapp-heritage-trust":   s.miniAppSimulator.SimulateHeritageTrust,
+		"miniapp-compound-capsule": s.miniAppSimulator.SimulateCompoundCapsule,
+		"miniapp-self-loan":        s.miniAppSimulator.SimulateSelfLoan,
 		"miniapp-unbreakablevault": s.miniAppSimulator.SimulateUnbreakableVault,
 
 		// Social MiniApps
@@ -833,25 +839,25 @@ func (s *Service) startMiniAppWorkflows(ctx context.Context) int {
 		"miniapp-dev-tipping":   s.miniAppSimulator.SimulateDevTipping,
 
 		// Governance & NFT MiniApps
-		"miniapp-govbooster":       s.miniAppSimulator.SimulateGovBooster,
-		"miniapp-gov-booster":      s.miniAppSimulator.SimulateGovBooster, // alias with hyphen
+		"miniapp-govbooster":        s.miniAppSimulator.SimulateGovBooster,
+		"miniapp-gov-booster":       s.miniAppSimulator.SimulateGovBooster, // alias with hyphen
 		"miniapp-gov-merc":          s.miniAppSimulator.SimulateGovMerc,
-		"miniapp-masqueradedao":    s.miniAppSimulator.SimulateMasqueradeDAO,
-		"miniapp-guardianpolicy":   s.miniAppSimulator.SimulateGuardianPolicy,
-		"miniapp-guardian-policy":  s.miniAppSimulator.SimulateGuardianPolicy, // alias with hyphen
+		"miniapp-masqueradedao":     s.miniAppSimulator.SimulateMasqueradeDAO,
+		"miniapp-guardianpolicy":    s.miniAppSimulator.SimulateGuardianPolicy,
+		"miniapp-guardian-policy":   s.miniAppSimulator.SimulateGuardianPolicy, // alias with hyphen
 		"miniapp-garden-of-neo":     s.miniAppSimulator.SimulateGardenOfNeo,
 		"miniapp-on-chain-tarot":    s.miniAppSimulator.SimulateOnChainTarot,
-		"miniapp-exfiles":          s.miniAppSimulator.SimulateExFiles,
-		"miniapp-breakupcontract":  s.miniAppSimulator.SimulateBreakupContract,
+		"miniapp-exfiles":           s.miniAppSimulator.SimulateExFiles,
+		"miniapp-breakupcontract":   s.miniAppSimulator.SimulateBreakupContract,
 		"miniapp-million-piece-map": s.miniAppSimulator.SimulateMillionPieceMap,
 		"miniapp-canvas":            s.miniAppSimulator.SimulateCanvas,
 		"miniapp-candidate-vote":    s.miniAppSimulator.SimulateCandidateVote,
 		"miniapp-neoburger":         s.miniAppSimulator.SimulateNeoburger,
 
 		// Phase 10 MiniApps
-		"miniapp-grant-share":   s.miniAppSimulator.SimulateGrantShare,
-		"miniapp-neo-ns":        s.miniAppSimulator.SimulateNeoNS,
-		"miniapp-dailycheckin":  s.miniAppSimulator.SimulateDailyCheckin,
+		"miniapp-grant-share":  s.miniAppSimulator.SimulateGrantShare,
+		"miniapp-neo-ns":       s.miniAppSimulator.SimulateNeoNS,
+		"miniapp-dailycheckin": s.miniAppSimulator.SimulateDailyCheckin,
 	}
 
 	apps := normalizeMiniAppIDs(s.miniApps)

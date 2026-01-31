@@ -6,9 +6,9 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
-	"github.com/R3E-Network/service_layer/infrastructure/database"
-	neorequestsupabase "github.com/R3E-Network/service_layer/services/requests/supabase"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
+	neorequestsupabase "github.com/R3E-Network/neo-miniapps-platform/services/requests/supabase"
 )
 
 func (s *Service) handlePaymentReceivedEvent(ctx context.Context, event *chain.ContractEvent) error {
@@ -31,7 +31,8 @@ func (s *Service) handlePaymentReceivedEvent(ctx context.Context, event *chain.C
 	})
 
 	if s.repo != nil {
-		processed, err := s.markPaymentProcessed(ctx, event, parsed)
+		var processed bool
+		processed, err = s.markPaymentProcessed(ctx, event, parsed)
 		if err != nil {
 			logger.WithContext(ctx).WithError(err).Warn("failed to mark payment event processed")
 		}
@@ -41,28 +42,28 @@ func (s *Service) handlePaymentReceivedEvent(ctx context.Context, event *chain.C
 	}
 
 	if s.repo != nil {
-		app, err := s.loadMiniApp(ctx, parsed.AppID)
-		if err != nil {
-			if database.IsNotFound(err) {
-				return nil
-			}
+		var app *neorequestsupabase.MiniApp
+		app, err = s.loadMiniApp(ctx, parsed.AppID)
+		switch {
+		case err != nil && database.IsNotFound(err):
+			return nil
+		case err != nil:
 			logger.WithContext(ctx).WithError(err).Warn("failed to load miniapp manifest")
-		} else if app != nil {
-			if !isAppActive(app.Status) {
+		case app != nil && !isAppActive(app.Status):
+			return nil
+		case app != nil && s.enforceAppRegistry:
+			if regErr := s.validateAppRegistry(ctx, app); regErr != nil {
+				logger.WithContext(ctx).WithError(regErr).Warn("app registry validation failed")
 				return nil
 			}
-			if s.enforceAppRegistry {
-				if err := s.validateAppRegistry(ctx, app); err != nil {
-					logger.WithContext(ctx).WithError(err).Warn("app registry validation failed")
-					return nil
-				}
-			}
-		} else {
+		case app == nil:
 			return nil
 		}
 	}
 
-	_ = s.storeContractEvent(ctx, event, &parsed.AppID, buildPaymentReceivedState(parsed))
+	if storeErr := s.storeContractEvent(ctx, event, &parsed.AppID, buildPaymentReceivedState(parsed)); storeErr != nil {
+		s.Logger().WithError(storeErr).Warn("failed to store payment event")
+	}
 
 	s.trackMiniAppTx(ctx, parsed.AppID, parsed.SenderAddress, event)
 

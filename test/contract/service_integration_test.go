@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	neoaccounts "github.com/R3E-Network/service_layer/infrastructure/accountpool/marble"
-	"github.com/R3E-Network/service_layer/infrastructure/marble"
-	neocompute "github.com/R3E-Network/service_layer/services/confcompute/marble"
+	neoaccounts "github.com/R3E-Network/neo-miniapps-platform/infrastructure/accountpool/marble"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/marble"
+	neocompute "github.com/R3E-Network/neo-miniapps-platform/services/confcompute/marble"
 )
 
 // TestServiceContractIntegration tests the integration between services and contracts.

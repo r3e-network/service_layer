@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/database"
-	"github.com/R3E-Network/service_layer/infrastructure/logging"
-	"github.com/R3E-Network/service_layer/infrastructure/marble"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/logging"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/marble"
 )
 
 const healthCheckTimeout = 5 * time.Second

@@ -12,9 +12,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/R3E-Network/service_layer/infrastructure/logging"
-	"github.com/R3E-Network/service_layer/infrastructure/runtime"
-	"github.com/R3E-Network/service_layer/infrastructure/serviceauth"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/logging"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/serviceauth"
 )
 
 // ErrorResponse represents a standard error response.

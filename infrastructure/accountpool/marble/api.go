@@ -4,7 +4,7 @@ package neoaccounts
 import (
 	"net/http"
 
-	"github.com/R3E-Network/service_layer/infrastructure/middleware"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/middleware"
 )
 
 // =============================================================================

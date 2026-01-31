@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/httputil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/httputil"
 )
 
 const defaultRequestTimeout = 30 * time.Second
@@ -39,7 +39,7 @@ func (m *TimeoutMiddleware) Handler(next http.Handler) http.Handler {
 
 		// Create a channel to signal completion
 		done := make(chan struct{})
-		
+
 		// Wrap the response writer to detect if headers have been written
 		tw := &timeoutResponseWriter{
 			ResponseWriter: w,

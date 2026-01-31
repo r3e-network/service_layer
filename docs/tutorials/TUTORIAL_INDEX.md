@@ -93,7 +93,7 @@ After completing the tutorials, explore the full production examples:
 
 Found a bug or have questions?
 
-- **GitHub Issues:** [Submit an issue](https://github.com/R3E-Network/service_layer/issues)
+- **GitHub Issues:** [Submit an issue](https://github.com/R3E-Network/neo-miniapps-platform/issues)
 - **Discord:** [Join our community](https://discord.gg/)
 - **Email:** support@example.com
 

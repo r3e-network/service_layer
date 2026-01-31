@@ -1,8 +1,14 @@
 package database
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
+)
 
 func TestNewClient_AllowsHTTPInNonStrictMode(t *testing.T) {
+	runtime.ResetEnvCache()
+	runtime.ResetStrictIdentityModeCache()
 	t.Setenv("MARBLE_ENV", "development")
 	t.Setenv("OE_SIMULATION", "1")
 	t.Setenv("MARBLE_CERT", "")
@@ -19,6 +25,8 @@ func TestNewClient_AllowsHTTPInNonStrictMode(t *testing.T) {
 }
 
 func TestNewClient_StrictModeRejectsNonHTTPS(t *testing.T) {
+	runtime.ResetEnvCache()
+	runtime.ResetStrictIdentityModeCache()
 	t.Setenv("MARBLE_ENV", "production")
 	t.Setenv("OE_SIMULATION", "1")
 	t.Setenv("MARBLE_CERT", "")
@@ -35,6 +43,8 @@ func TestNewClient_StrictModeRejectsNonHTTPS(t *testing.T) {
 }
 
 func TestNewClient_StrictModeRejectsUserInfo(t *testing.T) {
+	runtime.ResetEnvCache()
+	runtime.ResetStrictIdentityModeCache()
 	t.Setenv("MARBLE_ENV", "production")
 	t.Setenv("OE_SIMULATION", "1")
 	t.Setenv("MARBLE_CERT", "")

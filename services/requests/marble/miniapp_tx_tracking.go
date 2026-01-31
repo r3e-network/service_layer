@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
-	"github.com/R3E-Network/service_layer/infrastructure/crypto"
-	"github.com/R3E-Network/service_layer/infrastructure/database"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/crypto"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
 )
 
 func (s *Service) trackMiniAppTx(ctx context.Context, appID, sender string, event *chain.ContractEvent) {

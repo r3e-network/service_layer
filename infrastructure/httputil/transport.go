@@ -3,6 +3,7 @@ package httputil
 import (
 	"crypto/tls"
 	"net/http"
+	"time"
 )
 
 // SecureCipherSuites returns the list of secure TLS 1.2 cipher suites.
@@ -48,6 +49,33 @@ func DefaultTransportWithMinTLS12() http.RoundTripper {
 
 	cloned := base.Clone()
 	cloned.TLSClientConfig = SecureTLSConfig()
+	// Connection pool management for resilience
+	cloned.MaxIdleConns = 100
+	cloned.MaxIdleConnsPerHost = 10
+	cloned.IdleConnTimeout = 90 * time.Second
+	cloned.MaxConnsPerHost = 100
+
+	return cloned
+}
+
+// DefaultTransportWithPool returns an HTTP transport with optimized connection pool settings.
+// Use this for high-throughput services that make many concurrent requests.
+func DefaultTransportWithPool(maxIdleConns, maxIdlePerHost, maxConnsPerHost int, idleTimeout time.Duration) http.RoundTripper {
+	base, ok := http.DefaultTransport.(*http.Transport)
+	if !ok {
+		base = &http.Transport{
+			MaxIdleConns:    maxIdleConns,
+			MaxConnsPerHost: maxConnsPerHost,
+			IdleConnTimeout: idleTimeout,
+		}
+		return base
+	}
+
+	cloned := base.Clone()
+	cloned.MaxIdleConns = maxIdleConns
+	cloned.MaxIdleConnsPerHost = maxIdlePerHost
+	cloned.MaxConnsPerHost = maxConnsPerHost
+	cloned.IdleConnTimeout = idleTimeout
 
 	return cloned
 }

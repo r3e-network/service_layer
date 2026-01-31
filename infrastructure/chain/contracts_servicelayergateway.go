@@ -12,13 +12,13 @@ import (
 // ServiceLayerGatewayContract is a minimal wrapper for the ServiceLayerGateway contract.
 // It coordinates on-chain service requests and callbacks to MiniApp contracts.
 type ServiceLayerGatewayContract struct {
-	client *Client
+	client  *Client
 	address string
 }
 
 func NewServiceLayerGatewayContract(client *Client, contractAddress string) *ServiceLayerGatewayContract {
 	return &ServiceLayerGatewayContract{
-		client: client,
+		client:  client,
 		address: contractAddress,
 	}
 }

@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/R3E-Network/service_layer/deploy/testnet"
+	"github.com/R3E-Network/neo-miniapps-platform/deploy/testnet"
 )
 
 var newMiniApps = []string{

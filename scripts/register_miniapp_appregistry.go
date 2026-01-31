@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/database"
-	neorequestsupabase "github.com/R3E-Network/service_layer/services/requests/supabase"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
+	neorequestsupabase "github.com/R3E-Network/neo-miniapps-platform/services/requests/supabase"
 	"github.com/nspcc-dev/neo-go/pkg/crypto/keys"
 	"github.com/nspcc-dev/neo-go/pkg/encoding/address"
 	"github.com/nspcc-dev/neo-go/pkg/rpcclient"

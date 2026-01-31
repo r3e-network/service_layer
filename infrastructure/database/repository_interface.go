@@ -43,6 +43,9 @@ type GasBankRepository interface {
 	// DeductFeeAtomic atomically deducts a fee from a user's balance and records the transaction.
 	// This ensures balance update and transaction record are committed together.
 	DeductFeeAtomic(ctx context.Context, userID string, amount int64, tx *GasBankTransaction) (newBalance int64, err error)
+	// ConfirmDepositAtomic atomically credits a deposit to user's balance and records the transaction.
+	// Uses optimistic locking to ensure atomicity - returns error if concurrent modification detected.
+	ConfirmDepositAtomic(ctx context.Context, userID string, depositAmount int64, tx *GasBankTransaction) (newBalance int64, err error)
 	CreateDepositRequest(ctx context.Context, deposit *DepositRequest) error
 	GetDepositRequests(ctx context.Context, userID string, limit int) ([]DepositRequest, error)
 	GetDepositByTxHash(ctx context.Context, txHash string) (*DepositRequest, error)

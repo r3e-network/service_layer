@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/httputil"
-	"github.com/R3E-Network/service_layer/infrastructure/marble"
-	"github.com/R3E-Network/service_layer/infrastructure/runtime"
-	"github.com/R3E-Network/service_layer/infrastructure/secrets"
-	commonservice "github.com/R3E-Network/service_layer/infrastructure/service"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/httputil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/marble"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/secrets"
+	commonservice "github.com/R3E-Network/neo-miniapps-platform/infrastructure/service"
 )
 
 const (

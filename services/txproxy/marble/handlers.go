@@ -6,7 +6,7 @@ import (
 
 	"github.com/nspcc-dev/neo-go/pkg/core/transaction"
 
-	"github.com/R3E-Network/service_layer/infrastructure/httputil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/httputil"
 )
 
 func (s *Service) handleInvoke(w http.ResponseWriter, r *http.Request) {

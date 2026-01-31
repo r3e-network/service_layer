@@ -4,7 +4,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/R3E-Network/service_layer/infrastructure/httputil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/httputil"
 )
 
 const defaultMaxRequestBodyBytes int64 = 8 << 20 // 8MiB

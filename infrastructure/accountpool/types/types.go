@@ -137,10 +137,10 @@ type ListAccountsResponse struct {
 
 // TransferInput transfers tokens from a pool account.
 type TransferInput struct {
-	ServiceID string `json:"service_id"`
-	AccountID string `json:"account_id"`
-	ToAddress string `json:"to_address"`
-	Amount    int64  `json:"amount"`
+	ServiceID    string `json:"service_id"`
+	AccountID    string `json:"account_id"`
+	ToAddress    string `json:"to_address"`
+	Amount       int64  `json:"amount"`
 	TokenAddress string `json:"token_address,omitempty"` // NEP-17 contract address (defaults to GAS)
 }
 
@@ -199,52 +199,52 @@ type ContractParam struct {
 type DeployContractInput struct {
 	ServiceID    string `json:"service_id"`
 	AccountID    string `json:"account_id"`
-	NEFBase64    string `json:"nef_base64"`      // Base64-encoded NEF file
-	ManifestJSON string `json:"manifest_json"`   // JSON manifest string
-	Data         any    `json:"data,omitempty"`  // Optional deployment data
+	NEFBase64    string `json:"nef_base64"`     // Base64-encoded NEF file
+	ManifestJSON string `json:"manifest_json"`  // JSON manifest string
+	Data         any    `json:"data,omitempty"` // Optional deployment data
 }
 
 // DeployContractResponse returns the deployment result.
 type DeployContractResponse struct {
-	TxHash       string `json:"tx_hash"`
+	TxHash          string `json:"tx_hash"`
 	ContractAddress string `json:"contract_address"`
-	GasConsumed  string `json:"gas_consumed"`
-	AccountID    string `json:"account_id"`
+	GasConsumed     string `json:"gas_consumed"`
+	AccountID       string `json:"account_id"`
 }
 
 // UpdateContractInput updates an existing contract using a pool account.
 type UpdateContractInput struct {
-	ServiceID    string `json:"service_id"`
-	AccountID    string `json:"account_id"`
+	ServiceID       string `json:"service_id"`
+	AccountID       string `json:"account_id"`
 	ContractAddress string `json:"contract_address"` // Existing contract address to update
-	NEFBase64    string `json:"nef_base64"`      // Base64-encoded NEF file
-	ManifestJSON string `json:"manifest_json"`   // JSON manifest string
-	Data         any    `json:"data,omitempty"`  // Optional update data
+	NEFBase64       string `json:"nef_base64"`       // Base64-encoded NEF file
+	ManifestJSON    string `json:"manifest_json"`    // JSON manifest string
+	Data            any    `json:"data,omitempty"`   // Optional update data
 }
 
 // UpdateContractResponse returns the update result.
 type UpdateContractResponse struct {
-	TxHash       string `json:"tx_hash"`
+	TxHash          string `json:"tx_hash"`
 	ContractAddress string `json:"contract_address"`
-	GasConsumed  string `json:"gas_consumed"`
-	AccountID    string `json:"account_id"`
+	GasConsumed     string `json:"gas_consumed"`
+	AccountID       string `json:"account_id"`
 }
 
 // InvokeContractInput invokes a contract method using a pool account.
 // All signing happens inside TEE - private keys never leave the enclave.
 type InvokeContractInput struct {
-	ServiceID    string          `json:"service_id"`
-	AccountID    string          `json:"account_id"`
-	ContractAddress string       `json:"contract_address"` // Contract to invoke
-	Method       string          `json:"method"`        // Method name
-	Params       []ContractParam `json:"params"`        // Method parameters
-	Scope        string          `json:"scope,omitempty"` // Transaction scope: "CalledByEntry" (default), "Global", "CustomContracts", "CustomGroups"
+	ServiceID       string          `json:"service_id"`
+	AccountID       string          `json:"account_id"`
+	ContractAddress string          `json:"contract_address"` // Contract to invoke
+	Method          string          `json:"method"`           // Method name
+	Params          []ContractParam `json:"params"`           // Method parameters
+	Scope           string          `json:"scope,omitempty"`  // Transaction scope: "CalledByEntry" (default), "Global", "CustomContracts", "CustomGroups"
 }
 
 // InvokeContractResponse returns the invocation result.
 type InvokeContractResponse struct {
 	TxHash      string `json:"tx_hash"`
-	State       string `json:"state"`       // HALT or FAULT
+	State       string `json:"state"` // HALT or FAULT
 	GasConsumed string `json:"gas_consumed"`
 	Exception   string `json:"exception,omitempty"`
 	AccountID   string `json:"account_id"`
@@ -252,16 +252,16 @@ type InvokeContractResponse struct {
 
 // SimulateContractInput simulates a contract invocation without signing.
 type SimulateContractInput struct {
-	ServiceID    string          `json:"service_id"`
-	AccountID    string          `json:"account_id"`    // Account to use as signer
-	ContractAddress string       `json:"contract_address"` // Contract to invoke
-	Method       string          `json:"method"`        // Method name
-	Params       []ContractParam `json:"params"`        // Method parameters
+	ServiceID       string          `json:"service_id"`
+	AccountID       string          `json:"account_id"`       // Account to use as signer
+	ContractAddress string          `json:"contract_address"` // Contract to invoke
+	Method          string          `json:"method"`           // Method name
+	Params          []ContractParam `json:"params"`           // Method parameters
 }
 
 // SimulateContractResponse returns the simulation result.
 type SimulateContractResponse struct {
-	State       string `json:"state"`       // HALT or FAULT
+	State       string `json:"state"` // HALT or FAULT
 	GasConsumed string `json:"gas_consumed"`
 	Exception   string `json:"exception,omitempty"`
 	Stack       []any  `json:"stack,omitempty"` // Return values
@@ -270,8 +270,8 @@ type SimulateContractResponse struct {
 // FundAccountInput funds a pool account from the master wallet (TEE_PRIVATE_KEY).
 // This is used to provide GAS to pool accounts for transaction fees.
 type FundAccountInput struct {
-	ToAddress string `json:"to_address"`          // Pool account address to fund
-	Amount    int64  `json:"amount"`              // Amount in smallest units (8 decimals for GAS)
+	ToAddress    string `json:"to_address"`              // Pool account address to fund
+	Amount       int64  `json:"amount"`                  // Amount in smallest units (8 decimals for GAS)
 	TokenAddress string `json:"token_address,omitempty"` // NEP-17 contract address (defaults to GAS)
 }
 
@@ -287,10 +287,10 @@ type FundAccountResponse struct {
 // This is used for TEE operations like PriceFeed and RandomnessLog that require
 // the caller to be a registered TEE signer in AppRegistry.
 type InvokeMasterInput struct {
-	ContractAddress string       `json:"contract_address"` // Contract to invoke
-	Method       string          `json:"method"`        // Method name
-	Params       []ContractParam `json:"params"`        // Method parameters
-	Scope        string          `json:"scope,omitempty"` // Transaction scope: "CalledByEntry" (default), "Global"
+	ContractAddress string          `json:"contract_address"` // Contract to invoke
+	Method          string          `json:"method"`           // Method name
+	Params          []ContractParam `json:"params"`           // Method parameters
+	Scope           string          `json:"scope,omitempty"`  // Transaction scope: "CalledByEntry" (default), "Global"
 }
 
 // DeployMasterInput deploys a new contract using the master wallet (TEE_PRIVATE_KEY).
@@ -303,8 +303,8 @@ type DeployMasterInput struct {
 
 // DeployMasterResponse returns the deployment result using master wallet.
 type DeployMasterResponse struct {
-	TxHash       string `json:"tx_hash"`
+	TxHash          string `json:"tx_hash"`
 	ContractAddress string `json:"contract_address"`
-	GasConsumed  string `json:"gas_consumed"`
-	AccountID    string `json:"account_id"` // Always "master"
+	GasConsumed     string `json:"gas_consumed"`
+	AccountID       string `json:"account_id"` // Always "master"
 }

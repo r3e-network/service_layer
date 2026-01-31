@@ -19,39 +19,39 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
-	chaincfg "github.com/R3E-Network/service_layer/infrastructure/chains"
-	"github.com/R3E-Network/service_layer/infrastructure/config"
-	"github.com/R3E-Network/service_layer/infrastructure/database"
-	gasbankclient "github.com/R3E-Network/service_layer/infrastructure/gasbank/client"
-	slhex "github.com/R3E-Network/service_layer/infrastructure/hex"
-	sllogging "github.com/R3E-Network/service_layer/infrastructure/logging"
-	"github.com/R3E-Network/service_layer/infrastructure/marble"
-	slmetrics "github.com/R3E-Network/service_layer/infrastructure/metrics"
-	slmiddleware "github.com/R3E-Network/service_layer/infrastructure/middleware"
-	"github.com/R3E-Network/service_layer/infrastructure/runtime"
-	"github.com/R3E-Network/service_layer/infrastructure/secrets"
-	secretssupabase "github.com/R3E-Network/service_layer/infrastructure/secrets/supabase"
-	txproxyclient "github.com/R3E-Network/service_layer/infrastructure/txproxy/client"
-	txproxytypes "github.com/R3E-Network/service_layer/infrastructure/txproxy/types"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
+	chaincfg "github.com/R3E-Network/neo-miniapps-platform/infrastructure/chains"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/config"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
+	gasbankclient "github.com/R3E-Network/neo-miniapps-platform/infrastructure/gasbank/client"
+	slhex "github.com/R3E-Network/neo-miniapps-platform/infrastructure/hex"
+	sllogging "github.com/R3E-Network/neo-miniapps-platform/infrastructure/logging"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/marble"
+	slmetrics "github.com/R3E-Network/neo-miniapps-platform/infrastructure/metrics"
+	slmiddleware "github.com/R3E-Network/neo-miniapps-platform/infrastructure/middleware"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/secrets"
+	secretssupabase "github.com/R3E-Network/neo-miniapps-platform/infrastructure/secrets/supabase"
+	txproxyclient "github.com/R3E-Network/neo-miniapps-platform/infrastructure/txproxy/client"
+	txproxytypes "github.com/R3E-Network/neo-miniapps-platform/infrastructure/txproxy/types"
 
 	// Neo service imports
-	neoaccounts "github.com/R3E-Network/service_layer/infrastructure/accountpool/marble"
-	neoaccountssupabase "github.com/R3E-Network/service_layer/infrastructure/accountpool/supabase"
-	gsclient "github.com/R3E-Network/service_layer/infrastructure/globalsigner/client"
-	globalsigner "github.com/R3E-Network/service_layer/infrastructure/globalsigner/marble"
-	globalsignersupabase "github.com/R3E-Network/service_layer/infrastructure/globalsigner/supabase"
-	neoflow "github.com/R3E-Network/service_layer/services/automation/marble"
-	neoflowsupabase "github.com/R3E-Network/service_layer/services/automation/supabase"
-	neocompute "github.com/R3E-Network/service_layer/services/confcompute/marble"
-	neooracle "github.com/R3E-Network/service_layer/services/conforacle/marble"
-	neofeeds "github.com/R3E-Network/service_layer/services/datafeed/marble"
-	neogasbank "github.com/R3E-Network/service_layer/services/gasbank/marble"
-	neorequests "github.com/R3E-Network/service_layer/services/requests/marble"
-	neorequestsupabase "github.com/R3E-Network/service_layer/services/requests/supabase"
-	neosimulation "github.com/R3E-Network/service_layer/services/simulation/marble"
-	txproxy "github.com/R3E-Network/service_layer/services/txproxy/marble"
-	neovrf "github.com/R3E-Network/service_layer/services/vrf/marble"
+	neoaccounts "github.com/R3E-Network/neo-miniapps-platform/infrastructure/accountpool/marble"
+	neoaccountssupabase "github.com/R3E-Network/neo-miniapps-platform/infrastructure/accountpool/supabase"
+	gsclient "github.com/R3E-Network/neo-miniapps-platform/infrastructure/globalsigner/client"
+	globalsigner "github.com/R3E-Network/neo-miniapps-platform/infrastructure/globalsigner/marble"
+	globalsignersupabase "github.com/R3E-Network/neo-miniapps-platform/infrastructure/globalsigner/supabase"
+	neoflow "github.com/R3E-Network/neo-miniapps-platform/services/automation/marble"
+	neoflowsupabase "github.com/R3E-Network/neo-miniapps-platform/services/automation/supabase"
+	neocompute "github.com/R3E-Network/neo-miniapps-platform/services/confcompute/marble"
+	neooracle "github.com/R3E-Network/neo-miniapps-platform/services/conforacle/marble"
+	neofeeds "github.com/R3E-Network/neo-miniapps-platform/services/datafeed/marble"
+	neogasbank "github.com/R3E-Network/neo-miniapps-platform/services/gasbank/marble"
+	neorequests "github.com/R3E-Network/neo-miniapps-platform/services/requests/marble"
+	neorequestsupabase "github.com/R3E-Network/neo-miniapps-platform/services/requests/supabase"
+	neosimulation "github.com/R3E-Network/neo-miniapps-platform/services/simulation/marble"
+	txproxy "github.com/R3E-Network/neo-miniapps-platform/services/txproxy/marble"
+	neovrf "github.com/R3E-Network/neo-miniapps-platform/services/vrf/marble"
 )
 
 // ServiceRunner interface for all Neo services
@@ -316,9 +316,9 @@ func main() {
 				log.Printf("Warning: invalid NEO_EVENT_START_BLOCK %q: %v", raw, parseErr)
 			}
 		} else if serviceType == "neorequests" && neorequestsRepo != nil && chainID != "" {
-			latest, ok, err := neorequestsRepo.LatestProcessedBlock(ctx, chainID)
-			if err != nil {
-				log.Printf("Warning: failed to read processed event cursor: %v", err)
+			latest, ok, blockErr := neorequestsRepo.LatestProcessedBlock(ctx, chainID)
+			if blockErr != nil {
+				log.Printf("Warning: failed to read processed event cursor: %v", blockErr)
 			} else if ok {
 				startBlock = latest
 				startBlockSet = true
@@ -327,7 +327,6 @@ func main() {
 		if !startBlockSet {
 			if height, heightErr := chainClient.GetBlockCount(ctx); heightErr == nil && height > 0 {
 				startBlock = height - 1
-				startBlockSet = true
 			}
 		}
 
@@ -479,29 +478,29 @@ func main() {
 	case "neofeeds":
 		var feedsSvc *neofeeds.Service
 		feedsSvc, err = neofeeds.New(neofeeds.Config{
-			Marble:          m,
-			DB:              db,
-			ArbitrumRPC:     arbitrumRPC,
-			ChainClient:     chainClient,
+			Marble:           m,
+			DB:               db,
+			ArbitrumRPC:      arbitrumRPC,
+			ChainClient:      chainClient,
 			PriceFeedAddress: priceFeedAddress,
-			TxProxy:         txProxyInvoker,
-			EnableChainPush: enableChainPush,
-			GasBank:         gasbankClient,
+			TxProxy:          txProxyInvoker,
+			EnableChainPush:  enableChainPush,
+			GasBank:          gasbankClient,
 		})
 		svc = feedsSvc
 	case "neoflow":
 		var flowSvc *neoflow.Service
 		flowSvc, err = neoflow.New(neoflow.Config{
-			Marble:               m,
-			DB:                   db,
-			NeoFlowRepo:          neoflowRepo,
-			ChainClient:          chainClient,
+			Marble:                  m,
+			DB:                      db,
+			NeoFlowRepo:             neoflowRepo,
+			ChainClient:             chainClient,
 			PriceFeedAddress:        priceFeedAddress,
 			AutomationAnchorAddress: automationAnchorAddress,
-			TxProxy:              txProxyInvoker,
-			EventListener:        eventListener,
-			EnableChainExec:      enableChainExec,
-			GasBank:              gasbankClient,
+			TxProxy:                 txProxyInvoker,
+			EventListener:           eventListener,
+			EnableChainExec:         enableChainExec,
+			GasBank:                 gasbankClient,
 		})
 		svc = flowSvc
 	case "neooracle":
@@ -541,20 +540,20 @@ func main() {
 		})
 	case "neorequests":
 		svc, err = neorequests.New(neorequests.Config{
-			Marble:             m,
-			DB:                 db,
-			RequestsRepo:       neorequestsRepo,
-			EventListener:      eventListener,
-			TxProxy:            txProxyInvoker,
-			ChainClient:        chainClient,
+			Marble:                m,
+			DB:                    db,
+			RequestsRepo:          neorequestsRepo,
+			EventListener:         eventListener,
+			TxProxy:               txProxyInvoker,
+			ChainClient:           chainClient,
 			ServiceGatewayAddress: serviceGatewayAddress,
 			AppRegistryAddress:    appRegistryAddress,
 			PaymentHubAddress:     paymentHubAddress,
-			NeoVRFURL:          neovrfURL,
-			NeoOracleURL:       neooracleURL,
-			NeoComputeURL:      neocomputeURL,
-			HTTPClient:         m.HTTPClient(),
-			ChainID:            chainID,
+			NeoVRFURL:             neovrfURL,
+			NeoOracleURL:          neooracleURL,
+			NeoComputeURL:         neocomputeURL,
+			HTTPClient:            m.HTTPClient(),
+			ChainID:               chainID,
 		})
 	case "neovrf":
 		svc, err = neovrf.New(neovrf.Config{
@@ -677,7 +676,7 @@ func loadTEEPrivateKey(m *marble.Marble) string {
 		if secret, ok := m.Secret("TEE_PRIVATE_KEY"); ok && len(secret) > 0 {
 			// Check if it's already hex-encoded string or raw bytes
 			secretStr := strings.TrimSpace(string(secret))
-			if len(secretStr) > 0 && (secretStr[0] == 'K' || secretStr[0] == 'L' || secretStr[0] == '5') {
+			if secretStr != "" && (secretStr[0] == 'K' || secretStr[0] == 'L' || secretStr[0] == '5') {
 				// WIF format - return as-is
 				return secretStr
 			}
@@ -690,7 +689,7 @@ func loadTEEPrivateKey(m *marble.Marble) string {
 		}
 		if secret, ok := m.Secret("TEE_WALLET_PRIVATE_KEY"); ok && len(secret) > 0 {
 			secretStr := strings.TrimSpace(string(secret))
-			if len(secretStr) > 0 && (secretStr[0] == 'K' || secretStr[0] == 'L' || secretStr[0] == '5') {
+			if secretStr != "" && (secretStr[0] == 'K' || secretStr[0] == 'L' || secretStr[0] == '5') {
 				return secretStr
 			}
 			if len(secretStr) == 64 || len(secretStr) == 66 {

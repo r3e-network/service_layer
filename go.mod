@@ -1,4 +1,4 @@
-module github.com/R3E-Network/service_layer
+module github.com/R3E-Network/neo-miniapps-platform
 
 go 1.24.9
 

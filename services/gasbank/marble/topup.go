@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	neoaccountsclient "github.com/R3E-Network/service_layer/infrastructure/accountpool/client"
-	"github.com/R3E-Network/service_layer/infrastructure/runtime"
+	neoaccountsclient "github.com/R3E-Network/neo-miniapps-platform/infrastructure/accountpool/client"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
 )
 
 const (

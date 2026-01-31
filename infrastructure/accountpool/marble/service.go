@@ -20,13 +20,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/nspcc-dev/neo-go/pkg/crypto/keys"
 
-	neoaccountssupabase "github.com/R3E-Network/service_layer/infrastructure/accountpool/supabase"
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
-	"github.com/R3E-Network/service_layer/infrastructure/crypto"
-	"github.com/R3E-Network/service_layer/infrastructure/database"
-	"github.com/R3E-Network/service_layer/infrastructure/marble"
-	"github.com/R3E-Network/service_layer/infrastructure/runtime"
-	commonservice "github.com/R3E-Network/service_layer/infrastructure/service"
+	neoaccountssupabase "github.com/R3E-Network/neo-miniapps-platform/infrastructure/accountpool/supabase"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/crypto"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/marble"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
+	commonservice "github.com/R3E-Network/neo-miniapps-platform/infrastructure/service"
 )
 
 const (
@@ -37,9 +37,9 @@ const (
 	// Pool configuration
 	MinPoolAccounts = 1000
 	MaxPoolAccounts = 50000
-	BatchCreateSize = 100  // Number of accounts to create in each batch
-	RotationRate    = 0.1  // 10% of accounts rotated per day
-	RotationMinAge  = 24   // Minimum age in hours before rotation
+	BatchCreateSize = 100 // Number of accounts to create in each batch
+	RotationRate    = 0.1 // 10% of accounts rotated per day
+	RotationMinAge  = 24  // Minimum age in hours before rotation
 
 	// Lock timeout - accounts locked longer than this can be force-released
 	LockTimeout = 24 * time.Hour
@@ -327,16 +327,6 @@ func (s *Service) getPrivateKey(accountID string) (*ecdsa.PrivateKey, error) {
 	}
 
 	return &neoPrivKey.PrivateKey, nil
-}
-
-// getPrivateKeyHex derives and returns the private key hex string for an account.
-// This is used for creating neo-go wallet accounts for signing.
-func (s *Service) getPrivateKeyHex(accountID string) (string, error) {
-	derivedKey, err := s.deriveAccountKey(accountID)
-	if err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(derivedKey), nil
 }
 
 // decryptWIFToPrivateKey decrypts an encrypted WIF and returns the private key.

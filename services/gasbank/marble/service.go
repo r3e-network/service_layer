@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"math/big"
 	"os"
 	"strings"
@@ -19,12 +20,12 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
-	"github.com/R3E-Network/service_layer/infrastructure/crypto"
-	"github.com/R3E-Network/service_layer/infrastructure/database"
-	"github.com/R3E-Network/service_layer/infrastructure/marble"
-	"github.com/R3E-Network/service_layer/infrastructure/runtime"
-	commonservice "github.com/R3E-Network/service_layer/infrastructure/service"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/crypto"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/marble"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
+	commonservice "github.com/R3E-Network/neo-miniapps-platform/infrastructure/service"
 )
 
 const (
@@ -34,12 +35,12 @@ const (
 
 	// Deposit verification settings
 	// SECURITY FIX [M-03]: Dynamic confirmation requirements based on amount
-	MinRequiredConfirmations = 1   // For small amounts (< 100 GAS)
-	MedRequiredConfirmations = 3   // For medium amounts (100-1000 GAS)
-	MaxRequiredConfirmations = 6   // For large amounts (> 1000 GAS)
+	MinRequiredConfirmations = 1             // For small amounts (< 100 GAS)
+	MedRequiredConfirmations = 3             // For medium amounts (100-1000 GAS)
+	MaxRequiredConfirmations = 6             // For large amounts (> 1000 GAS)
 	MediumAmountThreshold    = 100_00000000  // 100 GAS in smallest unit
 	LargeAmountThreshold     = 1000_00000000 // 1000 GAS in smallest unit
-	
+
 	DepositCheckInterval     = 15 * time.Second
 	DepositExpirationTime    = 24 * time.Hour
 	MaxPendingDepositsPerRun = 100
@@ -60,6 +61,22 @@ func getRequiredConfirmations(amount int64) int {
 }
 
 var errDepositMismatch = errors.New("deposit transaction does not match request")
+
+type DepositMismatchError struct {
+	FromAddress    string
+	ToAddress      string
+	ExpectedAmount int64
+	ActualAmount   int64
+}
+
+func (e *DepositMismatchError) Error() string {
+	return fmt.Sprintf("deposit transaction does not match request: from=%s, to=%s, expected=%d, actual=%d",
+		e.FromAddress, e.ToAddress, e.ExpectedAmount, e.ActualAmount)
+}
+
+func (e *DepositMismatchError) Unwrap() error {
+	return errDepositMismatch
+}
 
 // Service implements the NeoGasBank service.
 type Service struct {
@@ -82,7 +99,11 @@ type Service struct {
 // consistency for operations on the same user.
 func (s *Service) getUserLock(userID string) *sync.Mutex {
 	lock, _ := s.userLocks.LoadOrStore(userID, &sync.Mutex{})
-	return lock.(*sync.Mutex)
+	mutex, ok := lock.(*sync.Mutex)
+	if !ok {
+		return nil
+	}
+	return mutex
 }
 
 // Config holds NeoGasBank service configuration.
@@ -165,7 +186,7 @@ func New(cfg Config) (*Service, error) {
 // statistics returns runtime statistics for the /info endpoint.
 func (s *Service) statistics() map[string]any {
 	return map[string]any{
-		"deposit_check_interval":     DepositCheckInterval.String(),
+		"deposit_check_interval": DepositCheckInterval.String(),
 		// SECURITY FIX [M-03]: Show dynamic confirmation requirements
 		"min_required_confirmations": MinRequiredConfirmations,
 		"med_required_confirmations": MedRequiredConfirmations,
@@ -355,7 +376,9 @@ func (s *Service) processDepositVerification(ctx context.Context) {
 	now := time.Now()
 	for _, deposit := range deposits {
 		if !deposit.ExpiresAt.IsZero() && now.After(deposit.ExpiresAt) {
-			_ = s.db.UpdateDepositStatus(ctx, deposit.ID, string(DepositStatusExpired), deposit.Confirmations)
+			if err := s.db.UpdateDepositStatus(ctx, deposit.ID, string(DepositStatusExpired), deposit.Confirmations); err != nil {
+				s.Logger().WithError(err).WithField("deposit_id", deposit.ID).Warn("failed to update expired deposit status")
+			}
 			continue
 		}
 
@@ -367,7 +390,9 @@ func (s *Service) processDepositVerification(ctx context.Context) {
 		confirmed, confirmations, err := s.verifyTransaction(ctx, deposit.TxHash, deposit.FromAddress, deposit.Amount)
 		if err != nil {
 			if errors.Is(err, errDepositMismatch) {
-				_ = s.db.UpdateDepositStatus(ctx, deposit.ID, string(DepositStatusFailed), confirmations)
+				if updateErr := s.db.UpdateDepositStatus(ctx, deposit.ID, string(DepositStatusFailed), confirmations); updateErr != nil {
+					s.Logger().WithError(updateErr).WithField("deposit_id", deposit.ID).Warn("failed to update failed deposit status")
+				}
 				continue
 			}
 			s.Logger().WithContext(ctx).WithError(err).WithField("tx_hash", deposit.TxHash).Debug("failed to verify transaction")
@@ -378,7 +403,9 @@ func (s *Service) processDepositVerification(ctx context.Context) {
 			s.confirmDeposit(ctx, &deposit)
 		} else if confirmations > 0 {
 			// Update confirmation count
-			_ = s.db.UpdateDepositStatus(ctx, deposit.ID, string(DepositStatusConfirming), confirmations)
+			if err := s.db.UpdateDepositStatus(ctx, deposit.ID, string(DepositStatusConfirming), confirmations); err != nil {
+				s.Logger().WithError(err).WithField("deposit_id", deposit.ID).Warn("failed to update confirming deposit status")
+			}
 		}
 	}
 }
@@ -392,7 +419,8 @@ func (s *Service) getPendingDeposits(ctx context.Context) ([]database.DepositReq
 }
 
 // verifyTransaction checks if a GAS transfer transaction is confirmed.
-func (s *Service) verifyTransaction(ctx context.Context, txHash, fromAddress string, expectedAmount int64) (bool, int, error) {
+// Returns: isConfirmed (bool), confirmations (int), error
+func (s *Service) verifyTransaction(ctx context.Context, txHash, fromAddress string, expectedAmount int64) (isConfirmed bool, confirmations int, err error) {
 	if s.chainClient == nil {
 		return false, 0, fmt.Errorf("chain client not configured")
 	}
@@ -412,17 +440,17 @@ func (s *Service) verifyTransaction(ctx context.Context, txHash, fromAddress str
 		return false, 0, fmt.Errorf("%w: transaction failed: %s", errDepositMismatch, exec.Exception)
 	}
 
-	match, err := s.matchGasTransfer(exec.Notifications, fromAddress, expectedAmount)
-	if err != nil {
-		return false, 0, err
-	}
-	if !match {
+	match, matchOK := s.matchGasTransfer(exec.Notifications, fromAddress, expectedAmount)
+	if !matchOK {
+		if match != nil {
+			return false, 0, match
+		}
 		return false, 0, errDepositMismatch
 	}
 
-	confirmations, err := s.getTransactionConfirmations(ctx, txHash)
-	if err != nil {
-		return false, 0, err
+	confirmations, callErr := s.getTransactionConfirmations(ctx, txHash)
+	if callErr != nil {
+		return false, 0, callErr
 	}
 
 	// SECURITY FIX [M-03]: Use dynamic confirmation requirements based on amount
@@ -430,16 +458,13 @@ func (s *Service) verifyTransaction(ctx context.Context, txHash, fromAddress str
 	return confirmations >= requiredConfirmations, confirmations, nil
 }
 
-func (s *Service) matchGasTransfer(notifications []chain.Notification, fromAddress string, expectedAmount int64) (bool, error) {
+func (s *Service) matchGasTransfer(notifications []chain.Notification, fromAddress string, expectedAmount int64) (*DepositMismatchError, bool) {
 	expected := big.NewInt(expectedAmount)
 	fromAddress = strings.TrimSpace(fromAddress)
 	depositAddress := strings.TrimSpace(s.depositAddress)
 
 	for _, notif := range notifications {
 		if !strings.EqualFold(notif.Contract, GASContractAddress) {
-			continue
-		}
-		if notif.EventName != "Transfer" {
 			continue
 		}
 
@@ -456,27 +481,55 @@ func (s *Service) matchGasTransfer(notifications []chain.Notification, fromAddre
 		if err != nil {
 			continue
 		}
+
 		amount, err := chain.ParseInteger(items[2])
 		if err != nil || amount == nil {
-			continue
-		}
-		if amount.Cmp(expected) != 0 {
 			continue
 		}
 
 		fromCandidate := addressFromScriptHash(fromBytes)
 		toCandidate := addressFromScriptHash(toBytes)
-		if fromAddress != "" && fromCandidate != fromAddress {
-			continue
-		}
-		if depositAddress != "" && toCandidate != depositAddress {
-			continue
+
+		if amount.Cmp(expected) != 0 {
+			return &DepositMismatchError{
+				FromAddress:    fromCandidate,
+				ToAddress:      toCandidate,
+				ExpectedAmount: expectedAmount,
+				ActualAmount:   amount.Int64(),
+			}, false
 		}
 
-		return true, nil
+		if fromAddress != "" && fromCandidate != fromAddress {
+			return &DepositMismatchError{
+				FromAddress:    fromCandidate,
+				ToAddress:      toCandidate,
+				ExpectedAmount: expectedAmount,
+				ActualAmount:   amount.Int64(),
+			}, false
+		}
+
+		if depositAddress != "" && toCandidate != depositAddress {
+			return &DepositMismatchError{
+				FromAddress:    fromCandidate,
+				ToAddress:      toCandidate,
+				ExpectedAmount: expectedAmount,
+				ActualAmount:   amount.Int64(),
+			}, false
+		}
+
+		if depositAddress == "" && toCandidate != "" {
+			s.Logger().WithField("to_address", toCandidate).Warn("deposit to unexpected address; deposit_address not configured")
+		}
+
+		return nil, true
 	}
 
-	return false, nil
+	return &DepositMismatchError{
+		FromAddress:    "",
+		ToAddress:      "",
+		ExpectedAmount: expectedAmount,
+		ActualAmount:   0,
+	}, false
 }
 
 func (s *Service) getTransactionConfirmations(ctx context.Context, txHash string) (int, error) {
@@ -493,8 +546,8 @@ func (s *Service) getTransactionConfirmations(ctx context.Context, txHash string
 		Confirmations int    `json:"confirmations"`
 		BlockHash     string `json:"blockhash"`
 	}
-	if err := json.Unmarshal(result, &meta); err != nil {
-		return 0, err
+	if unmarshalErr := json.Unmarshal(result, &meta); unmarshalErr != nil {
+		return 0, unmarshalErr
 	}
 	if meta.Confirmations > 0 {
 		return meta.Confirmations, nil
@@ -514,7 +567,11 @@ func (s *Service) getTransactionConfirmations(ctx context.Context, txHash string
 	if currentHeight <= block.Index {
 		return 0, nil
 	}
-	return int(currentHeight - block.Index), nil
+	diff := currentHeight - block.Index
+	if diff > math.MaxInt {
+		return math.MaxInt, nil
+	}
+	return int(diff), nil
 }
 
 func addressFromScriptHash(hash []byte) string {
@@ -525,17 +582,13 @@ func addressFromScriptHash(hash []byte) string {
 }
 
 // confirmDeposit marks a deposit as confirmed and credits the user's balance.
+// Uses atomic database operation to ensure consistency between balance update and transaction record.
 func (s *Service) confirmDeposit(ctx context.Context, deposit *database.DepositRequest) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// Credit user's balance
-	account, err := s.db.GetOrCreateGasBankAccount(ctx, deposit.UserID)
-	if err != nil {
-		s.Logger().WithContext(ctx).WithError(err).WithField("user_id", deposit.UserID).Warn("failed to get account for deposit credit")
-		return
-	}
-	if s.depositTransactionExists(ctx, account.ID, deposit.ID) {
+	// Check for idempotency - skip if already processed
+	if s.depositTransactionExists(ctx, deposit.UserID, deposit.ID) {
 		// SECURITY FIX [M-03]: Use dynamic confirmation requirements
 		requiredConf := getRequiredConfirmations(deposit.Amount)
 		if err := s.db.UpdateDepositStatus(ctx, deposit.ID, string(DepositStatusConfirmed), requiredConf); err != nil {
@@ -544,40 +597,38 @@ func (s *Service) confirmDeposit(ctx context.Context, deposit *database.DepositR
 		return
 	}
 
-	newBalance := account.Balance + deposit.Amount
-	if err := s.db.UpdateGasBankBalance(ctx, deposit.UserID, newBalance, account.Reserved); err != nil {
-		s.Logger().WithContext(ctx).WithError(err).WithField("user_id", deposit.UserID).Warn("failed to credit deposit")
+	// Prepare transaction record
+	tx := &database.GasBankTransaction{
+		ID:          uuid.New().String(),
+		TxType:      string(TxTypeDeposit),
+		Amount:      deposit.Amount,
+		ReferenceID: deposit.ID,
+		TxHash:      deposit.TxHash,
+		FromAddress: deposit.FromAddress,
+		Status:      "completed",
+		CreatedAt:   time.Now(),
+	}
+
+	// Use atomic operation to credit balance and record transaction
+	newBalance, err := s.db.ConfirmDepositAtomic(ctx, deposit.UserID, deposit.Amount, tx)
+	if err != nil {
+		s.Logger().WithContext(ctx).WithError(err).WithField("user_id", deposit.UserID).
+			WithField("deposit_id", deposit.ID).Warn("failed to confirm deposit atomically")
 		return
 	}
 
-	// Record transaction
-	tx := &database.GasBankTransaction{
-		ID:           uuid.New().String(),
-		AccountID:    account.ID,
-		TxType:       string(TxTypeDeposit),
-		Amount:       deposit.Amount,
-		BalanceAfter: newBalance,
-		ReferenceID:  deposit.ID,
-		TxHash:       deposit.TxHash,
-		FromAddress:  deposit.FromAddress,
-		Status:       "completed",
-		CreatedAt:    time.Now(),
-	}
-	if err := s.db.CreateGasBankTransaction(ctx, tx); err != nil {
-		s.Logger().WithContext(ctx).WithError(err).Warn("failed to record deposit transaction, rolling back balance")
-		if rollbackErr := s.db.UpdateGasBankBalance(ctx, deposit.UserID, account.Balance, account.Reserved); rollbackErr != nil {
-			s.Logger().WithContext(ctx).WithError(rollbackErr).Error("CRITICAL: rollback failed, balance inconsistent")
-		}
-		return
-	}
+	// Set account ID after atomic operation
+	tx.AccountID = deposit.UserID
 
 	// SECURITY FIX [M-03]: Use dynamic confirmation requirements
 	requiredConf := getRequiredConfirmations(deposit.Amount)
-	if err := s.db.UpdateDepositStatus(ctx, deposit.ID, string(DepositStatusConfirmed), requiredConf); err != nil {
-		s.Logger().WithContext(ctx).WithError(err).WithField("deposit_id", deposit.ID).Warn("failed to update deposit status")
+	if statusErr := s.db.UpdateDepositStatus(ctx, deposit.ID, string(DepositStatusConfirmed), requiredConf); statusErr != nil {
+		s.Logger().WithContext(ctx).WithError(statusErr).WithField("deposit_id", deposit.ID).Warn("failed to update deposit status")
 	}
 
-	s.Logger().WithContext(ctx).WithField("user_id", deposit.UserID).WithField("amount", deposit.Amount).Info("deposit confirmed and credited")
+	s.Logger().WithContext(ctx).WithField("user_id", deposit.UserID).
+		WithField("amount", deposit.Amount).
+		WithField("new_balance", newBalance).Info("deposit confirmed and credited atomically")
 }
 
 func (s *Service) depositTransactionExists(ctx context.Context, accountID, depositID string) bool {
@@ -620,6 +671,8 @@ func (s *Service) cleanupExpiredDeposits(ctx context.Context) {
 		if deposit.ExpiresAt.IsZero() || now.Before(deposit.ExpiresAt) {
 			continue
 		}
-		_ = s.db.UpdateDepositStatus(ctx, deposit.ID, string(DepositStatusExpired), deposit.Confirmations)
+		if err := s.db.UpdateDepositStatus(ctx, deposit.ID, string(DepositStatusExpired), deposit.Confirmations); err != nil {
+			s.Logger().WithError(err).WithField("deposit_id", deposit.ID).Warn("failed to update expired deposit status in cleanup")
+		}
 	}
 }

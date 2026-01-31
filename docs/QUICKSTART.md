@@ -329,6 +329,6 @@ Once approved, test your MiniApp:
 
 ## Need Help?
 
-- **Check existing issues**: [GitHub Issues](https://github.com/R3E-Network/service_layer/issues)
+- **Check existing issues**: [GitHub Issues](https://github.com/R3E-Network/neo-miniapps-platform/issues)
 - **Ask the community**: [Discord](https://discord.gg/...)
 - **Read the docs**: [docs/](../docs/)

@@ -1,6 +1,12 @@
 // Package neofeeds provides API routes for the price feed aggregation service.
 package neofeeds
 
+import (
+	"net/http"
+
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/middleware"
+)
+
 // =============================================================================
 // API Routes
 // =============================================================================
@@ -9,11 +15,19 @@ package neofeeds
 // Note: /health, /ready, and /info are registered by BaseService.RegisterStandardRoutes().
 func (s *Service) registerRoutes() {
 	router := s.Router()
-	// Accept both canonical symbols (e.g., BTC-USD) and legacy slash symbols (e.g., BTC/USD).
-	// Note: `{pair:.+}` is required so Gorilla mux matches slashes in the path segment.
-	router.HandleFunc("/price/{pair:.+}", s.handleGetPrice).Methods("GET")
-	router.HandleFunc("/prices", s.handleGetPrices).Methods("GET")
-	router.HandleFunc("/feeds", s.handleListFeeds).Methods("GET")
-	router.HandleFunc("/config", s.handleGetConfig).Methods("GET")
-	router.HandleFunc("/sources", s.handleListSources).Methods("GET")
+
+	// Create timeout and rate limiting middleware
+	timeoutMiddleware := middleware.NewTimeoutMiddleware(s.requestTimeout)
+
+	// Register routes with middleware
+	router.Handle("/price/{pair:.+}", timeoutMiddleware.Handler(
+		s.rateLimiter.Handler(http.HandlerFunc(s.handleGetPrice)))).Methods("GET")
+	router.Handle("/prices", timeoutMiddleware.Handler(
+		s.rateLimiter.Handler(http.HandlerFunc(s.handleGetPrices)))).Methods("GET")
+	router.Handle("/feeds", timeoutMiddleware.Handler(
+		s.rateLimiter.Handler(http.HandlerFunc(s.handleListFeeds)))).Methods("GET")
+	router.Handle("/config", timeoutMiddleware.Handler(
+		s.rateLimiter.Handler(http.HandlerFunc(s.handleGetConfig)))).Methods("GET")
+	router.Handle("/sources", timeoutMiddleware.Handler(
+		s.rateLimiter.Handler(http.HandlerFunc(s.handleListSources)))).Methods("GET")
 }

@@ -70,7 +70,9 @@ func (h *HealthChecker) Handler() http.HandlerFunc {
 		if status.Status != "healthy" {
 			w.WriteHeader(http.StatusServiceUnavailable)
 		}
-		json.NewEncoder(w).Encode(status)
+		if encodeErr := json.NewEncoder(w).Encode(status); encodeErr != nil {
+			// Error encoding is ignored - response may be partial
+		}
 	}
 }
 
@@ -78,9 +80,11 @@ func (h *HealthChecker) Handler() http.HandlerFunc {
 func LivenessHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
+		if encodeErr := json.NewEncoder(w).Encode(map[string]string{
 			"status": "alive",
-		})
+		}); encodeErr != nil {
+			// Error encoding is ignored - response may be partial
+		}
 	}
 }
 
@@ -89,14 +93,18 @@ func ReadinessHandler(ready *bool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		if ready != nil && *ready {
-			json.NewEncoder(w).Encode(map[string]string{
+			if encodeErr := json.NewEncoder(w).Encode(map[string]string{
 				"status": "ready",
-			})
+			}); encodeErr != nil {
+				// Error encoding is ignored - response may be partial
+			}
 		} else {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			json.NewEncoder(w).Encode(map[string]string{
+			if encodeErr := json.NewEncoder(w).Encode(map[string]string{
 				"status": "not_ready",
-			})
+			}); encodeErr != nil {
+				// Error encoding is ignored - response may be partial
+			}
 		}
 	}
 }
@@ -106,11 +114,11 @@ func RuntimeStats() map[string]interface{} {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
 	return map[string]interface{}{
-		"goroutines":   runtime.NumGoroutine(),
-		"alloc_mb":     m.Alloc / 1024 / 1024,
-		"sys_mb":       m.Sys / 1024 / 1024,
-		"num_gc":       m.NumGC,
-		"go_version":   runtime.Version(),
-		"num_cpu":      runtime.NumCPU(),
+		"goroutines": runtime.NumGoroutine(),
+		"alloc_mb":   m.Alloc / 1024 / 1024,
+		"sys_mb":     m.Sys / 1024 / 1024,
+		"num_gc":     m.NumGC,
+		"go_version": runtime.Version(),
+		"num_cpu":    runtime.NumCPU(),
 	}
 }

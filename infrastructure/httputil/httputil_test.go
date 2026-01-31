@@ -11,8 +11,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/R3E-Network/service_layer/infrastructure/logging"
-	"github.com/R3E-Network/service_layer/infrastructure/serviceauth"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/logging"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/serviceauth"
 )
 
 func TestGetUserID_ProductionRequiresContext(t *testing.T) {
@@ -62,6 +63,15 @@ func TestGetUserID_ProductionUsesAuthContext(t *testing.T) {
 
 func TestGetUserID_NonProductionAllowsHeaderFallback(t *testing.T) {
 	t.Setenv("MARBLE_ENV", "development")
+	t.Setenv("OE_SIMULATION", "1")
+	t.Setenv("MARBLE_CERT", "")
+	t.Setenv("MARBLE_KEY", "")
+	runtime.ResetEnvCache()
+	runtime.ResetStrictIdentityModeCache()
+	defer func() {
+		runtime.ResetEnvCache()
+		runtime.ResetStrictIdentityModeCache()
+	}()
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set(serviceauth.UserIDHeader, "user-789")
@@ -92,6 +102,15 @@ func TestGetUserID_StrictModeRequiresVerifiedMTLS(t *testing.T) {
 
 func TestGetServiceID_HeaderFallbackNonProduction(t *testing.T) {
 	t.Setenv("MARBLE_ENV", "development")
+	t.Setenv("OE_SIMULATION", "1")
+	t.Setenv("MARBLE_CERT", "")
+	t.Setenv("MARBLE_KEY", "")
+	runtime.ResetEnvCache()
+	runtime.ResetStrictIdentityModeCache()
+	defer func() {
+		runtime.ResetEnvCache()
+		runtime.ResetStrictIdentityModeCache()
+	}()
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set(serviceauth.ServiceIDHeader, "gateway")
@@ -343,6 +362,12 @@ func TestRequireAdminRole(t *testing.T) {
 	t.Setenv("OE_SIMULATION", "1")
 	t.Setenv("MARBLE_CERT", "")
 	t.Setenv("MARBLE_KEY", "")
+	runtime.ResetEnvCache()
+	runtime.ResetStrictIdentityModeCache()
+	defer func() {
+		runtime.ResetEnvCache()
+		runtime.ResetStrictIdentityModeCache()
+	}()
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set("X-User-Role", "admin")

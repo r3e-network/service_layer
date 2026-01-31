@@ -101,7 +101,7 @@ type RepositoryInterface interface {
 ## Usage
 
 ```go
-import secretssupabase "github.com/R3E-Network/service_layer/infrastructure/secrets/supabase"
+import secretssupabase "github.com/R3E-Network/neo-miniapps-platform/infrastructure/secrets/supabase"
 
 repo := secretssupabase.NewRepository(baseRepo)
 

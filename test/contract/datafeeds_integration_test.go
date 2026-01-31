@@ -13,10 +13,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/database"
-	"github.com/R3E-Network/service_layer/infrastructure/marble"
-	"github.com/R3E-Network/service_layer/infrastructure/testutil"
-	neofeeds "github.com/R3E-Network/service_layer/services/datafeed/marble"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/marble"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/testutil"
+	neofeeds "github.com/R3E-Network/neo-miniapps-platform/services/datafeed/marble"
 )
 
 // TestNeoFeedsPriceFetching tests that neofeeds can fetch prices from Chainlink and Binance.

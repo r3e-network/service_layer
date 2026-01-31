@@ -9,12 +9,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
-	"github.com/R3E-Network/service_layer/infrastructure/database"
-	"github.com/R3E-Network/service_layer/infrastructure/marble"
-	"github.com/R3E-Network/service_layer/infrastructure/middleware"
-	"github.com/R3E-Network/service_layer/infrastructure/runtime"
-	commonservice "github.com/R3E-Network/service_layer/infrastructure/service"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/marble"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/middleware"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
+	commonservice "github.com/R3E-Network/neo-miniapps-platform/infrastructure/service"
 )
 
 const (
@@ -40,6 +40,8 @@ type Service struct {
 	seenRequests map[string]time.Time
 	// SECURITY FIX [M-02]: Add maximum capacity to prevent memory exhaustion
 	maxSeenRequests int
+	// Rate limiter for /invoke endpoint to prevent DoS attacks
+	rateLimiter *middleware.RateLimiter
 }
 
 type Config struct {
@@ -129,17 +131,20 @@ func New(cfg Config) (*Service, error) {
 	})
 
 	s := &Service{
-		BaseService:    base,
-		allowlist:      allowlist,
+		BaseService:       base,
+		allowlist:         allowlist,
 		gasAddress:        normalizeContractAddress(gasAddress),
 		paymentHubAddress: normalizeContractAddress(paymentHubAddress),
 		governanceAddress: normalizeContractAddress(governanceAddress),
-		chainClient:    cfg.ChainClient,
-		signer:         cfg.Signer,
-		replayWindow:   replayWindow,
-		seenRequests:   make(map[string]time.Time),
+		chainClient:       cfg.ChainClient,
+		signer:            cfg.Signer,
+		replayWindow:      replayWindow,
+		seenRequests:      make(map[string]time.Time),
 		// SECURITY FIX [M-02]: Limit replay cache size to prevent memory exhaustion
 		maxSeenRequests: 100000,
+		// SECURITY FIX [R-01]: Add rate limiting to prevent DoS attacks
+		// Allow 100 requests per minute with burst of 200
+		rateLimiter: middleware.NewRateLimiterWithWindow(100, time.Minute, 200, base.Logger()),
 	}
 
 	base.RegisterStandardRoutes()
@@ -155,7 +160,14 @@ func New(cfg Config) (*Service, error) {
 }
 
 func (s *Service) registerRoutes() {
-	s.Router().Handle("/invoke", middleware.RequireServiceAuth(http.HandlerFunc(s.handleInvoke))).Methods(http.MethodPost)
+	// SECURITY FIX [R-01]: Apply rate limiting to /invoke endpoint to prevent DoS
+	s.Router().Handle("/invoke",
+		middleware.RequireServiceAuth(
+			s.rateLimiter.Handler(
+				http.HandlerFunc(s.handleInvoke),
+			),
+		),
+	).Methods(http.MethodPost)
 }
 
 func (s *Service) markSeen(requestID string) bool {

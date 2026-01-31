@@ -33,19 +33,19 @@ type ClientConfig struct {
 
 // ClientDefaults holds default values for client configuration.
 type ClientDefaults struct {
-	Timeout         time.Duration
-	MaxBodyBytes    int64
+	Timeout          time.Duration
+	MaxBodyBytes     int64
 	NormalizeBaseURL bool
-	RequireHTTPS    bool
+	RequireHTTPS     bool
 }
 
 // DefaultClientDefaults returns standard default values.
 func DefaultClientDefaults() ClientDefaults {
 	return ClientDefaults{
-		Timeout:         30 * time.Second,
-		MaxBodyBytes:    1 << 20, // 1MiB
+		Timeout:          30 * time.Second,
+		MaxBodyBytes:     1 << 20, // 1MiB
 		NormalizeBaseURL: true,
-		RequireHTTPS:    false,
+		RequireHTTPS:     false,
 	}
 }
 
@@ -141,7 +141,7 @@ func ResolveServiceID(serviceID string) string {
 
 func trimString(s string) string {
 	// Simple inline trim to avoid import cycle
-	if len(s) == 0 {
+	if s == "" {
 		return s
 	}
 	start := 0

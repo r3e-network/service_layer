@@ -4,6 +4,7 @@ package chain
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,16 +14,16 @@ import (
 
 // ContractInfo holds information about a deployed contract.
 type ContractInfo struct {
-	Name        string `json:"name"`
-	Address     string `json:"address"`
-	Version     string `json:"version,omitempty"`
-	DeployedAt  string `json:"deployed_at,omitempty"`
+	Name         string `json:"name"`
+	Address      string `json:"address"`
+	Version      string `json:"version,omitempty"`
+	DeployedAt   string `json:"deployed_at,omitempty"`
 	DeployTxHash string `json:"deploy_tx_hash,omitempty"`
-	UpdatedAt   string `json:"updated_at,omitempty"`
+	UpdatedAt    string `json:"updated_at,omitempty"`
 	UpdateTxHash string `json:"update_tx_hash,omitempty"`
-	Network     string `json:"network,omitempty"`
-	Deployer    string `json:"deployer,omitempty"`
-	Status      string `json:"status,omitempty"` // deployed, updated, deprecated
+	Network      string `json:"network,omitempty"`
+	Deployer     string `json:"deployer,omitempty"`
+	Status       string `json:"status,omitempty"` // deployed, updated, deprecated
 }
 
 // ContractRegistry manages deployed contract addresses and versions.
@@ -151,7 +152,7 @@ func (r *ContractRegistry) SaveToFile(filename string) error {
 		return fmt.Errorf("create dir: %w", err)
 	}
 
-	if err := os.WriteFile(filename, data, 0o644); err != nil {
+	if err := os.WriteFile(filename, data, 0o600); err != nil {
 		return fmt.Errorf("write file: %w", err)
 	}
 
@@ -305,7 +306,10 @@ func DefaultRegistry(network string) *ContractRegistry {
 
 	// Try to load from config file
 	configFile := filepath.Join(configDir, network+"_contracts.json")
-	_ = r.LoadFromFile(configFile)
+	if err := r.LoadFromFile(configFile); err != nil {
+		// Config file is optional, log but don't fail
+		slog.Debug("Failed to load contract registry from file", "file", configFile, "error", err)
+	}
 
 	return r
 }

@@ -16,7 +16,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	neoaccountsclient "github.com/R3E-Network/service_layer/infrastructure/accountpool/client"
+	neoaccountsclient "github.com/R3E-Network/neo-miniapps-platform/infrastructure/accountpool/client"
 )
 
 // ContractInvoker handles smart contract invocations using pool accounts.
@@ -25,9 +25,9 @@ type ContractInvoker struct {
 	poolClient PoolClientInterface
 
 	// Platform contract addresses (as strings for InvokeContract API)
-	priceFeedAddress          string
-	randomnessLogAddress      string
-	paymentHubAddress         string
+	priceFeedAddress           string
+	randomnessLogAddress       string
+	paymentHubAddress          string
 	serviceLayerGatewayAddress string
 
 	// MiniApp contract addresses (appID -> contract address)
@@ -55,12 +55,12 @@ type ContractInvoker struct {
 
 // ContractInvokerConfig holds configuration for the contract invoker.
 type ContractInvokerConfig struct {
-	PoolClient              PoolClientInterface
+	PoolClient                 PoolClientInterface
 	PriceFeedAddress           string
 	RandomnessLogAddress       string
 	PaymentHubAddress          string
 	ServiceLayerGatewayAddress string
-	MiniAppContracts        map[string]string // appID -> contract address
+	MiniAppContracts           map[string]string // appID -> contract address
 }
 
 var (
@@ -69,6 +69,39 @@ var (
 	ErrPaymentHubNotConfigured    = errors.New("payment hub address not configured")
 	ErrMiniAppContractNotFound    = errors.New("miniapp contract not found")
 )
+
+type ConfigurationError struct {
+	Component string
+	Setting   string
+	Message   string
+	wrapErr   error
+}
+
+func (e *ConfigurationError) Error() string {
+	if e.wrapErr != nil {
+		return fmt.Sprintf("%s: %s not configured - %s: %v", e.Component, e.Setting, e.Message, e.wrapErr)
+	}
+	if e.Component != "" && e.Setting != "" {
+		return fmt.Sprintf("%s: %s not configured - %s", e.Component, e.Setting, e.Message)
+	}
+	return e.Message
+}
+
+func (e *ConfigurationError) Unwrap() error {
+	return e.wrapErr
+}
+
+func NewConfigurationError(component, setting, message string, wrapErr ...error) *ConfigurationError {
+	cfgErr := &ConfigurationError{
+		Component: component,
+		Setting:   setting,
+		Message:   message,
+	}
+	if len(wrapErr) > 0 && wrapErr[0] != nil {
+		cfgErr.wrapErr = wrapErr[0]
+	}
+	return cfgErr
+}
 
 // NewContractInvoker creates a new contract invoker using pool accounts.
 func NewContractInvoker(cfg ContractInvokerConfig) (*ContractInvoker, error) {
@@ -158,12 +191,12 @@ func NewContractInvoker(cfg ContractInvokerConfig) (*ContractInvoker, error) {
 	}
 
 	return &ContractInvoker{
-		poolClient:              cfg.PoolClient,
+		poolClient:                 cfg.PoolClient,
 		priceFeedAddress:           priceFeedAddress,
 		randomnessLogAddress:       randomnessLogAddress,
 		paymentHubAddress:          paymentHubAddress,
 		serviceLayerGatewayAddress: serviceLayerGatewayAddress,
-		miniAppContracts:        miniAppContracts,
+		miniAppContracts:           miniAppContracts,
 		// Chainlink Arbitrum price feeds - all major pairs (8 decimals)
 		priceFeeds:       priceFeeds,
 		lockedAccounts:   make(map[string]string),
@@ -197,11 +230,13 @@ func (inv *ContractInvoker) HasMiniAppContract(appID string) bool {
 // GetMiniAppContractAddress returns the contract address for a MiniApp.
 func (inv *ContractInvoker) GetMiniAppContractAddress(appID string) (string, error) {
 	if inv == nil || inv.miniAppContracts == nil {
-		return "", ErrMiniAppContractNotFound
+		return "", NewConfigurationError("ContractInvoker", "MiniAppContracts",
+			fmt.Sprintf("miniapp contract map not initialized for appID: %s", appID), ErrMiniAppContractNotFound)
 	}
 	address, ok := inv.miniAppContracts[appID]
 	if !ok {
-		return "", fmt.Errorf("%w: %s", ErrMiniAppContractNotFound, appID)
+		return "", NewConfigurationError("ContractInvoker", "MiniAppContract",
+			fmt.Sprintf("contract not found for appID: %s. Available contracts: %v", appID, getKeys(inv.miniAppContracts)), ErrMiniAppContractNotFound)
 	}
 	return address, nil
 }
@@ -338,7 +373,8 @@ func (inv *ContractInvoker) releaseAccount(ctx context.Context, purpose string) 
 // PriceFeed requires the caller to be a registered TEE signer in AppRegistry.
 func (inv *ContractInvoker) UpdatePriceFeed(ctx context.Context, symbol string) (string, error) {
 	if inv.priceFeedAddress == "" {
-		return "", ErrPriceFeedNotConfigured
+		return "", NewConfigurationError("ContractInvoker", "PriceFeedAddress",
+			"price feed address must be configured via CONTRACT_PRICE_FEED_ADDRESS env var", ErrPriceFeedNotConfigured)
 	}
 	basePrice, ok := inv.priceFeeds[symbol]
 	if !ok {
@@ -382,7 +418,8 @@ func (inv *ContractInvoker) UpdatePriceFeed(ctx context.Context, symbol string) 
 // RandomnessLog requires the caller to be a registered TEE signer in AppRegistry.
 func (inv *ContractInvoker) RecordRandomness(ctx context.Context) (string, error) {
 	if inv.randomnessLogAddress == "" {
-		return "", ErrRandomnessLogNotConfigured
+		return "", NewConfigurationError("ContractInvoker", "RandomnessLogAddress",
+			"randomness log address must be configured via CONTRACT_RANDOMNESS_LOG_ADDRESS env var", ErrRandomnessLogNotConfigured)
 	}
 	requestID := generateRequestID()
 	randomness := generateRandomBytes(32)
@@ -426,7 +463,8 @@ const gasContractAddress = "d2a4cff31913016155e38e474a2c06d08be276cf"
 // 5. Receipt is created and PaymentReceived event is emitted
 func (inv *ContractInvoker) PayToApp(ctx context.Context, appID string, amount int64, memo string) (string, error) {
 	if inv.paymentHubAddress == "" {
-		return "", ErrPaymentHubNotConfigured
+		return "", NewConfigurationError("ContractInvoker", "PaymentHubAddress",
+			"payment hub address must be configured via CONTRACT_PAYMENT_HUB_ADDRESS env var", ErrPaymentHubNotConfigured)
 	}
 	// Get or request a pool account for this payment
 	accountID, err := inv.getOrRequestAccount(ctx, "payment-"+appID)
@@ -561,13 +599,23 @@ func generatePrice(basePrice int64, variancePercent int) int64 {
 
 func generateRandomBytes(n int) []byte {
 	b := make([]byte, n)
-	rand.Read(b)
+	if _, err := rand.Read(b); err != nil {
+		// Fallback to timestamp-based pseudo-randomness on error
+		for i := range b {
+			b[i] = byte(time.Now().UnixNano() + int64(i))
+		}
+	}
 	return b
 }
 
 func generateRequestID() string {
 	b := make([]byte, 16)
-	rand.Read(b)
+	if _, err := rand.Read(b); err != nil {
+		// Fallback to timestamp-based pseudo-randomness on error
+		for i := range b {
+			b[i] = byte(time.Now().UnixNano() + int64(i))
+		}
+	}
 	return hex.EncodeToString(b)
 }
 
@@ -587,12 +635,12 @@ func NewContractInvokerFromEnv(poolClient *neoaccountsclient.Client) (*ContractI
 	miniAppContracts := loadMiniAppContractsFromEnv()
 
 	return NewContractInvoker(ContractInvokerConfig{
-		PoolClient:              poolClient,
+		PoolClient:                 poolClient,
 		PriceFeedAddress:           priceFeedAddress,
 		RandomnessLogAddress:       randomnessLogAddress,
 		PaymentHubAddress:          paymentHubAddress,
 		ServiceLayerGatewayAddress: serviceLayerGatewayAddress,
-		MiniAppContracts:        miniAppContracts,
+		MiniAppContracts:           miniAppContracts,
 	})
 }
 
@@ -604,20 +652,20 @@ func loadMiniAppContractsFromEnv() map[string]string {
 
 	// Define mapping from env var suffix to app ID
 	miniAppEnvMapping := map[string]string{
-		"LOTTERY":           "miniapp-lottery",
-		"COINFLIP":          "miniapp-coinflip",
-		"DICEGAME":          "miniapp-dice-game",
-		"SCRATCHCARD":       "miniapp-scratch-card",
-		"FLASHLOAN":         "miniapp-flashloan",
-		"REDENVELOPE":       "miniapp-red-envelope",
-		"GASCIRCLE":         "miniapp-gas-circle",
-		"GOVBOOSTER":        "miniapp-govbooster",
-		"GUARDIANPOLICY":    "miniapp-guardianpolicy",
-		"NEOCRASH":          "miniapp-neo-crash",
-		"TIMECAPSULE":       "miniapp-time-capsule",
-		"GARDENOFNEO":       "miniapp-garden-of-neo",
-		"DEVTIPPING":        "miniapp-dev-tipping",
-		"DAILYCHECKIN":      "miniapp-dailycheckin",
+		"LOTTERY":        "miniapp-lottery",
+		"COINFLIP":       "miniapp-coinflip",
+		"DICEGAME":       "miniapp-dice-game",
+		"SCRATCHCARD":    "miniapp-scratch-card",
+		"FLASHLOAN":      "miniapp-flashloan",
+		"REDENVELOPE":    "miniapp-red-envelope",
+		"GASCIRCLE":      "miniapp-gas-circle",
+		"GOVBOOSTER":     "miniapp-govbooster",
+		"GUARDIANPOLICY": "miniapp-guardianpolicy",
+		"NEOCRASH":       "miniapp-neo-crash",
+		"TIMECAPSULE":    "miniapp-time-capsule",
+		"GARDENOFNEO":    "miniapp-garden-of-neo",
+		"DEVTIPPING":     "miniapp-dev-tipping",
+		"DAILYCHECKIN":   "miniapp-dailycheckin",
 	}
 
 	for envSuffix, appID := range miniAppEnvMapping {
@@ -637,4 +685,12 @@ func loadMiniAppContractsFromEnv() map[string]string {
 	}
 
 	return contracts
+}
+
+func getKeys(m map[string]string) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
 }

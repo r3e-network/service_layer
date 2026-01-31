@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	neoaccountsclient "github.com/R3E-Network/service_layer/infrastructure/accountpool/client"
+	neoaccountsclient "github.com/R3E-Network/neo-miniapps-platform/infrastructure/accountpool/client"
 )
 
 // SimulateSecretPoker simulates TEE Texas Hold'em.
@@ -276,8 +276,8 @@ func (s *MiniAppSimulator) SimulateGasCircle(ctx context.Context) error {
 // Business flow: Bury (encrypt) -> Fish (random pickup) -> Reveal (time unlock)
 func (s *MiniAppSimulator) SimulateTimeCapsule(ctx context.Context) error {
 	appID := "miniapp-time-capsule"
-	buryFee := int64(20000000)  // 0.2 GAS to bury
-	fishFee := int64(5000000)   // 0.05 GAS to fish
+	buryFee := int64(20000000) // 0.2 GAS to bury
+	fishFee := int64(5000000)  // 0.05 GAS to fish
 
 	// Randomly decide action: bury (40%), fish (40%), reveal (20%)
 	action := randomInt(1, 10)

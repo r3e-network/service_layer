@@ -5,19 +5,19 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
+	"math"
 	"math/big"
 	"strings"
 	"time"
 
 	"github.com/tidwall/gjson"
 
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
-	"github.com/R3E-Network/service_layer/infrastructure/database"
-	txproxytypes "github.com/R3E-Network/service_layer/infrastructure/txproxy/types"
-	neorequestsupabase "github.com/R3E-Network/service_layer/services/requests/supabase"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
+	txproxytypes "github.com/R3E-Network/neo-miniapps-platform/infrastructure/txproxy/types"
+	neorequestsupabase "github.com/R3E-Network/neo-miniapps-platform/services/requests/supabase"
 )
 
 type serviceResult struct {
@@ -52,9 +52,9 @@ func (s *Service) handleServiceRequested(ctx context.Context, event *chain.Contr
 	})
 
 	if s.repo != nil {
-		processed, err := s.markEventProcessed(ctx, event, parsed)
-		if err != nil {
-			logger.WithError(err).Warn("failed to mark event processed")
+		processed, storeErr := s.markEventProcessed(ctx, event, parsed)
+		if storeErr != nil {
+			logger.WithError(storeErr).Warn("failed to mark event processed")
 		}
 		if !processed {
 			return nil
@@ -62,13 +62,16 @@ func (s *Service) handleServiceRequested(ctx context.Context, event *chain.Contr
 	}
 
 	s.storeRequestIndex(requestID, appID)
-	_ = s.storeContractEvent(ctx, event, &appID, buildServiceRequestedState(parsed))
+	if storeErr := s.storeContractEvent(ctx, event, &appID, buildServiceRequestedState(parsed)); storeErr != nil {
+		logger.WithError(storeErr).Warn("failed to store contract event")
+	}
 
-	app, err := s.loadMiniApp(ctx, appID)
-	if err != nil {
-		logger.WithError(err).Warn("miniapp not found")
+	app, appErr := s.loadMiniApp(ctx, appID)
+	if appErr != nil {
+		logger.WithError(appErr).Warn("miniapp not found")
 		return nil
 	}
+
 	if !isAppActive(app.Status) {
 		logger.WithError(nil).Warn("miniapp disabled")
 		serviceReq := s.createServiceRequest(ctx, app, parsed, serviceType)
@@ -76,10 +79,10 @@ func (s *Service) handleServiceRequested(ctx context.Context, event *chain.Contr
 		return nil
 	}
 
-	if err := s.validateAppRegistry(ctx, app); err != nil {
-		logger.WithError(err).Warn("app registry validation failed")
+	if regErr := s.validateAppRegistry(ctx, app); regErr != nil {
+		logger.WithError(regErr).Warn("app registry validation failed")
 		serviceReq := s.createServiceRequest(ctx, app, parsed, serviceType)
-		s.updateServiceRequest(ctx, serviceReq, nil, "failed", nil, err.Error())
+		s.updateServiceRequest(ctx, serviceReq, nil, "failed", nil, regErr.Error())
 		return nil
 	}
 
@@ -166,7 +169,9 @@ func (s *Service) handleServiceFulfilled(ctx context.Context, event *chain.Contr
 	if appID != "" {
 		appPtr = &appID
 	}
-	_ = s.storeContractEvent(ctx, event, appPtr, buildServiceFulfilledState(parsed))
+	if storeErr := s.storeContractEvent(ctx, event, appPtr, buildServiceFulfilledState(parsed)); storeErr != nil {
+		s.Logger().WithError(storeErr).Warn("failed to store fulfilled event")
+	}
 
 	return nil
 }
@@ -206,13 +211,13 @@ func (s *Service) executeRNG(ctx context.Context, userID, appID, requestID strin
 		vrfRequestID = fmt.Sprintf("%s:%s", appID, requestID)
 	}
 
-	respBytes, err := s.postJSON(ctx, joinURL(s.vrfURL, "/random"), userID, rngPayload{RequestID: vrfRequestID})
-	if err != nil {
-		return serviceResult{}, err
+	respBytes, respErr := s.postJSON(ctx, joinURL(s.vrfURL, "/random"), userID, rngPayload{RequestID: vrfRequestID})
+	if respErr != nil {
+		return serviceResult{}, respErr
 	}
 
 	var resp rngResponse
-	if err := json.Unmarshal(respBytes, &resp); err != nil {
+	if unmarshalErr := json.Unmarshal(respBytes, &resp); unmarshalErr != nil {
 		return serviceResult{}, fmt.Errorf("invalid rng response")
 	}
 
@@ -246,13 +251,13 @@ func (s *Service) executeOracle(ctx context.Context, userID string, payload []by
 		return serviceResult{}, fmt.Errorf("oracle url required")
 	}
 
-	respBytes, err := s.postJSON(ctx, joinURL(s.oracleURL, "/query"), userID, req)
-	if err != nil {
-		return serviceResult{}, err
+	respBytes, respErr := s.postJSON(ctx, joinURL(s.oracleURL, "/query"), userID, req)
+	if respErr != nil {
+		return serviceResult{}, respErr
 	}
 
 	var resp oracleResponse
-	if err := json.Unmarshal(respBytes, &resp); err != nil {
+	if unmarshalErr := json.Unmarshal(respBytes, &resp); unmarshalErr != nil {
 		return serviceResult{}, fmt.Errorf("invalid oracle response")
 	}
 
@@ -343,15 +348,15 @@ func (s *Service) executeCompute(ctx context.Context, userID, appID string, payl
 	}
 
 	var resp computeResponse
-	if err := json.Unmarshal(respBytes, &resp); err != nil {
+	if unmarshalErr := json.Unmarshal(respBytes, &resp); unmarshalErr != nil {
 		return serviceResult{}, fmt.Errorf("invalid compute response")
 	}
 
-	if strings.ToLower(resp.Status) != "completed" {
+	if !strings.EqualFold(resp.Status, "completed") {
 		if resp.Error != "" {
-			return serviceResult{}, errors.New(resp.Error)
+			return serviceResult{}, fmt.Errorf("compute execution failed: %s", resp.Error)
 		}
-		return serviceResult{}, fmt.Errorf("compute failed")
+		return serviceResult{}, fmt.Errorf("compute execution failed: unknown error (status=%s)", resp.Status)
 	}
 
 	result := map[string]interface{}{
@@ -401,7 +406,7 @@ func (s *Service) executeCompute(ctx context.Context, userID, appID string, payl
 	return serviceResult{ResultBytes: resultBytes, AuditJSON: neorequestsupabase.MarshalParams(result)}, nil
 }
 
-func (s *Service) fulfillRequest(ctx context.Context, req *chain.ServiceRequestedEvent, userID string, result serviceResult, execErr error, serviceReq *neorequestsupabase.ServiceRequest) error {
+func (s *Service) fulfillRequest(ctx context.Context, req *chain.ServiceRequestedEvent, _ string, result serviceResult, execErr error, serviceReq *neorequestsupabase.ServiceRequest) error {
 	if s.txProxy == nil {
 		return fmt.Errorf("txproxy not configured")
 	}
@@ -412,7 +417,7 @@ func (s *Service) fulfillRequest(ctx context.Context, req *chain.ServiceRequeste
 		errorMsg = sanitizeError(execErr.Error(), s.maxErrorLen)
 	}
 
-	params, requestInt, err := buildFulfillParams(req.RequestID, success, result.ResultBytes, errorMsg)
+	params, _, err := buildFulfillParams(req.RequestID, success, result.ResultBytes, errorMsg)
 	if err != nil {
 		return err
 	}
@@ -430,29 +435,31 @@ func (s *Service) fulfillRequest(ctx context.Context, req *chain.ServiceRequeste
 	}
 
 	if s.repo != nil {
-		if err := s.repo.CreateChainTx(ctx, chainTx); err != nil {
-			s.Logger().WithContext(ctx).WithError(err).Warn("failed to create chain_txs row")
-		} else if serviceReq != nil {
+		if repoErr := s.repo.CreateChainTx(ctx, chainTx); repoErr != nil {
+			s.Logger().WithContext(ctx).WithError(repoErr).Warn("failed to create chain_txs row")
+		} else if serviceReq != nil && chainTx.ID > 0 {
 			serviceReq.ChainTxID = &chainTx.ID
-			_ = s.repo.UpdateServiceRequest(ctx, serviceReq)
+			if updateErr := s.repo.UpdateServiceRequest(ctx, serviceReq); updateErr != nil {
+				s.Logger().WithError(updateErr).Warn("failed to update service request")
+			}
 		}
 	}
 
-	resp, err := s.txProxy.Invoke(ctx, &txproxytypes.InvokeRequest{
-		RequestID:    requestKey,
+	resp, txErr := s.txProxy.Invoke(ctx, &txproxytypes.InvokeRequest{
+		RequestID:       requestKey,
 		ContractAddress: "0x" + s.serviceGatewayAddress,
-		Method:       "fulfillRequest",
-		Params:       params,
-		Wait:         s.txWait,
+		Method:          "fulfillRequest",
+		Params:          params,
+		Wait:            s.txWait,
 	})
-	if err != nil {
-		if chainTx != nil {
-			chainTx.Status = "failed"
-			chainTx.ErrorMessage = sanitizeError(err.Error(), s.maxErrorLen)
-			_ = s.updateChainTx(ctx, chainTx)
+	if txErr != nil {
+		chainTx.Status = "failed"
+		chainTx.ErrorMessage = sanitizeError(txErr.Error(), s.maxErrorLen)
+		if updateErr := s.updateChainTx(ctx, chainTx); updateErr != nil {
+			s.Logger().WithError(updateErr).Warn("failed to update chain tx")
 		}
-		s.updateServiceRequest(ctx, serviceReq, nil, "failed", result.AuditJSON, err.Error())
-		return err
+		s.updateServiceRequest(ctx, serviceReq, nil, "failed", result.AuditJSON, txErr.Error())
+		return txErr
 	}
 
 	status := "submitted"
@@ -464,32 +471,21 @@ func (s *Service) fulfillRequest(ctx context.Context, req *chain.ServiceRequeste
 		}
 	}
 
-	if chainTx != nil {
-		chainTx.TxHash = resp.TxHash
-		chainTx.Status = status
-		if resp.Exception != "" && status == "failed" {
-			chainTx.ErrorMessage = sanitizeError(resp.Exception, s.maxErrorLen)
-		}
-		_ = s.updateChainTx(ctx, chainTx)
+	chainTx.TxHash = resp.TxHash
+	chainTx.Status = status
+	if resp.Exception != "" && status == "failed" {
+		chainTx.ErrorMessage = sanitizeError(resp.Exception, s.maxErrorLen)
+	}
+	if updateErr := s.updateChainTx(ctx, chainTx); updateErr != nil {
+		s.Logger().WithError(updateErr).Warn("failed to update chain tx")
 	}
 
-	finalStatus := "completed"
-	if !success || status == "failed" {
-		finalStatus = "failed"
-	}
-
-	completedAt := time.Now().UTC()
 	if serviceReq != nil {
-		serviceReq.Status = finalStatus
-		serviceReq.CompletedAt = &completedAt
-		serviceReq.Result = result.AuditJSON
-		if !success {
-			serviceReq.Error = errorMsg
-		}
-		_ = s.repo.UpdateServiceRequest(ctx, serviceReq)
+		serviceReq.Status = status
+		serviceReq.ChainTxID = &chainTx.ID
+		s.updateServiceRequest(ctx, serviceReq, nil, status, result.AuditJSON, "")
 	}
 
-	_ = requestInt
 	return nil
 }
 
@@ -517,7 +513,9 @@ func (s *Service) updateServiceRequest(ctx context.Context, req *neorequestsupab
 		req.Error = sanitizeError(errMsg, s.maxErrorLen)
 	}
 	req.CompletedAt = ptrTime(time.Now().UTC())
-	_ = s.repo.UpdateServiceRequest(ctx, req)
+	if updateErr := s.repo.UpdateServiceRequest(ctx, req); updateErr != nil {
+		s.Logger().WithError(updateErr).Warn("failed to update service request")
+	}
 }
 
 func (s *Service) createServiceRequest(ctx context.Context, app *neorequestsupabase.MiniApp, parsed *chain.ServiceRequestedEvent, serviceType string) *neorequestsupabase.ServiceRequest {
@@ -871,7 +869,7 @@ func manifestContractAddress(raw json.RawMessage, chainID string) string {
 				if entryRaw, ok := contractsMap[chainID]; ok {
 					if entryMap, ok := entryRaw.(map[string]interface{}); ok {
 						if addrVal, ok := entryMap["address"]; ok && addrVal != nil {
-								return normalizeContractAddress(fmt.Sprintf("%v", addrVal))
+							return normalizeContractAddress(fmt.Sprintf("%v", addrVal))
 						}
 					}
 				}
@@ -908,8 +906,8 @@ func contractsContractAddress(raw json.RawMessage, chainID string) string {
 	if !ok {
 		return ""
 	}
-	addrVal, ok := entryMap["address"]
-	if addrVal == nil {
+	addrVal, addrOk := entryMap["address"]
+	if !addrOk || addrVal == nil {
 		return ""
 	}
 	return normalizeContractAddress(fmt.Sprintf("%v", addrVal))
@@ -972,11 +970,6 @@ func ptrTime(t time.Time) *time.Time {
 	return &t
 }
 
-func (s *Service) fulfillFailure(ctx context.Context, req *chain.ServiceRequestedEvent, userID string, err error) error {
-	result := serviceResult{}
-	return s.fulfillRequest(ctx, req, userID, result, err, nil)
-}
-
 func (s *Service) handleNotificationEvent(ctx context.Context, event *chain.ContractEvent) error {
 	if event == nil {
 		return nil
@@ -993,7 +986,8 @@ func (s *Service) handleNotificationEvent(ctx context.Context, event *chain.Cont
 	})
 
 	if s.repo != nil {
-		processed, err := s.markNotificationProcessed(ctx, event, parsed)
+		var processed bool
+		processed, err = s.markNotificationProcessed(ctx, event, parsed)
 		if err != nil {
 			logger.WithContext(ctx).WithError(err).Warn("failed to mark notification event processed")
 		}
@@ -1004,12 +998,12 @@ func (s *Service) handleNotificationEvent(ctx context.Context, event *chain.Cont
 
 	if s.repo != nil {
 		var app *neorequestsupabase.MiniApp
-		var err error
+		var loadErr error
 		if strings.TrimSpace(parsed.AppID) != "" {
-			app, err = s.loadMiniApp(ctx, parsed.AppID)
+			app, loadErr = s.loadMiniApp(ctx, parsed.AppID)
 		} else if strings.TrimSpace(event.Contract) != "" {
-			app, err = s.loadMiniAppByContractAddress(ctx, event.Contract)
-			if err == nil && app != nil {
+			app, loadErr = s.loadMiniAppByContractAddress(ctx, event.Contract)
+			if loadErr == nil && app != nil {
 				parsed.AppID = app.AppID
 				logger = s.Logger().WithFields(map[string]interface{}{
 					"app_id": parsed.AppID,
@@ -1017,23 +1011,21 @@ func (s *Service) handleNotificationEvent(ctx context.Context, event *chain.Cont
 				})
 			}
 		}
-		if err != nil {
-			if database.IsNotFound(err) {
+		switch {
+		case loadErr != nil && database.IsNotFound(loadErr):
+			return nil
+		case loadErr != nil:
+			logger.WithContext(ctx).WithError(loadErr).Warn("failed to load miniapp manifest")
+		case app != nil && !isAppActive(app.Status):
+			return nil
+		case app != nil && s.enforceAppRegistry:
+			if regErr := s.validateAppRegistry(ctx, app); regErr != nil {
+				logger.WithContext(ctx).WithError(regErr).Warn("app registry validation failed")
 				return nil
 			}
-			logger.WithContext(ctx).WithError(err).Warn("failed to load miniapp manifest")
-		} else if app != nil {
-			if !isAppActive(app.Status) {
-				return nil
-			}
-			if s.enforceAppRegistry {
-				if err := s.validateAppRegistry(ctx, app); err != nil {
-					logger.WithContext(ctx).WithError(err).Warn("app registry validation failed")
-					return nil
-				}
-			}
-			info, err := parseManifestInfo(app.Manifest, s.chainID)
-			if err == nil && info.NewsIntegration != nil && !*info.NewsIntegration {
+		case app != nil:
+			info, parseErr := parseManifestInfo(app.Manifest, s.chainID)
+			if parseErr == nil && info.NewsIntegration != nil && !*info.NewsIntegration {
 				return nil
 			}
 			if contractAddress := appContractAddress(app, s.chainID); contractAddress != "" {
@@ -1045,13 +1037,15 @@ func (s *Service) handleNotificationEvent(ctx context.Context, event *chain.Cont
 				logger.WithContext(ctx).Warn("contract_address missing; notification rejected")
 				return nil
 			}
-		} else {
+		case app == nil:
 			return nil
 		}
 	}
 
 	s.trackMiniAppTx(ctx, parsed.AppID, "", event)
-	_ = s.storeContractEvent(ctx, event, &parsed.AppID, buildNotificationState(parsed))
+	if storeErr := s.storeContractEvent(ctx, event, &parsed.AppID, buildNotificationState(parsed)); storeErr != nil {
+		s.Logger().WithError(storeErr).Warn("failed to store notification event")
+	}
 
 	// Store notification in database via repository
 	err = s.repo.CreateNotification(ctx, &neorequestsupabase.Notification{
@@ -1062,7 +1056,7 @@ func (s *Service) handleNotificationEvent(ctx context.Context, event *chain.Cont
 		NotificationType: parsed.NotificationType,
 		Source:           "contract",
 		TxHash:           event.TxHash,
-		BlockNumber:      int64(event.BlockIndex),
+		BlockNumber:      safeInt64(event.BlockIndex),
 		Priority:         parsed.Priority,
 	})
 
@@ -1102,12 +1096,12 @@ func (s *Service) handleMetricEvent(ctx context.Context, event *chain.ContractEv
 
 	if s.repo != nil {
 		var app *neorequestsupabase.MiniApp
-		var err error
+		var loadErr error
 		if strings.TrimSpace(parsed.AppID) != "" {
-			app, err = s.loadMiniApp(ctx, parsed.AppID)
+			app, loadErr = s.loadMiniApp(ctx, parsed.AppID)
 		} else if strings.TrimSpace(event.Contract) != "" {
-			app, err = s.loadMiniAppByContractAddress(ctx, event.Contract)
-			if err == nil && app != nil {
+			app, loadErr = s.loadMiniAppByContractAddress(ctx, event.Contract)
+			if loadErr == nil && app != nil {
 				parsed.AppID = app.AppID
 				logger = s.Logger().WithFields(map[string]interface{}{
 					"app_id":      parsed.AppID,
@@ -1115,21 +1109,19 @@ func (s *Service) handleMetricEvent(ctx context.Context, event *chain.ContractEv
 				})
 			}
 		}
-		if err != nil {
-			if database.IsNotFound(err) {
+		switch {
+		case loadErr != nil && database.IsNotFound(loadErr):
+			return nil
+		case loadErr != nil:
+			logger.WithContext(ctx).WithError(loadErr).Warn("failed to load miniapp manifest")
+		case app != nil && !isAppActive(app.Status):
+			return nil
+		case app != nil && s.enforceAppRegistry:
+			if regErr := s.validateAppRegistry(ctx, app); regErr != nil {
+				logger.WithContext(ctx).WithError(regErr).Warn("app registry validation failed")
 				return nil
 			}
-			logger.WithContext(ctx).WithError(err).Warn("failed to load miniapp manifest")
-		} else if app != nil {
-			if !isAppActive(app.Status) {
-				return nil
-			}
-			if s.enforceAppRegistry {
-				if err := s.validateAppRegistry(ctx, app); err != nil {
-					logger.WithContext(ctx).WithError(err).Warn("app registry validation failed")
-					return nil
-				}
-			}
+		case app != nil:
 			if contractAddress := appContractAddress(app, s.chainID); contractAddress != "" {
 				if normalizeContractAddress(event.Contract) != contractAddress {
 					logger.WithContext(ctx).Warn("miniapp contract address mismatch")
@@ -1139,11 +1131,13 @@ func (s *Service) handleMetricEvent(ctx context.Context, event *chain.ContractEv
 				logger.WithContext(ctx).Warn("contract_address missing; metric rejected")
 				return nil
 			}
-		} else {
+		case app == nil:
 			return nil
 		}
 		s.trackMiniAppTx(ctx, parsed.AppID, "", event)
-		_ = s.storeContractEvent(ctx, event, &parsed.AppID, buildMetricState(parsed))
+		if storeErr := s.storeContractEvent(ctx, event, &parsed.AppID, buildMetricState(parsed)); storeErr != nil {
+			s.Logger().WithError(storeErr).Warn("failed to store metric event")
+		}
 	}
 
 	return nil
@@ -1233,7 +1227,7 @@ type teeScriptInfo struct {
 }
 
 // loadTeeScript loads a TEE script from the app manifest by script name.
-func (s *Service) loadTeeScript(ctx context.Context, appID, scriptName string) (string, string, error) {
+func (s *Service) loadTeeScript(ctx context.Context, appID, scriptName string) (scriptContent, entryPoint string, err error) {
 	if s.scriptsURL == "" {
 		return "", "", fmt.Errorf("scripts base URL not configured")
 	}
@@ -1247,9 +1241,9 @@ func (s *Service) loadTeeScript(ctx context.Context, appID, scriptName string) (
 	// Fetch manifest
 	baseURL := strings.TrimSuffix(s.scriptsURL, "/")
 	manifestURL := fmt.Sprintf("%s/apps/%s/manifest.json", baseURL, appID)
-	manifestResp, err := s.httpClient.Get(manifestURL)
-	if err != nil {
-		return "", "", fmt.Errorf("failed to fetch manifest: %w", err)
+	manifestResp, manifestErr := s.httpClient.Get(manifestURL)
+	if manifestErr != nil {
+		return "", "", fmt.Errorf("failed to fetch manifest: %w", manifestErr)
 	}
 	defer manifestResp.Body.Close()
 
@@ -1260,8 +1254,8 @@ func (s *Service) loadTeeScript(ctx context.Context, appID, scriptName string) (
 	var manifest struct {
 		TeeScripts map[string]teeScriptInfo `json:"tee_scripts"`
 	}
-	if err := json.NewDecoder(manifestResp.Body).Decode(&manifest); err != nil {
-		return "", "", fmt.Errorf("invalid manifest: %w", err)
+	if decodeErr := json.NewDecoder(manifestResp.Body).Decode(&manifest); decodeErr != nil {
+		return "", "", fmt.Errorf("invalid manifest: %w", decodeErr)
 	}
 
 	scriptInfo, ok := manifest.TeeScripts[scriptName]
@@ -1274,9 +1268,9 @@ func (s *Service) loadTeeScript(ctx context.Context, appID, scriptName string) (
 
 	// Fetch script content
 	scriptURL := fmt.Sprintf("%s/apps/%s/%s", baseURL, appID, scriptInfo.File)
-	scriptResp, err := s.httpClient.Get(scriptURL)
-	if err != nil {
-		return "", "", fmt.Errorf("failed to fetch script: %w", err)
+	scriptResp, scriptErr := s.httpClient.Get(scriptURL)
+	if scriptErr != nil {
+		return "", "", fmt.Errorf("failed to fetch script: %w", scriptErr)
 	}
 	defer scriptResp.Body.Close()
 
@@ -1287,18 +1281,26 @@ func (s *Service) loadTeeScript(ctx context.Context, appID, scriptName string) (
 	// Read script content with size limit (1MB)
 	const maxScriptSize = 1 << 20
 	limitedReader := io.LimitReader(scriptResp.Body, maxScriptSize+1)
-	scriptBytes, err := io.ReadAll(limitedReader)
-	if err != nil {
-		return "", "", fmt.Errorf("failed to read script: %w", err)
+	scriptBytes, readErr := io.ReadAll(limitedReader)
+	if readErr != nil {
+		return "", "", fmt.Errorf("failed to read script: %w", readErr)
 	}
 	if len(scriptBytes) > maxScriptSize {
 		return "", "", fmt.Errorf("script exceeds max size (%d bytes)", maxScriptSize)
 	}
 
-	entryPoint := scriptInfo.EntryPoint
+	entryPoint = scriptInfo.EntryPoint
 	if entryPoint == "" {
 		entryPoint = "main"
 	}
 
-	return string(scriptBytes), entryPoint, nil
+	scriptContent = string(scriptBytes)
+	return
+}
+
+func safeInt64(v uint64) int64 {
+	if v > math.MaxInt64 {
+		return math.MaxInt64
+	}
+	return int64(v)
 }

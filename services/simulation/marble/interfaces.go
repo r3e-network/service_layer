@@ -4,7 +4,7 @@ package neosimulation
 import (
 	"context"
 
-	neoaccountsclient "github.com/R3E-Network/service_layer/infrastructure/accountpool/client"
+	neoaccountsclient "github.com/R3E-Network/neo-miniapps-platform/infrastructure/accountpool/client"
 )
 
 // PoolClientInterface defines the interface for pool client operations used by ContractInvoker.

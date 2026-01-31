@@ -20,15 +20,15 @@ import (
 
 	"github.com/edgelesssys/ego/enclave"
 
-	"github.com/R3E-Network/service_layer/infrastructure/crypto"
-	"github.com/R3E-Network/service_layer/infrastructure/database"
-	"github.com/R3E-Network/service_layer/infrastructure/globalsigner/supabase"
-	slhex "github.com/R3E-Network/service_layer/infrastructure/hex"
-	"github.com/R3E-Network/service_layer/infrastructure/logging"
-	"github.com/R3E-Network/service_layer/infrastructure/marble"
-	"github.com/R3E-Network/service_layer/infrastructure/runtime"
-	commonservice "github.com/R3E-Network/service_layer/infrastructure/service"
-	"github.com/R3E-Network/service_layer/infrastructure/serviceauth"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/crypto"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/globalsigner/supabase"
+	slhex "github.com/R3E-Network/neo-miniapps-platform/infrastructure/hex"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/logging"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/marble"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
+	commonservice "github.com/R3E-Network/neo-miniapps-platform/infrastructure/service"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/serviceauth"
 )
 
 // =============================================================================
@@ -528,8 +528,8 @@ func (s *Service) Sign(ctx context.Context, req *SignRequest) (*SignResponse, er
 	if pubKeyHex == "" {
 		return nil, fmt.Errorf("key version missing public key: %s", version)
 	}
-	if err := validateKeyStatus(version, status, overlapEndsAt); err != nil {
-		return nil, err
+	if statusErr := validateKeyStatus(version, status, overlapEndsAt); statusErr != nil {
+		return nil, statusErr
 	}
 
 	// Domain-separated signing: sign over sha256(domain || 0x00 || data).
@@ -612,8 +612,8 @@ func (s *Service) SignRaw(ctx context.Context, req *SignRawRequest) (*SignRespon
 	if pubKeyHex == "" {
 		return nil, fmt.Errorf("key version missing public key: %s", version)
 	}
-	if err := validateKeyStatus(version, status, overlapEndsAt); err != nil {
-		return nil, err
+	if statusErr := validateKeyStatus(version, status, overlapEndsAt); statusErr != nil {
+		return nil, statusErr
 	}
 
 	sig, err := crypto.Sign(privateKey, data)
@@ -746,9 +746,7 @@ func matchesDomainPrefix(domain, prefix string) bool {
 	if prefix == "*" {
 		return true
 	}
-	if strings.HasSuffix(prefix, "*") {
-		prefix = strings.TrimSuffix(prefix, "*")
-	}
+	prefix = strings.TrimSuffix(prefix, "*")
 	return strings.HasPrefix(domain, prefix)
 }
 

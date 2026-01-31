@@ -125,15 +125,15 @@ async function doFetch<T>(url: string, options: RequestInit): Promise<T> {
         method: options.method || "GET",
         data,
         header: headers,
-        success: (res: any) => {
-          if (res.statusCode >= 200 && res.statusCode < 300) {
+        success: (res: import("./types").ApiResponse) => {
+          if ((res.statusCode ?? 0) >= 200 && (res.statusCode ?? 0) < 300) {
             resolve(res.data as T);
           } else {
-            const msg = res.data?.error?.message || `Request failed: ${res.statusCode}`;
+            const msg = (res.data as any)?.error?.message || `Request failed: ${res.statusCode}`;
             reject(new Error(msg));
           }
         },
-        fail: (err: any) => {
+        fail: (err: import("./types").ApiError) => {
           reject(new Error(err.errMsg || "Network error"));
         },
       });

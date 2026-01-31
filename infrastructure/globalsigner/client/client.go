@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	slhttputil "github.com/R3E-Network/service_layer/infrastructure/httputil"
-	"github.com/R3E-Network/service_layer/infrastructure/serviceauth"
+	slhttputil "github.com/R3E-Network/neo-miniapps-platform/infrastructure/httputil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/serviceauth"
 )
 
 // Client is a client for the GlobalSigner service.

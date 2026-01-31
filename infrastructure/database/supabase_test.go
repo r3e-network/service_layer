@@ -8,10 +8,14 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
 )
 
 func newClientWithHandler(t *testing.T, handler http.Handler) *Client {
 	t.Helper()
+	runtime.ResetEnvCache()
+	runtime.ResetStrictIdentityModeCache()
 
 	client, err := NewClient(Config{
 		URL:        "http://supabase.test",
@@ -81,6 +85,8 @@ func TestNewClient(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			runtime.ResetEnvCache()
+			runtime.ResetStrictIdentityModeCache()
 			if tt.env != "" {
 				t.Setenv("MARBLE_ENV", tt.env)
 			}

@@ -76,6 +76,8 @@ spec:
 
     # Allow external HTTPS (Supabase, Neo RPC, third-party APIs).
     # NOTE: NetworkPolicy cannot restrict by domain; tighten via egress gateway or CNI features if needed.
+    # SECURE: Private IP ranges are blocked via 'except' clause to prevent SSRF attacks.
+    # All internal networks (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, etc.) are blocked.
     - to:
         - ipBlock:
             cidr: 0.0.0.0/0

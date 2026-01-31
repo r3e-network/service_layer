@@ -7,13 +7,15 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/httputil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/httputil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/resilience"
 )
 
 const defaultHTTPBodyLimit = 1 << 20 // 1 MiB
 
-func (s *Service) postJSON(ctx context.Context, url string, userID string, body any) ([]byte, error) {
+func (s *Service) postJSON(ctx context.Context, url, userID string, body any) ([]byte, error) {
 	if s == nil || s.httpClient == nil {
 		return nil, fmt.Errorf("http client not configured")
 	}
@@ -35,30 +37,48 @@ func (s *Service) postJSON(ctx context.Context, url string, userID string, body 
 		req.Header.Set("X-User-ID", userID)
 	}
 
-	resp, err := s.httpClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("request failed: %w", err)
-	}
-	defer resp.Body.Close()
+	// RESILIENCE FIX: Use circuit breaker and retry logic for HTTP calls
+	var respBody []byte
+	err = s.httpCircuitBreaker.Execute(ctx, func() error {
+		return resilience.Retry(ctx, resilience.RetryConfig{
+			MaxAttempts:  3,
+			InitialDelay: 100 * time.Millisecond,
+			MaxDelay:     5 * time.Second,
+			Multiplier:   2.0,
+			Jitter:       0.1,
+		}, func() error {
+			resp, httpErr := s.httpClient.Do(req)
+			if httpErr != nil {
+				return httpErr
+			}
+			defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		body, truncated, readErr := httputil.ReadAllWithLimit(resp.Body, 32<<10)
-		if readErr != nil {
-			return nil, fmt.Errorf("request failed: %s (failed to read body: %v)", resp.Status, readErr)
-		}
-		msg := strings.TrimSpace(string(body))
-		if truncated {
-			msg += "...(truncated)"
-		}
-		if msg == "" {
-			msg = resp.Status
-		}
-		return nil, fmt.Errorf("request failed: %s", msg)
-	}
+			if resp.StatusCode != http.StatusOK {
+				body, truncated, readErr := httputil.ReadAllWithLimit(resp.Body, 32<<10)
+				if readErr != nil {
+					return fmt.Errorf("request failed: %s (failed to read body: %v)", resp.Status, readErr)
+				}
+				msg := strings.TrimSpace(string(body))
+				if truncated {
+					msg += "...(truncated)"
+				}
+				if msg == "" {
+					msg = resp.Status
+				}
+				return fmt.Errorf("request failed: %s", msg)
+			}
 
-	respBody, err := httputil.ReadAllStrict(resp.Body, defaultHTTPBodyLimit)
+			var readErr error
+			respBody, readErr = httputil.ReadAllStrict(resp.Body, defaultHTTPBodyLimit)
+			if readErr != nil {
+				return fmt.Errorf("read response: %w", readErr)
+			}
+			return nil
+		})
+	})
+
 	if err != nil {
-		return nil, fmt.Errorf("read response: %w", err)
+		return nil, fmt.Errorf("request failed after retries: %w", err)
 	}
 
 	return respBody, nil

@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	neoaccountsclient "github.com/R3E-Network/service_layer/infrastructure/accountpool/client"
+	neoaccountsclient "github.com/R3E-Network/neo-miniapps-platform/infrastructure/accountpool/client"
 )
 
 // =============================================================================
@@ -19,7 +19,7 @@ import (
 func TestNewContractInvoker_Success(t *testing.T) {
 	mockClient := newMockPoolClient()
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "0xabc123",
 		RandomnessLogAddress: "0xdef456",
 		PaymentHubAddress:    "0x789ghi",
@@ -34,7 +34,7 @@ func TestNewContractInvoker_Success(t *testing.T) {
 
 func TestNewContractInvoker_NilPoolClient(t *testing.T) {
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        nil,
+		PoolClient:           nil,
 		PriceFeedAddress:     "0xabc123",
 		RandomnessLogAddress: "0xdef456",
 		PaymentHubAddress:    "0x789ghi",
@@ -49,11 +49,11 @@ func TestNewContractInvoker_MissingContractAddresses(t *testing.T) {
 	mockClient := newMockPoolClient()
 
 	tests := []struct {
-		name              string
+		name                 string
 		priceFeedAddress     string
 		randomnessLogAddress string
 		paymentHubAddress    string
-		expectErr         bool
+		expectErr            bool
 	}{
 		{"missing price feed", "", "0xdef456", "0x789ghi", false},
 		{"missing randomness log", "0xabc123", "", "0x789ghi", false},
@@ -64,7 +64,7 @@ func TestNewContractInvoker_MissingContractAddresses(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			inv, err := NewContractInvoker(ContractInvokerConfig{
-				PoolClient:        mockClient,
+				PoolClient:           mockClient,
 				PriceFeedAddress:     tt.priceFeedAddress,
 				RandomnessLogAddress: tt.randomnessLogAddress,
 				PaymentHubAddress:    tt.paymentHubAddress,
@@ -88,7 +88,7 @@ func TestNewContractInvoker_NormalizesAddresses(t *testing.T) {
 
 	// Test with 0x prefix
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "0xabc123",
 		RandomnessLogAddress: "0xdef456",
 		PaymentHubAddress:    "0x789ghi",
@@ -101,7 +101,7 @@ func TestNewContractInvoker_NormalizesAddresses(t *testing.T) {
 
 	// Test without 0x prefix
 	inv2, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "abc123",
 		RandomnessLogAddress: "def456",
 		PaymentHubAddress:    "789ghi",
@@ -118,7 +118,7 @@ func TestNewContractInvoker_NormalizesAddresses(t *testing.T) {
 func TestContractInvoker_UpdatePriceFeed_Success(t *testing.T) {
 	mockClient := newMockPoolClient()
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "0xpricefeed",
 		RandomnessLogAddress: "0xrandomness",
 		PaymentHubAddress:    "0xpaymenthub",
@@ -149,7 +149,7 @@ func TestContractInvoker_UpdatePriceFeed_Success(t *testing.T) {
 func TestContractInvoker_UpdatePriceFeed_MissingHash(t *testing.T) {
 	mockClient := newMockPoolClient()
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "",
 		RandomnessLogAddress: "0xrandomness",
 		PaymentHubAddress:    "0xpaymenthub",
@@ -165,7 +165,7 @@ func TestContractInvoker_UpdatePriceFeed_MissingHash(t *testing.T) {
 func TestContractInvoker_UpdatePriceFeed_UnknownSymbol(t *testing.T) {
 	mockClient := newMockPoolClient()
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "0xpricefeed",
 		RandomnessLogAddress: "0xrandomness",
 		PaymentHubAddress:    "0xpaymenthub",
@@ -185,7 +185,7 @@ func TestContractInvoker_UpdatePriceFeed_InvokeError(t *testing.T) {
 	mockClient.invokeMasterErr = errors.New("network error")
 
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "0xpricefeed",
 		RandomnessLogAddress: "0xrandomness",
 		PaymentHubAddress:    "0xpaymenthub",
@@ -212,7 +212,7 @@ func TestContractInvoker_UpdatePriceFeed_ContractFault(t *testing.T) {
 	}
 
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "0xpricefeed",
 		RandomnessLogAddress: "0xrandomness",
 		PaymentHubAddress:    "0xpaymenthub",
@@ -234,7 +234,7 @@ func TestContractInvoker_UpdatePriceFeed_ContractFault(t *testing.T) {
 func TestContractInvoker_RecordRandomness_Success(t *testing.T) {
 	mockClient := newMockPoolClient()
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "0xpricefeed",
 		RandomnessLogAddress: "0xrandomness",
 		PaymentHubAddress:    "0xpaymenthub",
@@ -265,7 +265,7 @@ func TestContractInvoker_RecordRandomness_Success(t *testing.T) {
 func TestContractInvoker_RecordRandomness_MissingHash(t *testing.T) {
 	mockClient := newMockPoolClient()
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "0xpricefeed",
 		RandomnessLogAddress: "",
 		PaymentHubAddress:    "0xpaymenthub",
@@ -283,7 +283,7 @@ func TestContractInvoker_RecordRandomness_InvokeError(t *testing.T) {
 	mockClient.invokeMasterErr = errors.New("network error")
 
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "0xpricefeed",
 		RandomnessLogAddress: "0xrandomness",
 		PaymentHubAddress:    "0xpaymenthub",
@@ -308,7 +308,7 @@ func TestContractInvoker_RecordRandomness_InvokeError(t *testing.T) {
 func TestContractInvoker_PayToApp_Success(t *testing.T) {
 	mockClient := newMockPoolClient()
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "0xpricefeed",
 		RandomnessLogAddress: "0xrandomness",
 		PaymentHubAddress:    "0xpaymenthub",
@@ -343,7 +343,7 @@ func TestContractInvoker_PayToApp_Success(t *testing.T) {
 func TestContractInvoker_PayToApp_ReusesAccount(t *testing.T) {
 	mockClient := newMockPoolClient()
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "0xpricefeed",
 		RandomnessLogAddress: "0xrandomness",
 		PaymentHubAddress:    "0xpaymenthub",
@@ -372,7 +372,7 @@ func TestContractInvoker_PayToApp_ReusesAccount(t *testing.T) {
 func TestContractInvoker_PayToApp_DifferentAppsGetDifferentAccounts(t *testing.T) {
 	mockClient := newMockPoolClient()
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "0xpricefeed",
 		RandomnessLogAddress: "0xrandomness",
 		PaymentHubAddress:    "0xpaymenthub",
@@ -401,7 +401,7 @@ func TestContractInvoker_PayToApp_RequestAccountError(t *testing.T) {
 	mockClient.requestAccountsErr = errors.New("no accounts available")
 
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "0xpricefeed",
 		RandomnessLogAddress: "0xrandomness",
 		PaymentHubAddress:    "0xpaymenthub",
@@ -426,7 +426,7 @@ func TestContractInvoker_PayToApp_EmptyAccountsResponse(t *testing.T) {
 	}
 
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "0xpricefeed",
 		RandomnessLogAddress: "0xrandomness",
 		PaymentHubAddress:    "0xpaymenthub",
@@ -446,7 +446,7 @@ func TestContractInvoker_PayToApp_InvokeError(t *testing.T) {
 	mockClient.transferWithDataErr = errors.New("transfer failed")
 
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "0xpricefeed",
 		RandomnessLogAddress: "0xrandomness",
 		PaymentHubAddress:    "0xpaymenthub",
@@ -470,7 +470,7 @@ func TestContractInvoker_PayToApp_InvokeError(t *testing.T) {
 func TestContractInvoker_GetLockedAccountCount(t *testing.T) {
 	mockClient := newMockPoolClient()
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "0xpricefeed",
 		RandomnessLogAddress: "0xrandomness",
 		PaymentHubAddress:    "0xpaymenthub",
@@ -495,7 +495,7 @@ func TestContractInvoker_GetLockedAccountCount(t *testing.T) {
 func TestContractInvoker_ReleaseAllAccounts(t *testing.T) {
 	mockClient := newMockPoolClient()
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "0xpricefeed",
 		RandomnessLogAddress: "0xrandomness",
 		PaymentHubAddress:    "0xpaymenthub",
@@ -523,7 +523,7 @@ func TestContractInvoker_ReleaseAllAccounts(t *testing.T) {
 func TestContractInvoker_Close(t *testing.T) {
 	mockClient := newMockPoolClient()
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "0xpricefeed",
 		RandomnessLogAddress: "0xrandomness",
 		PaymentHubAddress:    "0xpaymenthub",
@@ -545,7 +545,7 @@ func TestContractInvoker_Close(t *testing.T) {
 func TestContractInvoker_GetStats(t *testing.T) {
 	mockClient := newMockPoolClient()
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "0xpricefeed",
 		RandomnessLogAddress: "0xrandomness",
 		PaymentHubAddress:    "0xpaymenthub",
@@ -576,7 +576,7 @@ func TestContractInvoker_GetStats(t *testing.T) {
 func TestContractInvoker_GetPriceSymbols(t *testing.T) {
 	mockClient := newMockPoolClient()
 	inv, err := NewContractInvoker(ContractInvokerConfig{
-		PoolClient:        mockClient,
+		PoolClient:           mockClient,
 		PriceFeedAddress:     "0xpricefeed",
 		RandomnessLogAddress: "0xrandomness",
 		PaymentHubAddress:    "0xpaymenthub",

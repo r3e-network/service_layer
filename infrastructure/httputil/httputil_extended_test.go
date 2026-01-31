@@ -5,6 +5,8 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
 )
 
 func TestBodyTooLargeError(t *testing.T) {
@@ -24,10 +26,14 @@ func TestNormalizeServiceBaseURL(t *testing.T) {
 		} else {
 			os.Unsetenv("STRICT_IDENTITY_MODE")
 		}
+		runtime.ResetEnvCache()
+		runtime.ResetStrictIdentityModeCache()
 	}()
 
 	t.Run("valid https URL", func(t *testing.T) {
 		os.Unsetenv("STRICT_IDENTITY_MODE")
+		runtime.ResetEnvCache()
+		runtime.ResetStrictIdentityModeCache()
 		baseURL, parsed, err := NormalizeServiceBaseURL("https://example.com/api/")
 		if err != nil {
 			t.Fatalf("NormalizeServiceBaseURL() error = %v", err)
@@ -42,6 +48,8 @@ func TestNormalizeServiceBaseURL(t *testing.T) {
 
 	t.Run("valid http URL in non-strict mode", func(t *testing.T) {
 		os.Unsetenv("STRICT_IDENTITY_MODE")
+		runtime.ResetEnvCache()
+		runtime.ResetStrictIdentityModeCache()
 		baseURL, _, err := NormalizeServiceBaseURL("http://localhost:8080")
 		if err != nil {
 			t.Fatalf("NormalizeServiceBaseURL() error = %v", err)
@@ -79,16 +87,22 @@ func TestStrictIdentityMode(t *testing.T) {
 		} else {
 			os.Unsetenv("STRICT_IDENTITY_MODE")
 		}
+		runtime.ResetEnvCache()
+		runtime.ResetStrictIdentityModeCache()
 	}()
 
 	t.Run("disabled by default", func(t *testing.T) {
 		os.Unsetenv("STRICT_IDENTITY_MODE")
+		runtime.ResetEnvCache()
+		runtime.ResetStrictIdentityModeCache()
 		// Just verify it doesn't panic
 		_ = StrictIdentityMode()
 	})
 
 	t.Run("enabled when set", func(t *testing.T) {
 		os.Setenv("STRICT_IDENTITY_MODE", "true")
+		runtime.ResetEnvCache()
+		runtime.ResetStrictIdentityModeCache()
 		// Just verify it doesn't panic
 		_ = StrictIdentityMode()
 	})

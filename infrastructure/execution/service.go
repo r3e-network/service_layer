@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/database"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
 )
 
 // Service handles execution tracking operations.

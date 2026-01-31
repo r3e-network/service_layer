@@ -16,8 +16,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/hex"
-	"github.com/R3E-Network/service_layer/infrastructure/marble"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/hex"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/marble"
 )
 
 // =============================================================================

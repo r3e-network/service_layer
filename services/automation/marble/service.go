@@ -14,14 +14,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
-	"github.com/R3E-Network/service_layer/infrastructure/database"
-	gasbankclient "github.com/R3E-Network/service_layer/infrastructure/gasbank/client"
-	"github.com/R3E-Network/service_layer/infrastructure/marble"
-	"github.com/R3E-Network/service_layer/infrastructure/runtime"
-	commonservice "github.com/R3E-Network/service_layer/infrastructure/service"
-	txproxytypes "github.com/R3E-Network/service_layer/infrastructure/txproxy/types"
-	neoflowsupabase "github.com/R3E-Network/service_layer/services/automation/supabase"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
+	gasbankclient "github.com/R3E-Network/neo-miniapps-platform/infrastructure/gasbank/client"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/marble"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/middleware"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
+	commonservice "github.com/R3E-Network/neo-miniapps-platform/infrastructure/service"
+	txproxytypes "github.com/R3E-Network/neo-miniapps-platform/infrastructure/txproxy/types"
+	neoflowsupabase "github.com/R3E-Network/neo-miniapps-platform/services/automation/supabase"
 )
 
 const (
@@ -46,20 +47,26 @@ type Service struct {
 	repo neoflowsupabase.RepositoryInterface
 
 	// Optional chain interaction for anchored tasks (platform contracts).
-	chainClient          *chain.Client
-	priceFeedAddress     string
-	priceFeed            *chain.PriceFeedContract
+	chainClient             *chain.Client
+	priceFeedAddress        string
+	priceFeed               *chain.PriceFeedContract
 	automationAnchorAddress string
-	automationAnchor     *chain.AutomationAnchorContract
-	txProxy              txproxytypes.Invoker
-	eventListener        *chain.EventListener
-	enableChainExec      bool
+	automationAnchor        *chain.AutomationAnchorContract
+	txProxy                 txproxytypes.Invoker
+	eventListener           *chain.EventListener
+	enableChainExec         bool
 
 	// Service fee deduction
 	gasbank *gasbankclient.Client
 
 	triggerSem      chan struct{}
 	anchoredTaskSem chan struct{}
+
+	// Timeout configuration for trigger execution
+	triggerTimeout time.Duration
+
+	// Rate limiting for webhook calls
+	rateLimiter *middleware.RateLimiter
 }
 
 // Scheduler manages trigger execution.
@@ -76,12 +83,12 @@ type Config struct {
 	NeoFlowRepo neoflowsupabase.RepositoryInterface
 
 	// Optional chain configuration for anchored tasks (platform AutomationAnchor + PriceFeed).
-	ChainClient          *chain.Client
-	PriceFeedAddress     string
+	ChainClient             *chain.Client
+	PriceFeedAddress        string
 	AutomationAnchorAddress string
-	TxProxy              txproxytypes.Invoker
-	EventListener        *chain.EventListener
-	EnableChainExec      bool
+	TxProxy                 txproxytypes.Invoker
+	EventListener           *chain.EventListener
+	EnableChainExec         bool
 
 	// GasBank client for service fee deduction (optional)
 	GasBank *gasbankclient.Client
@@ -130,16 +137,22 @@ func New(cfg Config) (*Service, error) { //nolint:gocritic // cfg is read once a
 			triggers:      make(map[string]*neoflowsupabase.Trigger),
 			anchoredTasks: make(map[string]*anchoredTaskState),
 		},
-		chainClient:          cfg.ChainClient,
-		priceFeedAddress:     cfg.PriceFeedAddress,
+		chainClient:             cfg.ChainClient,
+		priceFeedAddress:        cfg.PriceFeedAddress,
 		automationAnchorAddress: cfg.AutomationAnchorAddress,
-		txProxy:              cfg.TxProxy,
-		eventListener:        cfg.EventListener,
-		enableChainExec:      cfg.EnableChainExec,
-		gasbank:              cfg.GasBank,
-		triggerSem:           make(chan struct{}, triggerConcurrency),
-		anchoredTaskSem:      make(chan struct{}, anchoredTaskConcurrency),
+		txProxy:                 cfg.TxProxy,
+		eventListener:           cfg.EventListener,
+		enableChainExec:         cfg.EnableChainExec,
+		gasbank:                 cfg.GasBank,
+		triggerSem:              make(chan struct{}, triggerConcurrency),
+		anchoredTaskSem:         make(chan struct{}, anchoredTaskConcurrency),
+		triggerTimeout:          5 * time.Minute, // Default trigger execution timeout
 	}
+
+	// Initialize rate limiter (defaults: 50 req/s, burst 100 for webhook calls)
+	rateLimitPerSecond := 50
+	rateLimitBurst := 100
+	s.rateLimiter = middleware.NewRateLimiter(rateLimitPerSecond, rateLimitBurst, base.Logger())
 
 	if s.chainClient != nil && s.priceFeedAddress != "" {
 		s.priceFeed = chain.NewPriceFeedContract(s.chainClient, s.priceFeedAddress)

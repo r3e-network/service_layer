@@ -40,6 +40,13 @@ var (
 	envValue Environment
 )
 
+// ResetEnvCache resets the cached environment value.
+// This should only be used in tests.
+func ResetEnvCache() {
+	envOnce = sync.Once{}
+	envValue = Development
+}
+
 // Env returns the current environment derived from MARBLE_ENV (preferred) or
 // ENVIRONMENT (legacy fallback). Unknown values default to Development.
 func Env() Environment {

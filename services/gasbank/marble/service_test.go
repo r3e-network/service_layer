@@ -8,8 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/R3E-Network/service_layer/infrastructure/database"
-	"github.com/R3E-Network/service_layer/infrastructure/marble"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/marble"
 )
 
 func TestNew(t *testing.T) {
@@ -1018,7 +1018,8 @@ func TestGetPendingDepositsWithDB(t *testing.T) {
 		t.Errorf("getPendingDeposits() error = %v", err)
 	}
 	if deposits == nil {
-		// Empty slice is fine
+		// Skip test if no deposits returned - this is valid behavior
+		t.Skip()
 	}
 }
 

@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/database"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
 )
 
 const (
@@ -589,8 +589,8 @@ func (r *Repository) UpdateBalanceWithLock(ctx context.Context, accountID, servi
 	}
 
 	var accounts []Account
-	if err := json.Unmarshal(accountsData, &accounts); err != nil {
-		return 0, 0, 0, false, fmt.Errorf("unmarshal account: %w", err)
+	if unmarshalErr := json.Unmarshal(accountsData, &accounts); unmarshalErr != nil {
+		return 0, 0, 0, false, fmt.Errorf("unmarshal account: %w", unmarshalErr)
 	}
 
 	// Check if account exists and is locked by this service
@@ -612,8 +612,8 @@ func (r *Repository) UpdateBalanceWithLock(ctx context.Context, accountID, servi
 	}
 
 	var balances []AccountBalance
-	if err := json.Unmarshal(balancesData, &balances); err != nil {
-		return 0, 0, 0, false, fmt.Errorf("unmarshal balance: %w", err)
+	if unmarshalErr := json.Unmarshal(balancesData, &balances); unmarshalErr != nil {
+		return 0, 0, 0, false, fmt.Errorf("unmarshal balance: %w", unmarshalErr)
 	}
 
 	var oldBalance int64 = 0

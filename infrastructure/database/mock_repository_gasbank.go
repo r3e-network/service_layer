@@ -152,6 +152,42 @@ func (m *MockRepository) DeductFeeAtomic(ctx context.Context, userID string, amo
 	return newBalance, nil
 }
 
+func (m *MockRepository) ConfirmDepositAtomic(ctx context.Context, userID string, depositAmount int64, tx *GasBankTransaction) (int64, error) {
+	if err := m.checkError(); err != nil {
+		return 0, err
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	// Find account
+	var account *GasBankAccount
+	for _, acc := range m.gasBankAccounts {
+		if acc.UserID == userID {
+			account = acc
+			break
+		}
+	}
+	if account == nil {
+		return 0, NewNotFoundError("gasbank_account", userID)
+	}
+
+	// Atomically update balance and create transaction
+	newBalance := account.Balance + depositAmount
+	account.Balance = newBalance
+	account.UpdatedAt = time.Now()
+
+	tx.BalanceAfter = newBalance
+	if tx.ID == "" {
+		tx.ID = uuid.New().String()
+	}
+	if tx.CreatedAt.IsZero() {
+		tx.CreatedAt = time.Now()
+	}
+	m.gasBankTransactions[tx.ID] = tx
+
+	return newBalance, nil
+}
+
 // =============================================================================
 // Deposit Operations (part of GasBankRepository)
 // =============================================================================

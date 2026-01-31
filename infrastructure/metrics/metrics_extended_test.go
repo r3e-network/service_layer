@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -112,6 +113,7 @@ func TestEnabled(t *testing.T) {
 	})
 
 	t.Run("default in development", func(t *testing.T) {
+		runtime.ResetEnvCache()
 		os.Unsetenv("METRICS_ENABLED")
 		os.Setenv("MARBLE_ENV", "development")
 		if !Enabled() {
@@ -120,6 +122,7 @@ func TestEnabled(t *testing.T) {
 	})
 
 	t.Run("default in production", func(t *testing.T) {
+		runtime.ResetEnvCache()
 		os.Unsetenv("METRICS_ENABLED")
 		os.Setenv("MARBLE_ENV", "production")
 		if Enabled() {

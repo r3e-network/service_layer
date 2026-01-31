@@ -19,9 +19,9 @@ import (
 	"github.com/nspcc-dev/neo-go/pkg/util"
 	"github.com/nspcc-dev/neo-go/pkg/wallet"
 
-	"github.com/R3E-Network/service_layer/infrastructure/accountpool/supabase"
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
-	intcrypto "github.com/R3E-Network/service_layer/infrastructure/crypto"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/accountpool/supabase"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
+	intcrypto "github.com/R3E-Network/neo-miniapps-platform/infrastructure/crypto"
 )
 
 // Secret names for TEE wallet keys - these should be defined in MarbleRun manifest
@@ -60,7 +60,7 @@ func (s *Service) getTEEWalletAccount() (*wallet.Account, error) {
 	}
 
 	// Check if it looks like a WIF (starts with K, L, or 5)
-	if len(teePrivateKey) > 0 && (teePrivateKey[0] == 'K' || teePrivateKey[0] == 'L' || teePrivateKey[0] == '5') {
+	if teePrivateKey != "" && (teePrivateKey[0] == 'K' || teePrivateKey[0] == 'L' || teePrivateKey[0] == '5') {
 		return chain.AccountFromWIF(teePrivateKey)
 	}
 
@@ -179,7 +179,8 @@ func (s *Service) Transfer(ctx context.Context, serviceID, accountID, toAddress 
 		return "", fmt.Errorf("amount must be positive")
 	}
 
-	tokenHash = strings.TrimSpace(tokenHash)
+	// TODO: tokenHash is reserved for future NEP-17 token support (currently only GAS transfers)
+	_ = strings.TrimSpace(tokenHash)
 	s.mu.RLock()
 	acc, err := s.repo.GetByID(ctx, accountID)
 	if err != nil {
@@ -300,7 +301,7 @@ func (s *Service) TransferWithData(ctx context.Context, serviceID, accountID, to
 	// Support both Neo N3 addresses (starting with 'N') and script hashes (0x... or hex)
 	toAddress = strings.TrimSpace(toAddress)
 	var toU160 util.Uint160
-	if len(toAddress) > 0 && toAddress[0] == 'N' {
+	if toAddress != "" && toAddress[0] == 'N' {
 		// Neo N3 address format
 		toU160, err = address.StringToUint160(toAddress)
 		if err != nil {
@@ -481,10 +482,10 @@ func (s *Service) DeployContract(ctx context.Context, serviceID, accountID, nefB
 	s.mu.Unlock()
 
 	s.Logger().WithContext(ctx).WithFields(map[string]interface{}{
-		"account_id":    accountID,
-		"tx_hash":       txHashString,
+		"account_id":       accountID,
+		"tx_hash":          txHashString,
 		"contract_address": contractAddress,
-		"gas_consumed":  invokeResult.GasConsumed,
+		"gas_consumed":     invokeResult.GasConsumed,
 	}).Info("contract deployed")
 
 	return &DeployContractResponse{
@@ -604,10 +605,10 @@ func (s *Service) UpdateContract(ctx context.Context, serviceID, accountID, cont
 	s.mu.Unlock()
 
 	s.Logger().WithContext(ctx).WithFields(map[string]interface{}{
-		"account_id":    accountID,
-		"tx_hash":       txHashString,
+		"account_id":       accountID,
+		"tx_hash":          txHashString,
 		"contract_address": contractAddress,
-		"gas_consumed":  invokeResult.GasConsumed,
+		"gas_consumed":     invokeResult.GasConsumed,
 	}).Info("contract updated")
 
 	return &UpdateContractResponse{
@@ -746,12 +747,12 @@ func (s *Service) InvokeContract(ctx context.Context, serviceID, accountID, cont
 	s.mu.Unlock()
 
 	s.Logger().WithContext(ctx).WithFields(map[string]interface{}{
-		"account_id":    accountID,
-		"tx_hash":       txHashString,
+		"account_id":       accountID,
+		"tx_hash":          txHashString,
 		"contract_address": contractAddress,
-		"method":        method,
-		"scope":         scope,
-		"gas_consumed":  invokeResult.GasConsumed,
+		"method":           method,
+		"scope":            scope,
+		"gas_consumed":     invokeResult.GasConsumed,
 	}).Info("contract invoked")
 
 	return &InvokeContractResponse{
@@ -833,7 +834,7 @@ func convertToChainParam(p ContractParam) chain.ContractParam {
 	case "hash160":
 		if s, ok := p.Value.(string); ok {
 			// If it looks like a Neo address (starts with N), convert to script hash
-			if len(s) > 0 && s[0] == 'N' {
+			if s != "" && s[0] == 'N' {
 				u160, err := address.StringToUint160(s)
 				if err == nil {
 					// Return as 0x-prefixed little-endian hex string
@@ -1074,12 +1075,12 @@ func (s *Service) InvokeMaster(ctx context.Context, contractAddress, method stri
 	}
 
 	s.Logger().WithContext(ctx).WithFields(map[string]interface{}{
-		"account":       "master",
-		"tx_hash":       txHashString,
+		"account":          "master",
+		"tx_hash":          txHashString,
 		"contract_address": contractAddress,
-		"method":        method,
-		"scope":         scope,
-		"gas_consumed":  invokeResult.GasConsumed,
+		"method":           method,
+		"scope":            scope,
+		"gas_consumed":     invokeResult.GasConsumed,
 	}).Info("master contract invoked")
 
 	return &InvokeContractResponse{
@@ -1202,10 +1203,10 @@ func (s *Service) DeployMaster(ctx context.Context, nefBase64, manifestJSON stri
 	}
 
 	s.Logger().WithContext(ctx).WithFields(map[string]interface{}{
-		"account":       "master",
-		"tx_hash":       txHashString,
+		"account":          "master",
+		"tx_hash":          txHashString,
 		"contract_address": contractAddress,
-		"gas_consumed":  invokeResult.GasConsumed,
+		"gas_consumed":     invokeResult.GasConsumed,
 	}).Info("contract deployed with master wallet")
 
 	return &DeployMasterResponse{

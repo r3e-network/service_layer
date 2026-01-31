@@ -20,9 +20,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/tidwall/gjson"
 
-	"github.com/R3E-Network/service_layer/infrastructure/crypto"
-	"github.com/R3E-Network/service_layer/infrastructure/database"
-	"github.com/R3E-Network/service_layer/infrastructure/httputil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/crypto"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/httputil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/resilience"
 )
 
 // =============================================================================
@@ -37,7 +38,7 @@ import (
 func (s *Service) GetPrice(ctx context.Context, pair string) (*PriceResponse, error) {
 	normalizedPair := normalizePair(pair)
 	if normalizedPair == "" {
-		return nil, fmt.Errorf("pair required")
+		return nil, fmt.Errorf("price feed: pair parameter is required and cannot be empty")
 	}
 
 	// Try to find feed config for this pair (supports legacy BTC/USD inputs).
@@ -58,9 +59,15 @@ func (s *Service) GetPrice(ctx context.Context, pair string) (*PriceResponse, er
 	}
 
 	var wg sync.WaitGroup
-	var mu sync.Mutex
+	// PERFORMANCE FIX [P-01]: Use channel to collect results without mutex contention
+	type priceResult struct {
+		price  float64
+		weight int
+		source string
+	}
 
 	sourcesToUse := s.getSourcesForFeed(feed)
+	results := make(chan priceResult, len(sourcesToUse)+1)
 
 	for _, srcConfig := range sourcesToUse {
 		s.acquireSourceSlot()
@@ -68,18 +75,35 @@ func (s *Service) GetPrice(ctx context.Context, pair string) (*PriceResponse, er
 		go func(src *SourceConfig) {
 			defer wg.Done()
 			defer s.releaseSourceSlot()
+			// PANIC RECOVERY [R-03]: Prevent goroutine crashes from killing the service
+			defer func() {
+				if r := recover(); r != nil {
+					s.Logger().WithContext(ctx).
+						WithField("source", src.ID).
+						WithField("pair", normalizedPair).
+						WithField("panic", r).
+						Error("panic recovered in price fetch goroutine")
+				}
+			}()
 
 			price, err := s.fetchPriceFromSource(ctx, normalizedPair, feed, src)
 			if err != nil {
+				// ERROR FIX [E-01]: Log price source failures for observability
+				// CRITICAL: Silent failures mask systemic issues and make debugging impossible
+				s.Logger().WithContext(ctx).
+					WithField("source", src.ID).
+					WithField("pair", normalizedPair).
+					WithError(err).
+					Warn("price source fetch failed")
 				return
 			}
 
-			mu.Lock()
-			for i := 0; i < src.Weight; i++ {
-				prices = append(prices, price)
+			// PERFORMANCE FIX [P-01]: Send result to channel
+			results <- priceResult{
+				price:  price,
+				weight: src.Weight,
+				source: src.ID,
 			}
-			sources = append(sources, src.ID)
-			mu.Unlock()
 		}(srcConfig)
 	}
 
@@ -90,20 +114,65 @@ func (s *Service) GetPrice(ctx context.Context, pair string) (*PriceResponse, er
 		go func() {
 			defer wg.Done()
 			defer s.releaseSourceSlot()
+			// PANIC RECOVERY [R-03]: Prevent goroutine crashes from killing the service
+			defer func() {
+				if r := recover(); r != nil {
+					s.Logger().WithContext(ctx).
+						WithField("feed", feedID).
+						WithField("source", "chainlink").
+						WithField("panic", r).
+						Error("panic recovered in chainlink price fetch goroutine")
+				}
+			}()
 
 			price, _, err := s.chainlinkClient.GetPrice(ctx, feedID)
 			if err != nil || price <= 0 {
+				// ERROR FIX [E-01]: Log Chainlink source failures for observability
+				if err != nil {
+					s.Logger().WithContext(ctx).
+						WithField("feed", feedID).
+						WithError(err).
+						Warn("Chainlink price source failed")
+				}
 				return
 			}
 
-			mu.Lock()
-			prices = append(prices, price)
-			sources = append(sources, "chainlink")
-			mu.Unlock()
+			// PERFORMANCE FIX [P-01]: Use channel for chainlink too
+			results <- priceResult{
+				price:  price,
+				weight: 1,
+				source: "chainlink",
+			}
 		}()
 	}
 
 	wg.Wait()
+	close(results)
+
+	// PERFORMANCE FIX [P-01]: Process results efficiently with pre-allocation
+	// Collect all results from channel first (channel can only be drained once)
+	allResults := make([]priceResult, 0, len(sourcesToUse)+1)
+	totalWeight := 0
+	for result := range results {
+		allResults = append(allResults, result)
+		totalWeight += result.weight
+	}
+
+	if totalWeight == 0 {
+		return nil, fmt.Errorf("no prices available for %s", normalizedPair)
+	}
+
+	// Preallocate slices with correct capacity
+	prices = make([]float64, 0, totalWeight)
+	sources = make([]string, 0, len(allResults))
+
+	// Process collected results
+	for _, result := range allResults {
+		for i := 0; i < result.weight; i++ {
+			prices = append(prices, result.price)
+		}
+		sources = append(sources, result.source)
+	}
 
 	if len(prices) == 0 {
 		return nil, fmt.Errorf("no prices available for %s", normalizedPair)
@@ -218,36 +287,57 @@ func (s *Service) fetchPriceFromSource(ctx context.Context, pair string, feed *F
 		req.Header.Set(k, resolveEnvVar(v))
 	}
 
-	resp, err := s.httpClient.Do(req)
+	// RESILIENCE FIX: Use circuit breaker and retry logic for HTTP calls
+	var price float64
+	err = s.httpCircuitBreaker.Execute(ctx, func() error {
+		// Inner retry for transient failures
+		retryErr := resilience.Retry(ctx, resilience.RetryConfig{
+			MaxAttempts:  3,
+			InitialDelay: 100 * time.Millisecond,
+			MaxDelay:     5 * time.Second,
+			Multiplier:   2.0,
+			Jitter:       0.1,
+		}, func() error {
+			resp, httpErr := s.httpClient.Do(req)
+			if httpErr != nil {
+				return httpErr
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+				respBody, truncated, readErr := httputil.ReadAllWithLimit(resp.Body, 32<<10)
+				if readErr != nil {
+					return fmt.Errorf("read error response body: %w", readErr)
+				}
+				msg := strings.TrimSpace(string(respBody))
+				if truncated {
+					msg += "...(truncated)"
+				}
+				return fmt.Errorf("price source returned HTTP %d: %s", resp.StatusCode, msg)
+			}
+
+			body, readErr := httputil.ReadAllStrict(resp.Body, 1<<20)
+			if readErr != nil {
+				return fmt.Errorf("read response body: %w", readErr)
+			}
+
+			jsonPath := formatJSONPath(src.JSONPath, feed, src)
+			result := gjson.GetBytes(body, jsonPath)
+			if !result.Exists() {
+				return fmt.Errorf("price not found in response")
+			}
+
+			price = result.Float()
+			return nil
+		})
+		return retryErr
+	})
+
 	if err != nil {
 		return 0, err
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		respBody, truncated, readErr := httputil.ReadAllWithLimit(resp.Body, 32<<10)
-		if readErr != nil {
-			return 0, readErr
-		}
-		msg := strings.TrimSpace(string(respBody))
-		if truncated {
-			msg += "...(truncated)"
-		}
-		return 0, fmt.Errorf("price source returned HTTP %d: %s", resp.StatusCode, msg)
-	}
-
-	body, err := httputil.ReadAllStrict(resp.Body, 1<<20)
-	if err != nil {
-		return 0, err
-	}
-
-	jsonPath := formatJSONPath(src.JSONPath, feed, src)
-	result := gjson.GetBytes(body, jsonPath)
-	if !result.Exists() {
-		return 0, fmt.Errorf("price not found in response")
-	}
-
-	return result.Float(), nil
+	return price, nil
 }
 
 func (s *Service) fetchPrice(ctx context.Context, pair string, source PriceSource) (float64, error) {
@@ -270,7 +360,7 @@ func (s *Service) fetchPrice(ctx context.Context, pair string, source PriceSourc
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		respBody, truncated, readErr := httputil.ReadAllWithLimit(resp.Body, 32<<10)
 		if readErr != nil {
-			return 0, readErr
+			return 0, fmt.Errorf("read error response body: %w", readErr)
 		}
 		msg := strings.TrimSpace(string(respBody))
 		if truncated {
@@ -281,12 +371,12 @@ func (s *Service) fetchPrice(ctx context.Context, pair string, source PriceSourc
 
 	body, err := httputil.ReadAllStrict(resp.Body, 1<<20)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("read response body: %w", err)
 	}
 
 	result := gjson.GetBytes(body, source.JSONPath)
 	if !result.Exists() {
-		return 0, fmt.Errorf("price not found in response")
+		return 0, fmt.Errorf("price not found in response at path: %s", source.JSONPath)
 	}
 
 	return result.Float(), nil
@@ -458,6 +548,13 @@ func allowPrivateSourceTargets() bool {
 }
 
 func validateSourceURL(ctx context.Context, rawURL string) error {
+	// SECURITY: This function provides comprehensive SSRF protection
+	// - Blocks private IPs (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16)
+	// - Blocks loopback (127.0.0.0/8)
+	// - Blocks link-local (169.254.0.0/16)
+	// - Blocks multicast (224.0.0.0/4)
+	// - Blocks carrier-grade NAT (100.64.0.0/10)
+	// - Only allows HTTPS protocol
 	parsed, err := url.Parse(strings.TrimSpace(rawURL))
 	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
 		return fmt.Errorf("invalid source url")
@@ -524,25 +621,25 @@ func isDisallowedSourceIP(ip net.IP) bool {
 // pow10Table provides precomputed powers of 10 for common decimal precisions.
 // This avoids repeated multiplication in hot paths.
 var pow10Table = [...]int64{
-	1,                    // 10^0
-	10,                   // 10^1
-	100,                  // 10^2
-	1000,                 // 10^3
-	10000,                // 10^4
-	100000,               // 10^5
-	1000000,              // 10^6
-	10000000,             // 10^7
-	100000000,            // 10^8
-	1000000000,           // 10^9
-	10000000000,          // 10^10
-	100000000000,         // 10^11
-	1000000000000,        // 10^12
-	10000000000000,       // 10^13
-	100000000000000,      // 10^14
-	1000000000000000,     // 10^15
-	10000000000000000,    // 10^16
-	100000000000000000,   // 10^17
-	1000000000000000000,  // 10^18
+	1,                   // 10^0
+	10,                  // 10^1
+	100,                 // 10^2
+	1000,                // 10^3
+	10000,               // 10^4
+	100000,              // 10^5
+	1000000,             // 10^6
+	10000000,            // 10^7
+	100000000,           // 10^8
+	1000000000,          // 10^9
+	10000000000,         // 10^10
+	100000000000,        // 10^11
+	1000000000000,       // 10^12
+	10000000000000,      // 10^13
+	100000000000000,     // 10^14
+	1000000000000000,    // 10^15
+	10000000000000000,   // 10^16
+	100000000000000000,  // 10^17
+	1000000000000000000, // 10^18
 }
 
 // pow10 returns 10^n using a lookup table for common values.

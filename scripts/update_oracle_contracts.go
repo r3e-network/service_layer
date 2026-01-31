@@ -13,15 +13,15 @@ import (
 
 	"github.com/nspcc-dev/neo-go/pkg/core/transaction"
 
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
 )
 
 const defaultRPC = "https://testnet1.neo.coz.io:443"
 
 type updateTarget struct {
-	Name       string
+	Name          string
 	EnvAddressKey string
-	Method     string
+	Method        string
 }
 
 func main() {
@@ -60,14 +60,14 @@ func main() {
 
 	targets := []updateTarget{
 		{
-			Name:       "PriceFeed",
+			Name:          "PriceFeed",
 			EnvAddressKey: "CONTRACT_PRICE_FEED_ADDRESS",
-			Method:     "updateContract",
+			Method:        "updateContract",
 		},
 		{
-			Name:       "RandomnessLog",
+			Name:          "RandomnessLog",
 			EnvAddressKey: "CONTRACT_RANDOMNESS_LOG_ADDRESS",
-			Method:     "update",
+			Method:        "update",
 		},
 	}
 

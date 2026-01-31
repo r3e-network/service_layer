@@ -78,7 +78,7 @@ crypto.ZeroBytes(sensitiveData)
 package main
 
 import (
-    "github.com/R3E-Network/service_layer/infrastructure/crypto"
+    "github.com/R3E-Network/neo-miniapps-platform/infrastructure/crypto"
 )
 
 func main() {

@@ -15,14 +15,14 @@ import (
 type Network string
 
 const (
-	NetworkMainnet      Network = "mainnet"
-	NetworkTestnet      Network = "testnet"
-	NetworkNeoXMainnet  Network = "neox-mainnet"
-	NetworkNeoXTestnet  Network = "neox-testnet"
-	NetworkEthereum     Network = "ethereum"
-	NetworkSepolia      Network = "sepolia"
-	NetworkPolygon      Network = "polygon"
-	NetworkPolygonAmoy  Network = "polygon-amoy"
+	NetworkMainnet     Network = "mainnet"
+	NetworkTestnet     Network = "testnet"
+	NetworkNeoXMainnet Network = "neox-mainnet"
+	NetworkNeoXTestnet Network = "neox-testnet"
+	NetworkEthereum    Network = "ethereum"
+	NetworkSepolia     Network = "sepolia"
+	NetworkPolygon     Network = "polygon"
+	NetworkPolygonAmoy Network = "polygon-amoy"
 )
 
 // Config holds the indexer configuration with isolated credentials.

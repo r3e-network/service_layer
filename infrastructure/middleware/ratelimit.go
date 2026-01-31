@@ -10,9 +10,9 @@ import (
 
 	"golang.org/x/time/rate"
 
-	"github.com/R3E-Network/service_layer/infrastructure/errors"
-	internalhttputil "github.com/R3E-Network/service_layer/infrastructure/httputil"
-	"github.com/R3E-Network/service_layer/infrastructure/logging"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/errors"
+	internalhttputil "github.com/R3E-Network/neo-miniapps-platform/infrastructure/httputil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/logging"
 )
 
 const (

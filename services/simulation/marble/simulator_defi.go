@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	neoaccountsclient "github.com/R3E-Network/service_layer/infrastructure/accountpool/client"
+	neoaccountsclient "github.com/R3E-Network/neo-miniapps-platform/infrastructure/accountpool/client"
 )
 
 // SimulateFlashLoan simulates the flash loan workflow.

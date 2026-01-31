@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	internalhttputil "github.com/R3E-Network/service_layer/infrastructure/httputil"
-	"github.com/R3E-Network/service_layer/infrastructure/marble"
-	"github.com/R3E-Network/service_layer/infrastructure/testutil"
+	internalhttputil "github.com/R3E-Network/neo-miniapps-platform/infrastructure/httputil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/marble"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/testutil"
 )
 
 func TestAllowlistBlocksURL(t *testing.T) {

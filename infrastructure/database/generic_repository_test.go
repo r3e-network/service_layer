@@ -7,7 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/R3E-Network/service_layer/infrastructure/testutil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/testutil"
 )
 
 // =============================================================================
@@ -185,6 +186,8 @@ type testModel struct {
 
 func setupTestServer(t *testing.T, handler http.HandlerFunc) (*Repository, func()) {
 	t.Helper()
+	runtime.ResetEnvCache()
+	runtime.ResetStrictIdentityModeCache()
 	server := testutil.NewHTTPTestServer(t, handler)
 
 	client, err := NewClient(Config{

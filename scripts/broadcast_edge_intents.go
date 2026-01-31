@@ -19,13 +19,13 @@ import (
 
 	"github.com/nspcc-dev/neo-go/pkg/core/transaction"
 
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
 )
 
 type edgeInvocation struct {
-	ContractAddress string             `json:"contract_address"`
-	Method       string                `json:"method"`
-	Params       []chain.ContractParam `json:"params"`
+	ContractAddress string                `json:"contract_address"`
+	Method          string                `json:"method"`
+	Params          []chain.ContractParam `json:"params"`
 }
 
 type edgeResponse struct {
@@ -241,8 +241,8 @@ func ensureProposal(ctx context.Context, client *chain.Client, account chain.TxS
 	}
 	_, err := invokeAndBroadcast(ctx, client, account, edgeInvocation{
 		ContractAddress: mustEnv("CONTRACT_GOVERNANCE_ADDRESS"),
-		Method:       "createProposal",
-		Params:       params,
+		Method:          "createProposal",
+		Params:          params,
 	}, transaction.CalledByEntry, chain.ScopeCalledByEntry)
 	return err
 }
@@ -261,8 +261,8 @@ func ensureStake(ctx context.Context, client *chain.Client, account chain.TxSign
 	}
 	_, err = invokeAndBroadcast(ctx, client, account, edgeInvocation{
 		ContractAddress: mustEnv("CONTRACT_GOVERNANCE_ADDRESS"),
-		Method:       "stake",
-		Params:       []chain.ContractParam{chain.NewIntegerParam(bigInt(amt))},
+		Method:          "stake",
+		Params:          []chain.ContractParam{chain.NewIntegerParam(bigInt(amt))},
 	}, transaction.CalledByEntry, chain.ScopeCalledByEntry)
 	return err
 }
@@ -284,8 +284,8 @@ func ensurePaymentHubApp(ctx context.Context, client *chain.Client, account chai
 	}
 	_, err := invokeAndBroadcast(ctx, client, account, edgeInvocation{
 		ContractAddress: mustEnv("CONTRACT_PAYMENT_HUB_ADDRESS"),
-		Method:       "configureApp",
-		Params:       params,
+		Method:          "configureApp",
+		Params:          params,
 	}, transaction.CalledByEntry, chain.ScopeCalledByEntry)
 	return err
 }

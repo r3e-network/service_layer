@@ -9,24 +9,24 @@ import (
 	"sync"
 	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/logging"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/logging"
 )
 
 // EventListener listens for contract events on Neo N3.
 type EventListener struct {
-	mu             sync.RWMutex
-	client         *Client
+	mu                sync.RWMutex
+	client            *Client
 	contractAddresses map[string]bool // Multiple contracts to monitor
-	handlers       map[string][]EventHandler
-	anyHandlers    []EventHandler
-	txHandlers     []TxHandler
-	pollInterval   time.Duration
-	lastBlock      uint64
-	confirmations  uint64
-	running        bool
-	stopCh         chan struct{}
-	logger         *logging.Logger
-	handlerSem     chan struct{}
+	handlers          map[string][]EventHandler
+	anyHandlers       []EventHandler
+	txHandlers        []TxHandler
+	pollInterval      time.Duration
+	lastBlock         uint64
+	confirmations     uint64
+	running           bool
+	stopCh            chan struct{}
+	logger            *logging.Logger
+	handlerSem        chan struct{}
 }
 
 // EventHandler is a callback for contract events.
@@ -115,15 +115,15 @@ func NewEventListener(cfg *ListenerConfig) *EventListener {
 	}
 
 	return &EventListener{
-		client:         cfg.Client,
+		client:            cfg.Client,
 		contractAddresses: contractAddresses,
-		handlers:       make(map[string][]EventHandler),
-		pollInterval:   interval,
-		lastBlock:      cfg.StartBlock,
-		confirmations:  cfg.Confirmations,
-		stopCh:         make(chan struct{}),
-		logger:         logger,
-		handlerSem:     handlerSem,
+		handlers:          make(map[string][]EventHandler),
+		pollInterval:      interval,
+		lastBlock:         cfg.StartBlock,
+		confirmations:     cfg.Confirmations,
+		stopCh:            make(chan struct{}),
+		logger:            logger,
+		handlerSem:        handlerSem,
 	}
 }
 
@@ -230,10 +230,18 @@ func (l *EventListener) processNewBlocks(ctx context.Context) {
 			continue
 		}
 
-		blockTime := time.Unix(int64(block.Time), 0).UTC()
+		// SECURITY: Check for overflow before converting uint64 to int64
+		// Max int64 value is 1<<63 - 1
+		const maxInt64 = uint64(1<<63 - 1)
+		var blockTime time.Time
+		if block.Time <= maxInt64 {
+			blockTime = time.Unix(int64(block.Time), 0).UTC()
+		} else {
+			blockTime = time.Now().UTC() // Fallback for overflow case
+		}
 		// Process each transaction in the block
 		for i := range block.Tx {
-			l.processTransaction(ctx, block.Tx[i], blockIndex, block.Hash, blockTime)
+			l.processTransaction(ctx, &block.Tx[i], blockIndex, block.Hash, blockTime)
 		}
 
 		l.mu.Lock()
@@ -245,7 +253,7 @@ func (l *EventListener) processNewBlocks(ctx context.Context) {
 // processTransaction processes a transaction for events.
 func (l *EventListener) processTransaction(
 	ctx context.Context,
-	tx Transaction,
+	tx *Transaction,
 	blockIndex uint64,
 	blockHash string,
 	blockTime time.Time,

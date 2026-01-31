@@ -15,12 +15,12 @@ import (
 	"github.com/nspcc-dev/neo-go/pkg/core/transaction"
 	"github.com/nspcc-dev/neo-go/pkg/encoding/address"
 
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
 )
 
 const (
-	defaultRPC      = "https://testnet1.neo.coz.io:443"
-	defaultGasHash  = "0xd2a4cff31913016155e38e474a2c06d08be276cf"
+	defaultRPC       = "https://testnet1.neo.coz.io:443"
+	defaultGasHash   = "0xd2a4cff31913016155e38e474a2c06d08be276cf"
 	defaultRecipient = "NRhqS1Bvdi8rZb2T24uWdPtEdNHc4Pavv7"
 )
 

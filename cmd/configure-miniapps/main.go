@@ -17,7 +17,7 @@ import (
 	"github.com/nspcc-dev/neo-go/pkg/core/transaction"
 	"github.com/nspcc-dev/neo-go/pkg/encoding/address"
 
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
 )
 
 var miniApps = []string{

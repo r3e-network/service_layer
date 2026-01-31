@@ -208,7 +208,7 @@ INSERT INTO miniapp_internal_webhooks (
     created_by
 ) VALUES (
     'Official MiniApps Sync',
-    'https://github.com/R3E-Network/service_layer.git',
+    'https://github.com/R3E-Network/neo-miniapps-platform.git',
     'main',
     'miniapps',
     'your-webhook-secret-here',
@@ -234,7 +234,7 @@ INSERT INTO miniapp_internal (
 ) VALUES (
     'lottery',
     'R3E Lottery',
-    'https://github.com/R3E-Network/service_layer.git',
+    'https://github.com/R3E-Network/neo-miniapps-platform.git',
     'miniapps/lottery',
     'main',
     'active',
@@ -269,7 +269,7 @@ Content-Type: application/json
 {
   "ref": "refs/heads/main",
   "repository": {
-    "full_name": "R3E-Network/service_layer"
+    "full_name": "R3E-Network/neo-miniapps-platform"
   },
   "commits": [
     {

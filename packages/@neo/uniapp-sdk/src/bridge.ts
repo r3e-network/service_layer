@@ -140,7 +140,7 @@ class OriginValidator {
     // - Or the MiniApp should only work with hosts that properly identify themselves
     if (typeof window !== "undefined" && window.parent !== window) {
       // Check for injected parent origin from host
-      const injectedOrigin = (window as any).__MINIAPP_PARENT_ORIGIN__;
+      const injectedOrigin = window.__MINIAPP_PARENT_ORIGIN__;
       if (typeof injectedOrigin === "string" && injectedOrigin && this.baseOrigins.has(injectedOrigin)) {
         return injectedOrigin;
       }
@@ -183,8 +183,8 @@ export function resolveLayout(config?: Partial<MiniAppSDKConfig>): "web" | "mobi
   if (typeof window !== "undefined") {
     const params = new URLSearchParams(window.location.search);
     const layoutParam = params.get("layout");
-    if (layoutParam === "web" || layoutParam === "mobile") return layoutParam;
-    if ((window as any).ReactNativeWebView) return "mobile";
+  if (layoutParam === "web" || layoutParam === "mobile") return layoutParam;
+  if (window.ReactNativeWebView) return "mobile";
   }
 
   return "web";
@@ -248,8 +248,8 @@ function createPostMessageSDK(): MiniAppSDK {
         return { ...cachedConfig, layout: resolveLayout(cachedConfig) };
       }
       // Try to get config synchronously from window if available
-      if (typeof window !== "undefined" && (window as any).__MINIAPP_CONFIG__) {
-        cachedConfig = (window as any).__MINIAPP_CONFIG__;
+      if (typeof window !== "undefined" && window.__MINIAPP_CONFIG__) {
+        cachedConfig = window.__MINIAPP_CONFIG__;
         return { ...cachedConfig, layout: resolveLayout(cachedConfig ?? undefined) };
       }
       // Return default config (will be updated async)

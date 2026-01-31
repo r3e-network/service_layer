@@ -110,14 +110,7 @@ export function useWallet() {
     return sdk.wallet.invokeIntent(requestId);
   };
 
-  const invokeContract = async (params: {
-    contractAddress?: string;
-    scriptHash?: string;
-    contractHash?: string;
-    method?: string;
-    operation?: string;
-    args: any[];
-  }) => {
+  const invokeContract = async (params: import("../types").ContractParams & { args: unknown[] }) => {
     const sdk = await waitForSDK();
     const config = sdk.getConfig?.();
     const contractAddress = params.contractAddress || params.scriptHash || params.contractHash;
@@ -135,16 +128,7 @@ export function useWallet() {
     });
   };
 
-  const invokeRead = async (params: {
-    contractAddress?: string;
-    scriptHash?: string;
-    contractHash?: string;
-    method?: string;
-    operation?: string;
-    args?: any[];
-    chainId?: string;
-    chainType?: string;
-  }) => {
+  const invokeRead = async (params: import("../types").ContractParams) => {
     const sdk = await waitForSDK();
     const config = sdk.getConfig?.();
     const contractAddress =
@@ -175,7 +159,7 @@ export function useWallet() {
     if (sdk.invoke) {
       try {
         const remote = (await sdk.invoke("getConfig")) as
-          | { contractAddress?: string | null; chainId?: string | null; chainContracts?: Record<string, any> }
+          | { contractAddress?: string | null; chainId?: string | null; chainContracts?: Record<string, { address?: string | null }> }
           | undefined;
         if (remote?.contractAddress) return remote.contractAddress;
         if (remote?.chainId && remote?.chainContracts?.[remote.chainId]?.address) {
@@ -385,7 +369,7 @@ export function useWallet() {
     getBalance,
     getTransactions,
     // Generic invoke helper
-    invoke: async (method: string, params: any) => {
+    invoke: async (method: string, params: Record<string, unknown>) => {
       const sdk = await waitForSDK();
       return sdk.invoke(method, params);
     },

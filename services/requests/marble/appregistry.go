@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
-	neorequestsupabase "github.com/R3E-Network/service_layer/services/requests/supabase"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
+	neorequestsupabase "github.com/R3E-Network/neo-miniapps-platform/services/requests/supabase"
 )
 
 type appRegistryCacheEntry struct {

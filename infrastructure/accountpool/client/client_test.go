@@ -8,12 +8,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/serviceauth"
-	"github.com/R3E-Network/service_layer/infrastructure/testutil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/serviceauth"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/testutil"
 )
 
 func newTestClient(t *testing.T, baseURL string) *Client {
 	t.Helper()
+	runtime.ResetEnvCache()
+	runtime.ResetStrictIdentityModeCache()
 	t.Setenv("MARBLE_ENV", "development")
 	client, err := New(Config{
 		BaseURL:   baseURL,
@@ -26,6 +29,8 @@ func newTestClient(t *testing.T, baseURL string) *Client {
 }
 
 func TestNew(t *testing.T) {
+	runtime.ResetEnvCache()
+	runtime.ResetStrictIdentityModeCache()
 	t.Setenv("MARBLE_ENV", "development")
 	client, err := New(Config{
 		BaseURL:   "http://localhost:8090/",
@@ -43,6 +48,8 @@ func TestNew(t *testing.T) {
 }
 
 func TestNew_StrictModeRequiresHTTPS(t *testing.T) {
+	runtime.ResetEnvCache()
+	runtime.ResetStrictIdentityModeCache()
 	t.Setenv("MARBLE_ENV", "production")
 	_, err := New(Config{
 		BaseURL:   "http://localhost:8090",

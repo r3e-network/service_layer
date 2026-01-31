@@ -200,7 +200,7 @@ INSERT INTO miniapp_internal (
 ) VALUES (
     'new-app',
     'New App Name',
-    'https://github.com/R3E-Network/service_layer.git',
+    'https://github.com/R3E-Network/neo-miniapps-platform.git',
     'miniapps/new-app',
     'main',
     'active',

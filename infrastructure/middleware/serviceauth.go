@@ -11,11 +11,11 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 
-	"github.com/R3E-Network/service_layer/infrastructure/errors"
-	internalhttputil "github.com/R3E-Network/service_layer/infrastructure/httputil"
-	"github.com/R3E-Network/service_layer/infrastructure/logging"
-	"github.com/R3E-Network/service_layer/infrastructure/security"
-	"github.com/R3E-Network/service_layer/infrastructure/serviceauth"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/errors"
+	internalhttputil "github.com/R3E-Network/neo-miniapps-platform/infrastructure/httputil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/logging"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/security"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/serviceauth"
 )
 
 // =============================================================================
@@ -270,6 +270,7 @@ func (m *ServiceAuthMiddleware) cacheToken(tokenString string, claims *ServiceCl
 	defer m.mu.Unlock()
 
 	// Cache for 5 minutes or until token expiry, whichever is sooner
+	// SECURITY: Short TTL (5 min) with cleanup every 2 min prevents stale tokens
 	cacheExpiry := time.Now().Add(5 * time.Minute)
 	if claims.ExpiresAt != nil && claims.ExpiresAt.Time.Before(cacheExpiry) {
 		cacheExpiry = claims.ExpiresAt.Time

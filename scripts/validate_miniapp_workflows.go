@@ -210,7 +210,7 @@ func (v *Validator) ValidateContractDeployment() {
 	fmt.Println("📋 Validating Contract Deployment...")
 
 	contracts := []struct {
-		name string
+		name    string
 		address util.Uint160
 	}{
 		{"PaymentHub", v.contracts.PaymentHub},

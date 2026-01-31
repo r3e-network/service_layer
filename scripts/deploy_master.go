@@ -1,3 +1,4 @@
+//go:build ignore
 // +build ignore
 
 package main
@@ -19,10 +20,10 @@ type DeployMasterInput struct {
 }
 
 type DeployMasterResponse struct {
-	TxHash       string `json:"tx_hash"`
+	TxHash          string `json:"tx_hash"`
 	ContractAddress string `json:"contract_address"`
-	GasConsumed  string `json:"gas_consumed"`
-	AccountID    string `json:"account_id"`
+	GasConsumed     string `json:"gas_consumed"`
+	AccountID       string `json:"account_id"`
 }
 
 func main() {

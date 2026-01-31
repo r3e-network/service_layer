@@ -52,7 +52,7 @@ func containsContractCall(script []byte) bool {
 }
 
 // ParseScript parses a transaction script into opcode traces.
-func (t *Tracer) ParseScript(txHash string, scriptHex string) ([]*OpcodeTrace, error) {
+func (t *Tracer) ParseScript(txHash, scriptHex string) ([]*OpcodeTrace, error) {
 	script, err := hex.DecodeString(scriptHex)
 	if err != nil {
 		return nil, fmt.Errorf("decode script: %w", err)
@@ -117,12 +117,12 @@ func (t *Tracer) ExtractContractCalls(txHash string, notifications []Notificatio
 	var calls []*ContractCall
 	for i, n := range notifications {
 		call := &ContractCall{
-			TxHash:       txHash,
-			CallIndex:    i,
+			TxHash:          txHash,
+			CallIndex:       i,
 			ContractAddress: n.ContractAddress,
-			Method:       n.EventName,
-			ArgsJSON:     n.StateJSON,
-			Success:      true,
+			Method:          n.EventName,
+			ArgsJSON:        n.StateJSON,
+			Success:         true,
 		}
 		calls = append(calls, call)
 	}

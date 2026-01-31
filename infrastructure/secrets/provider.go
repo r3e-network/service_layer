@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/R3E-Network/service_layer/infrastructure/runtime"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
 )
 
 // ServiceProvider is the standard Provider implementation used by enclave services.

@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	neoaccounts "github.com/R3E-Network/service_layer/infrastructure/accountpool/marble"
-	"github.com/R3E-Network/service_layer/infrastructure/marble"
-	neocompute "github.com/R3E-Network/service_layer/services/confcompute/marble"
+	neoaccounts "github.com/R3E-Network/neo-miniapps-platform/infrastructure/accountpool/marble"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/marble"
+	neocompute "github.com/R3E-Network/neo-miniapps-platform/services/confcompute/marble"
 )
 
 // TestE2ENeoComputeFlow tests a minimal confidential compute flow.
@@ -103,10 +103,10 @@ func TestE2EContractDeploymentFlow(t *testing.T) {
 
 	t.Run("service registration simulation", func(t *testing.T) {
 		type ServiceRegistration struct {
-			ServiceType    string
+			ServiceType     string
 			ContractAddress string
-			Fee            int64
-			TEEAccountHash string
+			Fee             int64
+			TEEAccountHash  string
 		}
 
 		registrations := []ServiceRegistration{

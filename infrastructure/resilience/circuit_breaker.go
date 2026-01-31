@@ -32,16 +32,16 @@ func (s State) String() string {
 
 // Common errors
 var (
-	ErrCircuitOpen    = errors.New("circuit breaker is open")
+	ErrCircuitOpen     = errors.New("circuit breaker is open")
 	ErrTooManyRequests = errors.New("too many requests in half-open state")
 )
 
 // Config for circuit breaker
 type Config struct {
-	MaxFailures     int           // failures before opening
-	Timeout         time.Duration // time in open state
-	HalfOpenMax     int           // max requests in half-open
-	OnStateChange   func(from, to State)
+	MaxFailures   int           // failures before opening
+	Timeout       time.Duration // time in open state
+	HalfOpenMax   int           // max requests in half-open
+	OnStateChange func(from, to State)
 }
 
 // DefaultConfig returns sensible defaults
@@ -55,13 +55,13 @@ func DefaultConfig() Config {
 
 // CircuitBreaker implements the circuit breaker pattern
 type CircuitBreaker struct {
-	mu            sync.RWMutex
-	config        Config
-	state         State
-	failures      int
-	successes     int
-	halfOpenReqs  int
-	lastFailure   time.Time
+	mu           sync.RWMutex
+	config       Config
+	state        State
+	failures     int
+	successes    int
+	halfOpenReqs int
+	lastFailure  time.Time
 }
 
 // New creates a new CircuitBreaker
@@ -90,7 +90,7 @@ func (cb *CircuitBreaker) Execute(ctx context.Context, fn func() error) error {
 	if err := cb.beforeRequest(); err != nil {
 		return err
 	}
-	
+
 	err := fn()
 	cb.afterRequest(err == nil)
 	return err

@@ -180,8 +180,52 @@ func (r *Repository) DeductFeeAtomic(ctx context.Context, userID string, amount 
 	tx.BalanceAfter = newBalance
 
 	// First create the transaction record
-	if err := r.CreateGasBankTransaction(ctx, tx); err != nil {
-		return account.Balance, fmt.Errorf("create transaction: %w", err)
+	if createErr := r.CreateGasBankTransaction(ctx, tx); createErr != nil {
+		return account.Balance, fmt.Errorf("create transaction: %w", createErr)
+	}
+
+	// Then update balance with optimistic lock (check old balance matches)
+	update := map[string]interface{}{
+		"balance":    newBalance,
+		"updated_at": time.Now(),
+	}
+	// Use conditional update: only update if balance still matches expected value
+	query := fmt.Sprintf("user_id=eq.%s&balance=eq.%d", userID, account.Balance)
+	_, err = r.client.request(ctx, "PATCH", "gasbank_accounts", update, query)
+	if err != nil {
+		// Balance update failed - transaction record exists but balance unchanged
+		// This is safer than the reverse (balance changed but no record)
+		return account.Balance, fmt.Errorf("%w: update balance (concurrent modification): %v", ErrDatabaseError, err)
+	}
+
+	return newBalance, nil
+}
+
+// ConfirmDepositAtomic atomically credits a deposit to user's balance and records the transaction.
+// Uses optimistic locking with version check to ensure atomicity.
+func (r *Repository) ConfirmDepositAtomic(ctx context.Context, userID string, depositAmount int64, tx *GasBankTransaction) (newBalance int64, err error) {
+	if err := ValidateUserID(userID); err != nil {
+		return 0, err
+	}
+	if depositAmount <= 0 {
+		return 0, fmt.Errorf("%w: deposit amount must be positive", ErrInvalidInput)
+	}
+	if tx == nil {
+		return 0, fmt.Errorf("%w: transaction cannot be nil", ErrInvalidInput)
+	}
+
+	// Get current account state
+	account, err := r.GetGasBankAccount(ctx, userID)
+	if err != nil {
+		return 0, fmt.Errorf("get account: %w", err)
+	}
+
+	newBalance = account.Balance + depositAmount
+	tx.BalanceAfter = newBalance
+
+	// First create the transaction record
+	if createErr := r.CreateGasBankTransaction(ctx, tx); createErr != nil {
+		return account.Balance, fmt.Errorf("create transaction: %w", createErr)
 	}
 
 	// Then update balance with optimistic lock (check old balance matches)

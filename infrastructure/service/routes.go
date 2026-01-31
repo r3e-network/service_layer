@@ -5,7 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/httputil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/httputil"
+	"github.com/gorilla/mux"
 )
 
 // =============================================================================
@@ -112,6 +113,63 @@ func InfoHandler(s *BaseService) http.HandlerFunc {
 
 		httputil.WriteJSON(w, http.StatusOK, resp)
 	}
+}
+
+// =============================================================================
+// Route Group Helper
+// =============================================================================
+
+// RouteGroup simplifies route registration with common middleware patterns.
+// It provides a fluent API for chaining middleware and registering handlers.
+type RouteGroup struct {
+	router     *mux.Router
+	prefix     string
+	middleware []mux.MiddlewareFunc
+}
+
+// NewRouteGroup creates a new RouteGroup for the given router.
+func NewRouteGroup(router *mux.Router) *RouteGroup {
+	return &RouteGroup{
+		router:     router,
+		middleware: make([]mux.MiddlewareFunc, 0),
+	}
+}
+
+// WithPrefix sets a path prefix for all routes in this group.
+func (rg *RouteGroup) WithPrefix(prefix string) *RouteGroup {
+	rg.prefix = prefix
+	return rg
+}
+
+// WithTimeout adds timeout middleware to the route group.
+func (rg *RouteGroup) WithTimeout(timeout time.Duration) *RouteGroup {
+	rg.middleware = append(rg.middleware, func(next http.Handler) http.Handler {
+		return http.TimeoutHandler(next, timeout, `{"error":"request timeout"}`)
+	})
+	return rg
+}
+
+// Handle registers a handler with all configured middleware.
+func (rg *RouteGroup) Handle(path string, handler http.Handler) *RouteGroup {
+	// Apply all middleware
+	var h http.Handler = handler
+	for i := len(rg.middleware) - 1; i >= 0; i-- {
+		h = rg.middleware[i](h)
+	}
+	rg.router.Handle(rg.prefix+path, h)
+	return rg
+}
+
+// HandleFunc registers a handler function with all configured middleware.
+func (rg *RouteGroup) HandleFunc(path string, f http.HandlerFunc) *RouteGroup {
+	return rg.Handle(path, http.HandlerFunc(f))
+}
+
+// Methods registers the last route with specific HTTP methods.
+func (rg *RouteGroup) Methods(methods ...string) *RouteGroup {
+	// This is a placeholder - in practice, the Handle call would need to
+	// store the route and apply methods to it
+	return rg
 }
 
 // =============================================================================

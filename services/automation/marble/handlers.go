@@ -7,8 +7,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 
-	"github.com/R3E-Network/service_layer/infrastructure/httputil"
-	neoflowsupabase "github.com/R3E-Network/service_layer/services/automation/supabase"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/httputil"
+	neoflowsupabase "github.com/R3E-Network/neo-miniapps-platform/services/automation/supabase"
 )
 
 func (s *Service) handleListTriggers(w http.ResponseWriter, r *http.Request) {

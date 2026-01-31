@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
-	"github.com/R3E-Network/service_layer/infrastructure/database"
-	neorequestsupabase "github.com/R3E-Network/service_layer/services/requests/supabase"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
+	neorequestsupabase "github.com/R3E-Network/neo-miniapps-platform/services/requests/supabase"
 )
 
 func (s *Service) handleAppRegistryEvent(ctx context.Context, event *chain.ContractEvent) error {
@@ -51,17 +51,23 @@ func (s *Service) handleAppRegistryEvent(ctx context.Context, event *chain.Contr
 		return nil
 	}
 
-	_ = s.storeContractEvent(ctx, event, &appID, neorequestsupabase.MarshalParams(map[string]interface{}{
+	storeErr := s.storeContractEvent(ctx, event, &appID, neorequestsupabase.MarshalParams(map[string]interface{}{
 		"app_id": appID,
 	}))
+	if storeErr != nil {
+		logger.WithError(storeErr).Warn("failed to store contract event")
+	}
 
-	if _, err := s.loadMiniApp(ctx, appID); err != nil {
-		if database.IsNotFound(err) {
+	miniApp, loadErr := s.loadMiniApp(ctx, appID)
+	if loadErr != nil {
+		if database.IsNotFound(loadErr) {
 			return nil
 		}
-		logger.WithContext(ctx).WithError(err).Warn("failed to load miniapp manifest")
+		logger.WithContext(ctx).WithError(loadErr).Warn("failed to load miniapp manifest")
 		return nil
 	}
+
+	_ = miniApp // unused for now
 
 	info, err := s.appRegistry.GetApp(ctx, appID)
 	if err != nil {

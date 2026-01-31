@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	neoaccountsclient "github.com/R3E-Network/service_layer/infrastructure/accountpool/client"
+	neoaccountsclient "github.com/R3E-Network/neo-miniapps-platform/infrastructure/accountpool/client"
 )
 
 // =============================================================================
@@ -80,9 +80,9 @@ type fundAccountCall struct {
 }
 
 type transferCall struct {
-	AccountID string
-	ToAddress string
-	Amount    int64
+	AccountID    string
+	ToAddress    string
+	Amount       int64
 	TokenAddress string
 }
 
@@ -268,10 +268,10 @@ type mockContractInvoker struct {
 	payoutToUserErr  error
 
 	// MiniApp contract support
-	miniAppContracts       map[string]string // appID -> contract address
-	invokeMiniAppResp      string
-	invokeMiniAppErr       error
-	invokeMiniAppCalls     []invokeMiniAppCall
+	miniAppContracts   map[string]string // appID -> contract address
+	invokeMiniAppResp  string
+	invokeMiniAppErr   error
+	invokeMiniAppCalls []invokeMiniAppCall
 
 	// Call tracking
 	updatePriceFeedCalls  []updatePriceFeedCall
@@ -317,7 +317,7 @@ func newMockContractInvoker() *mockContractInvoker {
 		invokeMiniAppResp:    "0xtest-miniapp-tx",
 		miniAppContracts: map[string]string{
 			"miniapp-lottery":       "0x3e330b4c396b40aa08d49912c0179319831b3a6e",
-			"miniapp-coinflip":     "0xbd4c9203495048900e34cd9c4618c05994e86cc0",
+			"miniapp-coinflip":      "0xbd4c9203495048900e34cd9c4618c05994e86cc0",
 			"miniapp-dice-game":     "0xfacff9abd201dca86e6a63acfb5d60da278da8ea",
 			"miniapp-scratch-card":  "0x2674ef3b4d8c006201d1e7e473316592f6cde5f2",
 			"miniapp-flashloan":     "0xee51e5b399f7727267b7d296ff34ec6bb9283131",
@@ -325,12 +325,12 @@ func newMockContractInvoker() *mockContractInvoker {
 			"miniapp-price-predict": "0x6317f97029b39f9211193085fe20dcf6500ec59d",
 		},
 		stats: map[string]interface{}{
-			"price_feed_updates":  int64(0),
-			"randomness_records":  int64(0),
-			"payment_hub_pays":    int64(0),
-			"callback_payouts":    int64(0),
-			"contract_errors":     int64(0),
-			"locked_accounts":     0,
+			"price_feed_updates": int64(0),
+			"randomness_records": int64(0),
+			"payment_hub_pays":   int64(0),
+			"callback_payouts":   int64(0),
+			"contract_errors":    int64(0),
+			"locked_accounts":    0,
 		},
 	}
 }
@@ -464,12 +464,12 @@ func (m *mockContractInvoker) reset() {
 	m.payoutToUserCalls = nil
 	m.invokeMiniAppCalls = nil
 	m.stats = map[string]interface{}{
-		"price_feed_updates":  int64(0),
-		"randomness_records":  int64(0),
-		"payment_hub_pays":    int64(0),
-		"callback_payouts":    int64(0),
-		"contract_errors":     int64(0),
-		"locked_accounts":     0,
+		"price_feed_updates": int64(0),
+		"randomness_records": int64(0),
+		"payment_hub_pays":   int64(0),
+		"callback_payouts":   int64(0),
+		"contract_errors":    int64(0),
+		"locked_accounts":    0,
 	}
 }
 

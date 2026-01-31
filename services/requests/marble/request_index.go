@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	commonservice "github.com/R3E-Network/service_layer/infrastructure/service"
+	commonservice "github.com/R3E-Network/neo-miniapps-platform/infrastructure/service"
 )
 
 type requestIndexEntry struct {

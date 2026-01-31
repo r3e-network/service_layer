@@ -7,8 +7,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
-	txproxytypes "github.com/R3E-Network/service_layer/infrastructure/txproxy/types"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
+	txproxytypes "github.com/R3E-Network/neo-miniapps-platform/infrastructure/txproxy/types"
 )
 
 func (s *Service) invokePriceFeedUpdate(

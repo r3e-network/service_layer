@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package neosimulation
@@ -9,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/logging"
-	commonservice "github.com/R3E-Network/service_layer/infrastructure/service"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/logging"
+	commonservice "github.com/R3E-Network/neo-miniapps-platform/infrastructure/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

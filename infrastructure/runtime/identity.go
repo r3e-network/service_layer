@@ -13,6 +13,13 @@ var (
 	strictIdentityModeValue bool
 )
 
+// ResetStrictIdentityModeCache resets the cached strict identity mode value.
+// This should only be used in tests.
+func ResetStrictIdentityModeCache() {
+	strictIdentityModeOnce = sync.Once{}
+	strictIdentityModeValue = false
+}
+
 // StrictIdentityMode returns true when the service should fail closed on identity/security
 // boundaries (e.g. only trust identity headers protected by verified mTLS).
 //

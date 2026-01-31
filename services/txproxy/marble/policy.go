@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
 )
 
 const (

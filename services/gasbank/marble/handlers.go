@@ -1,9 +1,10 @@
 package neogasbank
 
 import (
+	"fmt"
 	"net/http"
 
-	"github.com/R3E-Network/service_layer/infrastructure/httputil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/httputil"
 )
 
 // =============================================================================
@@ -32,6 +33,11 @@ func (s *Service) handleGetAccount(w http.ResponseWriter, r *http.Request) {
 func (s *Service) handleDeductFee(w http.ResponseWriter, r *http.Request) {
 	var req DeductFeeRequest
 	if !httputil.DecodeJSON(w, r, &req) {
+		return
+	}
+
+	if err := validateDeductFeeRequest(&req); err != nil {
+		httputil.WriteError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -65,6 +71,11 @@ func (s *Service) handleReserveFunds(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := validateReserveFundsRequest(&req); err != nil {
+		httputil.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	serviceID := httputil.GetServiceID(r)
 	if serviceID == "" {
 		httputil.WriteError(w, http.StatusForbidden, "service authentication required")
@@ -90,6 +101,11 @@ func (s *Service) handleReserveFunds(w http.ResponseWriter, r *http.Request) {
 func (s *Service) handleReleaseFunds(w http.ResponseWriter, r *http.Request) {
 	var req ReleaseFundsRequest
 	if !httputil.DecodeJSON(w, r, &req) {
+		return
+	}
+
+	if err := validateReleaseFundsRequest(&req); err != nil {
+		httputil.WriteError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -186,4 +202,34 @@ func (s *Service) handleGetDeposits(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httputil.WriteJSON(w, http.StatusOK, map[string]any{"deposits": result})
+}
+
+func validateDeductFeeRequest(req *DeductFeeRequest) error {
+	if req.UserID == "" {
+		return fmt.Errorf("user_id is required")
+	}
+	if req.Amount <= 0 {
+		return fmt.Errorf("amount must be positive")
+	}
+	return nil
+}
+
+func validateReserveFundsRequest(req *ReserveFundsRequest) error {
+	if req.UserID == "" {
+		return fmt.Errorf("user_id is required")
+	}
+	if req.Amount <= 0 {
+		return fmt.Errorf("amount must be positive")
+	}
+	return nil
+}
+
+func validateReleaseFundsRequest(req *ReleaseFundsRequest) error {
+	if req.UserID == "" {
+		return fmt.Errorf("user_id is required")
+	}
+	if req.Amount < 0 {
+		return fmt.Errorf("amount must be non-negative")
+	}
+	return nil
 }

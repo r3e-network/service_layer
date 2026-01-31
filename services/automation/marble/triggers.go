@@ -15,8 +15,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/R3E-Network/service_layer/infrastructure/runtime"
-	neoflowsupabase "github.com/R3E-Network/service_layer/services/automation/supabase"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
+	neoflowsupabase "github.com/R3E-Network/neo-miniapps-platform/services/automation/supabase"
 )
 
 func (s *Service) checkAndExecuteTriggers(ctx context.Context) {
@@ -42,7 +42,17 @@ func (s *Service) checkAndExecuteTriggers(ctx context.Context) {
 				}
 				go func(t *neoflowsupabase.Trigger) {
 					defer s.releaseTriggerSlot()
-					s.executeTrigger(ctx, t)
+					// PANIC RECOVERY [R-03]: Prevent goroutine crashes from killing the service
+					defer func() {
+						if r := recover(); r != nil {
+							s.Logger().WithContext(ctx).WithField("trigger_id", t.ID).
+								WithField("panic", r).Error("panic recovered in trigger execution goroutine")
+						}
+					}()
+					// Create independent context with timeout to avoid parent cancellation issues
+					execCtx, cancel := context.WithTimeout(context.Background(), s.triggerTimeout)
+					defer cancel()
+					s.executeTrigger(execCtx, t)
 				}(trigger)
 			}
 		}

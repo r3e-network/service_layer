@@ -434,18 +434,18 @@ func DerefDefault[T any](p *T, defaultVal T) T {
 
 // RetryOpts specifies options for Retry
 type RetryOpts struct {
-	MaxAttempts int
-	InitialDelay time.Duration
-	MaxDelay     time.Duration
+	MaxAttempts   int
+	InitialDelay  time.Duration
+	MaxDelay      time.Duration
 	BackoffFactor float64
 }
 
 // DefaultRetryOpts returns default retry options
 func DefaultRetryOpts() RetryOpts {
 	return RetryOpts{
-		MaxAttempts:  3,
-		InitialDelay: 100 * time.Millisecond,
-		MaxDelay:     5 * time.Second,
+		MaxAttempts:   3,
+		InitialDelay:  100 * time.Millisecond,
+		MaxDelay:      5 * time.Second,
 		BackoffFactor: 2.0,
 	}
 }

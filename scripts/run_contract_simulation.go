@@ -264,8 +264,8 @@ func runPaymentHubPayer(ctx context.Context, act *actor.Actor, appID string) {
 			amount := int64(100000) // 0.001 GAS
 			memo := fmt.Sprintf("sim-payment-%d", paymentCount)
 
-		txHash, _, err := act.SendCall(
-			contractAddress,
+			txHash, _, err := act.SendCall(
+				contractAddress,
 				"pay",
 				appID,
 				amount,

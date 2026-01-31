@@ -77,7 +77,7 @@ export function useI18n(appId: string) {
     if (listenersAttached || typeof window === "undefined") return;
     listenersAttached = true;
 
-    window.addEventListener("languageChange", (event: any) => {
+    window.addEventListener("languageChange", (event: import("../types").LanguageChangeEvent) => {
       const next = event?.detail?.language;
       if (next) {
         currentLocale.value = normalizeLocale(String(next));

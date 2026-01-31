@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	slhttputil "github.com/R3E-Network/service_layer/infrastructure/httputil"
-	"github.com/R3E-Network/service_layer/infrastructure/serviceauth"
+	slhttputil "github.com/R3E-Network/neo-miniapps-platform/infrastructure/httputil"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/serviceauth"
 )
 
 // Client is a client for the NeoAccounts service.
@@ -249,10 +249,10 @@ func (c *Client) BatchSign(ctx context.Context, requests []SignRequest) (*BatchS
 func (c *Client) Transfer(ctx context.Context, accountID, toAddress string, amount int64, tokenAddress string) (*TransferResponse, error) {
 	var out TransferResponse
 	if err := c.doJSON(ctx, http.MethodPost, "/transfer", TransferInput{
-		ServiceID: c.serviceID,
-		AccountID: accountID,
-		ToAddress: toAddress,
-		Amount:    amount,
+		ServiceID:    c.serviceID,
+		AccountID:    accountID,
+		ToAddress:    toAddress,
+		Amount:       amount,
 		TokenAddress: tokenAddress,
 	}, &out); err != nil {
 		return nil, err
@@ -320,12 +320,12 @@ func (c *Client) DeployContract(ctx context.Context, accountID, nefBase64, manif
 func (c *Client) UpdateContract(ctx context.Context, accountID, contractAddress, nefBase64, manifestJSON string, data any) (*UpdateContractResponse, error) {
 	var out UpdateContractResponse
 	if err := c.doJSON(ctx, http.MethodPost, "/update-contract", UpdateContractInput{
-		ServiceID:    c.serviceID,
-		AccountID:    accountID,
+		ServiceID:       c.serviceID,
+		AccountID:       accountID,
 		ContractAddress: contractAddress,
-		NEFBase64:    nefBase64,
-		ManifestJSON: manifestJSON,
-		Data:         data,
+		NEFBase64:       nefBase64,
+		ManifestJSON:    manifestJSON,
+		Data:            data,
 	}, &out); err != nil {
 		return nil, err
 	}
@@ -338,12 +338,12 @@ func (c *Client) UpdateContract(ctx context.Context, accountID, contractAddress,
 func (c *Client) InvokeContract(ctx context.Context, accountID, contractAddress, method string, params []ContractParam, scope string) (*InvokeContractResponse, error) {
 	var out InvokeContractResponse
 	if err := c.doJSON(ctx, http.MethodPost, "/invoke", InvokeContractInput{
-		ServiceID:    c.serviceID,
-		AccountID:    accountID,
+		ServiceID:       c.serviceID,
+		AccountID:       accountID,
 		ContractAddress: contractAddress,
-		Method:       method,
-		Params:       params,
-		Scope:        scope,
+		Method:          method,
+		Params:          params,
+		Scope:           scope,
 	}, &out); err != nil {
 		return nil, err
 	}
@@ -354,11 +354,11 @@ func (c *Client) InvokeContract(ctx context.Context, accountID, contractAddress,
 func (c *Client) SimulateContract(ctx context.Context, accountID, contractAddress, method string, params []ContractParam) (*SimulateContractResponse, error) {
 	var out SimulateContractResponse
 	if err := c.doJSON(ctx, http.MethodPost, "/simulate", SimulateContractInput{
-		ServiceID:    c.serviceID,
-		AccountID:    accountID,
+		ServiceID:       c.serviceID,
+		AccountID:       accountID,
 		ContractAddress: contractAddress,
-		Method:       method,
-		Params:       params,
+		Method:          method,
+		Params:          params,
 	}, &out); err != nil {
 		return nil, err
 	}

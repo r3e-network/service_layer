@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/R3E-Network/service_layer/services/indexer"
+	"github.com/R3E-Network/neo-miniapps-platform/services/indexer"
 	"github.com/sirupsen/logrus"
 )
 
@@ -35,5 +35,7 @@ func main() {
 	<-sigCh
 
 	log.Info("shutting down")
-	svc.Stop()
+	if err := svc.Stop(); err != nil {
+		log.WithError(err).Error("stop service")
+	}
 }

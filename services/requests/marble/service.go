@@ -11,14 +11,15 @@ import (
 	"sync"
 	"time"
 
-	chaincfg "github.com/R3E-Network/service_layer/infrastructure/chains"
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
-	"github.com/R3E-Network/service_layer/infrastructure/database"
-	"github.com/R3E-Network/service_layer/infrastructure/marble"
-	"github.com/R3E-Network/service_layer/infrastructure/runtime"
-	commonservice "github.com/R3E-Network/service_layer/infrastructure/service"
-	txproxytypes "github.com/R3E-Network/service_layer/infrastructure/txproxy/types"
-	neorequestsupabase "github.com/R3E-Network/service_layer/services/requests/supabase"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
+	chaincfg "github.com/R3E-Network/neo-miniapps-platform/infrastructure/chains"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/marble"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/resilience"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
+	commonservice "github.com/R3E-Network/neo-miniapps-platform/infrastructure/service"
+	txproxytypes "github.com/R3E-Network/neo-miniapps-platform/infrastructure/txproxy/types"
+	neorequestsupabase "github.com/R3E-Network/neo-miniapps-platform/services/requests/supabase"
 )
 
 const (
@@ -46,10 +47,10 @@ type Config struct {
 	ServiceGatewayAddress string
 	AppRegistryAddress    string
 	PaymentHubAddress     string
-	NeoVRFURL          string
-	NeoOracleURL       string
-	NeoComputeURL      string
-	ScriptsBaseURL     string // Base URL for loading TEE scripts (e.g., https://cdn.miniapps.neo.org)
+	NeoVRFURL             string
+	NeoOracleURL          string
+	NeoComputeURL         string
+	ScriptsBaseURL        string // Base URL for loading TEE scripts (e.g., https://cdn.miniapps.neo.org)
 
 	HTTPClient     *http.Client
 	ChainID        string
@@ -88,16 +89,17 @@ type Service struct {
 	miniAppCacheTTL         time.Duration
 	requireManifestContract bool
 
-	httpClient  *http.Client
-	vrfURL      string
-	oracleURL   string
-	computeURL  string
-	scriptsURL  string // Base URL for loading TEE scripts from app manifests
-	chainID     string
-	txWait      bool
-	maxResult   int
-	maxErrorLen int
-	rngMode     string
+	httpClient         *http.Client
+	httpCircuitBreaker *resilience.CircuitBreaker
+	vrfURL             string
+	oracleURL          string
+	computeURL         string
+	scriptsURL         string // Base URL for loading TEE scripts from app manifests
+	chainID            string
+	txWait             bool
+	maxResult          int
+	maxErrorLen        int
+	rngMode            string
 
 	statsRollupInterval time.Duration
 	onchainUsage        bool
@@ -294,6 +296,15 @@ func New(cfg Config) (*Service, error) { //nolint:gocritic // cfg is read once a
 		cacheSeconds = 60
 	}
 
+	// Initialize circuit breaker for HTTP calls
+	cbConfig := resilience.DefaultConfig()
+	cbConfig.OnStateChange = func(from, to resilience.State) {
+		base.Logger().WithFields(map[string]interface{}{
+			"from_state": from.String(),
+			"to_state":   to.String(),
+		}).Warn("circuit breaker state changed")
+	}
+
 	s := &Service{
 		BaseService:             base,
 		repo:                    repo,
@@ -310,6 +321,7 @@ func New(cfg Config) (*Service, error) { //nolint:gocritic // cfg is read once a
 		requireManifestContract: requireManifestContract,
 		paymentHubAddress:       paymentHubAddress,
 		httpClient:              httpClient,
+		httpCircuitBreaker:      resilience.New(cbConfig),
 		vrfURL:                  strings.TrimSpace(cfg.NeoVRFURL),
 		oracleURL:               strings.TrimSpace(cfg.NeoOracleURL),
 		computeURL:              strings.TrimSpace(cfg.NeoComputeURL),

@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	neoaccountsclient "github.com/R3E-Network/service_layer/infrastructure/accountpool/client"
+	neoaccountsclient "github.com/R3E-Network/neo-miniapps-platform/infrastructure/accountpool/client"
 )
 
 // SimulateLottery simulates the lottery workflow.
@@ -524,4 +524,3 @@ func (s *MiniAppSimulator) SimulateCryptoRiddle(ctx context.Context) error {
 	atomic.AddInt64(&s.riddleSolves, 1)
 	return nil
 }
-

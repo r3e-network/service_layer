@@ -4,6 +4,8 @@ import "testing"
 
 func TestStrictIdentityMode(t *testing.T) {
 	t.Run("production env", func(t *testing.T) {
+		ResetEnvCache()
+		ResetStrictIdentityModeCache()
 		t.Setenv("MARBLE_ENV", "production")
 		t.Setenv("OE_SIMULATION", "1")
 		if !StrictIdentityMode() {
@@ -12,6 +14,8 @@ func TestStrictIdentityMode(t *testing.T) {
 	})
 
 	t.Run("hardware mode", func(t *testing.T) {
+		ResetEnvCache()
+		ResetStrictIdentityModeCache()
 		t.Setenv("MARBLE_ENV", "development")
 		t.Setenv("OE_SIMULATION", "0")
 		if !StrictIdentityMode() {
@@ -20,6 +24,8 @@ func TestStrictIdentityMode(t *testing.T) {
 	})
 
 	t.Run("marblerun tls injected", func(t *testing.T) {
+		ResetEnvCache()
+		ResetStrictIdentityModeCache()
 		t.Setenv("MARBLE_ENV", "development")
 		t.Setenv("OE_SIMULATION", "1")
 		t.Setenv("MARBLE_CERT", "cert")
@@ -31,6 +37,8 @@ func TestStrictIdentityMode(t *testing.T) {
 	})
 
 	t.Run("dev simulation", func(t *testing.T) {
+		ResetEnvCache()
+		ResetStrictIdentityModeCache()
 		t.Setenv("MARBLE_ENV", "development")
 		t.Setenv("OE_SIMULATION", "1")
 		if StrictIdentityMode() {

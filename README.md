@@ -19,7 +19,7 @@
 
 <div align="center">
 
-**[English](README.md)** · [Documentation](docs/ARCHITECTURE.md) · [Report Bug](https://github.com/R3E-Network/service_layer/issues) · [Request Feature](https://github.com/R3E-Network/service_layer/issues)
+**[English](README.md)** · [Documentation](docs/ARCHITECTURE.md) · [Report Bug](https://github.com/R3E-Network/neo-miniapps-platform/issues) · [Request Feature](https://github.com/R3E-Network/neo-miniapps-platform/issues)
 
 </div>
 

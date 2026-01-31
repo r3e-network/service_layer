@@ -16,10 +16,11 @@ import (
 	"testing"
 	"time"
 
-	neoaccountssupabase "github.com/R3E-Network/service_layer/infrastructure/accountpool/supabase"
-	"github.com/R3E-Network/service_layer/infrastructure/crypto"
-	"github.com/R3E-Network/service_layer/infrastructure/marble"
-	"github.com/R3E-Network/service_layer/infrastructure/serviceauth"
+	neoaccountssupabase "github.com/R3E-Network/neo-miniapps-platform/infrastructure/accountpool/supabase"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/crypto"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/marble"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/serviceauth"
 )
 
 // =============================================================================
@@ -40,8 +41,8 @@ func newMockNeoAccountsRepo() *mockNeoAccountsRepo {
 	}
 }
 
-func addServiceAuth(req *http.Request, serviceID string) {
-	req.Header.Set(serviceauth.ServiceIDHeader, serviceID)
+func addServiceAuth(req *http.Request) {
+	req.Header.Set(serviceauth.ServiceIDHeader, "neocompute")
 }
 
 func (m *mockNeoAccountsRepo) Create(_ context.Context, acc *neoaccountssupabase.Account) error {
@@ -390,6 +391,8 @@ func (m *mockNeoAccountsRepo) UpdateBalanceWithLock(_ context.Context, accountID
 // newTestServiceWithMock creates a test service instance with mock repository.
 func newTestServiceWithMock(t *testing.T) (*Service, *mockNeoAccountsRepo) {
 	t.Helper()
+	runtime.ResetEnvCache()
+	runtime.ResetStrictIdentityModeCache()
 	m, err := marble.New(marble.Config{MarbleType: "neoaccounts"})
 	if err != nil {
 		t.Fatalf("marble.New: %v", err)
@@ -1360,7 +1363,7 @@ func TestHandleInfoEndpoint(t *testing.T) {
 	}
 
 	req := httptest.NewRequest("GET", "/pool-info", nil)
-	addServiceAuth(req, "neocompute")
+	addServiceAuth(req)
 	rr := httptest.NewRecorder()
 
 	svc.Router().ServeHTTP(rr, req)
@@ -1395,7 +1398,7 @@ func TestHandleListAccountsEndpoint(t *testing.T) {
 	svc, _ := New(Config{Marble: m, NeoAccountsRepo: mockRepo})
 
 	req := httptest.NewRequest("GET", "/accounts?service_id=neocompute", nil)
-	addServiceAuth(req, "neocompute")
+	addServiceAuth(req)
 	rr := httptest.NewRecorder()
 
 	svc.Router().ServeHTTP(rr, req)
@@ -1442,7 +1445,7 @@ func TestHandleListAccountsWithTokenFilter(t *testing.T) {
 
 	// Filter by min_balance
 	req := httptest.NewRequest("GET", "/accounts?service_id=neocompute&token=GAS&min_balance=500000", nil)
-	addServiceAuth(req, "neocompute")
+	addServiceAuth(req)
 	rr := httptest.NewRecorder()
 
 	svc.Router().ServeHTTP(rr, req)
@@ -1471,7 +1474,7 @@ func TestHandleRequestAccountsEndpoint(t *testing.T) {
 	body := `{"service_id": "neocompute", "count": 1, "purpose": "test"}`
 	req := httptest.NewRequest("POST", "/request", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	addServiceAuth(req, "neocompute")
+	addServiceAuth(req)
 	rr := httptest.NewRecorder()
 
 	svc.Router().ServeHTTP(rr, req)
@@ -1510,7 +1513,7 @@ func TestHandleReleaseAccountsEndpoint(t *testing.T) {
 	body := `{"service_id": "neocompute", "account_ids": ["acc-1"]}`
 	req := httptest.NewRequest("POST", "/release", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	addServiceAuth(req, "neocompute")
+	addServiceAuth(req)
 	rr := httptest.NewRecorder()
 
 	svc.Router().ServeHTTP(rr, req)
@@ -1541,7 +1544,7 @@ func TestHandleReleaseAccountsAll(t *testing.T) {
 	body := `{"service_id": "neocompute"}`
 	req := httptest.NewRequest("POST", "/release", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	addServiceAuth(req, "neocompute")
+	addServiceAuth(req)
 	rr := httptest.NewRecorder()
 
 	svc.Router().ServeHTTP(rr, req)
@@ -1571,7 +1574,7 @@ func TestHandleSignTransactionEndpoint(t *testing.T) {
 	body := fmt.Sprintf(`{"service_id": "neocompute", "account_id": "acc-1", "tx_hash": %s}`, mustMarshalJSON(txHash))
 	req := httptest.NewRequest("POST", "/sign", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	addServiceAuth(req, "neocompute")
+	addServiceAuth(req)
 	rr := httptest.NewRecorder()
 
 	svc.Router().ServeHTTP(rr, req)
@@ -1589,7 +1592,7 @@ func TestHandleSignTransactionMissingFields(t *testing.T) {
 	body := `{"service_id": "neocompute"}`
 	req := httptest.NewRequest("POST", "/sign", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	addServiceAuth(req, "neocompute")
+	addServiceAuth(req)
 	rr := httptest.NewRecorder()
 
 	svc.Router().ServeHTTP(rr, req)
@@ -1612,7 +1615,7 @@ func TestHandleBatchSignEndpoint(t *testing.T) {
 	body := fmt.Sprintf(`{"service_id": "neocompute", "requests": [{"account_id": "acc-1", "tx_hash": %s}]}`, mustMarshalJSON(txHash))
 	req := httptest.NewRequest("POST", "/batch-sign", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	addServiceAuth(req, "neocompute")
+	addServiceAuth(req)
 	rr := httptest.NewRecorder()
 
 	svc.Router().ServeHTTP(rr, req)
@@ -1634,7 +1637,7 @@ func TestHandleUpdateBalanceEndpoint(t *testing.T) {
 	body := `{"service_id": "neocompute", "account_id": "acc-1", "token": "GAS", "delta": 1000000}`
 	req := httptest.NewRequest("POST", "/balance", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	addServiceAuth(req, "neocompute")
+	addServiceAuth(req)
 	rr := httptest.NewRecorder()
 
 	svc.Router().ServeHTTP(rr, req)
@@ -1667,7 +1670,7 @@ func TestHandleUpdateBalanceDefaultToken(t *testing.T) {
 	body := `{"service_id": "neocompute", "account_id": "acc-1", "delta": 500}`
 	req := httptest.NewRequest("POST", "/balance", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	addServiceAuth(req, "neocompute")
+	addServiceAuth(req)
 	rr := httptest.NewRecorder()
 
 	svc.Router().ServeHTTP(rr, req)
@@ -1973,7 +1976,7 @@ func TestHandleUpdateBalanceMissingFields(t *testing.T) {
 	body := `{"service_id": "neocompute"}`
 	req := httptest.NewRequest("POST", "/balance", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	addServiceAuth(req, "neocompute")
+	addServiceAuth(req)
 	rr := httptest.NewRecorder()
 
 	svc.Router().ServeHTTP(rr, req)
@@ -1996,7 +1999,7 @@ func TestHandleRequestAccountsDefaultCount(t *testing.T) {
 	body := `{"service_id": "neocompute", "count": 0}`
 	req := httptest.NewRequest("POST", "/request", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	addServiceAuth(req, "neocompute")
+	addServiceAuth(req)
 	rr := httptest.NewRecorder()
 
 	svc.Router().ServeHTTP(rr, req)
@@ -2350,6 +2353,8 @@ func TestInitializePoolAlreadyFull(t *testing.T) {
 
 func TestInitializePoolError(t *testing.T) {
 	// Fail closed in strict/production mode.
+	runtime.ResetEnvCache()
+	runtime.ResetStrictIdentityModeCache()
 	t.Setenv("MARBLE_ENV", "production")
 	svc, mockRepo := newTestServiceWithMock(t)
 

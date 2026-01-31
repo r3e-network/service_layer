@@ -19,9 +19,9 @@ import (
 
 // MiniAppContract defines a miniapp and its expected contract
 type MiniAppContract struct {
-	AppID        string
-	EnvVar       string
-	Category     string
+	AppID    string
+	EnvVar   string
+	Category string
 }
 
 // ValidationResult holds validation outcome

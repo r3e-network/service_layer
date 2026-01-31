@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/R3E-Network/service_layer/infrastructure/chain"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
 	"github.com/sirupsen/logrus"
 )
 
@@ -171,7 +171,9 @@ func (s *Syncer) syncBlocksForNetwork(ctx context.Context, network Network) {
 	if state != nil {
 		newState.TotalTxIndexed = state.TotalTxIndexed + totalTx
 	}
-	s.storage.UpdateSyncState(ctx, newState)
+	if err := s.storage.UpdateSyncState(ctx, newState); err != nil {
+		s.log.WithError(err).Warn("failed to update sync state")
+	}
 }
 
 func (s *Syncer) syncBlockForNetwork(ctx context.Context, network Network, client *chain.Client, blockIdx uint64) (int64, error) {
@@ -180,7 +182,7 @@ func (s *Syncer) syncBlockForNetwork(ctx context.Context, network Network, clien
 		return 0, fmt.Errorf("get block: %w", err)
 	}
 
-	blockTime := time.Unix(int64(block.Time/1000), 0)
+	blockTime := time.Unix(int64(block.Time)/1000, 0)
 	var count int64
 
 	for _, chainTx := range block.Tx {
@@ -209,7 +211,10 @@ func (s *Syncer) indexTransactionForNetwork(ctx context.Context, network Network
 		exception = appLog.Executions[0].Exception
 	}
 
-	signersJSON, _ := json.Marshal(chainTx.Signers)
+	signersJSON, err := json.Marshal(chainTx.Signers)
+	if err != nil {
+		signersJSON = []byte("[]")
+	}
 
 	// Determine transaction type based on script complexity
 	txType := TxTypeSimple

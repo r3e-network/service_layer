@@ -23,23 +23,23 @@ type NativeCurrency struct {
 }
 
 type ChainConfig struct {
-	ID            string            `json:"id"`
-	Name          string            `json:"name"`
-	NameZh        string            `json:"name_zh"`
-	Type          ChainType         `json:"type"`
-	IsTestnet     bool              `json:"is_testnet"`
-	Status        string            `json:"status"`
-	Icon          string            `json:"icon"`
-	Color         string            `json:"color"`
-	NativeCurrency NativeCurrency   `json:"native_currency"`
-	ExplorerURL   string            `json:"explorer_url"`
-	BlockTime     int               `json:"block_time"`
-	NetworkMagic  uint32            `json:"network_magic"`
-	ChainID       uint64            `json:"chain_id"`
-	RPCUrls       []string          `json:"rpc_urls"`
-	WSUrls        []string          `json:"ws_urls"`
-	Contracts     map[string]string `json:"contracts"`
-	Metadata      map[string]any    `json:"metadata"`
+	ID             string            `json:"id"`
+	Name           string            `json:"name"`
+	NameZh         string            `json:"name_zh"`
+	Type           ChainType         `json:"type"`
+	IsTestnet      bool              `json:"is_testnet"`
+	Status         string            `json:"status"`
+	Icon           string            `json:"icon"`
+	Color          string            `json:"color"`
+	NativeCurrency NativeCurrency    `json:"native_currency"`
+	ExplorerURL    string            `json:"explorer_url"`
+	BlockTime      int               `json:"block_time"`
+	NetworkMagic   uint32            `json:"network_magic"`
+	ChainID        uint64            `json:"chain_id"`
+	RPCUrls        []string          `json:"rpc_urls"`
+	WSUrls         []string          `json:"ws_urls"`
+	Contracts      map[string]string `json:"contracts"`
+	Metadata       map[string]any    `json:"metadata"`
 }
 
 type Config struct {

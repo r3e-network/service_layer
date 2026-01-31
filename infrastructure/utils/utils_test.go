@@ -271,10 +271,10 @@ func TestToString(t *testing.T) {
 
 func TestToInt(t *testing.T) {
 	tests := []struct {
-		name        string
-		input       interface{}
-		defaultVal  int
-		expected    int
+		name       string
+		input      interface{}
+		defaultVal int
+		expected   int
 	}{
 		{name: "int", input: 42, defaultVal: 0, expected: 42},
 		{name: "int64", input: int64(100), defaultVal: 0, expected: 100},
@@ -296,10 +296,10 @@ func TestToInt(t *testing.T) {
 
 func TestToBool(t *testing.T) {
 	tests := []struct {
-		name        string
-		input       interface{}
-		defaultVal  bool
-		expected    bool
+		name       string
+		input      interface{}
+		defaultVal bool
+		expected   bool
 	}{
 		{name: "bool true", input: true, defaultVal: false, expected: true},
 		{name: "bool false", input: false, defaultVal: true, expected: false},
@@ -386,10 +386,10 @@ func TestUnique(t *testing.T) {
 
 func TestFilter(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    []string
+		name      string
+		input     []string
 		predicate func(string) bool
-		expected []string
+		expected  []string
 	}{
 		{
 			name:  "filter even length",
@@ -470,8 +470,8 @@ func TestNow(t *testing.T) {
 
 func TestMustParseDuration(t *testing.T) {
 	tests := []struct {
-		name      string
-		input     string
+		name        string
+		input       string
 		expectPanic bool
 	}{
 		{name: "valid hour", input: "1h", expectPanic: false},

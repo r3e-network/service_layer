@@ -10,15 +10,15 @@ import (
 	"testing"
 	"time"
 
-	neoaccounts "github.com/R3E-Network/service_layer/infrastructure/accountpool/marble"
-	"github.com/R3E-Network/service_layer/infrastructure/database"
-	"github.com/R3E-Network/service_layer/infrastructure/marble"
-	neoflow "github.com/R3E-Network/service_layer/services/automation/marble"
-	neocompute "github.com/R3E-Network/service_layer/services/confcompute/marble"
-	neooracle "github.com/R3E-Network/service_layer/services/conforacle/marble"
-	neofeeds "github.com/R3E-Network/service_layer/services/datafeed/marble"
-	neogasbank "github.com/R3E-Network/service_layer/services/gasbank/marble"
-	txproxy "github.com/R3E-Network/service_layer/services/txproxy/marble"
+	neoaccounts "github.com/R3E-Network/neo-miniapps-platform/infrastructure/accountpool/marble"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/database"
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/marble"
+	neoflow "github.com/R3E-Network/neo-miniapps-platform/services/automation/marble"
+	neocompute "github.com/R3E-Network/neo-miniapps-platform/services/confcompute/marble"
+	neooracle "github.com/R3E-Network/neo-miniapps-platform/services/conforacle/marble"
+	neofeeds "github.com/R3E-Network/neo-miniapps-platform/services/datafeed/marble"
+	neogasbank "github.com/R3E-Network/neo-miniapps-platform/services/gasbank/marble"
+	txproxy "github.com/R3E-Network/neo-miniapps-platform/services/txproxy/marble"
 )
 
 // TestNeoAccountsSmoke performs basic smoke tests on the NeoAccounts service.
