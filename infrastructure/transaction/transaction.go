@@ -134,7 +134,7 @@ func (t *TwoPhaseCommit) Execute(ctx context.Context, steps []TwoPhaseStep) erro
 	// Phase 1: Prepare
 	for _, step := range steps {
 		if err := step.Prepare(ctx); err != nil {
-			t.rollback(ctx, steps, step.Name, "prepare")
+			t.rollback(ctx, steps, "prepare")
 			return fmt.Errorf("prepare failed for %s: %w", step.Name, err)
 		}
 		t.mu.Lock()
@@ -145,7 +145,7 @@ func (t *TwoPhaseCommit) Execute(ctx context.Context, steps []TwoPhaseStep) erro
 	// Phase 2: Commit
 	for _, step := range steps {
 		if err := step.Commit(ctx); err != nil {
-			t.rollback(ctx, steps, step.Name, "commit")
+			t.rollback(ctx, steps, "commit")
 			return fmt.Errorf("commit failed for %s: %w", step.Name, err)
 		}
 		t.mu.Lock()
@@ -156,7 +156,7 @@ func (t *TwoPhaseCommit) Execute(ctx context.Context, steps []TwoPhaseStep) erro
 	return nil
 }
 
-func (t *TwoPhaseCommit) rollback(ctx context.Context, steps []TwoPhaseStep, failedStep string, phase string) {
+func (t *TwoPhaseCommit) rollback(ctx context.Context, steps []TwoPhaseStep, phase string) {
 	for _, step := range steps {
 		if step.Rollback == nil {
 			continue

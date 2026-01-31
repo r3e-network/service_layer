@@ -10,10 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/logging"
-	commonservice "github.com/R3E-Network/neo-miniapps-platform/infrastructure/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/logging"
+	commonservice "github.com/R3E-Network/neo-miniapps-platform/infrastructure/service"
 )
 
 // mockBaseService creates a minimal base service for testing.

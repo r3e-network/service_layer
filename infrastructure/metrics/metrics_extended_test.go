@@ -4,8 +4,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
 	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/runtime"
 )
 
 func TestNewMetricsInstance(t *testing.T) {

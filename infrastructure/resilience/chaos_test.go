@@ -85,9 +85,9 @@ func TestCircuitBreakerHalfOpenRecovery(t *testing.T) {
 
 	// First request fails
 	err := cb.Execute(ctx, func() error {
-		resp, err := http.Get(server.URL)
-		if err != nil {
-			return err
+		resp, getErr := http.Get(server.URL)
+		if getErr != nil {
+			return getErr
 		}
 		resp.Body.Close()
 		if resp.StatusCode >= 400 {
@@ -111,9 +111,9 @@ func TestCircuitBreakerHalfOpenRecovery(t *testing.T) {
 
 	// Circuit should transition to half-open on next request attempt
 	err = cb.Execute(ctx, func() error {
-		resp, err := http.Get(server.URL)
-		if err != nil {
-			return err
+		resp, getErr := http.Get(server.URL)
+		if getErr != nil {
+			return getErr
 		}
 		resp.Body.Close()
 		if resp.StatusCode >= 400 {
@@ -217,9 +217,9 @@ func TestRetryContextCancellation(t *testing.T) {
 		t.Errorf("expected context.DeadlineExceeded, got: %v", err)
 	}
 
-	// Should have been cancelled before completing all retries
+	// Should have been canceled before completing all retries
 	if elapsed > 200*time.Millisecond {
-		t.Errorf("retry took too long %v, should have been cancelled sooner", elapsed)
+		t.Errorf("retry took too long %v, should have been canceled sooner", elapsed)
 	}
 }
 
@@ -320,16 +320,9 @@ func TestBulkheadPattern(t *testing.T) {
 // TestFallbackPattern verifies fallback mechanism when primary fails
 func TestFallbackPattern(t *testing.T) {
 	primaryCalled := int32(0)
-	fallbackCalled := int32(0)
-
 	primary := func() (string, error) {
 		atomic.AddInt32(&primaryCalled, 1)
 		return "", errors.New("primary unavailable")
-	}
-
-	fallback := func() (string, error) {
-		atomic.AddInt32(&fallbackCalled, 1)
-		return "fallback result", nil
 	}
 
 	// Simulate fallback pattern
@@ -350,7 +343,6 @@ func TestFallbackPattern(t *testing.T) {
 		t.Errorf("expected primary to be called once, got %d", atomic.LoadInt32(&primaryCalled))
 	}
 
-	_ = fallback
 	_ = result
 }
 

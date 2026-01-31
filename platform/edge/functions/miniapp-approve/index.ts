@@ -8,7 +8,7 @@ declare const Deno: {
 };
 
 import { handleCorsPreflight } from "../_shared/cors.ts";
-import { mustGetEnv } from "../_shared/env.ts";
+import { mustGetEnv, getEnv } from "../_shared/env.ts";
 import { json } from "../_shared/response.ts";
 import { errorResponse, validationError } from "../_shared/error-codes.ts";
 import { requireAuth } from "../_shared/supabase.ts";
@@ -42,6 +42,11 @@ function sanitizeReviewNotes(notes: string | undefined): string | undefined {
   sanitized = sanitized.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, "");
 
   return sanitized;
+}
+
+function resolveFunctionsBaseUrl(): string {
+  const base = (getEnv("PLATFORM_EDGE_URL") ?? mustGetEnv("SUPABASE_URL")).trim().replace(/\/+$/, "");
+  return base.endsWith("/functions/v1") ? base : `${base}/functions/v1`;
 }
 
 export async function handler(req: Request): Promise<Response> {
@@ -142,8 +147,26 @@ export async function handler(req: Request): Promise<Response> {
           });
         }
 
-        // TODO: Trigger build pipeline
-        // This would call the build endpoint or queue a build job
+        const functionsBaseUrl = resolveFunctionsBaseUrl();
+        const buildResponse = await fetch(`${functionsBaseUrl}/miniapp-build`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${mustGetEnv("SUPABASE_SERVICE_ROLE_KEY")}`,
+          },
+          body: JSON.stringify({ submission_id: body.submission_id }),
+        });
+
+        if (!buildResponse.ok) {
+          const detail = await buildResponse.text();
+          console.error("Build trigger failed:", buildResponse.status, detail);
+          return errorResponse(
+            "SERVER_001",
+            { message: "failed to trigger build", status: buildResponse.status, detail },
+            req
+          );
+        }
+
         return json({
           success: true,
           submission_id: body.submission_id,

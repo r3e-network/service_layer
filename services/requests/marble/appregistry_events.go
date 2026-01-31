@@ -58,16 +58,13 @@ func (s *Service) handleAppRegistryEvent(ctx context.Context, event *chain.Contr
 		logger.WithError(storeErr).Warn("failed to store contract event")
 	}
 
-	miniApp, loadErr := s.loadMiniApp(ctx, appID)
-	if loadErr != nil {
+	if _, loadErr := s.loadMiniApp(ctx, appID); loadErr != nil {
 		if database.IsNotFound(loadErr) {
 			return nil
 		}
 		logger.WithContext(ctx).WithError(loadErr).Warn("failed to load miniapp manifest")
 		return nil
 	}
-
-	_ = miniApp // unused for now
 
 	info, err := s.appRegistry.GetApp(ctx, appID)
 	if err != nil {

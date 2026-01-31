@@ -3,6 +3,7 @@ package middleware
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"runtime"
 	"sync"
@@ -71,7 +72,7 @@ func (h *HealthChecker) Handler() http.HandlerFunc {
 			w.WriteHeader(http.StatusServiceUnavailable)
 		}
 		if encodeErr := json.NewEncoder(w).Encode(status); encodeErr != nil {
-			// Error encoding is ignored - response may be partial
+			log.Printf("health handler encode failed: %v", encodeErr)
 		}
 	}
 }
@@ -83,7 +84,7 @@ func LivenessHandler() http.HandlerFunc {
 		if encodeErr := json.NewEncoder(w).Encode(map[string]string{
 			"status": "alive",
 		}); encodeErr != nil {
-			// Error encoding is ignored - response may be partial
+			log.Printf("liveness handler encode failed: %v", encodeErr)
 		}
 	}
 }
@@ -96,14 +97,14 @@ func ReadinessHandler(ready *bool) http.HandlerFunc {
 			if encodeErr := json.NewEncoder(w).Encode(map[string]string{
 				"status": "ready",
 			}); encodeErr != nil {
-				// Error encoding is ignored - response may be partial
+				log.Printf("readiness handler encode failed: %v", encodeErr)
 			}
 		} else {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			if encodeErr := json.NewEncoder(w).Encode(map[string]string{
 				"status": "not_ready",
 			}); encodeErr != nil {
-				// Error encoding is ignored - response may be partial
+				log.Printf("readiness handler encode failed: %v", encodeErr)
 			}
 		}
 	}

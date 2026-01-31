@@ -25,10 +25,10 @@ declare const Deno: {
 };
 
 import { handleCorsPreflight } from "../_shared/cors.ts";
-import { mustGetEnv } from "../_shared/env.ts";
+import { mustGetEnv, getEnv } from "../_shared/env.ts";
 import { json } from "../_shared/response.ts";
 import { errorResponse, validationError, notFoundError } from "../_shared/error-codes.ts";
-import { requireAuth } from "../_shared/supabase.ts";
+import { requireAuth, type AuthContext } from "../_shared/supabase.ts";
 import { requireRateLimit } from "../_shared/ratelimit.ts";
 import { cloneRepo, getCommitInfo, cleanup, normalizeGitUrl } from "../_shared/build/git-manager.ts";
 import { validateGitUrl } from "../_shared/git-whitelist.ts";
@@ -52,6 +52,16 @@ interface BuildResponse {
 
 // Maximum allowed build size to prevent DoS attacks (50MB)
 const MAX_BUILD_SIZE = 50 * 1024 * 1024;
+
+function isServiceRoleRequest(req: Request): boolean {
+  const authHeader = req.headers.get("Authorization") ?? "";
+  if (!authHeader.toLowerCase().startsWith("bearer ")) return false;
+  const token = authHeader.slice("bearer ".length).trim();
+  if (!token) return false;
+  const serviceKey = getEnv("SUPABASE_SERVICE_ROLE_KEY") ?? getEnv("SUPABASE_SERVICE_KEY");
+  if (!serviceKey) return false;
+  return token === serviceKey;
+}
 
 // Calculate directory size recursively
 async function getDirectorySize(dirPath: string): Promise<number> {
@@ -205,15 +215,23 @@ export async function handler(req: Request): Promise<Response> {
   if (preflight) return preflight;
   if (req.method !== "POST") return errorResponse("METHOD_NOT_ALLOWED", undefined, req);
 
-  const auth = await requireAuth(req);
-  if (auth instanceof Response) return auth;
-  const rl = await requireRateLimit(req, "miniapp-build", auth);
+  const serviceRole = isServiceRoleRequest(req);
+  let auth: AuthContext | null = null;
+  if (!serviceRole) {
+    const authResult = await requireAuth(req);
+    if (authResult instanceof Response) return authResult;
+    auth = authResult;
+  }
+
+  const rl = await requireRateLimit(req, "miniapp-build", auth ?? undefined);
   if (rl) return rl;
 
   // Check if user is admin
-  const { data: isAdmin, error: adminCheckError } = await supabaseAdminCheck(auth.userId);
-  if (adminCheckError || !isAdmin) {
-    return errorResponse("AUTH_004", "Admin access required", req);
+  if (!serviceRole) {
+    const { data: isAdmin, error: adminCheckError } = await supabaseAdminCheck(auth!.userId);
+    if (adminCheckError || !isAdmin) {
+      return errorResponse("AUTH_004", "Admin access required", req);
+    }
   }
 
   let body: BuildRequest;
@@ -325,6 +343,8 @@ export async function handler(req: Request): Promise<Response> {
     // 9. Upload assets
     const assetUrls = await uploadAssets(projectDir, assets, submission.app_id);
 
+    const builtByUserId = auth?.userId ?? null;
+
     // 10. Update registry
     await supabase
       .from("miniapp_submissions")
@@ -334,7 +354,7 @@ export async function handler(req: Request): Promise<Response> {
         cdn_version_path: submission.git_commit_sha,
         assets_selected: assetUrls,
         built_at: new Date().toISOString(),
-        built_by: auth.userId,
+        built_by: builtByUserId,
         build_log: buildResult.output,
       })
       .eq("id", body.submission_id);

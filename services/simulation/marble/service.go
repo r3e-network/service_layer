@@ -446,147 +446,6 @@ func (s *Service) GetStatus() *SimulationStatus {
 	return status
 }
 
-// simulateApp runs the simulation loop for a single MiniApp worker.
-// It submits REAL transactions to the Neo N3 blockchain by transferring
-// small amounts of GAS from the master account to pool accounts.
-// Target rate: 1 transaction every 1-3 seconds per miniapp (achieved via multiple workers).
-func (s *Service) simulateApp(appID string, workerID int) {
-	ctx := context.Background()
-	logger := s.Logger().WithFields(map[string]interface{}{"app_id": appID, "worker_id": workerID})
-
-	logger.WithContext(ctx).Info("starting simulation worker for app")
-
-	for {
-		// Record start time to calculate remaining sleep after transaction
-		iterationStart := time.Now()
-		targetInterval := s.randomInterval()
-
-		// Check if simulation is stopped
-		select {
-		case <-s.stopCh:
-			logger.WithContext(ctx).Info("stopping simulation worker for app")
-			return
-		default:
-		}
-
-		// Check if pool client is available
-		if s.poolClient == nil {
-			// Simulate without actual pool - just log and update stats
-			amount := s.randomAmount()
-			s.mu.Lock()
-			s.txCounts[appID]++
-			s.lastTxTimes[appID] = time.Now()
-			s.mu.Unlock()
-
-			logger.WithFields(map[string]interface{}{
-				"tx_type": "payGAS",
-				"amount":  amount,
-				"mode":    "simulated",
-			}).Debug("simulated transaction (no pool client)")
-
-			// Sleep remaining time to hit target interval
-			elapsed := time.Since(iterationStart)
-			if remaining := targetInterval - elapsed; remaining > 0 {
-				time.Sleep(remaining)
-			}
-			continue
-		}
-
-		// Request ONE account from the pool (destination for funding)
-		resp, err := s.poolClient.RequestAccounts(ctx, 1, fmt.Sprintf("simulation-%s", appID))
-		if err != nil {
-			logger.WithError(err).Warn("failed to request accounts from pool")
-			// Sleep remaining time before retry
-			elapsed := time.Since(iterationStart)
-			if remaining := targetInterval - elapsed; remaining > 0 {
-				time.Sleep(remaining)
-			}
-			continue
-		}
-
-		if len(resp.Accounts) < 1 {
-			logger.Warn("no accounts available in pool")
-			// Sleep remaining time before retry
-			elapsed := time.Since(iterationStart)
-			if remaining := targetInterval - elapsed; remaining > 0 {
-				time.Sleep(remaining)
-			}
-			continue
-		}
-
-		destAccount := resp.Accounts[0]
-
-		// Use a larger amount for the transfer to support MiniApp workflows
-		// MiniApp workflows need 0.05-0.2 GAS per transaction, so fund with 0.5 GAS
-		amount := int64(50000000) // 0.5 GAS
-		txType := "fund"
-		txHash := ""
-		status := "pending"
-
-		// Submit REAL transaction to the blockchain using Fund (from master account)
-		fundResp, err := s.poolClient.FundAccount(ctx, destAccount.Address, amount)
-		if err != nil {
-			logger.WithError(err).WithFields(map[string]interface{}{
-				"destination": destAccount.Address,
-				"amount":      amount,
-			}).Warn("failed to submit blockchain transaction")
-			status = "failed"
-		} else {
-			txHash = fundResp.TxHash
-			status = "confirmed"
-			logger.WithFields(map[string]interface{}{
-				"destination": destAccount.Address,
-				"amount":      amount,
-				"tx_hash":     txHash,
-			}).Info("blockchain transaction submitted successfully")
-		}
-
-		// Record transaction to database
-		if s.db != nil {
-			tx := &SimulationTx{
-				AppID:          appID,
-				AccountAddress: destAccount.Address,
-				TxType:         txType,
-				Amount:         amount,
-				Status:         status,
-				TxHash:         txHash,
-				CreatedAt:      time.Now(),
-			}
-
-			if err := s.recordTransaction(ctx, tx); err != nil {
-				logger.WithError(err).Warn("failed to record transaction")
-			}
-		}
-
-		// Update statistics
-		s.mu.Lock()
-		s.txCounts[appID]++
-		s.lastTxTimes[appID] = time.Now()
-		s.mu.Unlock()
-
-		// Release the account back to the pool (do this in background to not delay next tx)
-		go func(accountID string) {
-			// PANIC RECOVERY [R-03]: Prevent goroutine crashes from killing the service
-			defer func() {
-				if r := recover(); r != nil {
-					logger.WithField("panic", r).WithField("account_id", accountID).
-						Error("panic recovered in account release goroutine")
-				}
-			}()
-			_, err := s.poolClient.ReleaseAccounts(ctx, []string{accountID})
-			if err != nil {
-				logger.WithError(err).Warn("failed to release account")
-			}
-		}(destAccount.ID)
-
-		// Sleep remaining time to hit target interval (1-3 seconds from iteration start)
-		elapsed := time.Since(iterationStart)
-		if remaining := targetInterval - elapsed; remaining > 0 {
-			time.Sleep(remaining)
-		}
-	}
-}
-
 // randomInterval returns a random interval between minInterval and maxInterval.
 func (s *Service) randomInterval() time.Duration {
 	s.mu.RLock()
@@ -724,41 +583,6 @@ func (s *Service) runRandomnessRecorder() {
 				logger.WithFields(map[string]interface{}{
 					"tx_hash": shortHash(txHash),
 				}).Debug("RandomnessLog recorded")
-			}
-		}
-	}
-}
-
-// runPaymentHubPayer runs the PaymentHub payment loop for a MiniApp.
-func (s *Service) runPaymentHubPayer(appID string) {
-	ctx := context.Background()
-	logger := s.Logger().WithFields(map[string]interface{}{"worker": "paymenthub", "app_id": appID})
-
-	// Stagger start times
-	time.Sleep(time.Duration(len(appID)%3) * time.Second)
-
-	ticker := time.NewTicker(3 * time.Second)
-	defer ticker.Stop()
-
-	paymentCount := 0
-	for {
-		select {
-		case <-s.stopCh:
-			logger.WithContext(ctx).Info("stopping PaymentHub payer")
-			return
-		case <-ticker.C:
-			paymentCount++
-			amount := int64(100000) // 0.001 GAS
-			memo := fmt.Sprintf("sim-payment-%d", paymentCount)
-
-			txHash, err := s.contractInvoker.PayToApp(ctx, appID, amount, memo)
-			if err != nil {
-				logger.WithError(err).Warn("PaymentHub payment failed")
-			} else {
-				logger.WithFields(map[string]interface{}{
-					"amount":  amount,
-					"tx_hash": shortHash(txHash),
-				}).Debug("PaymentHub payment sent")
 			}
 		}
 	}
@@ -1135,7 +959,9 @@ func (s *Service) fundAutomationTask(ctx context.Context, contractAddress string
 	account := resp.Accounts[0]
 	defer func() {
 		// Release account back to pool
-		_, _ = s.poolClient.ReleaseAccounts(ctx, []string{account.ID})
+		if _, releaseErr := s.poolClient.ReleaseAccounts(ctx, []string{account.ID}); releaseErr != nil {
+			s.Logger().WithContext(ctx).WithError(releaseErr).Warn("failed to release automation funding account")
+		}
 	}()
 
 	// Check if account has sufficient balance
@@ -1147,9 +973,9 @@ func (s *Service) fundAutomationTask(ctx context.Context, contractAddress string
 	// Fund account if needed (need amount + tx fee)
 	const minBalanceNeeded = int64(1100000000) // 11 GAS (10 for transfer + 1 for fee)
 	if gasBalance < minBalanceNeeded {
-		_, err := s.poolClient.FundAccount(ctx, account.Address, minBalanceNeeded)
-		if err != nil {
-			return fmt.Errorf("fund account: %w", err)
+		_, fundErr := s.poolClient.FundAccount(ctx, account.Address, minBalanceNeeded)
+		if fundErr != nil {
+			return fmt.Errorf("fund account: %w", fundErr)
 		}
 		// Wait for funding to confirm
 		time.Sleep(5 * time.Second)

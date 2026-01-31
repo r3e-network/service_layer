@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"sync"
 	"time"
 
-	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
 	"github.com/sirupsen/logrus"
+
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/chain"
 )
 
 // Syncer synchronizes transactions from Neo N3 nodes.
@@ -135,7 +137,11 @@ func (s *Syncer) syncBlocksForNetwork(ctx context.Context, network Network) {
 		return // Already synced
 	}
 
-	endBlock := startBlock + uint64(s.cfg.BatchSize)
+	batchSize := s.cfg.BatchSize
+	if batchSize < 0 {
+		batchSize = 0
+	}
+	endBlock := startBlock + uint64(batchSize) // #nosec G115 -- batchSize is clamped to non-negative
 	if endBlock > chainHeight {
 		endBlock = chainHeight
 	}
@@ -182,7 +188,11 @@ func (s *Syncer) syncBlockForNetwork(ctx context.Context, network Network, clien
 		return 0, fmt.Errorf("get block: %w", err)
 	}
 
-	blockTime := time.Unix(int64(block.Time)/1000, 0)
+	blockTimeMs := block.Time
+	if blockTimeMs > math.MaxInt64 {
+		blockTimeMs = math.MaxInt64
+	}
+	blockTime := time.Unix(int64(blockTimeMs)/1000, 0) // #nosec G115 -- blockTimeMs is clamped
 	var count int64
 
 	for _, chainTx := range block.Tx {

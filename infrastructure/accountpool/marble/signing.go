@@ -27,8 +27,8 @@ import (
 // Secret names for TEE wallet keys - these should be defined in MarbleRun manifest
 const (
 	SecretTEEPrivateKey       = "TEE_PRIVATE_KEY"
-	SecretTEEWalletPrivateKey = "TEE_WALLET_PRIVATE_KEY"
-	SecretNeoTestnetWIF       = "NEO_TESTNET_WIF"
+	SecretTEEWalletPrivateKey = "TEE_WALLET_PRIVATE_KEY" // #nosec G101 -- secret name, not a credential value
+	SecretNeoTestnetWIF       = "NEO_TESTNET_WIF"        // #nosec G101 -- secret name, not a credential value
 )
 
 // getTEEPrivateKey securely retrieves the TEE private key from Marble secrets.
@@ -166,6 +166,9 @@ func (s *Service) Transfer(ctx context.Context, serviceID, accountID, toAddress 
 	if s.repo == nil {
 		return "", fmt.Errorf("repository not configured")
 	}
+	if strings.TrimSpace(tokenHash) != "" {
+		return "", fmt.Errorf("token_hash is not supported; only GAS transfers are allowed")
+	}
 	if s.chainClient == nil {
 		return "", fmt.Errorf("chain client not configured")
 	}
@@ -178,9 +181,6 @@ func (s *Service) Transfer(ctx context.Context, serviceID, accountID, toAddress 
 	if amount <= 0 {
 		return "", fmt.Errorf("amount must be positive")
 	}
-
-	// TODO: tokenHash is reserved for future NEP-17 token support (currently only GAS transfers)
-	_ = strings.TrimSpace(tokenHash)
 	s.mu.RLock()
 	acc, err := s.repo.GetByID(ctx, accountID)
 	if err != nil {

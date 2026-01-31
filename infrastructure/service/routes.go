@@ -5,8 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/httputil"
 	"github.com/gorilla/mux"
+
+	"github.com/R3E-Network/neo-miniapps-platform/infrastructure/httputil"
 )
 
 // =============================================================================
@@ -125,6 +126,7 @@ type RouteGroup struct {
 	router     *mux.Router
 	prefix     string
 	middleware []mux.MiddlewareFunc
+	lastRoute  *mux.Route
 }
 
 // NewRouteGroup creates a new RouteGroup for the given router.
@@ -152,23 +154,25 @@ func (rg *RouteGroup) WithTimeout(timeout time.Duration) *RouteGroup {
 // Handle registers a handler with all configured middleware.
 func (rg *RouteGroup) Handle(path string, handler http.Handler) *RouteGroup {
 	// Apply all middleware
-	var h http.Handler = handler
+	h := handler
 	for i := len(rg.middleware) - 1; i >= 0; i-- {
 		h = rg.middleware[i](h)
 	}
-	rg.router.Handle(rg.prefix+path, h)
+	rg.lastRoute = rg.router.Handle(rg.prefix+path, h)
 	return rg
 }
 
 // HandleFunc registers a handler function with all configured middleware.
 func (rg *RouteGroup) HandleFunc(path string, f http.HandlerFunc) *RouteGroup {
-	return rg.Handle(path, http.HandlerFunc(f))
+	return rg.Handle(path, f)
 }
 
 // Methods registers the last route with specific HTTP methods.
 func (rg *RouteGroup) Methods(methods ...string) *RouteGroup {
-	// This is a placeholder - in practice, the Handle call would need to
-	// store the route and apply methods to it
+	if rg.lastRoute == nil {
+		return rg
+	}
+	rg.lastRoute.Methods(methods...)
 	return rg
 }
 

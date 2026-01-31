@@ -110,7 +110,7 @@ type Service struct {
 }
 
 // New creates a new NeoRequests service.
-func New(cfg Config) (*Service, error) { //nolint:gocritic // cfg is read once at startup.
+func New(cfg Config) (*Service, error) {
 	if cfg.Marble == nil {
 		return nil, fmt.Errorf("neorequests: marble is required")
 	}

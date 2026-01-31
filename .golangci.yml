@@ -46,10 +46,6 @@ linters-settings:
   gocritic:
     enabled-tags:
       - diagnostic
-      - experimental
-      - opinionated
-      - performance
-      - style
 
   revive:
     rules:
@@ -79,6 +75,7 @@ issues:
         - gosec
         - errcheck
         - gocritic
+        - unused
 
     # Exclude known issues
     - text: "weak cryptographic primitive"

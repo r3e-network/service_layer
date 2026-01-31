@@ -353,22 +353,6 @@ func (inv *ContractInvoker) getOrRequestAccount(ctx context.Context, purpose str
 	return account.ID, nil
 }
 
-// releaseAccount releases an account back to the pool.
-func (inv *ContractInvoker) releaseAccount(ctx context.Context, purpose string) {
-	inv.mu.Lock()
-	accountID, ok := inv.lockedAccounts[purpose]
-	if ok {
-		delete(inv.lockedAccounts, purpose)
-		delete(inv.accountAddresses, accountID)
-		delete(inv.accountBalances, accountID)
-	}
-	inv.mu.Unlock()
-
-	if ok {
-		_, _ = inv.poolClient.ReleaseAccounts(ctx, []string{accountID})
-	}
-}
-
 // UpdatePriceFeed updates a price feed with simulated data using the master wallet.
 // PriceFeed requires the caller to be a registered TEE signer in AppRegistry.
 func (inv *ContractInvoker) UpdatePriceFeed(ctx context.Context, symbol string) (string, error) {
@@ -383,8 +367,12 @@ func (inv *ContractInvoker) UpdatePriceFeed(ctx context.Context, symbol string) 
 
 	// Generate price with 2% variance
 	price := generatePrice(basePrice, 2)
-	timestamp := uint64(time.Now().UnixMilli())
-	attestationHash := generateRandomBytes(32)
+	ts := time.Now().UnixMilli()
+	if ts < 0 {
+		ts = 0
+	}
+	timestamp := uint64(ts) // #nosec G115 -- ts is clamped to non-negative
+	attestationHash := generateRandomBytes()
 	sourceSetID := int64(1)
 
 	// Increment round ID atomically
@@ -422,9 +410,13 @@ func (inv *ContractInvoker) RecordRandomness(ctx context.Context) (string, error
 			"randomness log address must be configured via CONTRACT_RANDOMNESS_LOG_ADDRESS env var", ErrRandomnessLogNotConfigured)
 	}
 	requestID := generateRequestID()
-	randomness := generateRandomBytes(32)
-	attestationHash := generateRandomBytes(32)
-	timestamp := uint64(time.Now().UnixMilli())
+	randomness := generateRandomBytes()
+	attestationHash := generateRandomBytes()
+	ts := time.Now().UnixMilli()
+	if ts < 0 {
+		ts = 0
+	}
+	timestamp := uint64(ts) // #nosec G115 -- ts is clamped to non-negative
 
 	// Invoke contract via pool client using master wallet (TEE signer)
 	// RandomnessLog requires the caller to be registered in AppRegistry
@@ -447,9 +439,6 @@ func (inv *ContractInvoker) RecordRandomness(ctx context.Context) (string, error
 	atomic.AddInt64(&inv.randomnessRecords, 1)
 	return resp.TxHash, nil
 }
-
-// Neo N3 Testnet GAS contract address (native contract)
-const gasContractAddress = "d2a4cff31913016155e38e474a2c06d08be276cf"
 
 // PayToApp makes a payment to a MiniApp via direct GAS.Transfer with data.
 // This simulates real user behavior where users pay from their own wallets.
@@ -582,7 +571,9 @@ func (inv *ContractInvoker) ReleaseAllAccounts(ctx context.Context) {
 	inv.mu.Unlock()
 
 	if len(accountIDs) > 0 {
-		_, _ = inv.poolClient.ReleaseAccounts(ctx, accountIDs)
+		if _, err := inv.poolClient.ReleaseAccounts(ctx, accountIDs); err != nil {
+			fmt.Printf("neosimulation: warning: failed to release accounts: %v\n", err)
+		}
 	}
 }
 
@@ -593,12 +584,17 @@ func (inv *ContractInvoker) Close() {
 
 func generatePrice(basePrice int64, variancePercent int) int64 {
 	variance := basePrice * int64(variancePercent) / 100
-	n, _ := rand.Int(rand.Reader, big.NewInt(variance*2))
+	n, err := rand.Int(rand.Reader, big.NewInt(variance*2))
+	if err != nil {
+		return basePrice
+	}
 	return basePrice - variance + n.Int64()
 }
 
-func generateRandomBytes(n int) []byte {
-	b := make([]byte, n)
+const randomBytesLength = 32
+
+func generateRandomBytes() []byte {
+	b := make([]byte, randomBytesLength)
 	if _, err := rand.Read(b); err != nil {
 		// Fallback to timestamp-based pseudo-randomness on error
 		for i := range b {

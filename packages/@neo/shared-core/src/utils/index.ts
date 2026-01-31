@@ -2,6 +2,8 @@
  * Shared utility functions - Platform agnostic
  */
 
+import { sha256 } from "@noble/hashes/sha2";
+
 /**
  * Format a Neo address for display (truncated)
  */
@@ -24,10 +26,64 @@ export function formatAmount(amount: string | number, decimals = 8): string {
 /**
  * Convert script hash to address format
  */
+const BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+const NEO_N3_VERSION = 0x35;
+
+function hexToBytes(hex: string): Uint8Array {
+  const clean = hex.length % 2 === 0 ? hex : `0${hex}`;
+  const bytes = new Uint8Array(clean.length / 2);
+  for (let i = 0; i < clean.length; i += 2) {
+    bytes[i / 2] = parseInt(clean.slice(i, i + 2), 16);
+  }
+  return bytes;
+}
+
+function base58Encode(bytes: Uint8Array): string {
+  let num = BigInt(0);
+  for (const byte of bytes) {
+    num = num * BigInt(256) + BigInt(byte);
+  }
+
+  let encoded = "";
+  while (num > 0) {
+    const rem = Number(num % BigInt(58));
+    encoded = BASE58_ALPHABET[rem] + encoded;
+    num = num / BigInt(58);
+  }
+
+  let leadingZeros = 0;
+  for (const byte of bytes) {
+    if (byte === 0) {
+      leadingZeros += 1;
+    } else {
+      break;
+    }
+  }
+
+  return `${"1".repeat(leadingZeros)}${encoded}`;
+}
+
+/**
+ * Convert script hash to Neo N3 address format
+ */
 export function scriptHashToAddress(scriptHash: string): string {
-  // Implementation depends on platform-specific crypto
-  // This is a placeholder - actual implementation in crypto module
-  return scriptHash;
+  const normalized = scriptHash.trim().toLowerCase().replace(/^0x/, "");
+  if (normalized.length !== 40) return scriptHash;
+
+  const bytes = hexToBytes(normalized);
+  const reversed = Uint8Array.from(bytes);
+  reversed.reverse();
+
+  const payload = new Uint8Array(1 + reversed.length);
+  payload[0] = NEO_N3_VERSION;
+  payload.set(reversed, 1);
+
+  const checksum = sha256(sha256(payload)).slice(0, 4);
+  const addressBytes = new Uint8Array(payload.length + checksum.length);
+  addressBytes.set(payload);
+  addressBytes.set(checksum, payload.length);
+
+  return base58Encode(addressBytes);
 }
 
 /**

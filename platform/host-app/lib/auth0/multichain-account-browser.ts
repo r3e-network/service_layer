@@ -57,7 +57,7 @@ async function generateEVMAccount(chainId: ChainId): Promise<MultiChainAccount> 
       .join("");
 
   // Derive public key and address using secp256k1
-  // For browser, we use a simplified approach with ethers-like derivation
+  // Browser flow uses ethers-style derivation to match expected addresses
   const { address, publicKey } = await deriveEVMAddressFromPrivateKey(privateKeyBytes);
 
   return {

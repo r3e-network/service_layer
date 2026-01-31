@@ -75,6 +75,7 @@ check_pattern() {
         ! -path "*/build/*" \
         ! -path "*/__pycache__/*" \
         ! -path "*/.next/*" \
+        ! -path "*/.worktrees/*" \
         ! -path "*/coverage/*" \
         ! -name "*_test.go" \
         ! -name "*_test.cs" \

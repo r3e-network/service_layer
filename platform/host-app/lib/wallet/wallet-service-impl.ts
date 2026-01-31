@@ -100,13 +100,12 @@ class WalletServiceImpl implements IWalletService {
           this._chainId,
         );
       }
-      // EVM adapters don't have getBalance in the same interface
-      // Return a placeholder for now - actual balance is in account.balance
-      // Get native symbol from chain registry for multi-chain support
-      const registry = getChainRegistry();
-      const chain = registry.getChain(this._chainId);
-      const nativeSymbol = chain?.nativeCurrency?.symbol || "ETH";
-      return { native: "0", nativeSymbol, governance: undefined, governanceSymbol: undefined };
+      if (this._extensionProvider in this.evmAdapters) {
+        return this.evmAdapters[this._extensionProvider as EVMExtensionProvider].getBalance(
+          this._account.address,
+          this._chainId,
+        );
+      }
     }
 
     throw new Error("Invalid wallet state");

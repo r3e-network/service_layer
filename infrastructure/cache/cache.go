@@ -6,20 +6,20 @@ import (
 	"time"
 )
 
-type CacheEntry struct {
+type Entry struct {
 	Value      interface{}
 	Expiration time.Time
 	Version    int64
 }
 
-type CacheConfig struct {
+type Config struct {
 	DefaultTTL      time.Duration
 	MaxSize         int
 	CleanupInterval time.Duration
 }
 
-func DefaultConfig() CacheConfig {
-	return CacheConfig{
+func DefaultConfig() Config {
+	return Config{
 		DefaultTTL:      5 * time.Minute,
 		MaxSize:         1000,
 		CleanupInterval: 10 * time.Minute,
@@ -28,12 +28,12 @@ func DefaultConfig() CacheConfig {
 
 type Cache struct {
 	mu      sync.RWMutex
-	entries map[string]*CacheEntry
-	config  CacheConfig
+	entries map[string]*Entry
+	config  Config
 	version int64
 }
 
-func NewCache(cfg CacheConfig) *Cache {
+func NewCache(cfg Config) *Cache {
 	if cfg.DefaultTTL == 0 {
 		cfg.DefaultTTL = 5 * time.Minute
 	}
@@ -45,7 +45,7 @@ func NewCache(cfg CacheConfig) *Cache {
 	}
 
 	c := &Cache{
-		entries: make(map[string]*CacheEntry),
+		entries: make(map[string]*Entry),
 		config:  cfg,
 	}
 
@@ -68,7 +68,6 @@ func (c *Cache) cleanup() {
 
 	now := time.Now()
 	expired := 0
-	size := len(c.entries)
 
 	for key, entry := range c.entries {
 		if now.After(entry.Expiration) {
@@ -77,8 +76,15 @@ func (c *Cache) cleanup() {
 		}
 	}
 
-	if expired > 0 || size > c.config.MaxSize {
-		size = len(c.entries)
+	if c.config.MaxSize > 0 && len(c.entries) > c.config.MaxSize {
+		over := len(c.entries) - c.config.MaxSize
+		for key := range c.entries {
+			delete(c.entries, key)
+			over--
+			if over <= 0 {
+				break
+			}
+		}
 	}
 }
 
@@ -122,7 +128,7 @@ func (c *Cache) Set(key string, value interface{}, ttl time.Duration) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	c.entries[key] = &CacheEntry{
+	c.entries[key] = &Entry{
 		Value:      value,
 		Expiration: time.Now().Add(ttl),
 		Version:    c.version,
@@ -137,7 +143,7 @@ func (c *Cache) SetVersioned(key string, value interface{}, ttl time.Duration) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	c.entries[key] = &CacheEntry{
+	c.entries[key] = &Entry{
 		Value:      value,
 		Expiration: time.Now().Add(ttl),
 		Version:    c.version,
@@ -166,7 +172,7 @@ func (c *Cache) InvalidateAll() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	c.entries = make(map[string]*CacheEntry)
+	c.entries = make(map[string]*Entry)
 }
 
 func (c *Cache) InvalidateVersion() {
@@ -174,7 +180,7 @@ func (c *Cache) InvalidateVersion() {
 	defer c.mu.Unlock()
 
 	c.version++
-	c.entries = make(map[string]*CacheEntry)
+	c.entries = make(map[string]*Entry)
 }
 
 func (c *Cache) InvalidateByVersion(targetVersion int64) {
@@ -186,7 +192,7 @@ func (c *Cache) InvalidateByVersion(targetVersion int64) {
 	}
 
 	c.version = targetVersion
-	c.entries = make(map[string]*CacheEntry)
+	c.entries = make(map[string]*Entry)
 }
 
 func (c *Cache) GetCurrentVersion() int64 {
@@ -208,7 +214,7 @@ type TokenCache struct {
 	keyPrefix string
 }
 
-func NewTokenCache(cfg CacheConfig) *TokenCache {
+func NewTokenCache(cfg Config) *TokenCache {
 	return &TokenCache{
 		cache:     NewCache(cfg),
 		keyPrefix: "token:",
@@ -246,7 +252,7 @@ type TTLCache struct {
 
 func NewTTLCache(ttl time.Duration) *TTLCache {
 	return &TTLCache{
-		cache:     NewCache(CacheConfig{DefaultTTL: ttl}),
+		cache:     NewCache(Config{DefaultTTL: ttl}),
 		keyPrefix: "ttl:",
 	}
 }

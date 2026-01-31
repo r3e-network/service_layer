@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -15,6 +16,11 @@ import (
 func TestPlatformContractsNeoExpressSmoke(t *testing.T) {
 	SkipIfNoNeoExpress(t)
 	SkipIfNoCompiledContracts(t)
+	dataFile := strings.TrimSpace(os.Getenv("NEOEXPRESS_FILE"))
+	deployAccount := strings.TrimSpace(os.Getenv("NEOEXPRESS_DEPLOY_ACCOUNT"))
+	if dataFile == "" || deployAccount == "" {
+		t.Skip("neo-express smoke test requires NEOEXPRESS_FILE and NEOEXPRESS_DEPLOY_ACCOUNT to be set and funded")
+	}
 
 	if testing.Short() {
 		t.Skip("skipping neo-express platform contract test in short mode")
@@ -44,7 +50,7 @@ func TestPlatformContractsNeoExpressSmoke(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = nx.Stop() })
 
-	account := "genesis"
+	account := deployAccount
 
 	genesisScriptHash, scriptHashErr := nx.GetWalletScriptHash(account)
 	if scriptHashErr != nil {

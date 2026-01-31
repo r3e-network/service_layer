@@ -102,7 +102,9 @@ func (m *Manager) audit(ctx context.Context, userID, name, serviceID string, suc
 	if err != nil {
 		logEntry.ErrorMessage = err.Error()
 	}
-	_ = m.repo.CreateAuditLog(ctx, logEntry)
+	if auditErr := m.repo.CreateAuditLog(ctx, logEntry); auditErr != nil {
+		log.Printf("secrets audit log failed: %v", auditErr)
+	}
 }
 
 func (m *Manager) encryptSecretValue(value string) ([]byte, error) {
@@ -111,8 +113,8 @@ func (m *Manager) encryptSecretValue(value string) ([]byte, error) {
 		return nil, err
 	}
 	ciphertext := m.aead.Seal(nil, nonce, []byte(value), nil)
-	out := append(nonce, ciphertext...)
-	return out, nil
+	nonce = append(nonce, ciphertext...)
+	return nonce, nil
 }
 
 func (m *Manager) decryptSecretValue(raw []byte) (string, error) {

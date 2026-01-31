@@ -9,14 +9,14 @@ import (
 	"golang.org/x/time/rate"
 )
 
-type RateLimitConfig struct {
+type Config struct {
 	RequestsPerSecond float64
 	Burst             int
 	Window            time.Duration
 }
 
-func DefaultConfig() RateLimitConfig {
-	return RateLimitConfig{
+func DefaultConfig() Config {
+	return Config{
 		RequestsPerSecond: 100,
 		Burst:             200,
 		Window:            time.Second,
@@ -27,10 +27,10 @@ type RateLimiter struct {
 	limiter   *rate.Limiter
 	perMinute *rate.Limiter
 	mu        sync.RWMutex
-	config    RateLimitConfig
+	config    Config
 }
 
-func New(cfg RateLimitConfig) *RateLimiter {
+func New(cfg Config) *RateLimiter {
 	if cfg.RequestsPerSecond <= 0 {
 		cfg.RequestsPerSecond = 100
 	}
@@ -81,7 +81,7 @@ type RateLimitedClient struct {
 	limiter *RateLimiter
 }
 
-func NewRateLimitedClient(client *http.Client, cfg RateLimitConfig) *RateLimitedClient {
+func NewRateLimitedClient(client *http.Client, cfg Config) *RateLimitedClient {
 	return &RateLimitedClient{
 		client:  client,
 		limiter: New(cfg),

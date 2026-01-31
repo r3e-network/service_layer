@@ -573,7 +573,7 @@ func TestPtr(t *testing.T) {
 	val := 42
 	result := Ptr(val)
 	if result == nil {
-		t.Error("Ptr() returned nil")
+		t.Fatal("Ptr() returned nil")
 	}
 	if *result != val {
 		t.Errorf("Ptr() = %d, want %d", *result, val)
@@ -591,7 +591,7 @@ func TestPtrZero(t *testing.T) {
 	t.Run("non-zero value returns pointer", func(t *testing.T) {
 		result := PtrZero(42)
 		if result == nil {
-			t.Error("PtrZero(42) should not return nil")
+			t.Fatal("PtrZero(42) should not return nil")
 		}
 		if *result != 42 {
 			t.Errorf("PtrZero(42) = %d, want 42", *result)

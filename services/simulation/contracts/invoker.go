@@ -100,7 +100,9 @@ func (inv *Invoker) UpdatePriceFeed(ctx context.Context, symbol string, roundID 
 
 	// Generate attestation hash (32 bytes)
 	attestationHash := make([]byte, 32)
-	rand.Read(attestationHash)
+	if _, readErr := rand.Read(attestationHash); readErr != nil {
+		return "", fmt.Errorf("attestation hash: %w", readErr)
+	}
 
 	sourceSetID := int64(1) // Default source set
 
@@ -132,13 +134,21 @@ func (inv *Invoker) RecordRandomness(ctx context.Context, requestID string) (str
 
 	// Generate random bytes (32 bytes)
 	randomness := make([]byte, 32)
-	rand.Read(randomness)
+	if _, readErr := rand.Read(randomness); readErr != nil {
+		return "", fmt.Errorf("randomness: %w", readErr)
+	}
 
 	// Generate attestation hash (32 bytes)
 	attestationHash := make([]byte, 32)
-	rand.Read(attestationHash)
+	if _, readErr := rand.Read(attestationHash); readErr != nil {
+		return "", fmt.Errorf("attestation hash: %w", readErr)
+	}
 
-	timestamp := uint64(time.Now().Unix())
+	ts := time.Now().Unix()
+	if ts < 0 {
+		ts = 0
+	}
+	timestamp := uint64(ts) // #nosec G115 -- ts is clamped to non-negative
 
 	// Call Record(requestId, randomness, attestationHash, timestamp)
 	txHash, _, err := inv.actor.SendCall(
@@ -207,14 +217,19 @@ func (inv *Invoker) GetPriceFeedLatest(ctx context.Context, symbol string) (map[
 // GenerateRequestID generates a unique request ID for randomness.
 func GenerateRequestID() string {
 	b := make([]byte, 16)
-	rand.Read(b)
+	if _, err := rand.Read(b); err != nil {
+		panic(fmt.Errorf("generate request id: %w", err))
+	}
 	return hex.EncodeToString(b)
 }
 
 // GeneratePrice generates a simulated price with some variance.
 func GeneratePrice(basePrice int64, variancePercent int) int64 {
 	variance := basePrice * int64(variancePercent) / 100
-	n, _ := rand.Int(rand.Reader, big.NewInt(variance*2))
+	n, err := rand.Int(rand.Reader, big.NewInt(variance*2))
+	if err != nil {
+		return basePrice
+	}
 	return basePrice - variance + n.Int64()
 }
 

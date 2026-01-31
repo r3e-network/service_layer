@@ -105,8 +105,12 @@ func (s *Service) PrepareForBatchUpdate(ctx context.Context) (*BatchUpdateParams
 		params.Symbols[i] = p.Symbol
 		params.RoundIDs[i] = p.RoundID.Int64()
 		params.Prices[i] = p.Price.Int64()
-		params.Timestamps[i] = uint64(p.Timestamp.Unix())
-		params.SourceSetIDs[i] = 1 // Chainlink source
+		ts := p.Timestamp.Unix()
+		if ts < 0 {
+			ts = 0
+		}
+		params.Timestamps[i] = uint64(ts) // #nosec G115 -- ts is clamped to non-negative
+		params.SourceSetIDs[i] = 1        // Chainlink source
 
 		// Individual attestation hash
 		h := sha256.Sum256([]byte(fmt.Sprintf("%s:%d:%d",

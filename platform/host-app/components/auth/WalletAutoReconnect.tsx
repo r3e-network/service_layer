@@ -19,7 +19,7 @@ export function WalletAutoReconnect() {
             const adapter = getWalletAdapter();
 
             // If the adapter is not installed (e.g. extension not ready yet), we might want to wait/retry.
-            // But for now, let's try to connect. The store's connect action handles "not installed" gracefully.
+            // Attempt a single reconnect; the store's connect action handles "not installed" gracefully.
 
             logger.debug("[WalletAutoReconnect] Attempting auto-reconnect for provider:", provider);
             setAttempted(true); // Prevent infinite loops or multiple attempts

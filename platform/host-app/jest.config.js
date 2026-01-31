@@ -4,10 +4,12 @@ module.exports = {
   roots: ["<rootDir>"],
   testMatch: ["**/__tests__/**/*.test.ts?(x)"],
   moduleFileExtensions: ["ts", "tsx", "js", "jsx"],
+  moduleDirectories: ["node_modules", "<rootDir>/../../node_modules"],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/$1",
     "^@neo/shared$": "<rootDir>/../shared",
     "^@neo/shared/(.*)$": "<rootDir>/../shared/$1",
+    "^@noble/hashes/(.*)$": "<rootDir>/node_modules/@noble/hashes/$1",
     "^react$": "<rootDir>/../../node_modules/.pnpm/react@18.3.1/node_modules/react",
     "^react/jsx-runtime$": "<rootDir>/../../node_modules/.pnpm/react@18.3.1/node_modules/react/jsx-runtime",
     "^react/jsx-dev-runtime$": "<rootDir>/../../node_modules/.pnpm/react@18.3.1/node_modules/react/jsx-dev-runtime",
@@ -89,13 +91,16 @@ module.exports = {
   },
   setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
   transform: {
-    "^.+\\.(ts|tsx)$": [
+    "^.+\\.(ts|tsx|js)$": [
       "ts-jest",
       {
         tsconfig: {
           jsx: "react",
+          allowJs: true,
+          module: "commonjs",
         },
       },
     ],
   },
+  transformIgnorePatterns: ["/node_modules/(?!(@noble/hashes|\\.pnpm/@noble\\+hashes))"],
 };

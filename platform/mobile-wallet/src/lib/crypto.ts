@@ -1,29 +1,28 @@
 /**
  * Cryptographic Utilities
- * Secure encryption/decryption using AES-GCM with PBKDF2 key derivation
+ * Secure encryption/decryption using AES-256-CBC with PBKDF2 key derivation
+ * and HMAC-SHA256 authentication (encrypt-then-MAC).
  *
  * @module crypto
- * @security This module uses a simplified XOR-based encryption as a placeholder.
- * For production deployment, replace with react-native-aes-crypto or
- * expo-crypto's native AES implementation when available.
  *
  * @example
  * ```typescript
- * import { encrypt, decrypt, validatePassword } from '@/lib/crypto';
+ * import { encrypt, decrypt, validatePassword } from "@/lib/crypto";
  *
- * const encrypted = await encrypt('sensitive data', 'StrongP@ss1');
- * const decrypted = await decrypt(encrypted, 'StrongP@ss1');
+ * const encrypted = await encrypt("sensitive data", "StrongP@ss1");
+ * const decrypted = await decrypt(encrypted, "StrongP@ss1");
  * ```
  */
 
-import * as Crypto from "expo-crypto";
-import { Buffer } from "buffer";
+import Aes from "react-native-aes-crypto";
 
 // Constants
 const PBKDF2_ITERATIONS = 100000;
 const SALT_LENGTH = 16;
-const IV_LENGTH = 12;
-const KEY_LENGTH = 32; // 256 bits
+const IV_LENGTH = 16;
+const DERIVED_KEY_BITS = 512;
+const AES_ALGORITHM = "aes-256-cbc" as const;
+const PBKDF2_ALGORITHM = "sha256" as const;
 
 /**
  * Minimum password requirements for wallet encryption
@@ -36,110 +35,57 @@ export const PASSWORD_REQUIREMENTS = {
   requireSpecial: false, // Optional but recommended
 } as const;
 
-/**
- * Derive encryption key from password using PBKDF2
- */
-async function deriveKey(password: string, salt: Uint8Array): Promise<Uint8Array> {
-  // Use SHA-256 based key derivation
-  const encoder = new TextEncoder();
-  const passwordBytes = encoder.encode(password);
+type DerivedKeys = {
+  encKey: string;
+  macKey: string;
+};
 
-  // Iterative hashing to simulate PBKDF2
-  let key: Uint8Array = new Uint8Array([...passwordBytes, ...salt]);
-  for (let i = 0; i < PBKDF2_ITERATIONS; i += 1000) {
-    const hash = await Crypto.digestStringAsync(
-      Crypto.CryptoDigestAlgorithm.SHA256,
-      Buffer.from(key).toString("hex"),
-      { encoding: Crypto.CryptoEncoding.HEX }
-    );
-    key = new Uint8Array(hexToBytes(hash));
+async function deriveKeys(password: string, salt: string): Promise<DerivedKeys> {
+  const derived = await Aes.pbkdf2(password, salt, PBKDF2_ITERATIONS, DERIVED_KEY_BITS, PBKDF2_ALGORITHM);
+
+  if (derived.length >= 128) {
+    return {
+      encKey: derived.slice(0, 64),
+      macKey: derived.slice(64, 128),
+    };
   }
 
-  return key.slice(0, KEY_LENGTH);
-}
-
-/**
- * Generate cryptographically secure random bytes
- */
-async function getRandomBytes(length: number): Promise<Uint8Array> {
-  const randomHex = await Crypto.getRandomBytesAsync(length);
-  return new Uint8Array(randomHex);
-}
-
-/**
- * XOR-based encryption (simplified AES substitute for React Native)
- *
- * @warning SECURITY: This is a placeholder implementation.
- * For production, use react-native-aes-crypto or similar native AES library.
- * XOR encryption alone is NOT cryptographically secure.
- */
-function xorEncrypt(data: Uint8Array, key: Uint8Array): Uint8Array {
-  const result = new Uint8Array(data.length);
-  for (let i = 0; i < data.length; i++) {
-    result[i] = data[i] ^ key[i % key.length];
-  }
-  return result;
+  const macKey = await Aes.pbkdf2(password, `${salt}:mac`, PBKDF2_ITERATIONS, 256, PBKDF2_ALGORITHM);
+  return { encKey: derived, macKey };
 }
 
 /**
  * Encrypt data with password
- * Format: salt(16) + iv(12) + ciphertext + tag(16)
+ * Format: salt:iv:ciphertext:hmac
  */
 export async function encrypt(plaintext: string, password: string): Promise<string> {
-  const salt = await getRandomBytes(SALT_LENGTH);
-  const iv = await getRandomBytes(IV_LENGTH);
-  const key = await deriveKey(password, salt);
+  const salt = await Aes.randomKey(SALT_LENGTH);
+  const iv = await Aes.randomKey(IV_LENGTH);
+  const { encKey, macKey } = await deriveKeys(password, salt);
 
-  const encoder = new TextEncoder();
-  const data = encoder.encode(plaintext);
+  const ciphertext = await Aes.encrypt(plaintext, encKey, iv, AES_ALGORITHM);
+  const mac = await Aes.hmac256(`${salt}:${iv}:${ciphertext}`, macKey);
 
-  // Encrypt with derived key
-  const ciphertext = xorEncrypt(data, new Uint8Array([...key, ...iv]));
-
-  // Generate authentication tag
-  const tagInput = Buffer.from([...salt, ...iv, ...ciphertext]).toString("hex");
-  const tag = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, tagInput, {
-    encoding: Crypto.CryptoEncoding.HEX,
-  });
-
-  // Combine: salt + iv + ciphertext + tag
-  const combined = new Uint8Array([...salt, ...iv, ...ciphertext, ...hexToBytes(tag.slice(0, 32))]);
-
-  return Buffer.from(combined).toString("base64");
+  return `${salt}:${iv}:${ciphertext}:${mac}`;
 }
 
 /**
  * Decrypt data with password
  */
-export async function decrypt(ciphertext: string, password: string): Promise<string | null> {
+export async function decrypt(payload: string, password: string): Promise<string | null> {
   try {
-    const combined = Buffer.from(ciphertext, "base64");
-    if (combined.length < SALT_LENGTH + IV_LENGTH + 16) {
+    const parts = payload.split(":");
+    if (parts.length !== 4) return null;
+
+    const [salt, iv, ciphertext, mac] = parts;
+    const { encKey, macKey } = await deriveKeys(password, salt);
+    const expectedMac = await Aes.hmac256(`${salt}:${iv}:${ciphertext}`, macKey);
+
+    if (!constantTimeEqual(mac, expectedMac)) {
       return null;
     }
 
-    const salt = new Uint8Array(combined.slice(0, SALT_LENGTH));
-    const iv = new Uint8Array(combined.slice(SALT_LENGTH, SALT_LENGTH + IV_LENGTH));
-    const encrypted = new Uint8Array(combined.slice(SALT_LENGTH + IV_LENGTH, -16));
-    const storedTag = combined.slice(-16);
-
-    // Verify tag
-    const tagInput = Buffer.from([...salt, ...iv, ...encrypted]).toString("hex");
-    const computedTag = await Crypto.digestStringAsync(
-      Crypto.CryptoDigestAlgorithm.SHA256,
-      tagInput,
-      { encoding: Crypto.CryptoEncoding.HEX }
-    );
-
-    const expectedTag = hexToBytes(computedTag.slice(0, 32));
-    if (!constantTimeEqual(storedTag, Buffer.from(expectedTag))) {
-      return null; // Authentication failed
-    }
-
-    const key = await deriveKey(password, salt);
-    const decrypted = xorEncrypt(encrypted, new Uint8Array([...key, ...iv]));
-
-    return new TextDecoder().decode(decrypted);
+    return await Aes.decrypt(ciphertext, encKey, iv, AES_ALGORITHM);
   } catch {
     return null;
   }
@@ -148,24 +94,13 @@ export async function decrypt(ciphertext: string, password: string): Promise<str
 /**
  * Constant-time comparison to prevent timing attacks
  */
-function constantTimeEqual(a: Buffer, b: Buffer): boolean {
+function constantTimeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let result = 0;
   for (let i = 0; i < a.length; i++) {
-    result |= a[i] ^ b[i];
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
   }
   return result === 0;
-}
-
-/**
- * Convert hex string to bytes
- */
-function hexToBytes(hex: string): Uint8Array {
-  const bytes = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < hex.length; i += 2) {
-    bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
-  }
-  return bytes;
 }
 
 // Pre-compiled regex patterns for password validation

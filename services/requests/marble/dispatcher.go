@@ -75,14 +75,14 @@ func (s *Service) handleServiceRequested(ctx context.Context, event *chain.Contr
 	if !isAppActive(app.Status) {
 		logger.WithError(nil).Warn("miniapp disabled")
 		serviceReq := s.createServiceRequest(ctx, app, parsed, serviceType)
-		s.updateServiceRequest(ctx, serviceReq, nil, "failed", nil, "miniapp is not active")
+		s.updateServiceRequest(ctx, serviceReq, "failed", nil, "miniapp is not active")
 		return nil
 	}
 
 	if regErr := s.validateAppRegistry(ctx, app); regErr != nil {
 		logger.WithError(regErr).Warn("app registry validation failed")
 		serviceReq := s.createServiceRequest(ctx, app, parsed, serviceType)
-		s.updateServiceRequest(ctx, serviceReq, nil, "failed", nil, regErr.Error())
+		s.updateServiceRequest(ctx, serviceReq, "failed", nil, regErr.Error())
 		return nil
 	}
 
@@ -92,14 +92,14 @@ func (s *Service) handleServiceRequested(ctx context.Context, event *chain.Contr
 	if err != nil {
 		logger.WithError(err).Warn("invalid manifest")
 		serviceReq := s.createServiceRequest(ctx, app, parsed, serviceType)
-		s.updateServiceRequest(ctx, serviceReq, nil, "failed", nil, "invalid miniapp manifest")
+		s.updateServiceRequest(ctx, serviceReq, "failed", nil, "invalid miniapp manifest")
 		return nil
 	}
 
 	if !permissionEnabled(manifestInfo.Permissions, serviceTypePermission(serviceType)) {
 		logger.WithError(nil).Warn("permission denied")
 		serviceReq := s.createServiceRequest(ctx, app, parsed, serviceType)
-		s.updateServiceRequest(ctx, serviceReq, nil, "failed", nil, "service permission not granted")
+		s.updateServiceRequest(ctx, serviceReq, "failed", nil, "service permission not granted")
 		return nil
 	}
 
@@ -112,7 +112,7 @@ func (s *Service) handleServiceRequested(ctx context.Context, event *chain.Contr
 				"request_callback_method":    parsed.CallbackMethod,
 			}).Warn("callback target mismatch; skipping fulfillment")
 			serviceReq := s.createServiceRequest(ctx, app, parsed, serviceType)
-			s.updateServiceRequest(ctx, serviceReq, nil, "failed", nil, "callback target mismatch")
+			s.updateServiceRequest(ctx, serviceReq, "failed", nil, "callback target mismatch")
 			return nil
 		}
 	}
@@ -325,7 +325,7 @@ func (s *Service) executeCompute(ctx context.Context, userID, appID string, payl
 
 	// If script_name is provided, load script from app manifest
 	if scriptName := strings.TrimSpace(req.ScriptName); scriptName != "" {
-		script, entryPoint, err := s.loadTeeScript(ctx, appID, scriptName)
+		script, entryPoint, err := s.loadTeeScript(appID, scriptName)
 		if err != nil {
 			return serviceResult{}, fmt.Errorf("failed to load TEE script: %w", err)
 		}
@@ -458,7 +458,7 @@ func (s *Service) fulfillRequest(ctx context.Context, req *chain.ServiceRequeste
 		if updateErr := s.updateChainTx(ctx, chainTx); updateErr != nil {
 			s.Logger().WithError(updateErr).Warn("failed to update chain tx")
 		}
-		s.updateServiceRequest(ctx, serviceReq, nil, "failed", result.AuditJSON, txErr.Error())
+		s.updateServiceRequest(ctx, serviceReq, "failed", result.AuditJSON, txErr.Error())
 		return txErr
 	}
 
@@ -483,7 +483,7 @@ func (s *Service) fulfillRequest(ctx context.Context, req *chain.ServiceRequeste
 	if serviceReq != nil {
 		serviceReq.Status = status
 		serviceReq.ChainTxID = &chainTx.ID
-		s.updateServiceRequest(ctx, serviceReq, nil, status, result.AuditJSON, "")
+		s.updateServiceRequest(ctx, serviceReq, status, result.AuditJSON, "")
 	}
 
 	return nil
@@ -496,12 +496,9 @@ func (s *Service) updateChainTx(ctx context.Context, chainTx *neorequestsupabase
 	return s.repo.UpdateChainTx(ctx, chainTx)
 }
 
-func (s *Service) updateServiceRequest(ctx context.Context, req *neorequestsupabase.ServiceRequest, chainTxID *int64, status string, result json.RawMessage, errMsg string) {
+func (s *Service) updateServiceRequest(ctx context.Context, req *neorequestsupabase.ServiceRequest, status string, result json.RawMessage, errMsg string) {
 	if s.repo == nil || req == nil {
 		return
-	}
-	if chainTxID != nil {
-		req.ChainTxID = chainTxID
 	}
 	if status != "" {
 		req.Status = status
@@ -1037,7 +1034,7 @@ func (s *Service) handleNotificationEvent(ctx context.Context, event *chain.Cont
 				logger.WithContext(ctx).Warn("contract_address missing; notification rejected")
 				return nil
 			}
-		case app == nil:
+		default:
 			return nil
 		}
 	}
@@ -1131,7 +1128,7 @@ func (s *Service) handleMetricEvent(ctx context.Context, event *chain.ContractEv
 				logger.WithContext(ctx).Warn("contract_address missing; metric rejected")
 				return nil
 			}
-		case app == nil:
+		default:
 			return nil
 		}
 		s.trackMiniAppTx(ctx, parsed.AppID, "", event)
@@ -1227,7 +1224,7 @@ type teeScriptInfo struct {
 }
 
 // loadTeeScript loads a TEE script from the app manifest by script name.
-func (s *Service) loadTeeScript(ctx context.Context, appID, scriptName string) (scriptContent, entryPoint string, err error) {
+func (s *Service) loadTeeScript(appID, scriptName string) (scriptContent, entryPoint string, err error) {
 	if s.scriptsURL == "" {
 		return "", "", fmt.Errorf("scripts base URL not configured")
 	}

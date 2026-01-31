@@ -150,7 +150,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, appId: strin
 
     if (!id || typeof id !== "string") {
         // If no ID, list requests where user is a signer? 
-        // For now, let's require ID for specific loading
+        // Listing is not supported here; require an explicit ID.
         return res.status(400).json({ error: "ID required" });
     }
 

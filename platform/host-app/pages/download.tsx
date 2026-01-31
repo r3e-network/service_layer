@@ -112,7 +112,7 @@ function WalletCard({ wallet, t }: { wallet: WalletInfo; t: (key: string) => str
               alt={wallet.name}
               className="h-full w-full object-contain"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = "/images/wallet-placeholder.svg";
+                (e.target as HTMLImageElement).src = "/logo-icon.png";
               }}
             />
           </div>

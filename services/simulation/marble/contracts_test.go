@@ -614,8 +614,8 @@ func TestGeneratePrice(t *testing.T) {
 }
 
 func TestGenerateRandomBytes(t *testing.T) {
-	bytes1 := generateRandomBytes(32)
-	bytes2 := generateRandomBytes(32)
+	bytes1 := generateRandomBytes()
+	bytes2 := generateRandomBytes()
 
 	assert.Len(t, bytes1, 32)
 	assert.Len(t, bytes2, 32)

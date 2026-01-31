@@ -135,13 +135,13 @@ func TestReplayProtection_Concurrent(t *testing.T) {
 	// Run concurrent validations
 	done := make(chan bool, 100)
 	for i := 0; i < 100; i++ {
-		go func(id int) {
+		go func() {
 			requestID := "concurrent-req"
 			result := rp.ValidateAndMark(requestID)
 			// Only the first one should succeed
 			_ = result
 			done <- true
-		}(i)
+		}()
 	}
 
 	// Wait for all goroutines

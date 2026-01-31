@@ -3,14 +3,29 @@
  * Tests for encryption, decryption, and password validation
  */
 
-import { validatePassword, PASSWORD_REQUIREMENTS } from "../src/lib/crypto";
+import { decrypt, encrypt, validatePassword, PASSWORD_REQUIREMENTS } from "../src/lib/crypto";
 
-// Mock expo-crypto
-jest.mock("expo-crypto", () => ({
-  digestStringAsync: jest.fn().mockResolvedValue("a".repeat(64)),
-  getRandomBytesAsync: jest.fn().mockResolvedValue(new Uint8Array(16)),
-  CryptoDigestAlgorithm: { SHA256: "SHA-256" },
-  CryptoEncoding: { HEX: "hex" },
+jest.mock("react-native-aes-crypto", () => ({
+  randomKey: jest.fn((length: number) => Promise.resolve("s".repeat(length))),
+  pbkdf2: jest.fn((password: string, salt: string, _cost: number, length: number) => {
+    const hexLength = Math.ceil(length / 4);
+    const seed = Buffer.from(`${password}:${salt}`).toString("hex");
+    const expanded = seed.padEnd(hexLength, "0");
+    return Promise.resolve(expanded.slice(0, hexLength));
+  }),
+  encrypt: jest.fn((text: string, key: string, iv: string) => {
+    return Promise.resolve(Buffer.from(`${text}|${key}|${iv}`).toString("base64"));
+  }),
+  decrypt: jest.fn((ciphertext: string, key: string, iv: string) => {
+    const decoded = Buffer.from(ciphertext, "base64").toString("utf8");
+    const [text, k, v] = decoded.split("|");
+    if (k !== key || v !== iv) throw new Error("bad key");
+    return Promise.resolve(text);
+  }),
+  hmac256: jest.fn((data: string, key: string) => {
+    const hex = Buffer.from(`${data}|${key}`).toString("hex");
+    return Promise.resolve(hex.padEnd(64, "0").slice(0, 64));
+  }),
 }));
 
 describe("crypto", () => {
@@ -67,6 +82,27 @@ describe("crypto", () => {
 
     it("should require number", () => {
       expect(PASSWORD_REQUIREMENTS.requireNumber).toBe(true);
+    });
+  });
+
+  describe("encrypt/decrypt", () => {
+    it("encrypt/decrypt roundtrip", async () => {
+      const cipher = await encrypt("secret", "StrongP@ss1");
+      const plain = await decrypt(cipher, "StrongP@ss1");
+      expect(plain).toBe("secret");
+    });
+
+    it("rejects tampered ciphertext", async () => {
+      const cipher = await encrypt("secret", "StrongP@ss1");
+      const tampered = cipher.slice(0, -2) + "AA";
+      const plain = await decrypt(tampered, "StrongP@ss1");
+      expect(plain).toBeNull();
+    });
+
+    it("rejects wrong password", async () => {
+      const cipher = await encrypt("secret", "StrongP@ss1");
+      const plain = await decrypt(cipher, "WrongP@ss1");
+      expect(plain).toBeNull();
     });
   });
 });

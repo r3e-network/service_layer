@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+var ErrNotFound = errors.New("key not found")
+
 type PersistenceBackend interface {
 	Save(ctx context.Context, key string, data []byte) error
 	Load(ctx context.Context, key string) ([]byte, error)
@@ -62,7 +64,7 @@ func (m *MemoryBackend) Load(ctx context.Context, key string) ([]byte, error) {
 	defer m.mu.RUnlock()
 	data, ok := m.data[key]
 	if !ok {
-		return nil, errors.New("key not found")
+		return nil, ErrNotFound
 	}
 	return data, nil
 }
@@ -102,15 +104,15 @@ type PersistentState struct {
 	onChange  []func(key string, oldValue, newValue []byte)
 }
 
-type StateConfig struct {
+type Config struct {
 	Backend       PersistenceBackend
 	KeyPrefix     string
 	MaxSize       int
 	OnChangeHooks []func(key string, oldValue, newValue []byte)
 }
 
-func DefaultConfig() StateConfig {
-	return StateConfig{
+func DefaultConfig() Config {
+	return Config{
 		Backend:       NewMemoryBackend(5 * time.Minute),
 		KeyPrefix:     "state:",
 		MaxSize:       1024 * 1024,
@@ -118,7 +120,7 @@ func DefaultConfig() StateConfig {
 	}
 }
 
-func NewPersistentState(cfg StateConfig) (*PersistentState, error) {
+func NewPersistentState(cfg Config) (*PersistentState, error) {
 	if cfg.Backend == nil {
 		return nil, errors.New("backend is required")
 	}
@@ -181,11 +183,14 @@ func (s *PersistentState) SaveIfAbsent(ctx context.Context, key string, data []b
 	fullKey := s.keyPrefix + key
 
 	s.mu.RLock()
-	exists, _ := s.backend.Load(ctx, fullKey)
+	exists, err := s.backend.Load(ctx, fullKey)
 	s.mu.RUnlock()
 
-	if exists != nil {
+	if err == nil && exists != nil {
 		return false, nil
+	}
+	if err != nil && !errors.Is(err, ErrNotFound) {
+		return false, err
 	}
 
 	return true, s.Save(ctx, key, data)
@@ -227,12 +232,12 @@ func (s *PersistentState) Close(ctx context.Context) error {
 	return s.backend.Close(ctx)
 }
 
-type StateSnapshot struct {
+type Snapshot struct {
 	Timestamp time.Time
 	Data      map[string][]byte
 }
 
-func (s *PersistentState) Snapshot(ctx context.Context) (*StateSnapshot, error) {
+func (s *PersistentState) Snapshot(ctx context.Context) (*Snapshot, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -241,7 +246,7 @@ func (s *PersistentState) Snapshot(ctx context.Context) (*StateSnapshot, error) 
 		return nil, err
 	}
 
-	snapshot := &StateSnapshot{
+	snapshot := &Snapshot{
 		Timestamp: time.Now(),
 		Data:      make(map[string][]byte),
 	}

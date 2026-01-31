@@ -125,8 +125,10 @@ func TestStatsCollector_Build_ReleasesLock(t *testing.T) {
 
 	// Should be able to acquire write lock now
 	done := make(chan bool)
+	locked := false
 	go func() {
 		mu.Lock()
+		locked = true
 		mu.Unlock()
 		done <- true
 	}()
@@ -134,6 +136,9 @@ func TestStatsCollector_Build_ReleasesLock(t *testing.T) {
 	select {
 	case <-done:
 		// Good, lock was released
+		if !locked {
+			t.Error("Lock goroutine did not acquire the lock")
+		}
 	case <-time.After(100 * time.Millisecond):
 		t.Error("Lock was not released after Build()")
 	}

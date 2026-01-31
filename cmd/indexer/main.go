@@ -6,8 +6,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/R3E-Network/neo-miniapps-platform/services/indexer"
 	"github.com/sirupsen/logrus"
+
+	"github.com/R3E-Network/neo-miniapps-platform/services/indexer"
 )
 
 func main() {

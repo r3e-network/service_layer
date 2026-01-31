@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type FallbackConfig struct {
+type Config struct {
 	MaxAttempts       int
 	BaseDelay         time.Duration
 	MaxDelay          time.Duration
@@ -15,8 +15,8 @@ type FallbackConfig struct {
 	UseCircuitBreaker bool
 }
 
-func DefaultConfig() FallbackConfig {
-	return FallbackConfig{
+func DefaultConfig() Config {
+	return Config{
 		MaxAttempts: 3,
 		BaseDelay:   100 * time.Millisecond,
 		MaxDelay:    5 * time.Second,
@@ -25,10 +25,10 @@ func DefaultConfig() FallbackConfig {
 	}
 }
 
-type FallbackFunc func(ctx context.Context) (interface{}, error)
+type Func func(ctx context.Context) (interface{}, error)
 
-type FallbackHandler struct {
-	config FallbackConfig
+type Handler struct {
+	config Config
 	cache  map[string]*cacheEntry
 	mu     sync.RWMutex
 }
@@ -38,14 +38,14 @@ type cacheEntry struct {
 	expiration time.Time
 }
 
-type FallbackResult struct {
+type Result struct {
 	Value    interface{}
 	Err      error
 	Source   string
 	Attempts int
 }
 
-func NewHandler(cfg FallbackConfig) *FallbackHandler {
+func NewHandler(cfg Config) *Handler {
 	if cfg.MaxAttempts <= 0 {
 		cfg.MaxAttempts = 3
 	}
@@ -62,20 +62,20 @@ func NewHandler(cfg FallbackConfig) *FallbackHandler {
 		cfg.Jitter = 0.1
 	}
 
-	return &FallbackHandler{
+	return &Handler{
 		config: cfg,
 		cache:  make(map[string]*cacheEntry),
 	}
 }
 
-func (h *FallbackHandler) Execute(ctx context.Context, primary FallbackFunc, fallbacks ...FallbackFunc) *FallbackResult {
+func (h *Handler) Execute(ctx context.Context, primary Func, fallbacks ...Func) *Result {
 	var lastErr error
 	attempts := 0
 
 	for attempt := 0; attempt < len(fallbacks)+1; attempt++ {
 		attempts++
 
-		var fn FallbackFunc
+		var fn Func
 		var source string
 
 		if attempt == 0 {
@@ -88,7 +88,7 @@ func (h *FallbackHandler) Execute(ctx context.Context, primary FallbackFunc, fal
 
 		value, err := fn(ctx)
 		if err == nil {
-			return &FallbackResult{
+			return &Result{
 				Value:    value,
 				Source:   source,
 				Attempts: attempts,
@@ -101,16 +101,16 @@ func (h *FallbackHandler) Execute(ctx context.Context, primary FallbackFunc, fal
 			delay := h.calculateDelay(attempt)
 			select {
 			case <-ctx.Done():
-				return &FallbackResult{Err: ctx.Err(), Source: source, Attempts: attempts}
+				return &Result{Err: ctx.Err(), Source: source, Attempts: attempts}
 			case <-time.After(delay):
 			}
 		}
 	}
 
-	return &FallbackResult{Err: lastErr, Source: "exhausted", Attempts: attempts}
+	return &Result{Err: lastErr, Source: "exhausted", Attempts: attempts}
 }
 
-func (h *FallbackHandler) calculateDelay(attempt int) time.Duration {
+func (h *Handler) calculateDelay(attempt int) time.Duration {
 	delay := float64(h.config.BaseDelay) * pow(h.config.Multiplier, float64(attempt))
 	if delay > float64(h.config.MaxDelay) {
 		delay = float64(h.config.MaxDelay)
@@ -140,7 +140,7 @@ func pow(base, exp float64) float64 {
 	return result
 }
 
-func (h *FallbackHandler) SetCache(key string, value interface{}, ttl time.Duration) {
+func (h *Handler) SetCache(key string, value interface{}, ttl time.Duration) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
@@ -150,7 +150,7 @@ func (h *FallbackHandler) SetCache(key string, value interface{}, ttl time.Durat
 	}
 }
 
-func (h *FallbackHandler) GetCache(key string) (interface{}, bool) {
+func (h *Handler) GetCache(key string) (interface{}, bool) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
@@ -166,7 +166,7 @@ func (h *FallbackHandler) GetCache(key string) (interface{}, bool) {
 	return entry.value, true
 }
 
-func (h *FallbackHandler) Cleanup() {
+func (h *Handler) Cleanup() {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 

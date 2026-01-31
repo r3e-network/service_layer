@@ -136,15 +136,15 @@ export async function invokeNeoContract(params: {
   transaction.systemFee = u.BigInteger.fromNumber(systemFee);
 
   const verificationScript = wallet.getVerificationScriptFromPublicKey(account.publicKey);
-  const placeholder = "00".repeat(64);
+  const dummySignature = "00".repeat(64);
   const sb = new sc.ScriptBuilder();
-  sb.emitPush(placeholder);
-  const placeholderWitness = new tx.Witness({
+  sb.emitPush(dummySignature);
+  const dummyWitness = new tx.Witness({
     invocationScript: sb.str,
     verificationScript,
   });
 
-  transaction.witnesses = [placeholderWitness];
+  transaction.witnesses = [dummyWitness];
   const networkFeeResult = await client.calculateNetworkFee(transaction);
   const networkFeeRaw =
     typeof networkFeeResult === "string"

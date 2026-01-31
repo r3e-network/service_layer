@@ -119,9 +119,11 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error: failed to send request: %v\n", err)
 		os.Exit(1)
 	}
-	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
+	if closeErr := resp.Body.Close(); closeErr != nil {
+		fmt.Fprintf(os.Stderr, "Warning: failed to close response body: %v\n", closeErr)
+	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: failed to read response: %v\n", err)
 		os.Exit(1)

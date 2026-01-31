@@ -323,8 +323,7 @@ func TestCrossServiceIntegration(t *testing.T) {
 
 	// Simulate automation service calling GasBank
 	userID := "automation-user"
-	account, err := repo.GetOrCreateGasBankAccount(ctx, userID)
-	if err != nil {
+	if _, err := repo.GetOrCreateGasBankAccount(ctx, userID); err != nil {
 		t.Fatalf("Failed to create account for automation: %v", err)
 	}
 
@@ -337,8 +336,7 @@ func TestCrossServiceIntegration(t *testing.T) {
 		CreatedAt: time.Now(),
 	}
 
-	_, err = repo.ConfirmDepositAtomic(ctx, userID, tx.Amount, tx)
-	if err != nil {
+	if _, err := repo.ConfirmDepositAtomic(ctx, userID, tx.Amount, tx); err != nil {
 		t.Fatalf("Failed to fund automation account: %v", err)
 	}
 
@@ -363,9 +361,9 @@ func TestCrossServiceIntegration(t *testing.T) {
 				CreatedAt:   time.Now(),
 			}
 
-			_, err := repo.DeductFeeAtomic(ctx, userID, feePerService, feeTx)
-			if err != nil {
-				errors <- fmt.Errorf("service %s failed to deduct fee: %v", serviceName, err)
+			_, deductErr := repo.DeductFeeAtomic(ctx, userID, feePerService, feeTx)
+			if deductErr != nil {
+				errors <- fmt.Errorf("service %s failed to deduct fee: %v", serviceName, deductErr)
 			}
 		}(svc)
 	}
@@ -378,7 +376,7 @@ func TestCrossServiceIntegration(t *testing.T) {
 	}
 
 	// Verify final balance
-	account, err = repo.GetGasBankAccount(ctx, userID)
+	account, err := repo.GetGasBankAccount(ctx, userID)
 	if err != nil {
 		t.Fatalf("Failed to get final account state: %v", err)
 	}
@@ -506,8 +504,7 @@ func TestConcurrentAccess(t *testing.T) {
 	userID := "concurrent-user"
 
 	// Create initial account
-	account, err := repo.GetOrCreateGasBankAccount(ctx, userID)
-	if err != nil {
+	if _, err := repo.GetOrCreateGasBankAccount(ctx, userID); err != nil {
 		t.Fatalf("Failed to create account: %v", err)
 	}
 
@@ -520,8 +517,7 @@ func TestConcurrentAccess(t *testing.T) {
 		Status:    "completed",
 		CreatedAt: time.Now(),
 	}
-	_, err = repo.ConfirmDepositAtomic(ctx, userID, initialAmount, tx)
-	if err != nil {
+	if _, err := repo.ConfirmDepositAtomic(ctx, userID, initialAmount, tx); err != nil {
 		t.Fatalf("Failed to fund account: %v", err)
 	}
 
@@ -547,9 +543,9 @@ func TestConcurrentAccess(t *testing.T) {
 				CreatedAt:   time.Now(),
 			}
 
-			_, err := repo.DeductFeeAtomic(ctx, userID, feePerCall, feeTx)
-			if err != nil {
-				errors <- fmt.Errorf("goroutine %d failed: %v", id, err)
+			_, deductErr := repo.DeductFeeAtomic(ctx, userID, feePerCall, feeTx)
+			if deductErr != nil {
+				errors <- fmt.Errorf("goroutine %d failed: %v", id, deductErr)
 			}
 		}(i)
 	}
@@ -564,7 +560,7 @@ func TestConcurrentAccess(t *testing.T) {
 	}
 
 	// Verify final balance
-	account, err = repo.GetGasBankAccount(ctx, userID)
+	account, err := repo.GetGasBankAccount(ctx, userID)
 	if err != nil {
 		t.Fatalf("Failed to get final account: %v", err)
 	}

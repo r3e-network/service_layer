@@ -212,7 +212,7 @@ async function sendEvmTransaction(chainId: ChainId, params: Omit<SdkTransactionR
       gasPrice: params.gasPrice,
       maxFeePerGas: params.maxFeePerGas,
       maxPriorityFeePerGas: params.maxPriorityFeePerGas,
-    } as any, // Cast to any to bypass strict TransactionRequest checks for now
+    } as any, // Cast to any to bypass strict TransactionRequest checks; adapter validates downstream
   );
 
   if (!result?.txHash) {

@@ -72,7 +72,7 @@ func TestMemoryBackend_Close(t *testing.T) {
 func TestPersistentState_SaveLoad(t *testing.T) {
 	ctx := context.Background()
 	backend := NewMemoryBackend(0)
-	cfg := StateConfig{
+	cfg := Config{
 		Backend:   backend,
 		KeyPrefix: "test:",
 		MaxSize:   1024,
@@ -101,7 +101,7 @@ func TestPersistentState_SaveLoad(t *testing.T) {
 func TestPersistentState_CompareAndSwap(t *testing.T) {
 	ctx := context.Background()
 	backend := NewMemoryBackend(0)
-	cfg := StateConfig{
+	cfg := Config{
 		Backend:   backend,
 		KeyPrefix: "test:",
 	}
@@ -126,7 +126,7 @@ func TestPersistentState_CompareAndSwap(t *testing.T) {
 func TestPersistentState_SaveIfAbsent(t *testing.T) {
 	ctx := context.Background()
 	backend := NewMemoryBackend(0)
-	cfg := StateConfig{
+	cfg := Config{
 		Backend:   backend,
 		KeyPrefix: "test:",
 	}
@@ -158,7 +158,7 @@ func TestPersistentState_SaveIfAbsent(t *testing.T) {
 func TestPersistentState_Snapshot(t *testing.T) {
 	ctx := context.Background()
 	backend := NewMemoryBackend(0)
-	cfg := StateConfig{
+	cfg := Config{
 		Backend:   backend,
 		KeyPrefix: "test:",
 	}
@@ -184,7 +184,7 @@ func TestPersistentState_Snapshot(t *testing.T) {
 func TestPersistentState_OnChange(t *testing.T) {
 	ctx := context.Background()
 	backend := NewMemoryBackend(0)
-	cfg := StateConfig{
+	cfg := Config{
 		Backend:   backend,
 		KeyPrefix: "test:",
 	}
@@ -208,7 +208,7 @@ func TestPersistentState_OnChange(t *testing.T) {
 func TestPersistentState_Close(t *testing.T) {
 	ctx := context.Background()
 	backend := NewMemoryBackend(0)
-	cfg := StateConfig{
+	cfg := Config{
 		Backend:   backend,
 		KeyPrefix: "test:",
 	}
@@ -223,7 +223,7 @@ func TestPersistentState_Close(t *testing.T) {
 func TestPersistentState_MaxSize(t *testing.T) {
 	ctx := context.Background()
 	backend := NewMemoryBackend(0)
-	cfg := StateConfig{
+	cfg := Config{
 		Backend:   backend,
 		KeyPrefix: "test:",
 		MaxSize:   10,

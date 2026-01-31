@@ -204,8 +204,8 @@ func (r *Repository) DeductFeeAtomic(ctx context.Context, userID string, amount 
 // ConfirmDepositAtomic atomically credits a deposit to user's balance and records the transaction.
 // Uses optimistic locking with version check to ensure atomicity.
 func (r *Repository) ConfirmDepositAtomic(ctx context.Context, userID string, depositAmount int64, tx *GasBankTransaction) (newBalance int64, err error) {
-	if err := ValidateUserID(userID); err != nil {
-		return 0, err
+	if validateErr := ValidateUserID(userID); validateErr != nil {
+		return 0, validateErr
 	}
 	if depositAmount <= 0 {
 		return 0, fmt.Errorf("%w: deposit amount must be positive", ErrInvalidInput)

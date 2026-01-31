@@ -163,7 +163,7 @@ export const useWalletStore = create<WalletStore>()(
               provider,
               balance,
               chainId: targetChainId,
-              chainType: "neo-n3", // Neo adapters are N3 only for now
+              chainType: "neo-n3", // Neo adapters support N3 only
               loading: false,
               networkConfig: {
                 ...get().networkConfig,

@@ -70,9 +70,12 @@ func (r *Redactor) RedactMap(m map[string]interface{}) map[string]interface{} {
 
 	result := make(map[string]interface{})
 	for k, v := range m {
-		if r.isSecretField(k) {
+		switch {
+		case r.isSecretField(k):
 			result[k] = r.config.RedactionText
-		} else if v != nil {
+		case v == nil:
+			result[k] = v
+		default:
 			switch val := v.(type) {
 			case string:
 				result[k] = r.RedactString(val)
@@ -83,8 +86,6 @@ func (r *Redactor) RedactMap(m map[string]interface{}) map[string]interface{} {
 			default:
 				result[k] = v
 			}
-		} else {
-			result[k] = v
 		}
 	}
 
@@ -136,17 +137,6 @@ type SafeLogger struct{}
 func (l *SafeLogger) Log(ctx interface{}, level, message string, fields map[string]interface{}) {
 	if fields != nil {
 		r := NewRedactor(DefaultConfig())
-		fields = r.RedactMap(fields)
-	}
-
-	switch level {
-	case "debug":
-		// Log with redacted fields
-	case "info":
-		// Log with redacted fields
-	case "warn":
-		// Log with redacted fields
-	case "error":
-		// Log with redacted fields
+		_ = r.RedactMap(fields)
 	}
 }
