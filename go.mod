@@ -7,7 +7,7 @@ toolchain go1.24.11
 require (
 	github.com/dop251/goja v0.0.0-20251201205617-2bb4c724c0f9
 	github.com/edgelesssys/ego v1.8.1
-	github.com/golang-jwt/jwt/v5 v5.3.0
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/lib/pq v1.10.9
