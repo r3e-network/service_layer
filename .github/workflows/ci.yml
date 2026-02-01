@@ -25,7 +25,7 @@ jobs:
 
       - name: Cache Go modules
         id: go-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cache/go-build
@@ -210,7 +210,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Turbo Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .turbo
           key: turbo-host-${{ runner.os }}-${{ github.sha }}
