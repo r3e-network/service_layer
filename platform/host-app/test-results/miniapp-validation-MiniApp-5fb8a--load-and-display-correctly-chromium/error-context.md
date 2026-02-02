@@ -1,0 +1,256 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - img "Coin Flip banner" [ref=e8]
+          - generic [ref=e10]:
+            - generic [ref=e11]:
+              - img "miniapp-coinflip" [ref=e14]
+              - heading "Coin Flip" [level=1] [ref=e16]
+            - generic [ref=e17]:
+              - generic [ref=e18]: Online
+              - generic "Neo N3" [ref=e22]:
+                - img "Neo N3" [ref=e23]
+              - button "Add to Wishlist" [disabled] [ref=e24]:
+                - img [ref=e25]
+            - paragraph [ref=e27]: Fair on-chain coin flip game with provable randomness
+            - generic [ref=e29]: gaming
+            - generic [ref=e30]:
+              - generic [ref=e31]:
+                - img [ref=e32]
+                - generic [ref=e34]: 2,950
+                - generic [ref=e35]: txs
+              - generic [ref=e36]:
+                - img [ref=e37]
+                - generic [ref=e40]: 4,510
+                - generic [ref=e41]: Views
+        - main [ref=e42]:
+          - generic [ref=e44]:
+            - generic [ref=e45]:
+              - generic [ref=e46]: Coin Flip Activity
+              - generic [ref=e48]: 0 Events
+            - generic [ref=e50]: Waiting for activity...
+          - generic [ref=e51]:
+            - generic [ref=e52]:
+              - button "Overview" [ref=e53] [cursor=pointer]
+              - button "⭐ Reviews" [ref=e54] [cursor=pointer]
+              - button "💬 Forum" [ref=e55] [cursor=pointer]
+              - button "News (0)" [ref=e56] [cursor=pointer]
+            - generic [ref=e58]:
+              - generic [ref=e59]:
+                - button "Permissions 1 of 8 enabled 1 High" [ref=e60] [cursor=pointer]:
+                  - generic [ref=e61]:
+                    - img [ref=e63]
+                    - generic [ref=e65]:
+                      - heading "Permissions" [level=3] [ref=e66]
+                      - paragraph [ref=e67]: 1 of 8 enabled
+                  - generic [ref=e68]:
+                    - generic [ref=e69]: 1 High
+                    - img [ref=e70]
+                - generic [ref=e73]:
+                  - generic [ref=e74]:
+                    - heading "Enabled" [level=4] [ref=e75]
+                    - generic [ref=e78]:
+                      - img [ref=e79]
+                      - generic [ref=e82]: Payments
+                      - img [ref=e83]
+                  - generic [ref=e86]:
+                    - heading "Not Requested" [level=4] [ref=e87]
+                    - generic [ref=e88]:
+                      - generic [ref=e89]:
+                        - img [ref=e90]
+                        - generic [ref=e92]: Random Numbers
+                        - img [ref=e93]
+                      - generic [ref=e97]:
+                        - img [ref=e98]
+                        - generic [ref=e102]: Data Feeds
+                        - img [ref=e103]
+                      - generic [ref=e107]:
+                        - img [ref=e108]
+                        - generic [ref=e111]: Notifications
+                        - img [ref=e112]
+                      - generic [ref=e116]:
+                        - img [ref=e117]
+                        - generic [ref=e120]: Confidential Computing
+                        - img [ref=e121]
+                      - generic [ref=e125]:
+                        - img [ref=e126]
+                        - generic [ref=e130]: Storage
+                        - img [ref=e131]
+                      - generic [ref=e135]:
+                        - img [ref=e136]
+                        - generic [ref=e139]: Analytics
+                        - img [ref=e140]
+                      - generic [ref=e144]:
+                        - img [ref=e145]
+                        - generic [ref=e147]: Automation
+                        - img [ref=e148]
+                  - generic [ref=e153]:
+                    - img [ref=e154]
+                    - paragraph [ref=e156]: All permissions are enforced by the platform. MiniApps cannot access features without explicit permission.
+              - generic [ref=e157]:
+                - heading "App Info" [level=3] [ref=e158]
+                - paragraph [ref=e159]:
+                  - text: "App ID:"
+                  - code [ref=e160]: miniapp-coinflip
+                - paragraph [ref=e161]:
+                  - text: "Entry URL (neo-n3-mainnet):"
+                  - code [ref=e162]: /miniapp-assets/coin-flip/index.html
+          - generic [ref=e163]:
+            - generic [ref=e164]:
+              - heading "Similar Apps" [level=3] [ref=e165]
+              - link "View All" [ref=e166] [cursor=pointer]:
+                - /url: /miniapps?category=gaming
+                - text: View All
+                - img [ref=e167]
+            - generic [ref=e169]:
+              - link "miniapp-burn-league Burn League Neo N3" [ref=e170] [cursor=pointer]:
+                - /url: /miniapps/miniapp-burn-league
+                - img "miniapp-burn-league" [ref=e172]
+                - generic [ref=e173]:
+                  - heading "Burn League" [level=4] [ref=e174]
+                  - generic "Neo N3" [ref=e177]:
+                    - img "Neo N3" [ref=e178]
+              - link "miniapp-dailycheckin Daily Check-in Neo N3" [ref=e179] [cursor=pointer]:
+                - /url: /miniapps/miniapp-dailycheckin
+                - img "miniapp-dailycheckin" [ref=e181]
+                - generic [ref=e182]:
+                  - heading "Daily Check-in" [level=4] [ref=e183]
+                  - generic "Neo N3" [ref=e186]:
+                    - img "Neo N3" [ref=e187]
+              - link "miniapp-millionpiecemap Million Piece Map Neo N3" [ref=e188] [cursor=pointer]:
+                - /url: /miniapps/miniapp-millionpiecemap
+                - img "miniapp-millionpiecemap" [ref=e190]
+                - generic [ref=e191]:
+                  - heading "Million Piece Map" [level=4] [ref=e192]
+                  - generic "Neo N3" [ref=e195]:
+                    - img "Neo N3" [ref=e196]
+              - link "miniapp-neo-gacha Neo Gacha Neo N3" [ref=e197] [cursor=pointer]:
+                - /url: /miniapps/miniapp-neo-gacha
+                - img "miniapp-neo-gacha" [ref=e199]
+                - generic [ref=e200]:
+                  - heading "Neo Gacha" [level=4] [ref=e201]
+                  - generic "Neo N3" [ref=e204]:
+                    - img "Neo N3" [ref=e205]
+    - main [ref=e206]:
+      - generic [ref=e207]:
+        - generic [ref=e208]:
+          - generic [ref=e209]:
+            - button [ref=e210] [cursor=pointer]:
+              - img [ref=e211]
+            - generic [ref=e213]:
+              - img [ref=e214]
+              - generic [ref=e217]: Coin Flip
+          - generic [ref=e218]:
+            - generic [ref=e221]: No Wallet
+            - generic [ref=e222]:
+              - img [ref=e223]
+              - generic [ref=e225]: 23ms
+            - generic [ref=e226]:
+              - button "Copy share link" [ref=e227] [cursor=pointer]:
+                - img [ref=e228]
+              - button "Exit (ESC)" [ref=e234] [cursor=pointer]:
+                - img [ref=e235]
+        - generic [ref=e250]:
+          - generic [ref=e259]:
+            - generic [ref=e261]: Launching
+            - generic [ref=e262]: Coin Flip
+          - iframe [ref=e263]:
+            
+        - button "Toggle chat" [ref=e264] [cursor=pointer]:
+          - img [ref=e265]
+    - complementary [ref=e267]:
+      - generic [ref=e268]:
+        - heading "Technical Info" [level=2] [ref=e270]
+        - generic [ref=e271]:
+          - generic [ref=e272]:
+            - generic [ref=e273]: 🌐
+            - generic [ref=e274]: Chain
+          - generic [ref=e275]:
+            - generic [ref=e277]: Neo N3
+            - generic [ref=e278]:
+              - generic [ref=e279]: Chain ID
+              - generic "neo-n3-mainnet" [ref=e282]
+            - generic [ref=e283]:
+              - generic [ref=e284]: RPC
+              - generic "mainnet1.neo.coz.io:443" [ref=e286]
+            - generic [ref=e287]:
+              - generic [ref=e288]: Master Account
+              - generic [ref=e289]:
+                - link "NhWxco...hSMK" [ref=e290] [cursor=pointer]:
+                  - /url: https://explorer.onegate.space/address/NhWxcoEc9qtmnjsTLF1fVF6myJ5MZZhSMK
+                - button "Copy" [ref=e291] [cursor=pointer]:
+                  - img [ref=e292]
+        - generic [ref=e294]:
+          - generic [ref=e295]:
+            - generic [ref=e296]: 👛
+            - generic [ref=e297]: Connected Wallet
+          - generic [ref=e299]:
+            - generic [ref=e300]: 👛
+            - generic [ref=e301]: No wallet connected
+        - generic [ref=e302]:
+          - generic [ref=e303]:
+            - generic [ref=e304]: 📜
+            - generic [ref=e305]: MiniApp Contract
+          - generic [ref=e306]:
+            - generic [ref=e307]:
+              - generic [ref=e308]: App ID
+              - generic "miniapp-coinflip" [ref=e310]
+            - generic [ref=e311]:
+              - generic [ref=e312]: Contract Address
+              - generic [ref=e313]:
+                - link "NagBNU...ATKf" [ref=e314] [cursor=pointer]:
+                  - /url: https://explorer.onegate.space/contract/0x0a39f71c274dc944cd20cb49e4a38ce10f3ceea1
+                - button "Copy" [ref=e315] [cursor=pointer]:
+                  - img [ref=e316]
+            - generic [ref=e318]:
+              - generic [ref=e319]: Script Hash
+              - generic [ref=e320]:
+                - generic "0x0a39f71c274dc944cd20cb49e4a38ce10f3ceea1" [ref=e321]: 0x0a39...eea1
+                - button "Copy" [ref=e322] [cursor=pointer]:
+                  - img [ref=e323]
+        - generic [ref=e325]:
+          - generic [ref=e326]:
+            - generic [ref=e327]: 🏛️
+            - generic [ref=e328]: Platform Contracts
+          - generic [ref=e329]:
+            - generic [ref=e330]:
+              - generic [ref=e331]: Service Gateway
+              - generic [ref=e332]:
+                - link "NfaEbV...Ztai" [ref=e333] [cursor=pointer]:
+                  - /url: https://explorer.onegate.space/address/NfaEbVnKnUQSd4MhNXz9pY4Uire7EiZtai
+                - button "Copy" [ref=e334] [cursor=pointer]:
+                  - img [ref=e335]
+            - generic [ref=e337]:
+              - generic [ref=e338]: Governance
+              - generic [ref=e339]:
+                - link "NMhpz6...3VJn" [ref=e340] [cursor=pointer]:
+                  - /url: https://explorer.onegate.space/address/NMhpz6kT77SKaYwNHrkTv8QXpoPuSd3VJn
+                - button "Copy" [ref=e341] [cursor=pointer]:
+                  - img [ref=e342]
+        - generic [ref=e344]:
+          - generic [ref=e345]:
+            - generic [ref=e346]: 🔗
+            - generic [ref=e347]: Required Services
+          - generic [ref=e349]:
+            - generic [ref=e350]: Payment Hub
+            - generic [ref=e351]:
+              - link "NaqDPj...Msx2" [ref=e352] [cursor=pointer]:
+                - /url: https://explorer.onegate.space/address/NaqDPjXnYsm8W5V3xXuDUZe5W1HRLsMsx2
+              - button "Copy" [ref=e353] [cursor=pointer]:
+                - img [ref=e354]
+        - generic [ref=e356]:
+          - link "🔍 View Wallet on Explorer" [ref=e357] [cursor=pointer]:
+            - /url: https://explorer.onegate.space/address/
+            - generic [ref=e358]: 🔍
+            - generic [ref=e359]: View Wallet on Explorer
+          - link "📜 View Contract on Explorer" [ref=e360] [cursor=pointer]:
+            - /url: https://explorer.onegate.space/contract/0x0a39f71c274dc944cd20cb49e4a38ce10f3ceea1
+            - generic [ref=e361]: 📜
+            - generic [ref=e362]: View Contract on Explorer
+  - alert [ref=e363]
+```

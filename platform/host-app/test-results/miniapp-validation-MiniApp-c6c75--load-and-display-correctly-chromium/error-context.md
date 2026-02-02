@@ -1,0 +1,245 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - img "Time Capsule banner" [ref=e8]
+          - generic [ref=e10]:
+            - generic [ref=e11]:
+              - img "miniapp-time-capsule" [ref=e14]
+              - heading "Time Capsule" [level=1] [ref=e16]
+            - generic [ref=e17]:
+              - generic [ref=e18]: Online
+              - generic "Neo N3" [ref=e22]:
+                - img "Neo N3" [ref=e23]
+              - button "Add to Wishlist" [disabled] [ref=e24]:
+                - img [ref=e25]
+            - paragraph [ref=e27]: Seal message hashes until a future date with public fishing.
+            - generic [ref=e29]: nft
+            - generic [ref=e30]:
+              - generic [ref=e31]:
+                - img [ref=e32]
+                - generic [ref=e34]: "980"
+                - generic [ref=e35]: txs
+              - generic [ref=e36]:
+                - img [ref=e37]
+                - generic [ref=e40]: "989"
+                - generic [ref=e41]: Views
+        - main [ref=e42]:
+          - generic [ref=e44]:
+            - generic [ref=e45]:
+              - generic [ref=e46]: Time Capsule Activity
+              - generic [ref=e48]: 0 Events
+            - generic [ref=e50]: Waiting for activity...
+          - generic [ref=e51]:
+            - generic [ref=e52]:
+              - button "Overview" [ref=e53] [cursor=pointer]
+              - button "⭐ Reviews" [ref=e54] [cursor=pointer]
+              - button "💬 Forum" [ref=e55] [cursor=pointer]
+              - button "News (0)" [ref=e56] [cursor=pointer]
+            - generic [ref=e58]:
+              - generic [ref=e59]:
+                - button "Permissions 1 of 8 enabled 1 High" [ref=e60] [cursor=pointer]:
+                  - generic [ref=e61]:
+                    - img [ref=e63]
+                    - generic [ref=e65]:
+                      - heading "Permissions" [level=3] [ref=e66]
+                      - paragraph [ref=e67]: 1 of 8 enabled
+                  - generic [ref=e68]:
+                    - generic [ref=e69]: 1 High
+                    - img [ref=e70]
+                - generic [ref=e73]:
+                  - generic [ref=e74]:
+                    - heading "Enabled" [level=4] [ref=e75]
+                    - generic [ref=e78]:
+                      - img [ref=e79]
+                      - generic [ref=e82]: Payments
+                      - img [ref=e83]
+                  - generic [ref=e86]:
+                    - heading "Not Requested" [level=4] [ref=e87]
+                    - generic [ref=e88]:
+                      - generic [ref=e89]:
+                        - img [ref=e90]
+                        - generic [ref=e92]: Random Numbers
+                        - img [ref=e93]
+                      - generic [ref=e97]:
+                        - img [ref=e98]
+                        - generic [ref=e102]: Data Feeds
+                        - img [ref=e103]
+                      - generic [ref=e107]:
+                        - img [ref=e108]
+                        - generic [ref=e111]: Notifications
+                        - img [ref=e112]
+                      - generic [ref=e116]:
+                        - img [ref=e117]
+                        - generic [ref=e120]: Confidential Computing
+                        - img [ref=e121]
+                      - generic [ref=e125]:
+                        - img [ref=e126]
+                        - generic [ref=e130]: Storage
+                        - img [ref=e131]
+                      - generic [ref=e135]:
+                        - img [ref=e136]
+                        - generic [ref=e139]: Analytics
+                        - img [ref=e140]
+                      - generic [ref=e144]:
+                        - img [ref=e145]
+                        - generic [ref=e147]: Automation
+                        - img [ref=e148]
+                  - generic [ref=e153]:
+                    - img [ref=e154]
+                    - paragraph [ref=e156]: All permissions are enforced by the platform. MiniApps cannot access features without explicit permission.
+              - generic [ref=e157]:
+                - heading "App Info" [level=3] [ref=e158]
+                - paragraph [ref=e159]:
+                  - text: "App ID:"
+                  - code [ref=e160]: miniapp-time-capsule
+                - paragraph [ref=e161]:
+                  - text: "Entry URL (neo-n3-mainnet):"
+                  - code [ref=e162]: /miniapp-assets/time-capsule/index.html
+          - generic [ref=e163]:
+            - generic [ref=e164]:
+              - heading "Similar Apps" [level=3] [ref=e165]
+              - link "View All" [ref=e166] [cursor=pointer]:
+                - /url: /miniapps?category=nft
+                - text: View All
+                - img [ref=e167]
+            - generic [ref=e169]:
+              - link "miniapp-garden-of-neo Garden of Neo Neo N3" [ref=e170] [cursor=pointer]:
+                - /url: /miniapps/miniapp-garden-of-neo
+                - img "miniapp-garden-of-neo" [ref=e172]
+                - generic [ref=e173]:
+                  - heading "Garden of Neo" [level=4] [ref=e174]
+                  - generic "Neo N3" [ref=e177]:
+                    - img "Neo N3" [ref=e178]
+              - link "miniapp-heritage-trust Heritage Trust Neo N3" [ref=e179] [cursor=pointer]:
+                - /url: /miniapps/miniapp-heritage-trust
+                - img "miniapp-heritage-trust" [ref=e181]
+                - generic [ref=e182]:
+                  - heading "Heritage Trust" [level=4] [ref=e183]
+                  - generic "Neo N3" [ref=e186]:
+                    - img "Neo N3" [ref=e187]
+              - link "miniapp-onchaintarot On-Chain Tarot Neo N3" [ref=e188] [cursor=pointer]:
+                - /url: /miniapps/miniapp-onchaintarot
+                - img "miniapp-onchaintarot" [ref=e190]
+                - generic [ref=e191]:
+                  - heading "On-Chain Tarot" [level=4] [ref=e192]
+                  - generic "Neo N3" [ref=e195]:
+                    - img "Neo N3" [ref=e196]
+    - main [ref=e197]:
+      - generic [ref=e198]:
+        - generic [ref=e199]:
+          - generic [ref=e200]:
+            - button [ref=e201] [cursor=pointer]:
+              - img [ref=e202]
+            - generic [ref=e204]:
+              - img [ref=e205]
+              - generic [ref=e208]: Time Capsule
+          - generic [ref=e209]:
+            - generic [ref=e212]: No Wallet
+            - generic [ref=e213]:
+              - img [ref=e214]
+              - generic [ref=e216]: 8ms
+            - generic [ref=e217]:
+              - button "Copy share link" [ref=e218] [cursor=pointer]:
+                - img [ref=e219]
+              - button "Exit (ESC)" [ref=e225] [cursor=pointer]:
+                - img [ref=e226]
+        - iframe [ref=e234]:
+          
+        - button "Toggle chat" [ref=e235] [cursor=pointer]:
+          - img [ref=e236]
+    - complementary [ref=e238]:
+      - generic [ref=e239]:
+        - heading "Technical Info" [level=2] [ref=e241]
+        - generic [ref=e242]:
+          - generic [ref=e243]:
+            - generic [ref=e244]: 🌐
+            - generic [ref=e245]: Chain
+          - generic [ref=e246]:
+            - generic [ref=e248]: Neo N3
+            - generic [ref=e249]:
+              - generic [ref=e250]: Chain ID
+              - generic "neo-n3-mainnet" [ref=e253]
+            - generic [ref=e254]:
+              - generic [ref=e255]: RPC
+              - generic "mainnet1.neo.coz.io:443" [ref=e257]
+            - generic [ref=e258]:
+              - generic [ref=e259]: Master Account
+              - generic [ref=e260]:
+                - link "NhWxco...hSMK" [ref=e261] [cursor=pointer]:
+                  - /url: https://explorer.onegate.space/address/NhWxcoEc9qtmnjsTLF1fVF6myJ5MZZhSMK
+                - button "Copy" [ref=e262] [cursor=pointer]:
+                  - img [ref=e263]
+        - generic [ref=e265]:
+          - generic [ref=e266]:
+            - generic [ref=e267]: 👛
+            - generic [ref=e268]: Connected Wallet
+          - generic [ref=e270]:
+            - generic [ref=e271]: 👛
+            - generic [ref=e272]: No wallet connected
+        - generic [ref=e273]:
+          - generic [ref=e274]:
+            - generic [ref=e275]: 📜
+            - generic [ref=e276]: MiniApp Contract
+          - generic [ref=e277]:
+            - generic [ref=e278]:
+              - generic [ref=e279]: App ID
+              - generic "miniapp-time-capsule" [ref=e281]
+            - generic [ref=e282]:
+              - generic [ref=e283]: Contract Address
+              - generic [ref=e284]:
+                - link "NYTrtq...HcU1" [ref=e285] [cursor=pointer]:
+                  - /url: https://explorer.onegate.space/contract/0xd853a4ac293ff96e7f70f774c2155d846f91a989
+                - button "Copy" [ref=e286] [cursor=pointer]:
+                  - img [ref=e287]
+            - generic [ref=e289]:
+              - generic [ref=e290]: Script Hash
+              - generic [ref=e291]:
+                - generic "0xd853a4ac293ff96e7f70f774c2155d846f91a989" [ref=e292]: 0xd853...a989
+                - button "Copy" [ref=e293] [cursor=pointer]:
+                  - img [ref=e294]
+        - generic [ref=e296]:
+          - generic [ref=e297]:
+            - generic [ref=e298]: 🏛️
+            - generic [ref=e299]: Platform Contracts
+          - generic [ref=e300]:
+            - generic [ref=e301]:
+              - generic [ref=e302]: Service Gateway
+              - generic [ref=e303]:
+                - link "NfaEbV...Ztai" [ref=e304] [cursor=pointer]:
+                  - /url: https://explorer.onegate.space/address/NfaEbVnKnUQSd4MhNXz9pY4Uire7EiZtai
+                - button "Copy" [ref=e305] [cursor=pointer]:
+                  - img [ref=e306]
+            - generic [ref=e308]:
+              - generic [ref=e309]: Governance
+              - generic [ref=e310]:
+                - link "NMhpz6...3VJn" [ref=e311] [cursor=pointer]:
+                  - /url: https://explorer.onegate.space/address/NMhpz6kT77SKaYwNHrkTv8QXpoPuSd3VJn
+                - button "Copy" [ref=e312] [cursor=pointer]:
+                  - img [ref=e313]
+        - generic [ref=e315]:
+          - generic [ref=e316]:
+            - generic [ref=e317]: 🔗
+            - generic [ref=e318]: Required Services
+          - generic [ref=e320]:
+            - generic [ref=e321]: Payment Hub
+            - generic [ref=e322]:
+              - link "NaqDPj...Msx2" [ref=e323] [cursor=pointer]:
+                - /url: https://explorer.onegate.space/address/NaqDPjXnYsm8W5V3xXuDUZe5W1HRLsMsx2
+              - button "Copy" [ref=e324] [cursor=pointer]:
+                - img [ref=e325]
+        - generic [ref=e327]:
+          - link "🔍 View Wallet on Explorer" [ref=e328] [cursor=pointer]:
+            - /url: https://explorer.onegate.space/address/
+            - generic [ref=e329]: 🔍
+            - generic [ref=e330]: View Wallet on Explorer
+          - link "📜 View Contract on Explorer" [ref=e331] [cursor=pointer]:
+            - /url: https://explorer.onegate.space/contract/0xd853a4ac293ff96e7f70f774c2155d846f91a989
+            - generic [ref=e332]: 📜
+            - generic [ref=e333]: View Contract on Explorer
+  - alert [ref=e334]
+```

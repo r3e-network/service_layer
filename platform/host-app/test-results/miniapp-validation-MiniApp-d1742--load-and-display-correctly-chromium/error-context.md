@@ -1,0 +1,232 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - img "NeoBurger banner" [ref=e8]
+          - generic [ref=e10]:
+            - generic [ref=e11]:
+              - img "miniapp-neoburger" [ref=e14]
+              - heading "NeoBurger" [level=1] [ref=e16]
+            - generic [ref=e17]:
+              - generic [ref=e18]: Online
+              - generic "Neo N3" [ref=e22]:
+                - img "Neo N3" [ref=e23]
+              - button "Add to Wishlist" [disabled] [ref=e24]:
+                - img [ref=e25]
+            - paragraph [ref=e27]: Stake NEO to earn GAS rewards with NeoBurger liquid staking
+            - generic [ref=e29]: defi
+            - generic [ref=e31]:
+              - img [ref=e32]
+              - generic [ref=e35]: "15"
+              - generic [ref=e36]: Views
+        - main [ref=e37]:
+          - generic [ref=e39]:
+            - generic [ref=e40]:
+              - generic [ref=e41]: NeoBurger Activity
+              - generic [ref=e43]: 0 Events
+            - generic [ref=e45]: Waiting for activity...
+          - generic [ref=e46]:
+            - generic [ref=e47]:
+              - button "Overview" [ref=e48] [cursor=pointer]
+              - button "⭐ Reviews" [ref=e49] [cursor=pointer]
+              - button "💬 Forum" [ref=e50] [cursor=pointer]
+              - button "News (0)" [ref=e51] [cursor=pointer]
+            - generic [ref=e53]:
+              - generic [ref=e54]:
+                - button "Permissions 0 of 8 enabled" [ref=e55] [cursor=pointer]:
+                  - generic [ref=e56]:
+                    - img [ref=e58]
+                    - generic [ref=e60]:
+                      - heading "Permissions" [level=3] [ref=e61]
+                      - paragraph [ref=e62]: 0 of 8 enabled
+                  - img [ref=e64]
+                - generic [ref=e67]:
+                  - generic [ref=e68]:
+                    - heading "Not Requested" [level=4] [ref=e69]
+                    - generic [ref=e70]:
+                      - generic [ref=e71]:
+                        - img [ref=e72]
+                        - generic [ref=e75]: Payments
+                        - img [ref=e76]
+                      - generic [ref=e80]:
+                        - img [ref=e81]
+                        - generic [ref=e83]: Random Numbers
+                        - img [ref=e84]
+                      - generic [ref=e88]:
+                        - img [ref=e89]
+                        - generic [ref=e93]: Data Feeds
+                        - img [ref=e94]
+                      - generic [ref=e98]:
+                        - img [ref=e99]
+                        - generic [ref=e102]: Notifications
+                        - img [ref=e103]
+                      - generic [ref=e107]:
+                        - img [ref=e108]
+                        - generic [ref=e111]: Confidential Computing
+                        - img [ref=e112]
+                      - generic [ref=e116]:
+                        - img [ref=e117]
+                        - generic [ref=e121]: Storage
+                        - img [ref=e122]
+                      - generic [ref=e126]:
+                        - img [ref=e127]
+                        - generic [ref=e130]: Analytics
+                        - img [ref=e131]
+                      - generic [ref=e135]:
+                        - img [ref=e136]
+                        - generic [ref=e138]: Automation
+                        - img [ref=e139]
+                  - generic [ref=e144]:
+                    - img [ref=e145]
+                    - paragraph [ref=e147]: All permissions are enforced by the platform. MiniApps cannot access features without explicit permission.
+              - generic [ref=e148]:
+                - heading "App Info" [level=3] [ref=e149]
+                - paragraph [ref=e150]:
+                  - text: "App ID:"
+                  - code [ref=e151]: miniapp-neoburger
+                - paragraph [ref=e152]:
+                  - text: "Entry URL (neo-n3-mainnet):"
+                  - code [ref=e153]: /miniapp-assets/neoburger/index.html
+          - generic [ref=e154]:
+            - generic [ref=e155]:
+              - heading "Similar Apps" [level=3] [ref=e156]
+              - link "View All" [ref=e157] [cursor=pointer]:
+                - /url: /miniapps?category=defi
+                - text: View All
+                - img [ref=e158]
+            - generic [ref=e160]:
+              - link "miniapp-compound-capsule Compound Capsule Neo N3" [ref=e161] [cursor=pointer]:
+                - /url: /miniapps/miniapp-compound-capsule
+                - img "miniapp-compound-capsule" [ref=e163]
+                - generic [ref=e164]:
+                  - heading "Compound Capsule" [level=4] [ref=e165]
+                  - generic "Neo N3" [ref=e168]:
+                    - img "Neo N3" [ref=e169]
+              - link "miniapp-flashloan Flash Loan Neo N3" [ref=e170] [cursor=pointer]:
+                - /url: /miniapps/miniapp-flashloan
+                - img "miniapp-flashloan" [ref=e172]
+                - generic [ref=e173]:
+                  - heading "Flash Loan" [level=4] [ref=e174]
+                  - generic "Neo N3" [ref=e177]:
+                    - img "Neo N3" [ref=e178]
+              - link "miniapp-milestone-escrow Milestone Escrow Neo N3" [ref=e179] [cursor=pointer]:
+                - /url: /miniapps/miniapp-milestone-escrow
+                - img "miniapp-milestone-escrow" [ref=e181]
+                - generic [ref=e182]:
+                  - heading "Milestone Escrow" [level=4] [ref=e183]
+                  - generic "Neo N3" [ref=e186]:
+                    - img "Neo N3" [ref=e187]
+              - link "miniapp-neo-swap Neo Swap Neo N3" [ref=e188] [cursor=pointer]:
+                - /url: /miniapps/miniapp-neo-swap
+                - img "miniapp-neo-swap" [ref=e190]
+                - generic [ref=e191]:
+                  - heading "Neo Swap" [level=4] [ref=e192]
+                  - generic "Neo N3" [ref=e195]:
+                    - img "Neo N3" [ref=e196]
+    - main [ref=e197]:
+      - generic [ref=e198]:
+        - generic [ref=e199]:
+          - generic [ref=e200]:
+            - button [ref=e201] [cursor=pointer]:
+              - img [ref=e202]
+            - generic [ref=e204]:
+              - img [ref=e205]
+              - generic [ref=e208]: NeoBurger
+          - generic [ref=e209]:
+            - generic [ref=e212]: No Wallet
+            - generic [ref=e213]:
+              - img [ref=e214]
+              - generic [ref=e216]: 18ms
+            - generic [ref=e217]:
+              - button "Copy share link" [ref=e218] [cursor=pointer]:
+                - img [ref=e219]
+              - button "Exit (ESC)" [ref=e225] [cursor=pointer]:
+                - img [ref=e226]
+        - iframe [ref=e234]:
+          
+        - button "Toggle chat" [ref=e235] [cursor=pointer]:
+          - img [ref=e236]
+    - complementary [ref=e238]:
+      - generic [ref=e239]:
+        - heading "Technical Info" [level=2] [ref=e241]
+        - generic [ref=e242]:
+          - generic [ref=e243]:
+            - generic [ref=e244]: 🌐
+            - generic [ref=e245]: Chain
+          - generic [ref=e246]:
+            - generic [ref=e248]: Neo N3
+            - generic [ref=e249]:
+              - generic [ref=e250]: Chain ID
+              - generic "neo-n3-mainnet" [ref=e253]
+            - generic [ref=e254]:
+              - generic [ref=e255]: RPC
+              - generic "mainnet1.neo.coz.io:443" [ref=e257]
+            - generic [ref=e258]:
+              - generic [ref=e259]: Master Account
+              - generic [ref=e260]:
+                - link "NhWxco...hSMK" [ref=e261] [cursor=pointer]:
+                  - /url: https://explorer.onegate.space/address/NhWxcoEc9qtmnjsTLF1fVF6myJ5MZZhSMK
+                - button "Copy" [ref=e262] [cursor=pointer]:
+                  - img [ref=e263]
+        - generic [ref=e265]:
+          - generic [ref=e266]:
+            - generic [ref=e267]: 👛
+            - generic [ref=e268]: Connected Wallet
+          - generic [ref=e270]:
+            - generic [ref=e271]: 👛
+            - generic [ref=e272]: No wallet connected
+        - generic [ref=e273]:
+          - generic [ref=e274]:
+            - generic [ref=e275]: 📜
+            - generic [ref=e276]: MiniApp Contract
+          - generic [ref=e277]:
+            - generic [ref=e278]:
+              - generic [ref=e279]: App ID
+              - generic "miniapp-neoburger" [ref=e281]
+            - generic [ref=e282]:
+              - generic [ref=e283]: Contract Address
+              - generic [ref=e284]:
+                - link "NPmdLG...4Aos" [ref=e285] [cursor=pointer]:
+                  - /url: https://explorer.onegate.space/contract/0x48c40d4666f93408be1bef038b6722404d9a4c2a
+                - button "Copy" [ref=e286] [cursor=pointer]:
+                  - img [ref=e287]
+            - generic [ref=e289]:
+              - generic [ref=e290]: Script Hash
+              - generic [ref=e291]:
+                - generic "0x48c40d4666f93408be1bef038b6722404d9a4c2a" [ref=e292]: 0x48c4...4c2a
+                - button "Copy" [ref=e293] [cursor=pointer]:
+                  - img [ref=e294]
+        - generic [ref=e296]:
+          - generic [ref=e297]:
+            - generic [ref=e298]: 🏛️
+            - generic [ref=e299]: Platform Contracts
+          - generic [ref=e300]:
+            - generic [ref=e301]:
+              - generic [ref=e302]: Service Gateway
+              - generic [ref=e303]:
+                - link "NfaEbV...Ztai" [ref=e304] [cursor=pointer]:
+                  - /url: https://explorer.onegate.space/address/NfaEbVnKnUQSd4MhNXz9pY4Uire7EiZtai
+                - button "Copy" [ref=e305] [cursor=pointer]:
+                  - img [ref=e306]
+            - generic [ref=e308]:
+              - generic [ref=e309]: Governance
+              - generic [ref=e310]:
+                - link "NMhpz6...3VJn" [ref=e311] [cursor=pointer]:
+                  - /url: https://explorer.onegate.space/address/NMhpz6kT77SKaYwNHrkTv8QXpoPuSd3VJn
+                - button "Copy" [ref=e312] [cursor=pointer]:
+                  - img [ref=e313]
+        - generic [ref=e315]:
+          - link "🔍 View Wallet on Explorer" [ref=e316] [cursor=pointer]:
+            - /url: https://explorer.onegate.space/address/
+            - generic [ref=e317]: 🔍
+            - generic [ref=e318]: View Wallet on Explorer
+          - link "📜 View Contract on Explorer" [ref=e319] [cursor=pointer]:
+            - /url: https://explorer.onegate.space/contract/0x48c40d4666f93408be1bef038b6722404d9a4c2a
+            - generic [ref=e320]: 📜
+            - generic [ref=e321]: View Contract on Explorer
+  - alert [ref=e322]
+```

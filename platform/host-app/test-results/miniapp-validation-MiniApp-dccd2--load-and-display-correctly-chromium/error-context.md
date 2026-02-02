@@ -1,0 +1,236 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - img "On-Chain Tarot banner" [ref=e8]
+          - generic [ref=e10]:
+            - generic [ref=e11]:
+              - img "miniapp-onchaintarot" [ref=e14]
+              - heading "On-Chain Tarot" [level=1] [ref=e16]
+            - generic [ref=e17]:
+              - generic [ref=e18]: Online
+              - generic "Neo N3" [ref=e22]:
+                - img "Neo N3" [ref=e23]
+              - button "Add to Wishlist" [disabled] [ref=e24]:
+                - img [ref=e25]
+            - paragraph [ref=e27]: On-Chain Tarot - Neo MiniApp
+            - generic [ref=e29]: nft
+        - main [ref=e31]:
+          - generic [ref=e33]:
+            - generic [ref=e34]:
+              - generic [ref=e35]: On-Chain Tarot Activity
+              - generic [ref=e37]: 0 Events
+            - generic [ref=e39]: Waiting for activity...
+          - generic [ref=e40]:
+            - generic [ref=e41]:
+              - button "Overview" [ref=e42] [cursor=pointer]
+              - button "⭐ Reviews" [ref=e43] [cursor=pointer]
+              - button "💬 Forum" [ref=e44] [cursor=pointer]
+              - button "News (0)" [ref=e45] [cursor=pointer]
+            - generic [ref=e47]:
+              - generic [ref=e48]:
+                - button "Permissions 1 of 8 enabled 1 High" [ref=e49] [cursor=pointer]:
+                  - generic [ref=e50]:
+                    - img [ref=e52]
+                    - generic [ref=e54]:
+                      - heading "Permissions" [level=3] [ref=e55]
+                      - paragraph [ref=e56]: 1 of 8 enabled
+                  - generic [ref=e57]:
+                    - generic [ref=e58]: 1 High
+                    - img [ref=e59]
+                - generic [ref=e62]:
+                  - generic [ref=e63]:
+                    - heading "Enabled" [level=4] [ref=e64]
+                    - generic [ref=e67]:
+                      - img [ref=e68]
+                      - generic [ref=e71]: Payments
+                      - img [ref=e72]
+                  - generic [ref=e75]:
+                    - heading "Not Requested" [level=4] [ref=e76]
+                    - generic [ref=e77]:
+                      - generic [ref=e78]:
+                        - img [ref=e79]
+                        - generic [ref=e81]: Random Numbers
+                        - img [ref=e82]
+                      - generic [ref=e86]:
+                        - img [ref=e87]
+                        - generic [ref=e91]: Data Feeds
+                        - img [ref=e92]
+                      - generic [ref=e96]:
+                        - img [ref=e97]
+                        - generic [ref=e100]: Notifications
+                        - img [ref=e101]
+                      - generic [ref=e105]:
+                        - img [ref=e106]
+                        - generic [ref=e109]: Confidential Computing
+                        - img [ref=e110]
+                      - generic [ref=e114]:
+                        - img [ref=e115]
+                        - generic [ref=e119]: Storage
+                        - img [ref=e120]
+                      - generic [ref=e124]:
+                        - img [ref=e125]
+                        - generic [ref=e128]: Analytics
+                        - img [ref=e129]
+                      - generic [ref=e133]:
+                        - img [ref=e134]
+                        - generic [ref=e136]: Automation
+                        - img [ref=e137]
+                  - generic [ref=e142]:
+                    - img [ref=e143]
+                    - paragraph [ref=e145]: All permissions are enforced by the platform. MiniApps cannot access features without explicit permission.
+              - generic [ref=e146]:
+                - heading "App Info" [level=3] [ref=e147]
+                - paragraph [ref=e148]:
+                  - text: "App ID:"
+                  - code [ref=e149]: miniapp-onchaintarot
+                - paragraph [ref=e150]:
+                  - text: "Entry URL (neo-n3-mainnet):"
+                  - code [ref=e151]: /miniapp-assets/on-chain-tarot/index.html
+          - generic [ref=e152]:
+            - generic [ref=e153]:
+              - heading "Similar Apps" [level=3] [ref=e154]
+              - link "View All" [ref=e155] [cursor=pointer]:
+                - /url: /miniapps?category=nft
+                - text: View All
+                - img [ref=e156]
+            - generic [ref=e158]:
+              - link "miniapp-garden-of-neo Garden of Neo Neo N3" [ref=e159] [cursor=pointer]:
+                - /url: /miniapps/miniapp-garden-of-neo
+                - img "miniapp-garden-of-neo" [ref=e161]
+                - generic [ref=e162]:
+                  - heading "Garden of Neo" [level=4] [ref=e163]
+                  - generic "Neo N3" [ref=e166]:
+                    - img "Neo N3" [ref=e167]
+              - link "miniapp-heritage-trust Heritage Trust Neo N3" [ref=e168] [cursor=pointer]:
+                - /url: /miniapps/miniapp-heritage-trust
+                - img "miniapp-heritage-trust" [ref=e170]
+                - generic [ref=e171]:
+                  - heading "Heritage Trust" [level=4] [ref=e172]
+                  - generic "Neo N3" [ref=e175]:
+                    - img "Neo N3" [ref=e176]
+              - link "miniapp-time-capsule Time Capsule Neo N3" [ref=e177] [cursor=pointer]:
+                - /url: /miniapps/miniapp-time-capsule
+                - img "miniapp-time-capsule" [ref=e179]
+                - generic [ref=e180]:
+                  - heading "Time Capsule" [level=4] [ref=e181]
+                  - generic "Neo N3" [ref=e184]:
+                    - img "Neo N3" [ref=e185]
+    - main [ref=e186]:
+      - generic [ref=e187]:
+        - generic [ref=e188]:
+          - generic [ref=e189]:
+            - button [ref=e190] [cursor=pointer]:
+              - img [ref=e191]
+            - generic [ref=e193]:
+              - img [ref=e194]
+              - generic [ref=e197]: On-Chain Tarot
+          - generic [ref=e198]:
+            - generic [ref=e201]: No Wallet
+            - generic [ref=e202]:
+              - img [ref=e203]
+              - generic [ref=e205]: 5ms
+            - generic [ref=e206]:
+              - button "Copy share link" [ref=e207] [cursor=pointer]:
+                - img [ref=e208]
+              - button "Exit (ESC)" [ref=e214] [cursor=pointer]:
+                - img [ref=e215]
+        - iframe [ref=e223]:
+          
+        - button "Toggle chat" [ref=e224] [cursor=pointer]:
+          - img [ref=e225]
+    - complementary [ref=e227]:
+      - generic [ref=e228]:
+        - heading "Technical Info" [level=2] [ref=e230]
+        - generic [ref=e231]:
+          - generic [ref=e232]:
+            - generic [ref=e233]: 🌐
+            - generic [ref=e234]: Chain
+          - generic [ref=e235]:
+            - generic [ref=e237]: Neo N3
+            - generic [ref=e238]:
+              - generic [ref=e239]: Chain ID
+              - generic "neo-n3-mainnet" [ref=e242]
+            - generic [ref=e243]:
+              - generic [ref=e244]: RPC
+              - generic "mainnet1.neo.coz.io:443" [ref=e246]
+            - generic [ref=e247]:
+              - generic [ref=e248]: Master Account
+              - generic [ref=e249]:
+                - link "NhWxco...hSMK" [ref=e250] [cursor=pointer]:
+                  - /url: https://explorer.onegate.space/address/NhWxcoEc9qtmnjsTLF1fVF6myJ5MZZhSMK
+                - button "Copy" [ref=e251] [cursor=pointer]:
+                  - img [ref=e252]
+        - generic [ref=e254]:
+          - generic [ref=e255]:
+            - generic [ref=e256]: 👛
+            - generic [ref=e257]: Connected Wallet
+          - generic [ref=e259]:
+            - generic [ref=e260]: 👛
+            - generic [ref=e261]: No wallet connected
+        - generic [ref=e262]:
+          - generic [ref=e263]:
+            - generic [ref=e264]: 📜
+            - generic [ref=e265]: MiniApp Contract
+          - generic [ref=e266]:
+            - generic [ref=e267]:
+              - generic [ref=e268]: App ID
+              - generic "miniapp-onchaintarot" [ref=e270]
+            - generic [ref=e271]:
+              - generic [ref=e272]: Contract Address
+              - generic [ref=e273]:
+                - link "NTpJsy...z8VT" [ref=e274] [cursor=pointer]:
+                  - /url: https://explorer.onegate.space/contract/0xfb5d6b25c974a301e34c570dd038de8c25f3ae56
+                - button "Copy" [ref=e275] [cursor=pointer]:
+                  - img [ref=e276]
+            - generic [ref=e278]:
+              - generic [ref=e279]: Script Hash
+              - generic [ref=e280]:
+                - generic "0xfb5d6b25c974a301e34c570dd038de8c25f3ae56" [ref=e281]: 0xfb5d...ae56
+                - button "Copy" [ref=e282] [cursor=pointer]:
+                  - img [ref=e283]
+        - generic [ref=e285]:
+          - generic [ref=e286]:
+            - generic [ref=e287]: 🏛️
+            - generic [ref=e288]: Platform Contracts
+          - generic [ref=e289]:
+            - generic [ref=e290]:
+              - generic [ref=e291]: Service Gateway
+              - generic [ref=e292]:
+                - link "NfaEbV...Ztai" [ref=e293] [cursor=pointer]:
+                  - /url: https://explorer.onegate.space/address/NfaEbVnKnUQSd4MhNXz9pY4Uire7EiZtai
+                - button "Copy" [ref=e294] [cursor=pointer]:
+                  - img [ref=e295]
+            - generic [ref=e297]:
+              - generic [ref=e298]: Governance
+              - generic [ref=e299]:
+                - link "NMhpz6...3VJn" [ref=e300] [cursor=pointer]:
+                  - /url: https://explorer.onegate.space/address/NMhpz6kT77SKaYwNHrkTv8QXpoPuSd3VJn
+                - button "Copy" [ref=e301] [cursor=pointer]:
+                  - img [ref=e302]
+        - generic [ref=e304]:
+          - generic [ref=e305]:
+            - generic [ref=e306]: 🔗
+            - generic [ref=e307]: Required Services
+          - generic [ref=e309]:
+            - generic [ref=e310]: Payment Hub
+            - generic [ref=e311]:
+              - link "NaqDPj...Msx2" [ref=e312] [cursor=pointer]:
+                - /url: https://explorer.onegate.space/address/NaqDPjXnYsm8W5V3xXuDUZe5W1HRLsMsx2
+              - button "Copy" [ref=e313] [cursor=pointer]:
+                - img [ref=e314]
+        - generic [ref=e316]:
+          - link "🔍 View Wallet on Explorer" [ref=e317] [cursor=pointer]:
+            - /url: https://explorer.onegate.space/address/
+            - generic [ref=e318]: 🔍
+            - generic [ref=e319]: View Wallet on Explorer
+          - link "📜 View Contract on Explorer" [ref=e320] [cursor=pointer]:
+            - /url: https://explorer.onegate.space/contract/0xfb5d6b25c974a301e34c570dd038de8c25f3ae56
+            - generic [ref=e321]: 📜
+            - generic [ref=e322]: View Contract on Explorer
+  - alert [ref=e323]
+```

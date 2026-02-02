@@ -1,0 +1,243 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - img "memorial-shrine banner" [ref=e8]
+          - generic [ref=e10]:
+            - generic [ref=e11]:
+              - img "miniapp-memorial-shrine" [ref=e14]
+              - heading "memorial-shrine" [level=1] [ref=e16]
+            - generic [ref=e17]:
+              - generic [ref=e18]: Online
+              - generic "Neo N3" [ref=e22]:
+                - img "Neo N3" [ref=e23]
+              - button "Add to Wishlist" [disabled] [ref=e24]:
+                - img [ref=e25]
+            - paragraph [ref=e27]: 区块链灵位 - 永恒存在，永恒记忆
+            - generic [ref=e29]: social
+        - main [ref=e30]:
+          - generic [ref=e32]:
+            - generic [ref=e33]:
+              - generic [ref=e34]: memorial-shrine Activity
+              - generic [ref=e36]: 0 Events
+            - generic [ref=e38]: Waiting for activity...
+          - generic [ref=e39]:
+            - generic [ref=e40]:
+              - button "Overview" [ref=e41] [cursor=pointer]
+              - button "⭐ Reviews" [ref=e42] [cursor=pointer]
+              - button "💬 Forum" [ref=e43] [cursor=pointer]
+              - button "News (0)" [ref=e44] [cursor=pointer]
+            - generic [ref=e46]:
+              - generic [ref=e47]:
+                - button "Permissions 1 of 8 enabled 1 High" [ref=e48] [cursor=pointer]:
+                  - generic [ref=e49]:
+                    - img [ref=e51]
+                    - generic [ref=e53]:
+                      - heading "Permissions" [level=3] [ref=e54]
+                      - paragraph [ref=e55]: 1 of 8 enabled
+                  - generic [ref=e56]:
+                    - generic [ref=e57]: 1 High
+                    - img [ref=e58]
+                - generic [ref=e61]:
+                  - generic [ref=e62]:
+                    - heading "Enabled" [level=4] [ref=e63]
+                    - generic [ref=e66]:
+                      - img [ref=e67]
+                      - generic [ref=e70]: Payments
+                      - img [ref=e71]
+                  - generic [ref=e74]:
+                    - heading "Not Requested" [level=4] [ref=e75]
+                    - generic [ref=e76]:
+                      - generic [ref=e77]:
+                        - img [ref=e78]
+                        - generic [ref=e80]: Random Numbers
+                        - img [ref=e81]
+                      - generic [ref=e85]:
+                        - img [ref=e86]
+                        - generic [ref=e90]: Data Feeds
+                        - img [ref=e91]
+                      - generic [ref=e95]:
+                        - img [ref=e96]
+                        - generic [ref=e99]: Notifications
+                        - img [ref=e100]
+                      - generic [ref=e104]:
+                        - img [ref=e105]
+                        - generic [ref=e108]: Confidential Computing
+                        - img [ref=e109]
+                      - generic [ref=e113]:
+                        - img [ref=e114]
+                        - generic [ref=e118]: Storage
+                        - img [ref=e119]
+                      - generic [ref=e123]:
+                        - img [ref=e124]
+                        - generic [ref=e127]: Analytics
+                        - img [ref=e128]
+                      - generic [ref=e132]:
+                        - img [ref=e133]
+                        - generic [ref=e135]: Automation
+                        - img [ref=e136]
+                  - generic [ref=e141]:
+                    - img [ref=e142]
+                    - paragraph [ref=e144]: All permissions are enforced by the platform. MiniApps cannot access features without explicit permission.
+              - generic [ref=e145]:
+                - heading "App Info" [level=3] [ref=e146]
+                - paragraph [ref=e147]:
+                  - text: "App ID:"
+                  - code [ref=e148]: miniapp-memorial-shrine
+                - paragraph [ref=e149]:
+                  - text: "Entry URL (neo-n3-mainnet):"
+                  - code [ref=e150]: /miniapp-assets/memorial-shrine/index.html
+          - generic [ref=e151]:
+            - generic [ref=e152]:
+              - heading "Similar Apps" [level=3] [ref=e153]
+              - link "View All" [ref=e154] [cursor=pointer]:
+                - /url: /miniapps?category=social
+                - text: View All
+                - img [ref=e155]
+            - generic [ref=e157]:
+              - link "miniapp-breakupcontract Breakup Contract Neo N3" [ref=e158] [cursor=pointer]:
+                - /url: /miniapps/miniapp-breakupcontract
+                - img "miniapp-breakupcontract" [ref=e160]
+                - generic [ref=e161]:
+                  - heading "Breakup Contract" [level=4] [ref=e162]
+                  - generic "Neo N3" [ref=e165]:
+                    - img "Neo N3" [ref=e166]
+              - link "miniapp-dev-tipping Dev Tipping Neo N3" [ref=e167] [cursor=pointer]:
+                - /url: /miniapps/miniapp-dev-tipping
+                - img "miniapp-dev-tipping" [ref=e169]
+                - generic [ref=e170]:
+                  - heading "Dev Tipping" [level=4] [ref=e171]
+                  - generic "Neo N3" [ref=e174]:
+                    - img "Neo N3" [ref=e175]
+              - link "miniapp-exfiles Ex Files Neo N3" [ref=e176] [cursor=pointer]:
+                - /url: /miniapps/miniapp-exfiles
+                - img "miniapp-exfiles" [ref=e178]
+                - generic [ref=e179]:
+                  - heading "Ex Files" [level=4] [ref=e180]
+                  - generic "Neo N3" [ref=e183]:
+                    - img "Neo N3" [ref=e184]
+              - link "miniapp-forever-album Forever Album Neo N3" [ref=e185] [cursor=pointer]:
+                - /url: /miniapps/miniapp-forever-album
+                - img "miniapp-forever-album" [ref=e187]
+                - generic [ref=e188]:
+                  - heading "Forever Album" [level=4] [ref=e189]
+                  - generic "Neo N3" [ref=e192]:
+                    - img "Neo N3" [ref=e193]
+    - main [ref=e194]:
+      - generic [ref=e195]:
+        - generic [ref=e196]:
+          - generic [ref=e197]:
+            - button [ref=e198] [cursor=pointer]:
+              - img [ref=e199]
+            - generic [ref=e201]:
+              - img [ref=e202]
+              - generic [ref=e205]: memorial-shrine
+          - generic [ref=e206]:
+            - generic [ref=e209]: No Wallet
+            - generic [ref=e210]:
+              - img [ref=e211]
+              - generic [ref=e213]: 7ms
+            - generic [ref=e214]:
+              - button "Copy share link" [ref=e215] [cursor=pointer]:
+                - img [ref=e216]
+              - button "Exit (ESC)" [ref=e222] [cursor=pointer]:
+                - img [ref=e223]
+        - iframe [ref=e231]:
+          
+        - button "Toggle chat" [ref=e232] [cursor=pointer]:
+          - img [ref=e233]
+    - complementary [ref=e235]:
+      - generic [ref=e236]:
+        - heading "Technical Info" [level=2] [ref=e238]
+        - generic [ref=e239]:
+          - generic [ref=e240]:
+            - generic [ref=e241]: 🌐
+            - generic [ref=e242]: Chain
+          - generic [ref=e243]:
+            - generic [ref=e245]: Neo N3
+            - generic [ref=e246]:
+              - generic [ref=e247]: Chain ID
+              - generic "neo-n3-mainnet" [ref=e250]
+            - generic [ref=e251]:
+              - generic [ref=e252]: RPC
+              - generic "mainnet1.neo.coz.io:443" [ref=e254]
+            - generic [ref=e255]:
+              - generic [ref=e256]: Master Account
+              - generic [ref=e257]:
+                - link "NhWxco...hSMK" [ref=e258] [cursor=pointer]:
+                  - /url: https://explorer.onegate.space/address/NhWxcoEc9qtmnjsTLF1fVF6myJ5MZZhSMK
+                - button "Copy" [ref=e259] [cursor=pointer]:
+                  - img [ref=e260]
+        - generic [ref=e262]:
+          - generic [ref=e263]:
+            - generic [ref=e264]: 👛
+            - generic [ref=e265]: Connected Wallet
+          - generic [ref=e267]:
+            - generic [ref=e268]: 👛
+            - generic [ref=e269]: No wallet connected
+        - generic [ref=e270]:
+          - generic [ref=e271]:
+            - generic [ref=e272]: 📜
+            - generic [ref=e273]: MiniApp Contract
+          - generic [ref=e274]:
+            - generic [ref=e275]:
+              - generic [ref=e276]: App ID
+              - generic "miniapp-memorial-shrine" [ref=e278]
+            - generic [ref=e279]:
+              - generic [ref=e280]: Contract Address
+              - generic [ref=e281]:
+                - link "NRytag...hisH" [ref=e282] [cursor=pointer]:
+                  - /url: https://explorer.onegate.space/contract/0xee7a548b71c69364fcb0e45a63a40f141b938e42
+                - button "Copy" [ref=e283] [cursor=pointer]:
+                  - img [ref=e284]
+            - generic [ref=e286]:
+              - generic [ref=e287]: Script Hash
+              - generic [ref=e288]:
+                - generic "0xee7a548b71c69364fcb0e45a63a40f141b938e42" [ref=e289]: 0xee7a...8e42
+                - button "Copy" [ref=e290] [cursor=pointer]:
+                  - img [ref=e291]
+        - generic [ref=e293]:
+          - generic [ref=e294]:
+            - generic [ref=e295]: 🏛️
+            - generic [ref=e296]: Platform Contracts
+          - generic [ref=e297]:
+            - generic [ref=e298]:
+              - generic [ref=e299]: Service Gateway
+              - generic [ref=e300]:
+                - link "NfaEbV...Ztai" [ref=e301] [cursor=pointer]:
+                  - /url: https://explorer.onegate.space/address/NfaEbVnKnUQSd4MhNXz9pY4Uire7EiZtai
+                - button "Copy" [ref=e302] [cursor=pointer]:
+                  - img [ref=e303]
+            - generic [ref=e305]:
+              - generic [ref=e306]: Governance
+              - generic [ref=e307]:
+                - link "NMhpz6...3VJn" [ref=e308] [cursor=pointer]:
+                  - /url: https://explorer.onegate.space/address/NMhpz6kT77SKaYwNHrkTv8QXpoPuSd3VJn
+                - button "Copy" [ref=e309] [cursor=pointer]:
+                  - img [ref=e310]
+        - generic [ref=e312]:
+          - generic [ref=e313]:
+            - generic [ref=e314]: 🔗
+            - generic [ref=e315]: Required Services
+          - generic [ref=e317]:
+            - generic [ref=e318]: Payment Hub
+            - generic [ref=e319]:
+              - link "NaqDPj...Msx2" [ref=e320] [cursor=pointer]:
+                - /url: https://explorer.onegate.space/address/NaqDPjXnYsm8W5V3xXuDUZe5W1HRLsMsx2
+              - button "Copy" [ref=e321] [cursor=pointer]:
+                - img [ref=e322]
+        - generic [ref=e324]:
+          - link "🔍 View Wallet on Explorer" [ref=e325] [cursor=pointer]:
+            - /url: https://explorer.onegate.space/address/
+            - generic [ref=e326]: 🔍
+            - generic [ref=e327]: View Wallet on Explorer
+          - link "📜 View Contract on Explorer" [ref=e328] [cursor=pointer]:
+            - /url: https://explorer.onegate.space/contract/0xee7a548b71c69364fcb0e45a63a40f141b938e42
+            - generic [ref=e329]: 📜
+            - generic [ref=e330]: View Contract on Explorer
+  - alert [ref=e331]
+```
