@@ -1,0 +1,2411 @@
+{
+  "summary": {
+    "totalApps": 52,
+    "totalChecks": 104,
+    "passedChecks": 94,
+    "failedChecks": 10,
+    "failedByViewport": {
+      "desktop": 5,
+      "mobile": 5
+    },
+    "generatedAt": "2026-02-07T04:53:26.909Z",
+    "artifactDir": "/home/neo/git/miniapp-platform/artifacts/miniapp-live-sweep-2026-02-07T04-46-16-273Z"
+  },
+  "results": [
+    {
+      "appId": "breakup-contract",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/breakup-contract?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/breakup-contract/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/breakup-contract/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "breakup-contract",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/breakup-contract?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/breakup-contract/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/breakup-contract/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "burn-league",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/burn-league?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/burn-league/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/burn-league/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "burn-league",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/burn-league?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/burn-league/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/burn-league/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "candidate-vote",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/candidate-vote?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/candidate-vote/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/candidate-vote/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "candidate-vote",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/candidate-vote?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/candidate-vote/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/candidate-vote/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "charity-vault",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/charity-vault?layout=web",
+      "ok": false,
+      "problems": [
+        "NO_IFRAME",
+        "DESKTOP_SIDEBARS_MISSING"
+      ],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked."
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 0,
+        "iframeCount": 0,
+        "hasAppDetailsButton": false,
+        "hasTechInfoButton": false,
+        "title": ""
+      }
+    },
+    {
+      "appId": "charity-vault",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/charity-vault?layout=mobile",
+      "ok": false,
+      "problems": [
+        "NO_IFRAME",
+        "MOBILE_APP_DETAILS_BUTTON_MISSING",
+        "MOBILE_TECH_INFO_BUTTON_MISSING"
+      ],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked."
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 0,
+        "iframeCount": 0,
+        "hasAppDetailsButton": false,
+        "hasTechInfoButton": false,
+        "title": ""
+      }
+    },
+    {
+      "appId": "coin-flip",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/coin-flip?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/coin-flip/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/coin-flip/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "coin-flip",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/coin-flip?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/coin-flip/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/coin-flip/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "compound-capsule",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/compound-capsule?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/compound-capsule/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/compound-capsule/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "compound-capsule",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/compound-capsule?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/compound-capsule/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/compound-capsule/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "council-governance",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/council-governance?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/council-governance/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/council-governance/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "council-governance",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/council-governance?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/council-governance/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/council-governance/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "daily-checkin",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/daily-checkin?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/daily-checkin/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/daily-checkin/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "daily-checkin",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/daily-checkin?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/daily-checkin/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/daily-checkin/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "dev-tipping",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/dev-tipping?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/dev-tipping/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/dev-tipping/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "dev-tipping",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/dev-tipping?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/dev-tipping/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/dev-tipping/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "doomsday-clock",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/doomsday-clock?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/doomsday-clock/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/doomsday-clock/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "doomsday-clock",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/doomsday-clock?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/doomsday-clock/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/doomsday-clock/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "event-ticket-pass",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/event-ticket-pass?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/event-ticket-pass/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/event-ticket-pass/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "event-ticket-pass",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/event-ticket-pass?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/event-ticket-pass/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/event-ticket-pass/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "ex-files",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/ex-files?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/ex-files/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/ex-files/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "ex-files",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/ex-files?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/ex-files/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/ex-files/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "explorer",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/explorer?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/explorer/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/explorer/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "explorer",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/explorer?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/explorer/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/explorer/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "flashloan",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/flashloan?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/flashloan/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/flashloan/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "flashloan",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/flashloan?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/flashloan/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/flashloan/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "forever-album",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/forever-album?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/forever-album/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/forever-album/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "forever-album",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/forever-album?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/forever-album/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/forever-album/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "garden-of-neo",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/garden-of-neo?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/garden-of-neo/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/garden-of-neo/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "garden-of-neo",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/garden-of-neo?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/garden-of-neo/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/garden-of-neo/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "gas-sponsor",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/gas-sponsor?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/gas-sponsor/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/gas-sponsor/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "gas-sponsor",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/gas-sponsor?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/gas-sponsor/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/gas-sponsor/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "gov-merc",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/gov-merc?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/gov-merc/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/gov-merc/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "gov-merc",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/gov-merc?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/gov-merc/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/gov-merc/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "grant-share",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/grant-share?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/grant-share/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/grant-share/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "grant-share",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/grant-share?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/grant-share/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/grant-share/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "graveyard",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/graveyard?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/graveyard/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/graveyard/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "graveyard",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/graveyard?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/graveyard/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/graveyard/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "guardian-policy",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/guardian-policy?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/guardian-policy/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/guardian-policy/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "guardian-policy",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/guardian-policy?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/guardian-policy/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/guardian-policy/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "hall-of-fame",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/hall-of-fame?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/hall-of-fame/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/hall-of-fame/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "hall-of-fame",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/hall-of-fame?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/hall-of-fame/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/hall-of-fame/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "heritage-trust",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/heritage-trust?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/heritage-trust/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/heritage-trust/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "heritage-trust",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/heritage-trust?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/heritage-trust/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/heritage-trust/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "lottery",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/lottery?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/lottery/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/lottery/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "lottery",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/lottery?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/lottery/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/lottery/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "masquerade-dao",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/masquerade-dao?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/masquerade-dao/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/masquerade-dao/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "masquerade-dao",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/masquerade-dao?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/masquerade-dao/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/masquerade-dao/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "memorial-shrine",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/memorial-shrine?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/memorial-shrine/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/memorial-shrine/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "memorial-shrine",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/memorial-shrine?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/memorial-shrine/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/memorial-shrine/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "milestone-escrow",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/milestone-escrow?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/milestone-escrow/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/milestone-escrow/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "milestone-escrow",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/milestone-escrow?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/milestone-escrow/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/milestone-escrow/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "million-piece-map",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/million-piece-map?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/million-piece-map/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/million-piece-map/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "million-piece-map",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/million-piece-map?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/million-piece-map/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/million-piece-map/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "neo-convert",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/neo-convert?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-convert/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-convert/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "neo-convert",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/neo-convert?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-convert/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-convert/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "neo-gacha",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/neo-gacha?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-gacha/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-gacha/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "neo-gacha",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/neo-gacha?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-gacha/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-gacha/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "neo-multisig",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/neo-multisig?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-multisig/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-multisig/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "neo-multisig",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/neo-multisig?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-multisig/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-multisig/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "neo-news-today",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/neo-news-today?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-news-today/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-news-today/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "neo-news-today",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/neo-news-today?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-news-today/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-news-today/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "neo-ns",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/neo-ns?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-ns/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-ns/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "neo-ns",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/neo-ns?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-ns/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-ns/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "neo-sign-anything",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/neo-sign-anything?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-sign-anything/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-sign-anything/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "neo-sign-anything",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/neo-sign-anything?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-sign-anything/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-sign-anything/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "neo-swap",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/neo-swap?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-swap/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-swap/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "neo-swap",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/neo-swap?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-swap/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-swap/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "neo-treasury",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/neo-treasury?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-treasury/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-treasury/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "neo-treasury",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/neo-treasury?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-treasury/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neo-treasury/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "neoburger",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/neoburger?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neoburger/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neoburger/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "neoburger",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/neoburger?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neoburger/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/neoburger/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "on-chain-tarot",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/on-chain-tarot?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/on-chain-tarot/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/on-chain-tarot/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "on-chain-tarot",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/on-chain-tarot?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/on-chain-tarot/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/on-chain-tarot/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "piggy-bank",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/piggy-bank?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/piggy-bank/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/piggy-bank/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "piggy-bank",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/piggy-bank?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/piggy-bank/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/piggy-bank/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "prediction-market",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/prediction-market?layout=web",
+      "ok": false,
+      "problems": [
+        "NO_IFRAME",
+        "DESKTOP_SIDEBARS_MISSING"
+      ],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked."
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 0,
+        "iframeCount": 0,
+        "hasAppDetailsButton": false,
+        "hasTechInfoButton": false,
+        "title": ""
+      }
+    },
+    {
+      "appId": "prediction-market",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/prediction-market?layout=mobile",
+      "ok": false,
+      "problems": [
+        "NO_IFRAME",
+        "MOBILE_APP_DETAILS_BUTTON_MISSING",
+        "MOBILE_TECH_INFO_BUTTON_MISSING"
+      ],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked."
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 0,
+        "iframeCount": 0,
+        "hasAppDetailsButton": false,
+        "hasTechInfoButton": false,
+        "title": ""
+      }
+    },
+    {
+      "appId": "quadratic-funding",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/quadratic-funding?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/quadratic-funding/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/quadratic-funding/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "quadratic-funding",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/quadratic-funding?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/quadratic-funding/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/quadratic-funding/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "red-envelope",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/red-envelope?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/red-envelope/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/red-envelope/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "red-envelope",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/red-envelope?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/red-envelope/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/red-envelope/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "self-loan",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/self-loan?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/self-loan/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/self-loan/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "self-loan",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/self-loan?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/self-loan/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/self-loan/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "social-karma",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/social-karma?layout=web",
+      "ok": false,
+      "problems": [
+        "NO_IFRAME",
+        "DESKTOP_SIDEBARS_MISSING"
+      ],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked."
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 0,
+        "iframeCount": 0,
+        "hasAppDetailsButton": false,
+        "hasTechInfoButton": false,
+        "title": ""
+      }
+    },
+    {
+      "appId": "social-karma",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/social-karma?layout=mobile",
+      "ok": false,
+      "problems": [
+        "NO_IFRAME",
+        "MOBILE_APP_DETAILS_BUTTON_MISSING",
+        "MOBILE_TECH_INFO_BUTTON_MISSING"
+      ],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked."
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 0,
+        "iframeCount": 0,
+        "hasAppDetailsButton": false,
+        "hasTechInfoButton": false,
+        "title": ""
+      }
+    },
+    {
+      "appId": "soulbound-certificate",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/soulbound-certificate?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/soulbound-certificate/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/soulbound-certificate/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "soulbound-certificate",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/soulbound-certificate?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/soulbound-certificate/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/soulbound-certificate/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "stream-vault",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/stream-vault?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/stream-vault/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/stream-vault/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "stream-vault",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/stream-vault?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/stream-vault/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/stream-vault/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "time-capsule",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/time-capsule?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/time-capsule/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/time-capsule/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "time-capsule",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/time-capsule?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/time-capsule/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/time-capsule/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "timestamp-proof",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/timestamp-proof?layout=web",
+      "ok": false,
+      "problems": [
+        "NO_IFRAME",
+        "DESKTOP_SIDEBARS_MISSING"
+      ],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked."
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 0,
+        "iframeCount": 0,
+        "hasAppDetailsButton": false,
+        "hasTechInfoButton": false,
+        "title": ""
+      }
+    },
+    {
+      "appId": "timestamp-proof",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/timestamp-proof?layout=mobile",
+      "ok": false,
+      "problems": [
+        "NO_IFRAME",
+        "MOBILE_APP_DETAILS_BUTTON_MISSING",
+        "MOBILE_TECH_INFO_BUTTON_MISSING"
+      ],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked."
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 0,
+        "iframeCount": 0,
+        "hasAppDetailsButton": false,
+        "hasTechInfoButton": false,
+        "title": ""
+      }
+    },
+    {
+      "appId": "trustanchor",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/trustanchor?layout=web",
+      "ok": false,
+      "problems": [
+        "NO_IFRAME",
+        "DESKTOP_SIDEBARS_MISSING"
+      ],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked."
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 0,
+        "iframeCount": 0,
+        "hasAppDetailsButton": false,
+        "hasTechInfoButton": false,
+        "title": ""
+      }
+    },
+    {
+      "appId": "trustanchor",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/trustanchor?layout=mobile",
+      "ok": false,
+      "problems": [
+        "NO_IFRAME",
+        "MOBILE_APP_DETAILS_BUTTON_MISSING",
+        "MOBILE_TECH_INFO_BUTTON_MISSING"
+      ],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked."
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 0,
+        "iframeCount": 0,
+        "hasAppDetailsButton": false,
+        "hasTechInfoButton": false,
+        "title": ""
+      }
+    },
+    {
+      "appId": "turtle-match",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/turtle-match?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/turtle-match/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/turtle-match/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "turtle-match",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/turtle-match?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/turtle-match/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/turtle-match/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "unbreakable-vault",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/unbreakable-vault?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/unbreakable-vault/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/unbreakable-vault/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "unbreakable-vault",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/unbreakable-vault?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/unbreakable-vault/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/unbreakable-vault/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "wallet-health",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:3100/miniapps/wallet-health?layout=web",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/wallet-health/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/wallet-health/index.html?lang=en&theme=dark&embedded=1&layout=web' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    },
+    {
+      "appId": "wallet-health",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:3100/miniapps/wallet-health?layout=mobile",
+      "ok": true,
+      "problems": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Righteous&family=Space+Grotesk:wght@600;700&display=swap' violates the following Content Security Policy directive: \"style-src-elem 'self' 'unsafe-inline'\". The action has been blocked.",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/wallet-health/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Framing 'http://127.0.0.1:3100/miniapp-assets/wallet-health/index.html?lang=en&theme=dark&embedded=1&layout=mobile' violates the following Content Security Policy directive: \"frame-src 'none'\". The request has been blocked.\n",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "checks": {
+        "overflowX": 0,
+        "overflowY": 0,
+        "asides": 2,
+        "iframeCount": 2,
+        "hasAppDetailsButton": true,
+        "hasTechInfoButton": true,
+        "title": ""
+      }
+    }
+  ]
+}

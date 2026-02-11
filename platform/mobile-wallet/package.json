@@ -1,6 +1,6 @@
 {
   "name": "neo-miniapp-wallet",
-  "version": "1.0.0",
+  "version": "2.1.0",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
@@ -9,7 +9,7 @@
     "web": "expo start --web",
     "build": "tsc --noEmit",
     "build:web": "expo export --platform web --no-ssg",
-    "test": "jest",
+    "test": "jest --runInBand",
     "lint": "eslint . --ext .ts,.tsx",
     "typecheck": "tsc --noEmit"
   },

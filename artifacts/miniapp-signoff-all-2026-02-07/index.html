@@ -1,0 +1,1065 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Miniapp Visual Sign-off Gallery</title>
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      margin: 0;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0b1020;
+      color: #e6edf3;
+    }
+    .wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    .header {
+      position: sticky;
+      top: 0;
+      background: rgba(11, 16, 32, 0.92);
+      backdrop-filter: blur(8px);
+      z-index: 5;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin: -24px -24px 20px;
+      padding: 18px 24px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+    }
+    .meta {
+      margin-top: 6px;
+      color: #9fb0c3;
+      font-size: 13px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      background: rgba(21, 29, 52, 0.78);
+      overflow: hidden;
+    }
+    .card h2 {
+      margin: 0;
+      padding: 12px 14px;
+      font-size: 15px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      text-transform: capitalize;
+      letter-spacing: 0.02em;
+    }
+    .shots {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 10px;
+    }
+    figure {
+      margin: 0;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    figcaption {
+      padding: 8px 10px;
+      font-size: 12px;
+      color: #afbfce;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .controls {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+    .search-input {
+      flex: 1 1 320px;
+      max-width: 560px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.22);
+      color: #e6edf3;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      outline: none;
+    }
+    .search-input:focus {
+      border-color: #6ea8ff;
+      box-shadow: 0 0 0 2px rgba(110, 168, 255, 0.22);
+    }
+    .clear-btn {
+      border: 1px solid rgba(255,255,255,0.22);
+      background: rgba(255,255,255,0.06);
+      color: #e6edf3;
+      border-radius: 10px;
+      padding: 9px 14px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .clear-btn:hover {
+      background: rgba(255,255,255,0.12);
+    }
+    .status {
+      color: #afbfce;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .shots { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <h1>Miniapp Visual Sign-off Gallery</h1>
+      <div class="meta">Generated on 2026-02-07 11:08:50 CST • 52 miniapps • 104 screenshots</div>
+      <div class="controls">
+        <input id="appFilter" class="search-input" type="search" placeholder="Filter miniapps (e.g. neo, swap, turtle)..." autocomplete="off" />
+        <button id="clearFilter" class="clear-btn" type="button">Clear</button>
+        <span id="filterStats" class="status"></span>
+      </div>
+    </div>
+    <section class="grid">
+      <article class="card" id="breakup-contract">
+        <h2><a href="#breakup-contract">breakup-contract</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="breakup-contract-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="breakup-contract-mobile.png" alt="breakup-contract mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="breakup-contract-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="breakup-contract-desktop.png" alt="breakup-contract desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="burn-league">
+        <h2><a href="#burn-league">burn-league</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="burn-league-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="burn-league-mobile.png" alt="burn-league mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="burn-league-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="burn-league-desktop.png" alt="burn-league desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="candidate-vote">
+        <h2><a href="#candidate-vote">candidate-vote</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="candidate-vote-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="candidate-vote-mobile.png" alt="candidate-vote mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="candidate-vote-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="candidate-vote-desktop.png" alt="candidate-vote desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="charity-vault">
+        <h2><a href="#charity-vault">charity-vault</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="charity-vault-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="charity-vault-mobile.png" alt="charity-vault mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="charity-vault-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="charity-vault-desktop.png" alt="charity-vault desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="coin-flip">
+        <h2><a href="#coin-flip">coin-flip</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="coin-flip-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="coin-flip-mobile.png" alt="coin-flip mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="coin-flip-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="coin-flip-desktop.png" alt="coin-flip desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="compound-capsule">
+        <h2><a href="#compound-capsule">compound-capsule</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="compound-capsule-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="compound-capsule-mobile.png" alt="compound-capsule mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="compound-capsule-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="compound-capsule-desktop.png" alt="compound-capsule desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="council-governance">
+        <h2><a href="#council-governance">council-governance</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="council-governance-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="council-governance-mobile.png" alt="council-governance mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="council-governance-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="council-governance-desktop.png" alt="council-governance desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="daily-checkin">
+        <h2><a href="#daily-checkin">daily-checkin</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="daily-checkin-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="daily-checkin-mobile.png" alt="daily-checkin mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="daily-checkin-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="daily-checkin-desktop.png" alt="daily-checkin desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="dev-tipping">
+        <h2><a href="#dev-tipping">dev-tipping</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="dev-tipping-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="dev-tipping-mobile.png" alt="dev-tipping mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="dev-tipping-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="dev-tipping-desktop.png" alt="dev-tipping desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="doomsday-clock">
+        <h2><a href="#doomsday-clock">doomsday-clock</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="doomsday-clock-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="doomsday-clock-mobile.png" alt="doomsday-clock mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="doomsday-clock-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="doomsday-clock-desktop.png" alt="doomsday-clock desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="event-ticket-pass">
+        <h2><a href="#event-ticket-pass">event-ticket-pass</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="event-ticket-pass-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="event-ticket-pass-mobile.png" alt="event-ticket-pass mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="event-ticket-pass-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="event-ticket-pass-desktop.png" alt="event-ticket-pass desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="ex-files">
+        <h2><a href="#ex-files">ex-files</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="ex-files-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="ex-files-mobile.png" alt="ex-files mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="ex-files-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="ex-files-desktop.png" alt="ex-files desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="explorer">
+        <h2><a href="#explorer">explorer</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="explorer-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="explorer-mobile.png" alt="explorer mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="explorer-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="explorer-desktop.png" alt="explorer desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="flashloan">
+        <h2><a href="#flashloan">flashloan</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="flashloan-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="flashloan-mobile.png" alt="flashloan mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="flashloan-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="flashloan-desktop.png" alt="flashloan desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="forever-album">
+        <h2><a href="#forever-album">forever-album</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="forever-album-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="forever-album-mobile.png" alt="forever-album mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="forever-album-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="forever-album-desktop.png" alt="forever-album desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="garden-of-neo">
+        <h2><a href="#garden-of-neo">garden-of-neo</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="garden-of-neo-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="garden-of-neo-mobile.png" alt="garden-of-neo mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="garden-of-neo-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="garden-of-neo-desktop.png" alt="garden-of-neo desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="gas-sponsor">
+        <h2><a href="#gas-sponsor">gas-sponsor</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="gas-sponsor-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="gas-sponsor-mobile.png" alt="gas-sponsor mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="gas-sponsor-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="gas-sponsor-desktop.png" alt="gas-sponsor desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="gov-merc">
+        <h2><a href="#gov-merc">gov-merc</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="gov-merc-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="gov-merc-mobile.png" alt="gov-merc mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="gov-merc-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="gov-merc-desktop.png" alt="gov-merc desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="grant-share">
+        <h2><a href="#grant-share">grant-share</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="grant-share-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="grant-share-mobile.png" alt="grant-share mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="grant-share-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="grant-share-desktop.png" alt="grant-share desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="graveyard">
+        <h2><a href="#graveyard">graveyard</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="graveyard-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="graveyard-mobile.png" alt="graveyard mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="graveyard-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="graveyard-desktop.png" alt="graveyard desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="guardian-policy">
+        <h2><a href="#guardian-policy">guardian-policy</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="guardian-policy-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="guardian-policy-mobile.png" alt="guardian-policy mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="guardian-policy-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="guardian-policy-desktop.png" alt="guardian-policy desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="hall-of-fame">
+        <h2><a href="#hall-of-fame">hall-of-fame</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="hall-of-fame-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="hall-of-fame-mobile.png" alt="hall-of-fame mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="hall-of-fame-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="hall-of-fame-desktop.png" alt="hall-of-fame desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="heritage-trust">
+        <h2><a href="#heritage-trust">heritage-trust</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="heritage-trust-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="heritage-trust-mobile.png" alt="heritage-trust mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="heritage-trust-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="heritage-trust-desktop.png" alt="heritage-trust desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="lottery">
+        <h2><a href="#lottery">lottery</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="lottery-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="lottery-mobile.png" alt="lottery mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="lottery-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="lottery-desktop.png" alt="lottery desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="masquerade-dao">
+        <h2><a href="#masquerade-dao">masquerade-dao</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="masquerade-dao-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="masquerade-dao-mobile.png" alt="masquerade-dao mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="masquerade-dao-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="masquerade-dao-desktop.png" alt="masquerade-dao desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="memorial-shrine">
+        <h2><a href="#memorial-shrine">memorial-shrine</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="memorial-shrine-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="memorial-shrine-mobile.png" alt="memorial-shrine mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="memorial-shrine-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="memorial-shrine-desktop.png" alt="memorial-shrine desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="milestone-escrow">
+        <h2><a href="#milestone-escrow">milestone-escrow</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="milestone-escrow-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="milestone-escrow-mobile.png" alt="milestone-escrow mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="milestone-escrow-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="milestone-escrow-desktop.png" alt="milestone-escrow desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="million-piece-map">
+        <h2><a href="#million-piece-map">million-piece-map</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="million-piece-map-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="million-piece-map-mobile.png" alt="million-piece-map mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="million-piece-map-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="million-piece-map-desktop.png" alt="million-piece-map desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="neo-convert">
+        <h2><a href="#neo-convert">neo-convert</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="neo-convert-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="neo-convert-mobile.png" alt="neo-convert mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="neo-convert-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="neo-convert-desktop.png" alt="neo-convert desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="neo-gacha">
+        <h2><a href="#neo-gacha">neo-gacha</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="neo-gacha-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="neo-gacha-mobile.png" alt="neo-gacha mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="neo-gacha-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="neo-gacha-desktop.png" alt="neo-gacha desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="neo-multisig">
+        <h2><a href="#neo-multisig">neo-multisig</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="neo-multisig-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="neo-multisig-mobile.png" alt="neo-multisig mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="neo-multisig-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="neo-multisig-desktop.png" alt="neo-multisig desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="neo-news-today">
+        <h2><a href="#neo-news-today">neo-news-today</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="neo-news-today-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="neo-news-today-mobile.png" alt="neo-news-today mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="neo-news-today-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="neo-news-today-desktop.png" alt="neo-news-today desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="neo-ns">
+        <h2><a href="#neo-ns">neo-ns</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="neo-ns-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="neo-ns-mobile.png" alt="neo-ns mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="neo-ns-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="neo-ns-desktop.png" alt="neo-ns desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="neo-sign-anything">
+        <h2><a href="#neo-sign-anything">neo-sign-anything</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="neo-sign-anything-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="neo-sign-anything-mobile.png" alt="neo-sign-anything mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="neo-sign-anything-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="neo-sign-anything-desktop.png" alt="neo-sign-anything desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="neo-swap">
+        <h2><a href="#neo-swap">neo-swap</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="neo-swap-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="neo-swap-mobile.png" alt="neo-swap mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="neo-swap-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="neo-swap-desktop.png" alt="neo-swap desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="neo-treasury">
+        <h2><a href="#neo-treasury">neo-treasury</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="neo-treasury-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="neo-treasury-mobile.png" alt="neo-treasury mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="neo-treasury-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="neo-treasury-desktop.png" alt="neo-treasury desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="neoburger">
+        <h2><a href="#neoburger">neoburger</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="neoburger-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="neoburger-mobile.png" alt="neoburger mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="neoburger-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="neoburger-desktop.png" alt="neoburger desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="on-chain-tarot">
+        <h2><a href="#on-chain-tarot">on-chain-tarot</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="on-chain-tarot-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="on-chain-tarot-mobile.png" alt="on-chain-tarot mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="on-chain-tarot-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="on-chain-tarot-desktop.png" alt="on-chain-tarot desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="piggy-bank">
+        <h2><a href="#piggy-bank">piggy-bank</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="piggy-bank-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="piggy-bank-mobile.png" alt="piggy-bank mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="piggy-bank-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="piggy-bank-desktop.png" alt="piggy-bank desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="prediction-market">
+        <h2><a href="#prediction-market">prediction-market</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="prediction-market-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="prediction-market-mobile.png" alt="prediction-market mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="prediction-market-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="prediction-market-desktop.png" alt="prediction-market desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="quadratic-funding">
+        <h2><a href="#quadratic-funding">quadratic-funding</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="quadratic-funding-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="quadratic-funding-mobile.png" alt="quadratic-funding mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="quadratic-funding-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="quadratic-funding-desktop.png" alt="quadratic-funding desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="red-envelope">
+        <h2><a href="#red-envelope">red-envelope</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="red-envelope-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="red-envelope-mobile.png" alt="red-envelope mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="red-envelope-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="red-envelope-desktop.png" alt="red-envelope desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="self-loan">
+        <h2><a href="#self-loan">self-loan</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="self-loan-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="self-loan-mobile.png" alt="self-loan mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="self-loan-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="self-loan-desktop.png" alt="self-loan desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="social-karma">
+        <h2><a href="#social-karma">social-karma</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="social-karma-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="social-karma-mobile.png" alt="social-karma mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="social-karma-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="social-karma-desktop.png" alt="social-karma desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="soulbound-certificate">
+        <h2><a href="#soulbound-certificate">soulbound-certificate</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="soulbound-certificate-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="soulbound-certificate-mobile.png" alt="soulbound-certificate mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="soulbound-certificate-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="soulbound-certificate-desktop.png" alt="soulbound-certificate desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="stream-vault">
+        <h2><a href="#stream-vault">stream-vault</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="stream-vault-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="stream-vault-mobile.png" alt="stream-vault mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="stream-vault-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="stream-vault-desktop.png" alt="stream-vault desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="time-capsule">
+        <h2><a href="#time-capsule">time-capsule</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="time-capsule-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="time-capsule-mobile.png" alt="time-capsule mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="time-capsule-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="time-capsule-desktop.png" alt="time-capsule desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="timestamp-proof">
+        <h2><a href="#timestamp-proof">timestamp-proof</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="timestamp-proof-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="timestamp-proof-mobile.png" alt="timestamp-proof mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="timestamp-proof-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="timestamp-proof-desktop.png" alt="timestamp-proof desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="trustanchor">
+        <h2><a href="#trustanchor">trustanchor</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="trustanchor-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="trustanchor-mobile.png" alt="trustanchor mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="trustanchor-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="trustanchor-desktop.png" alt="trustanchor desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="turtle-match">
+        <h2><a href="#turtle-match">turtle-match</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="turtle-match-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="turtle-match-mobile.png" alt="turtle-match mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="turtle-match-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="turtle-match-desktop.png" alt="turtle-match desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="unbreakable-vault">
+        <h2><a href="#unbreakable-vault">unbreakable-vault</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="unbreakable-vault-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="unbreakable-vault-mobile.png" alt="unbreakable-vault mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="unbreakable-vault-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="unbreakable-vault-desktop.png" alt="unbreakable-vault desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="card" id="wallet-health">
+        <h2><a href="#wallet-health">wallet-health</a></h2>
+        <div class="shots">
+          <figure>
+            <a href="wallet-health-mobile.png" target="_blank" rel="noopener noreferrer">
+              <img src="wallet-health-mobile.png" alt="wallet-health mobile screenshot" loading="lazy" />
+            </a>
+            <figcaption>Mobile (390×844)</figcaption>
+          </figure>
+          <figure>
+            <a href="wallet-health-desktop.png" target="_blank" rel="noopener noreferrer">
+              <img src="wallet-health-desktop.png" alt="wallet-health desktop screenshot" loading="lazy" />
+            </a>
+            <figcaption>Desktop (1440×900)</figcaption>
+          </figure>
+        </div>
+      </article>
+    </section>
+  </div>
+  <script>
+    (() => {
+      const cards = Array.from(document.querySelectorAll(".card"));
+      const total = cards.length;
+      const filterInput = document.getElementById("appFilter");
+      const clearButton = document.getElementById("clearFilter");
+      const stats = document.getElementById("filterStats");
+
+      if (!filterInput || !clearButton || !stats) return;
+
+      const applyFilter = () => {
+        const query = filterInput.value.trim().toLowerCase();
+        let visible = 0;
+
+        for (const card of cards) {
+          const key = ((card.id || "") + " " + (card.querySelector("h2")?.textContent || "")).toLowerCase();
+          const matched = query === "" || key.includes(query);
+          card.style.display = matched ? "" : "none";
+          if (matched) visible += 1;
+        }
+
+        stats.textContent = "Showing " + visible + " / " + total;
+      };
+
+      filterInput.addEventListener("input", applyFilter);
+      clearButton.addEventListener("click", () => {
+        filterInput.value = "";
+        filterInput.focus();
+        applyFilter();
+      });
+
+      applyFilter();
+    })();
+  </script>
+</body>
+</html>
