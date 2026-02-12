@@ -43,7 +43,7 @@ export default function NFTSendScreen() {
       const txHash = await transferNFT(nft.contractAddress, tokenId, recipient.trim());
       Alert.alert("Success", `NFT sent!\nTx: ${txHash.slice(0, 16)}...`);
       router.back();
-    } catch (e) {
+    } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "Transfer failed";
       Alert.alert("Error", message);
     } finally {

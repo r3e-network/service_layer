@@ -81,7 +81,7 @@ export default function SendScreen() {
       const result = await sendRawTransaction(signature);
       Alert.alert(t("wallet.success"), `${t("wallet.tx_sent")}\nHash: ${result.hash.slice(0, 16)}...`);
       router.back();
-    } catch (e) {
+    } catch (e: unknown) {
       const message = e instanceof Error ? e.message : t("wallet.tx_failed");
       Alert.alert(t("wallet.error"), message);
     } finally {
@@ -109,7 +109,9 @@ export default function SendScreen() {
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.balance}>{t("wallet.balance")}: {selectedAsset?.balance || "0"}</Text>
+      <Text style={styles.balance}>
+        {t("wallet.balance")}: {selectedAsset?.balance || "0"}
+      </Text>
 
       {/* Recipient */}
       <Text style={styles.label}>{t("wallet.recipient_address")}</Text>
@@ -167,7 +169,15 @@ const styles = StyleSheet.create({
   },
   assetActive: { backgroundColor: "#00E599" },
   assetText: { color: "#000", fontSize: 16, fontWeight: "900", textTransform: "uppercase", fontStyle: "italic" },
-  balance: { color: "#000", marginBottom: 32, textAlign: "center", fontWeight: "900", fontSize: 14, textTransform: "uppercase", opacity: 0.5 },
+  balance: {
+    color: "#000",
+    marginBottom: 32,
+    textAlign: "center",
+    fontWeight: "900",
+    fontSize: 14,
+    textTransform: "uppercase",
+    opacity: 0.5,
+  },
   label: { color: "#000", marginBottom: 8, fontWeight: "900", textTransform: "uppercase", fontSize: 12 },
   recipientRow: { flexDirection: "row", gap: 12, marginBottom: 20 },
   recipientInput: {

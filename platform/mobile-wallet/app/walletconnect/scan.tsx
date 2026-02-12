@@ -44,7 +44,7 @@ export default function WCScanScreen() {
       const meta = { name: "DApp", description: "Connected DApp", url: "", icons: [] };
       await connect(parsed.topic, meta, address, network);
       router.replace("/walletconnect");
-    } catch (e) {
+    } catch (e: unknown) {
       const message = e instanceof Error ? e.message : t("walletconnect.connectionFailed");
       Alert.alert(t("common.error"), message);
       setScanned(false);

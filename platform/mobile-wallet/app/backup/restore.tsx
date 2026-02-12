@@ -32,7 +32,7 @@ export default function RestoreScreen() {
       Alert.alert(t("common.success"), t("backup.restoreSuccessMessage"), [
         { text: t("common.ok"), onPress: () => router.replace("/") },
       ]);
-    } catch (e) {
+    } catch (e: unknown) {
       const message = e instanceof Error ? e.message : t("backup.restoreErrorMessage");
       Alert.alert(t("common.error"), message);
     } finally {

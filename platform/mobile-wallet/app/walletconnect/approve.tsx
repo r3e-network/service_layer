@@ -34,7 +34,7 @@ export default function WCApproveScreen() {
       const signature = await signWCRequest(pendingRequest);
       await sendWCResponse(pendingRequest.id, signature);
       Alert.alert(t("common.success"), t("walletconnect.approvedMessage"));
-    } catch (e) {
+    } catch (e: unknown) {
       const message = e instanceof Error ? e.message : t("walletconnect.signFailed");
       Alert.alert(t("common.error"), message);
     } finally {

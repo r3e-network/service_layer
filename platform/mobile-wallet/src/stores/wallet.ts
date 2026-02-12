@@ -165,7 +165,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
         assets: [...baseAssets, ...tokenAssets],
         totalUsdValue: total,
       });
-    } catch (e) {
+    } catch (e: unknown) {
       console.error("Failed to fetch balances:", e);
     }
   },
