@@ -22,7 +22,7 @@ jobs:
     steps:
       - name: Decide whether CI should run for this push
         id: gate
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const owner = context.repo.owner;
